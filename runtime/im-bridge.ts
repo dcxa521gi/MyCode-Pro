@@ -215,6 +215,11 @@ async function dispatch(input: any) {
     // Some SDKs clear claimed owners when changing credentials. Restore the explicit allowlist.
     secrets[ownerKeys[channel]] = route.ownerId.trim();
     save();
+    // These transports cache the owner in memory; reload the explicit allowlist after credential changes.
+    if (channel === "wecom" || channel === "dingtalk") {
+      await transport.dispose();
+      await transport.init();
+    }
     return publicState();
   }
   if (input.action === "reply") {
