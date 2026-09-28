@@ -26,7 +26,6 @@
         "languages": ["English", "SimpChinese"],
         "displayLanguageSelector": true,
         "installMode": "currentUser",
-        "sidebarImage": "icons/installer-sidebar.bmp",
         "installerIcon": "icons/icon.ico"
       }
     },
