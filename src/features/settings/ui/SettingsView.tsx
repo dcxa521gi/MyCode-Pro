@@ -3049,7 +3049,7 @@ function ProviderBinaryControl({
             </span>
             <div className="flex items-center gap-1.5">
               <span className="rounded-full bg-content/10 px-1.5 py-0.5 text-[10px] text-content/50">
-                {t("Global path")}
+                {t("MyCode app")}
               </span>
               <span className="rounded-full bg-content/10 px-1.5 py-0.5 text-[10px] text-content/50">
                 {error
