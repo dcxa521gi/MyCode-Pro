@@ -53,6 +53,14 @@ export function TaskImportPage({
       );
     } finally {
       setImported((current) => [...current, ...saved]);
+      setSelected(
+        (current) =>
+          new Set(
+            [...current].filter(
+              (id) => !saved.some((session) => session.id === id),
+            ),
+          ),
+      );
       setBusy(false);
     }
   };

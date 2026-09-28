@@ -1174,7 +1174,7 @@ pub enum GitHubStarStatus {
     Unavailable,
 }
 
-const MONOCODE_STAR_ENDPOINT: &str = "/user/starred/dcxa521gi/MyCode";
+const MONOCODE_STAR_ENDPOINT: &str = "/user/starred/dcxa521gi/MyCode-Pro";
 
 /// Whether the GitHub CLI is installed and has an active authenticated account.
 #[tauri::command]
