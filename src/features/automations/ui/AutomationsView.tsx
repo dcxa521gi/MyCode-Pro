@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   useCallback,
   useEffect,
@@ -84,20 +85,35 @@ import {
   azureDevOpsConnected,
 } from "../../inbox/model/azureDevOps";
 import { gitBranches } from "../../../platform/tauri/fs";
-import { formatRelativeTime, githubStatus } from "../../inbox/model/githubTasks";
+import {
+  formatRelativeTime,
+  githubStatus,
+} from "../../inbox/model/githubTasks";
 import { GITLAB_CHANGE_EVENT, gitlabConnected } from "../../inbox/model/gitlab";
 import { LAYER } from "../../../shared/lib/layers";
 import { LINEAR_CHANGE_EVENT, linearConnected } from "../../inbox/model/linear";
 import { JIRA_CHANGE_EVENT, jiraConnected } from "../../inbox/model/jira";
-import { defaultSessionChoice, firstEnabledHarness, modelsFor, preferredModelId, resolveModel } from "../../sessions/model/models";
+import {
+  defaultSessionChoice,
+  firstEnabledHarness,
+  modelsFor,
+  preferredModelId,
+  resolveModel,
+} from "../../sessions/model/models";
 import { projectKey, projectName } from "../../../shared/lib/paths";
 import { IS_MAC } from "../../../platform/tauri/platform";
-import { looksLikeProject, type RecentProject } from "../../projects/model/recents";
+import {
+  looksLikeProject,
+  type RecentProject,
+} from "../../projects/model/recents";
 import {
   loadSessionFolders,
   subscribeSessionFolders,
 } from "../../sessions/model/sessionFolders";
-import { loadModelControls, subscribeModelControls } from "../../settings/model/settings";
+import {
+  loadModelControls,
+  subscribeModelControls,
+} from "../../settings/model/settings";
 import {
   loadTabGroupColors,
   loadTabGroupCustomColors,
@@ -140,10 +156,11 @@ export function AutomationsView({
   onLaunch,
   onOpenSession,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <div
       role="region"
-      aria-label="Automations"
+      aria-label={t("Automations")}
       data-app-automations
       className="flex min-h-0 min-w-0 flex-1 flex-col text-content"
     >
@@ -161,7 +178,9 @@ export function AutomationsView({
             className="size-3.5 shrink-0 text-content/45"
             strokeWidth={1.75}
           />
-          <span className="min-w-0 truncate text-content">Automations</span>
+          <span className="min-w-0 truncate text-content">
+            {t("Automations")}
+          </span>
         </div>
         {IS_MAC ? null : <WindowControls />}
       </div>
@@ -772,9 +791,7 @@ function runTriggerMeta(
     const event = run.event ?? draft.triggerEvent;
     return {
       kind,
-      label:
-        findTriggerEvent(kind, event)?.label ??
-        triggerName(kind),
+      label: findTriggerEvent(kind, event)?.label ?? triggerName(kind),
     };
   }
   const times = draft.triggers.filter((trigger) => trigger.kind === "time");
@@ -818,6 +835,7 @@ function AutomationEditor({
   onDelete?: () => void;
   onOpenSession: (sessionId: string) => void | Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<"settings" | "history">("settings");
   const settingsTabId = useId();
   const historyTabId = useId();
@@ -901,7 +919,7 @@ function AutomationEditor({
   }, [draft.cwd]);
   const folderOptions = useMemo(() => {
     const options = [
-      { value: "", label: "None" },
+      { value: "", label: t("None") },
       ...sessionFolders.map((folder) => ({
         value: folder.id,
         label: folder.name,
@@ -987,7 +1005,7 @@ function AutomationEditor({
                     onClick={onClose}
                     className={ACTION_OUTLINE}
                   >
-                    {draft.id ? "Reset" : "Cancel"}
+                    {draft.id ? "Reset" : t("Cancel")}
                   </button>
                 ) : null}
                 {onRun ? (
@@ -1013,7 +1031,7 @@ function AutomationEditor({
                   {saving ? (
                     <LoaderCircle className="size-3.5 animate-spin" />
                   ) : null}
-                  {draft.id ? "Save" : "Create"}
+                  {draft.id ? t("Save") : "Create"}
                 </button>
               </div>
             </div>
@@ -1100,7 +1118,7 @@ function AutomationEditor({
               <PageTab
                 id={settingsTabId}
                 controls={tabPanelId}
-                label="Settings"
+                label={t("Settings")}
                 selected={!showingHistory}
                 onSelect={() => setTab("settings")}
               />
@@ -1260,7 +1278,7 @@ function AutomationEditor({
                             <ChevronRight className="size-3.5 text-content/45" />
                           ) : (
                             <span className="shrink-0 text-[11px] text-content/35">
-                              Not connected
+                              {t("Not connected")}
                             </span>
                           )}
                         </button>
@@ -1425,7 +1443,7 @@ function AutomationEditor({
               <summary className="flex min-h-14 cursor-default list-none items-center justify-between gap-3 px-4 active:opacity-75">
                 <span>
                   <span className="block text-[13px] font-medium text-content/75">
-                    Advanced
+                    {t("Advanced")}
                   </span>
                   <span className="mt-0.5 block text-[11px] text-content/40">
                     Catch-up window for missed runs

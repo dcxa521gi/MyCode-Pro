@@ -1,17 +1,17 @@
 import { getVersion } from "@tauri-apps/api/app";
+import { translate } from "../../shared/i18n";
 import { ask, message } from "@tauri-apps/plugin-dialog";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { check, type DownloadEvent, type Update } from "@tauri-apps/plugin-updater";
+import {
+  check,
+  type DownloadEvent,
+  type Update,
+} from "@tauri-apps/plugin-updater";
 import { announceUpdateAvailable } from "../../features/settings/model/sounds";
 import { rememberInstalledUpdate } from "./updateNotice";
 
 export type UpdaterPhase =
-  | "idle"
-  | "checking"
-  | "current"
-  | "available"
-  | "downloading"
-  | "error";
+  "idle" | "checking" | "current" | "available" | "downloading" | "error";
 
 export type UpdaterSnapshot = {
   phase: UpdaterPhase;
@@ -90,7 +90,7 @@ export async function runUpdateFlow(
       onProgress?.(idle);
       if (manual) {
         await message(
-          "Automatic updates aren't configured for this build.\n\nDownload releases at https://github.com/hardbeat920/monocode/releases/latest",
+          `${translate("Automatic updates aren't configured for this build.")}\n\n${translate("Download releases at")} https://github.com/dcxa521gi/monocode/releases/latest`,
           { title: "MonoCode" },
         );
       }
@@ -169,7 +169,9 @@ export async function installPendingUpdate(
       error,
     };
     onProgress?.(failed);
-    await message(`Couldn't install the update.\n\n${error}`, { title: "MonoCode" });
+    await message(`Couldn't install the update.\n\n${error}`, {
+      title: "MonoCode",
+    });
     return failed;
   }
 }

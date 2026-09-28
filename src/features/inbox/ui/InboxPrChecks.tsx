@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { CheckRepairForm, type CheckRepair } from "./CheckRepairForm";
 import {
   CheckRepairProgress,
@@ -515,6 +516,7 @@ export function InboxPrChecks({
   repo?: string;
   repair?: CheckRepair;
 }) {
+  const { t } = useTranslation();
   const { checks, loading, refreshing, error, stale } = view;
   const repairGroups = useCheckRepairs(cwd, repo, repair?.number, view);
   const revealScope = JSON.stringify([
@@ -539,9 +541,9 @@ export function InboxPrChecks({
   } | null>(null);
   const selectionValid = Boolean(
     selection &&
-      checks &&
-      selection.scope === revealScope &&
-      selectedChecksStillFailed(selection.checks, checks.checks),
+    checks &&
+    selection.scope === revealScope &&
+    selectedChecksStillFailed(selection.checks, checks.checks),
   );
   useEffect(() => {
     if (selection && !selectionValid) setSelection(null);
@@ -567,7 +569,7 @@ export function InboxPrChecks({
           className="inline-flex h-7 items-center gap-1.5 rounded-md border border-content/15 px-3 text-[12px] text-content/80 hover:bg-content/5"
         >
           <RefreshCw className="size-3.5" strokeWidth={1.75} />
-          Retry
+          {t("Retry")}
         </button>
       </div>
     );
@@ -789,8 +791,7 @@ export function InboxPrChecks({
                           : undefined
                       }
                       onFix={
-                        repair &&
-                        check.state === "fail"
+                        repair && check.state === "fail"
                           ? (anchor) =>
                               setSelection({
                                 checks: [check],

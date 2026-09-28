@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useState } from "react";
 import { Clock, Gauge, Play, X } from "../../../shared/ui/icons";
 import type { UsageLimit } from "../model/session";
@@ -17,6 +18,7 @@ export function UsageLimitNotice({
   onResumeAtReset?: (enabled: boolean) => void;
   onDismiss?: () => void;
 }) {
+  const { t } = useTranslation();
   const [now, setNow] = useState(Date.now);
   const waiting = limit.resetsAt != null && limit.resetsAt > now;
   // Tick the countdown, and flip to "Resume" once the window resets.
@@ -41,7 +43,7 @@ export function UsageLimitNotice({
         {!waiting ? (
           <button type="button" onClick={onResume} className={BUTTON}>
             <Play className="size-3.5" />
-            Resume
+            {t("Resume")}
           </button>
         ) : limit.resumeAtReset ? (
           <button

@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Loader } from "../../../shared/ui/icons";
 import { Modal } from "../../../shared/ui/Modal";
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function CreateBranchDialog({ busy, error, onCreate, onCancel }: Props) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const trimmed = name.trim();
@@ -72,7 +74,7 @@ export function CreateBranchDialog({ busy, error, onCreate, onCancel }: Props) {
             onClick={onCancel}
             className="rounded-md px-3 py-1.5 text-[12px] text-content/70 hover:bg-content/8 hover:text-content disabled:opacity-40"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="submit"

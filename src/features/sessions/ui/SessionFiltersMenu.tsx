@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { Check } from "../../../shared/ui/icons";
 import { type ReactNode } from "react";
 import { Popover } from "../../../shared/ui/Popover";
@@ -36,6 +37,7 @@ export function SessionFiltersMenu({
   onChange,
   onClose,
 }: Props) {
+  const { t } = useTranslation();
   const hiddenHarnesses = new Set(filters.hiddenHarnesses);
 
   const toggleHarness = (harness: HarnessId) => {
@@ -69,7 +71,7 @@ export function SessionFiltersMenu({
       maxHeight={480}
       onDismiss={onClose}
       role="menu"
-      aria-label="Filter sessions"
+      aria-label={t("Filter sessions")}
       onContextMenu={(event) => event.preventDefault()}
       className="overflow-y-auto overscroll-none p-1"
     >
@@ -91,7 +93,7 @@ export function SessionFiltersMenu({
         onClick={() => toggleStatus("needsApproval")}
       />
       <FilterItem
-        label="Done"
+        label={t("Done")}
         checked={filters.status.done}
         onClick={() => toggleStatus("done")}
       />

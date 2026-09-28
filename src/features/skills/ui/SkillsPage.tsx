@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   useEffect,
   useId,
@@ -7,7 +8,14 @@ import {
   type ReactNode,
 } from "react";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { Copy, Eye, FolderOpen, RefreshCw, Search, X } from "../../../shared/ui/icons";
+import {
+  Copy,
+  Eye,
+  FolderOpen,
+  RefreshCw,
+  Search,
+  X,
+} from "../../../shared/ui/icons";
 import { CreateSkillForm } from "./SkillPicker";
 import { useLockOverscroll } from "../../../shared/hooks/useLockOverscroll";
 import {
@@ -17,7 +25,11 @@ import {
 import { MarkdownSource } from "../../sessions/ui/AgentMarkdown";
 import { SkillDocumentPreview } from "./SkillDocumentPreview";
 import { copyText } from "../../../platform/tauri/clipboard";
-import { listSkills, readTextFile, type DiscoveredSkill } from "../../../platform/tauri/fs";
+import {
+  listSkills,
+  readTextFile,
+  type DiscoveredSkill,
+} from "../../../platform/tauri/fs";
 import {
   createBlankSkill,
   invalidateSkills,
@@ -34,6 +46,7 @@ export function SkillsPage({
   cwd: string;
   header?: ReactNode;
 }): ReactNode {
+  const { t } = useTranslation();
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const previewId = useId();
   const previewOpener = useRef<string | null>(null);
@@ -229,7 +242,7 @@ export function SkillsPage({
                     ref={filterInput}
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Filter"
+                    placeholder={t("Filter")}
                     aria-label="Filter skills"
                     spellCheck={false}
                     autoComplete="off"
@@ -264,7 +277,7 @@ export function SkillsPage({
                   }}
                   title="Create a starter SKILL.md you can edit"
                 >
-                  {adding ? "Close" : "Add skill"}
+                  {adding ? t("Close") : "Add skill"}
                 </button>
               </div>
             </div>
@@ -387,7 +400,7 @@ export function SkillsPage({
                           <button
                             type="button"
                             aria-label={`Copy path of ${skill.name}`}
-                            title="Copy path"
+                            title={t("Copy path")}
                             onClick={() => onCopyPath(skill.path)}
                             className="grid size-5 shrink-0 place-items-center rounded text-content/40 hover:bg-content/10 hover:text-content"
                           >

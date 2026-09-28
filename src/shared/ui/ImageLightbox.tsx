@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n";
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { LAYER } from "../lib/layers";
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function ImageLightbox({ src, alt, onClose }: Props) {
+  const { t } = useTranslation();
   const closeRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -55,7 +57,7 @@ export function ImageLightbox({ src, alt, onClose }: Props) {
         ref={closeRef}
         type="button"
         aria-label="Close image preview"
-        title="Close"
+        title={t("Close")}
         onClick={onClose}
         className="absolute right-4 top-4 grid size-9 place-items-center rounded-full border border-white/15 bg-black/45 text-white/80 shadow-lg backdrop-blur-md hover:bg-black/65 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
       >

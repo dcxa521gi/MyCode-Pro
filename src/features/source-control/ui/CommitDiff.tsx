@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, Loader } from "../../../shared/ui/icons";
 import {
@@ -24,6 +25,7 @@ type LoadedDiff = {
 const DIFF_LOAD_CONCURRENCY = 4;
 
 export function CommitDiff({ cwd, sha }: Props) {
+  const { t } = useTranslation();
   const [files, setFiles] = useState<GitChangedFile[] | null>(null);
   const [diffs, setDiffs] = useState<Map<string, LoadedDiff>>(new Map());
   const [error, setError] = useState<string | null>(null);
@@ -138,7 +140,7 @@ export function CommitDiff({ cwd, sha }: Props) {
   if (!cwd || cwd === "~") {
     return (
       <p className="grid h-full place-items-center text-[13px] text-content/45">
-        No project folder
+        {t("No project folder")}
       </p>
     );
   }

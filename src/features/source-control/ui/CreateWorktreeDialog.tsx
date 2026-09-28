@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useProjectBranchesState } from "../hooks/useProjectBranches";
 import { LAYER } from "../../../shared/lib/layers";
@@ -20,6 +21,7 @@ export function CreateWorktreeDialog({
   onCreated: (tree: Worktree) => void | Promise<void>;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   const { branches } = useProjectBranchesState(baseCwd, true);
   const [name, setName] = useState("");
   const [base, setBase] = useState("HEAD");
@@ -164,7 +166,7 @@ export function CreateWorktreeDialog({
             onClick={onCancel}
             className="rounded-md px-3 py-1.5 text-[12px] hover:bg-content/8 active:scale-[0.97]"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="submit"

@@ -1,8 +1,10 @@
+import { useTranslation } from "../../shared/i18n";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Copy, Minus, Square, X } from "../../shared/ui/icons";
 import { useEffect, useState } from "react";
 
 export function WindowControls() {
+  const { t } = useTranslation();
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
@@ -10,22 +12,28 @@ export function WindowControls() {
     let mounted = true;
 
     const win = getCurrentWindow();
-    void win.isMaximized().then((max) => {
-      if (mounted) setIsMaximized(max);
-    }).catch(() => {});
-
-    void win.onResized(async () => {
-      try {
-        const max = await win.isMaximized();
+    void win
+      .isMaximized()
+      .then((max) => {
         if (mounted) setIsMaximized(max);
-      } catch {}
-    }).then((unlistenFn) => {
-      if (mounted) {
-        unlisten = unlistenFn;
-      } else {
-        unlistenFn();
-      }
-    }).catch(() => {});
+      })
+      .catch(() => {});
+
+    void win
+      .onResized(async () => {
+        try {
+          const max = await win.isMaximized();
+          if (mounted) setIsMaximized(max);
+        } catch {}
+      })
+      .then((unlistenFn) => {
+        if (mounted) {
+          unlisten = unlistenFn;
+        } else {
+          unlistenFn();
+        }
+      })
+      .catch(() => {});
 
     return () => {
       mounted = false;
@@ -68,7 +76,7 @@ export function WindowControls() {
       </button>
       <button
         type="button"
-        title={isMaximized ? "Restore" : "Maximize"}
+        title={isMaximized ? t("Restore") : "Maximize"}
         aria-label={isMaximized ? "Restore window" : "Maximize window"}
         data-tauri-drag-region="false"
         onClick={handleToggleMaximize}
@@ -82,7 +90,7 @@ export function WindowControls() {
       </button>
       <button
         type="button"
-        title="Close"
+        title={t("Close")}
         aria-label="Close window"
         data-tauri-drag-region="false"
         onClick={handleClose}

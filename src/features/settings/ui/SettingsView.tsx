@@ -1,3 +1,4 @@
+import { useTranslation, type LanguagePreference } from "../../../shared/i18n";
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ask } from "@tauri-apps/plugin-dialog";
@@ -417,6 +418,7 @@ export function SettingsView({
   collapsedProjectRailMode,
   onCollapsedProjectRailModeChange,
 }: Props) {
+  const { t } = useTranslation();
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const [revealed, setRevealed] = useState<string | null>(anchor);
   const onCloseRef = useRef(onClose);
@@ -465,7 +467,7 @@ export function SettingsView({
   return (
     <div
       role="region"
-      aria-label="Settings"
+      aria-label={t("Settings")}
       data-app-settings
       className="flex min-h-0 min-w-0 flex-1 flex-col text-content"
     >
@@ -475,12 +477,12 @@ export function SettingsView({
       >
         {IS_MAC && !besideRail ? <div className="w-[78px] shrink-0" /> : null}
         <div className="flex min-w-0 flex-1 items-center gap-2 px-3 text-[13px]">
-          <span className="shrink-0 text-content/45">Settings</span>
+          <span className="shrink-0 text-content/45">{t("Settings")}</span>
           <span aria-hidden className="shrink-0 text-content/25">
             /
           </span>
           <span className="min-w-0 truncate text-content">
-            {settingsSectionLabel(section)}
+            {t(settingsSectionLabel(section))}
           </span>
         </div>
         <div
@@ -494,7 +496,7 @@ export function SettingsView({
               className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-[12px] text-content/50 hover:bg-content/10 hover:text-content"
             >
               <RotateCcw className="size-3.5" strokeWidth={1.75} />
-              Restore defaults
+              {t("Restore defaults")}
             </button>
           ) : null}
           <SettingsSearch onReveal={onReveal} />
@@ -578,12 +580,13 @@ function SettingsSearch({
 }: {
   onReveal: (section: SettingsSectionId, settingId: string | null) => void;
 }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const listId = useId();
-  const results = useMemo(() => searchSettings(query), [query]);
+  const results = searchSettings(query);
   const open = query.trim().length > 0;
 
   useEffect(() => setActive(0), [query]);
@@ -622,8 +625,8 @@ function SettingsSearch({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Search settings"
-          aria-label="Search settings"
+          placeholder={t("Search settings")}
+          aria-label={t("Search settings")}
           aria-expanded={open}
           aria-controls={listId}
           spellCheck={false}
@@ -633,7 +636,7 @@ function SettingsSearch({
         {query ? (
           <button
             type="button"
-            aria-label="Clear settings search"
+            aria-label={t("Clear settings search")}
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => {
               setQuery("");
@@ -658,12 +661,12 @@ function SettingsSearch({
           }}
           id={listId}
           role="listbox"
-          aria-label="Settings search results"
+          aria-label={t("Settings search results")}
           className="overflow-y-auto overscroll-contain p-1"
         >
           {results.length === 0 ? (
             <p className="px-2 py-1.5 text-[12px] text-content/45">
-              No matching settings
+              {t("No matching settings")}
             </p>
           ) : (
             results.map((result, index) => (
@@ -681,9 +684,11 @@ function SettingsSearch({
                     : "text-content hover:bg-content/5"
                 }`}
               >
-                <span className="min-w-0 flex-1 truncate">{result.label}</span>
+                <span className="min-w-0 flex-1 truncate">
+                  {t(result.label)}
+                </span>
                 <span className="shrink-0 text-[11px] text-content/40">
-                  {result.settingId ? result.sectionLabel : "Page"}
+                  {t(result.settingId ? result.sectionLabel : "Page")}
                 </span>
               </button>
             ))
@@ -699,6 +704,7 @@ function GeneralPage({
 }: {
   onOpenWhatsNew: (version: string) => void;
 }) {
+  const { t, preference, setLanguage } = useTranslation();
   const [soundsEnabled, setSoundsEnabled] = useState(loadSoundsEnabled);
   const [notificationsEnabled, setNotificationsEnabled] = useState(
     loadNotificationsEnabled,
@@ -784,35 +790,68 @@ function GeneralPage({
   return (
     <>
       <Group
-        title="Alerts"
-        description="How MonoCode reaches you while you are looking somewhere else."
+        title={t("Language")}
+        description={t(
+          "Choose a language, or detect it from your computer's time zone. Changes apply immediately and are saved on this device.",
+        )}
+      >
+        <Row
+          id="language"
+          label={t("Display language")}
+          description={t(
+            "Chinese time zones use Simplified Chinese; other regions use English. If the time zone is unavailable or UTC, the system language is used.",
+          )}
+        >
+          <select
+            aria-label={t("Display language")}
+            value={preference}
+            onChange={(event) =>
+              setLanguage(event.target.value as LanguagePreference)
+            }
+            className="max-w-full rounded-md border border-content/10 bg-surface px-2 py-1 text-[12px] text-content"
+          >
+            <option value="auto">{t("Automatic (computer time zone)")}</option>
+            <option value="zh-CN">简体中文</option>
+            <option value="en">English</option>
+          </select>
+        </Row>
+      </Group>
+      <Group
+        title={t("Alerts")}
+        description={t(
+          "How MonoCode reaches you while you are looking somewhere else.",
+        )}
       >
         <Row
           id="sounds"
-          label="Sounds"
-          description="Short cues for project activity, finished turns, and available updates. Choose project notification categories in Inbox settings. Switches and Copy on a finished turn also play."
+          label={t("Sounds")}
+          description={t(
+            "Short cues for project activity, finished turns, and available updates. Choose project notification categories in Inbox settings. Switches and Copy on a finished turn also play.",
+          )}
         >
           <Toggle
-            label="Sounds"
+            label={t("Sounds")}
             on={soundsEnabled}
             onChange={onSoundsEnabled}
           />
         </Row>
         <Row
           id="notifications"
-          label="Notifications"
-          description="Notify when a reminder is due, or when an agent finishes or needs input in another session or while MonoCode is in the background. Click the notification to open that session."
+          label={t("Notifications")}
+          description={t(
+            "Notify when a reminder is due, or when an agent finishes or needs input in another session or while MonoCode is in the background. Click the notification to open that session.",
+          )}
         >
           {notificationsEnabled && notificationPermission === "denied" ? (
             <NotificationsBlocked />
           ) : null}
           {notificationsEnabled && notificationPermission === "unsupported" ? (
             <span className="text-[12px] text-content/45">
-              Not available on this platform
+              {t("Not available on this platform")}
             </span>
           ) : null}
           <Toggle
-            label="Notifications"
+            label={t("Notifications")}
             on={notificationsEnabled}
             onChange={onNotificationsEnabled}
           />
@@ -820,46 +859,56 @@ function GeneralPage({
       </Group>
 
       <Group
-        title="Workspace"
-        description="How project navigation and workspace tabs behave."
+        title={t("Workspace")}
+        description={t("How project navigation and workspace tabs behave.")}
       >
         <Row
           id="file-tabs"
-          label="File tabs"
-          description="Open files beside the active chat, or give each file a normal tab in the top bar. Top-bar files can still be combined into split panes."
+          label={t("File tabs")}
+          description={t(
+            "Open files beside the active chat, or give each file a normal tab in the top bar. Top-bar files can still be combined into split panes.",
+          )}
         >
           <Segmented
-            label="File tabs"
+            label={t("File tabs")}
             value={fileTabMode}
             options={[
-              { value: "pane", label: "Beside chat" },
-              { value: "workspace", label: "Top bar" },
+              { value: "pane", label: t("Beside chat") },
+              { value: "workspace", label: t("Top bar") },
             ]}
             onChange={onFileTabMode}
           />
         </Row>
         <Row
           id="tab-animations"
-          label="Tab animations"
-          description="Animate tabs as they open and close. Turn this off for instant tab changes."
+          label={t("Tab animations")}
+          description={t(
+            "Animate tabs as they open and close. Turn this off for instant tab changes.",
+          )}
         >
           <Toggle
-            label="Tab animations"
+            label={t("Tab animations")}
             on={tabAnimationsEnabled}
             onChange={onTabAnimationsEnabled}
           />
         </Row>
         <Row
           id="notes"
-          label="Notes"
-          description="A global markdown notebook on the project rail. Save a finished turn from the transcript, then mention it later with @note or add it to chat."
+          label={t("Notes")}
+          description={t(
+            "A global markdown notebook on the project rail. Save a finished turn from the transcript, then mention it later with @note or add it to chat.",
+          )}
         >
-          <Toggle label="Notes" on={notesEnabled} onChange={onNotesEnabled} />
+          <Toggle
+            label={t("Notes")}
+            on={notesEnabled}
+            onChange={onNotesEnabled}
+          />
         </Row>
         {IS_MAC && (
           <Row
             id="quick-composer"
-            label="Quick composer"
+            label={t("Quick composer")}
             description={`Press ${quickComposerShortcutLabel(loadQuickComposerShortcut())} in any app to float a prompt over it and start a session without switching to MonoCode. Change the shortcut in Keybindings. Return starts it in the background; ⌘Return starts it and brings the session forward.`}
           >
             {quickComposerError ? (
@@ -868,7 +917,7 @@ function GeneralPage({
               </span>
             ) : null}
             <Toggle
-              label="Quick composer"
+              label={t("Quick composer")}
               on={quickComposerEnabled}
               onChange={onQuickComposerEnabled}
             />
@@ -876,11 +925,13 @@ function GeneralPage({
         )}
         <Row
           id="working-agents"
-          label="Working agents"
-          description="When two or more chats are in flight, a card on the project rail lists them so you can jump across projects. Finished turns stay until you open that session."
+          label={t("Working agents")}
+          description={t(
+            "When two or more chats are in flight, a card on the project rail lists them so you can jump across projects. Finished turns stay until you open that session.",
+          )}
         >
           <Toggle
-            label="Working agents"
+            label={t("Working agents")}
             on={liveAgentsEnabled}
             onChange={onLiveAgentsEnabled}
           />
@@ -888,11 +939,13 @@ function GeneralPage({
         {IS_WIN && (
           <Row
             id="close-to-tray"
-            label="Close to tray"
-            description="Closing a window hides it to the system tray instead of quitting, so running agents keep going. Reopen from the tray icon, and quit for real from its menu. Turn this off to have close end the window."
+            label={t("Close to tray")}
+            description={t(
+              "Closing a window hides it to the system tray instead of quitting, so running agents keep going. Reopen from the tray icon, and quit for real from its menu. Turn this off to have close end the window.",
+            )}
           >
             <Toggle
-              label="Close to tray"
+              label={t("Close to tray")}
               on={closeToTray}
               onChange={onCloseToTray}
             />
@@ -900,7 +953,7 @@ function GeneralPage({
         )}
       </Group>
 
-      <Group title="About">
+      <Group title={t("About")}>
         <UpdateRow onOpenWhatsNew={onOpenWhatsNew} />
       </Group>
     </>
@@ -908,6 +961,7 @@ function GeneralPage({
 }
 
 function ChatPage() {
+  const { t } = useTranslation();
   const [transcriptLayout, setTranscriptLayout] =
     useState<TranscriptLayout>(loadTranscriptLayout);
   const [transcriptAnchor, setTranscriptAnchor] =
@@ -976,31 +1030,35 @@ function ChatPage() {
   return (
     <>
       <Group
-        title="Transcript"
-        description="How a conversation reads as it grows."
+        title={t("Transcript")}
+        description={t("How a conversation reads as it grows.")}
       >
         <Row
           id="transcript-layout"
-          label="Transcript layout"
-          description="Full width keeps user prompts as a spanning card. Chat aligns them to the right with a max width, like a messaging app."
+          label={t("Transcript layout")}
+          description={t(
+            "Full width keeps user prompts as a spanning card. Chat aligns them to the right with a max width, like a messaging app.",
+          )}
         >
           <Segmented
-            label="Transcript layout"
+            label={t("Transcript layout")}
             value={transcriptLayout}
             options={[
-              { value: "full", label: "Full width" },
-              { value: "chat", label: "Chat" },
+              { value: "full", label: t("Full width") },
+              { value: "chat", label: t("Chat") },
             ]}
             onChange={onTranscriptLayout}
           />
         </Row>
         <Row
           id="anchor-prompts"
-          label="Anchor prompts to top"
-          description="When you send, the new prompt sits at the top of the transcript and the reply grows into the space below. Turn this off to keep the classic layout, with the latest message resting on the composer."
+          label={t("Anchor prompts to top")}
+          description={t(
+            "When you send, the new prompt sits at the top of the transcript and the reply grows into the space below. Turn this off to keep the classic layout, with the latest message resting on the composer.",
+          )}
         >
           <Toggle
-            label="Anchor prompts to top"
+            label={t("Anchor prompts to top")}
             on={transcriptAnchor}
             onChange={onTranscriptAnchor}
           />
@@ -1008,35 +1066,39 @@ function ChatPage() {
       </Group>
 
       <Group
-        title="Composer"
-        description="What the composer does with what you type."
+        title={t("Composer")}
+        description={t("What the composer does with what you type.")}
       >
         <Row
           id="follow-up"
-          label="Follow-up behavior"
-          description="Queue follow-ups until the active turn finishes, or steer the active turn immediately."
+          label={t("Follow-up behavior")}
+          description={t(
+            "Queue follow-ups until the active turn finishes, or steer the active turn immediately.",
+          )}
         >
           <Segmented
-            label="Follow-up behavior"
+            label={t("Follow-up behavior")}
             value={followUpBehavior}
             options={[
-              { value: "queue", label: "Queue" },
-              { value: "steer", label: "Steer" },
+              { value: "queue", label: t("Queue") },
+              { value: "steer", label: t("Steer") },
             ]}
             onChange={onFollowUpBehavior}
           />
         </Row>
         <Row
           id="model-controls"
-          label="Model controls"
-          description="Show model options beside the picker instead of inside the model menu."
+          label={t("Model controls")}
+          description={t(
+            "Show model options beside the picker instead of inside the model menu.",
+          )}
         >
           <Segmented
-            label="Model controls"
+            label={t("Model controls")}
             value={modelControls}
             options={[
-              { value: "menu", label: "Menu" },
-              { value: "beside", label: "Beside" },
+              { value: "menu", label: t("Menu") },
+              { value: "beside", label: t("Beside") },
             ]}
             onChange={onModelControls}
           />
@@ -1044,16 +1106,20 @@ function ChatPage() {
       </Group>
 
       <Group
-        title="Editor"
-        description="What happens when you save a file in the workspace editor."
+        title={t("Editor")}
+        description={t(
+          "What happens when you save a file in the workspace editor.",
+        )}
       >
         <Row
           id="format-on-save"
-          label="Format on save"
-          description="Run Prettier on supported files before writing. Off keeps the text you typed, including quote style."
+          label={t("Format on save")}
+          description={t(
+            "Run Prettier on supported files before writing. Off keeps the text you typed, including quote style.",
+          )}
         >
           <Toggle
-            label="Format on save"
+            label={t("Format on save")}
             on={formatOnSave}
             onChange={onFormatOnSave}
           />
@@ -1061,20 +1127,22 @@ function ChatPage() {
       </Group>
 
       <Group
-        title="Code review"
-        description="Where a turn's changes open when you go to read them."
+        title={t("Code review")}
+        description={t("Where a turn's changes open when you go to read them.")}
       >
         <Row
           id="diff-view"
-          label="Diff view"
-          description="Editor keeps working-tree changes in the file. Unified stacks every changed file in one review, with sticky headers and collapsed unchanged lines."
+          label={t("Diff view")}
+          description={t(
+            "Editor keeps working-tree changes in the file. Unified stacks every changed file in one review, with sticky headers and collapsed unchanged lines.",
+          )}
         >
           <Segmented
-            label="Diff view"
+            label={t("Diff view")}
             value={diffViewer}
             options={[
-              { value: "editor", label: "Editor" },
-              { value: "unified", label: "Unified" },
+              { value: "editor", label: t("Editor") },
+              { value: "unified", label: t("Unified") },
             ]}
             onChange={onDiffViewer}
           />
@@ -1082,27 +1150,33 @@ function ChatPage() {
       </Group>
 
       <Group
-        title="Extras"
-        description="Idle animation, and nothing else. Turn both off for a still workspace."
+        title={t("Extras")}
+        description={t(
+          "Idle animation, and nothing else. Turn both off for a still workspace.",
+        )}
       >
         <Row
           id="composer-mascot"
-          label="Composer mascot"
-          description="When a turn is running, the project mascot runs along the composer, bonks the scroll-to-latest button the first time, then jumps it, and sometimes grabs a coin."
+          label={t("Composer mascot")}
+          description={t(
+            "When a turn is running, the project mascot runs along the composer, bonks the scroll-to-latest button the first time, then jumps it, and sometimes grabs a coin.",
+          )}
         >
           <Toggle
-            label="Composer mascot"
+            label={t("Composer mascot")}
             on={composerRunner}
             onChange={onComposerRunner}
           />
         </Row>
         <Row
           id="empty-session-games"
-          label="Empty session games"
-          description="Pac-man and snake idle on the empty-session grid. Hover the band to take control of whichever is on screen. Turn this off to keep the pane still."
+          label={t("Empty session games")}
+          description={t(
+            "Pac-man and snake idle on the empty-session grid. Hover the band to take control of whichever is on screen. Turn this off to keep the pane still.",
+          )}
         >
           <Toggle
-            label="Empty session games"
+            label={t("Empty session games")}
             on={gridArcadeEnabled}
             onChange={onGridArcadeEnabled}
           />
@@ -1123,6 +1197,7 @@ function InboxPage({
   notificationProjectPath?: string | null;
   notificationSettingsRequest?: number;
 }) {
+  const { t } = useTranslation();
   const revealed = useContext(RevealedSetting);
   return (
     <>
@@ -1146,7 +1221,9 @@ function InboxPage({
             GitHub
           </span>
         }
-        description="Pull requests, reviews, and issues, read through the GitHub CLI."
+        description={t(
+          "Pull requests, reviews, and issues, read through the GitHub CLI.",
+        )}
       >
         <GithubSettings />
       </Group>
@@ -1159,7 +1236,9 @@ function InboxPage({
             GitLab
           </span>
         }
-        description="Merge requests from GitLab.com or a self-managed instance."
+        description={t(
+          "Merge requests from GitLab.com or a self-managed instance.",
+        )}
       >
         <GitlabSettings />
       </Group>
@@ -1175,7 +1254,9 @@ function InboxPage({
             ADO
           </span>
         }
-        description="Pull requests and Boards work items from your ADO organization."
+        description={t(
+          "Pull requests and Boards work items from your ADO organization.",
+        )}
       >
         <AzureDevOpsSettings />
       </Group>
@@ -1188,7 +1269,7 @@ function InboxPage({
             Jira
           </span>
         }
-        description="Jira Cloud issues from the projects you pick."
+        description={t("Jira Cloud issues from the projects you pick.")}
       >
         <JiraSettings />
       </Group>
@@ -1201,7 +1282,7 @@ function InboxPage({
             Linear
           </span>
         }
-        description="Issues assigned to you, from the teams you pick."
+        description={t("Issues assigned to you, from the teams you pick.")}
       >
         <LinearSettings />
       </Group>
@@ -1210,6 +1291,7 @@ function InboxPage({
 }
 
 function GithubSettings() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<GithubStatus | null>(null);
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1253,7 +1335,7 @@ function GithubSettings() {
 
   return (
     <>
-      <Row label="Connection" description={description}>
+      <Row label={t("Connection")} description={description}>
         <span className="text-[12px] text-content/50">{label}</span>
         {!checking && !status?.installed ? (
           <SecondaryButton
@@ -1261,11 +1343,11 @@ function GithubSettings() {
               void openUrl("https://cli.github.com/").catch(() => {});
             }}
           >
-            Installation guide
+            {t("Installation guide")}
           </SecondaryButton>
         ) : null}
         <SecondaryButton onClick={() => void checkStatus()} disabled={checking}>
-          {checking ? "Checking" : "Check again"}
+          {checking ? "Checking" : t("Check again")}
         </SecondaryButton>
       </Row>
       {error ? (
@@ -1278,6 +1360,7 @@ function GithubSettings() {
 }
 
 function GitlabSettings() {
+  const { t } = useTranslation();
   const [url, setUrl] = useState("https://gitlab.com");
   const [token, setToken] = useState("");
   const [connected, setConnected] = useState(false);
@@ -1338,8 +1421,10 @@ function GitlabSettings() {
   return (
     <>
       <Row
-        label="Connection"
-        description="Connect GitLab.com or a self-managed GitLab instance. Use a personal access token with API access; the token is stored locally and Disconnect deletes it."
+        label={t("Connection")}
+        description={t(
+          "Connect GitLab.com or a self-managed GitLab instance. Use a personal access token with API access; the token is stored locally and Disconnect deletes it.",
+        )}
       >
         {connected ? (
           <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
@@ -1350,7 +1435,7 @@ function GitlabSettings() {
               onClick={() => void onDisconnect()}
               disabled={busy}
             >
-              Disconnect
+              {t("Disconnect")}
             </SecondaryButton>
           </div>
         ) : (
@@ -1361,7 +1446,7 @@ function GitlabSettings() {
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
                 placeholder="https://gitlab.com"
-                aria-label="GitLab URL"
+                aria-label={t("GitLab URL")}
                 autoComplete="url"
                 spellCheck={false}
                 className="min-w-0 flex-1 bg-transparent text-[12px] text-content outline-none placeholder:text-content/35"
@@ -1376,7 +1461,7 @@ function GitlabSettings() {
                   if (event.key === "Enter") void onSave();
                 }}
                 placeholder="glpat-…"
-                aria-label="GitLab access token"
+                aria-label={t("GitLab access token")}
                 autoComplete="off"
                 spellCheck={false}
                 className="min-w-0 flex-1 bg-transparent text-[12px] text-content outline-none placeholder:text-content/35"
@@ -1386,7 +1471,7 @@ function GitlabSettings() {
               onClick={() => void onSave()}
               disabled={busy || !token.trim()}
             >
-              {busy ? "Saving" : "Connect"}
+              {busy ? "Saving" : t("Connect")}
             </SecondaryButton>
           </div>
         )}
@@ -1401,6 +1486,7 @@ function GitlabSettings() {
 }
 
 function AzureDevOpsSettings() {
+  const { t } = useTranslation();
   const [url, setUrl] = useState("https://dev.azure.com/myorg");
   const [token, setToken] = useState("");
   const [connected, setConnected] = useState(false);
@@ -1461,8 +1547,10 @@ function AzureDevOpsSettings() {
   return (
     <>
       <Row
-        label="Connection"
-        description="Connect your ADO organization with a personal access token (Boards + Repos read & write for comments). The token is stored locally and Disconnect deletes it."
+        label={t("Connection")}
+        description={t(
+          "Connect your ADO organization with a personal access token (Boards + Repos read & write for comments). The token is stored locally and Disconnect deletes it.",
+        )}
       >
         {connected ? (
           <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
@@ -1473,7 +1561,7 @@ function AzureDevOpsSettings() {
               onClick={() => void onDisconnect()}
               disabled={busy}
             >
-              Disconnect
+              {t("Disconnect")}
             </SecondaryButton>
           </div>
         ) : (
@@ -1484,7 +1572,7 @@ function AzureDevOpsSettings() {
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
                 placeholder="https://dev.azure.com/myorg"
-                aria-label="Azure DevOps organization URL"
+                aria-label={t("Azure DevOps organization URL")}
                 autoComplete="url"
                 spellCheck={false}
                 className="min-w-0 flex-1 bg-transparent text-[12px] text-content outline-none placeholder:text-content/35"
@@ -1499,7 +1587,7 @@ function AzureDevOpsSettings() {
                   if (event.key === "Enter") void onSave();
                 }}
                 placeholder="PAT…"
-                aria-label="Azure DevOps personal access token"
+                aria-label={t("Azure DevOps personal access token")}
                 autoComplete="off"
                 spellCheck={false}
                 className="min-w-0 flex-1 bg-transparent text-[12px] text-content outline-none placeholder:text-content/35"
@@ -1509,7 +1597,7 @@ function AzureDevOpsSettings() {
               onClick={() => void onSave()}
               disabled={busy || !token.trim()}
             >
-              {busy ? "Saving" : "Connect"}
+              {busy ? "Saving" : t("Connect")}
             </SecondaryButton>
           </div>
         )}
@@ -1524,6 +1612,7 @@ function AzureDevOpsSettings() {
 }
 
 function LinearSettings() {
+  const { t } = useTranslation();
   const [token, setToken] = useState("");
   const [connected, setConnected] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -1612,12 +1701,14 @@ function LinearSettings() {
   return (
     <>
       <Row
-        label="API key"
-        description="Create a personal API key in Linear → Settings → Security & Access. Disconnect deletes it."
+        label={t("API key")}
+        description={t(
+          "Create a personal API key in Linear → Settings → Security & Access. Disconnect deletes it.",
+        )}
       >
         {connected ? (
           <SecondaryButton onClick={() => void onDisconnect()} disabled={busy}>
-            Disconnect
+            {t("Disconnect")}
           </SecondaryButton>
         ) : (
           <div className="flex max-w-full flex-wrap items-center gap-2">
@@ -1630,7 +1721,7 @@ function LinearSettings() {
                   if (event.key === "Enter") void onSave();
                 }}
                 placeholder="lin_api_…"
-                aria-label="Linear API key"
+                aria-label={t("Linear API key")}
                 autoComplete="off"
                 spellCheck={false}
                 className="min-w-0 flex-1 bg-transparent text-[12px] text-content outline-none placeholder:text-content/35"
@@ -1640,7 +1731,7 @@ function LinearSettings() {
               onClick={() => void onSave()}
               disabled={busy || !token.trim()}
             >
-              {busy ? "Saving" : "Connect"}
+              {busy ? "Saving" : t("Connect")}
             </SecondaryButton>
           </div>
         )}
@@ -1652,9 +1743,11 @@ function LinearSettings() {
       ) : null}
       {connected && teams.length > 0 ? (
         <div className="border-b border-content/5 px-4 py-3.5 last:border-b-0">
-          <div className="text-[13px] font-medium text-content">Teams</div>
+          <div className="text-[13px] font-medium text-content">
+            {t("Teams")}
+          </div>
           <p className="mt-1 text-[12px] leading-relaxed text-content/45">
-            Unchecked teams stay out of the inbox.
+            {t("Unchecked teams stay out of the inbox.")}
           </p>
           <div className="-mx-2 mt-2 flex flex-col gap-0.5">
             {teams.map((team) => {
@@ -1690,6 +1783,7 @@ function UpdateRow({
 }: {
   onOpenWhatsNew: (version: string) => void;
 }) {
+  const { t } = useTranslation();
   const [snapshot, setSnapshot] = useState<UpdaterSnapshot>({
     phase: "idle",
     currentVersion: "…",
@@ -1730,27 +1824,27 @@ function UpdateRow({
             ? "You're on the latest version."
             : snapshot.phase === "error"
               ? (snapshot.error ?? "Update check failed.")
-              : "MonoCode updates itself from the release feed.";
+              : "Download updates from this fork's GitHub Releases page.";
 
   return (
     <Row
       id="update"
       label={
         <span className="flex items-baseline gap-2">
-          Version
+          {t("Version")}
           <span className="font-mono text-[12px] text-content/45">
             {snapshot.currentVersion}
           </span>
         </span>
       }
-      description={status}
+      description={t(status)}
     >
       <div className="flex items-center gap-2">
         <SecondaryButton
           onClick={() => onOpenWhatsNew(snapshot.currentVersion)}
           disabled={snapshot.currentVersion === "…"}
         >
-          What's new
+          {t("What's new")}
         </SecondaryButton>
         <SecondaryButton onClick={() => void onClick()} disabled={busy}>
           {busy ? (
@@ -1760,7 +1854,7 @@ function UpdateRow({
           ) : (
             <RefreshCw className="size-3.5" strokeWidth={1.75} aria-hidden />
           )}
-          {hasUpdate ? "Download" : "Check for updates"}
+          {hasUpdate ? t("Download") : t("Check for updates")}
         </SecondaryButton>
       </div>
     </Row>
@@ -2017,35 +2111,40 @@ function useAppearanceSettings(
 }
 
 function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
+  const { t } = useTranslation();
   const percent = Math.round(appearance.opacity * 100);
   const glassDisabled = useColorScheme() === "light";
 
   return (
     <>
       <Group
-        title="Theme"
-        description="Dark and light share the same tint, so the color settings below apply to both."
+        title={t("Theme")}
+        description={t(
+          "Dark and light share the same tint, so the color settings below apply to both.",
+        )}
       >
         <Row
           id="theme"
-          label="Theme"
-          description="System follows the OS appearance."
+          label={t("Theme")}
+          description={t("System follows the OS appearance.")}
         >
           <Segmented
-            label="Theme"
+            label={t("Theme")}
             value={appearance.themePreference}
             options={[
-              { value: "system", label: "System" },
-              { value: "dark", label: "Dark" },
-              { value: "light", label: "Light" },
+              { value: "system", label: t("System") },
+              { value: "dark", label: t("Dark") },
+              { value: "light", label: t("Light") },
             ]}
             onChange={appearance.onThemePreference}
           />
         </Row>
         <Row
           id="accent-color"
-          label="Accent color"
-          description="Used for the composer send button and your message bubbles."
+          label={t("Accent color")}
+          description={t(
+            "Used for the composer send button and your message bubbles.",
+          )}
         >
           <AccentColorPicker
             value={appearance.accentColor}
@@ -2055,16 +2154,18 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
       </Group>
 
       <Group
-        title="Color"
-        description="Hue and saturation tint every surface. Lightness only moves the dark theme."
+        title={t("Color")}
+        description={t(
+          "Hue and saturation tint every surface. Lightness only moves the dark theme.",
+        )}
       >
         <Row
           id="hue"
-          label="Hue"
-          description="Base hue for accents and tinted surfaces."
+          label={t("Hue")}
+          description={t("Base hue for accents and tinted surfaces.")}
         >
           <Slider
-            label="Hue"
+            label={t("Hue")}
             value={appearance.themeHue}
             display={`${appearance.themeHue}°`}
             min={THEME_HUE_MIN}
@@ -2076,11 +2177,13 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
         </Row>
         <Row
           id="saturation"
-          label="Saturation"
-          description="How strongly the hue tints the interface. Zero keeps it neutral."
+          label={t("Saturation")}
+          description={t(
+            "How strongly the hue tints the interface. Zero keeps it neutral.",
+          )}
         >
           <Slider
-            label="Saturation"
+            label={t("Saturation")}
             value={appearance.themeSaturation}
             display={`${appearance.themeSaturation}%`}
             min={THEME_SATURATION_MIN}
@@ -2090,15 +2193,19 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
         </Row>
         <Row
           id="dark-lightness"
-          label="Dark-mode lightness"
+          label={t("Dark-mode lightness")}
           description={
             glassDisabled
-              ? "This only affects dark mode. Your dark-mode value is preserved."
-              : "Base brightness of the dark theme. Lower values are darker; zero is true black."
+              ? t(
+                  "This only affects dark mode. Your dark-mode value is preserved.",
+                )
+              : t(
+                  "Base brightness of the dark theme. Lower values are darker; zero is true black.",
+                )
           }
         >
           <Slider
-            label="Dark-mode lightness"
+            label={t("Dark-mode lightness")}
             value={appearance.themeDarkLightness}
             display={`${appearance.themeDarkLightness}%`}
             min={THEME_DARK_LIGHTNESS_MIN}
@@ -2110,20 +2217,26 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
       </Group>
 
       <Group
-        title="Translucency"
+        title={t("Translucency")}
         description={
           glassDisabled
-            ? "Light mode always uses an opaque window, so these are off. Your dark-mode values are preserved."
-            : "How much of the desktop shows through MonoCode. Blur costs more to composite the higher it goes."
+            ? t(
+                "Light mode always uses an opaque window, so these are off. Your dark-mode values are preserved.",
+              )
+            : t(
+                "How much of the desktop shows through MonoCode. Blur costs more to composite the higher it goes.",
+              )
         }
       >
         <Row
           id="sidebar-opacity"
-          label="Sidebar opacity"
-          description="Applies to the project rail and the other glass panes."
+          label={t("Sidebar opacity")}
+          description={t(
+            "Applies to the project rail and the other glass panes.",
+          )}
         >
           <Slider
-            label="Sidebar opacity"
+            label={t("Sidebar opacity")}
             value={percent}
             display={`${percent}%`}
             min={Math.round(SIDEBAR_OPACITY_MIN * 100)}
@@ -2134,11 +2247,11 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
         </Row>
         <Row
           id="blur"
-          label="Blur radius"
-          description="Background blur behind the window."
+          label={t("Blur radius")}
+          description={t("Background blur behind the window.")}
         >
           <Slider
-            label="Blur radius"
+            label={t("Blur radius")}
             value={appearance.blur}
             display={String(appearance.blur)}
             min={SIDEBAR_BLUR_MIN}
@@ -2149,11 +2262,13 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
         </Row>
         <Row
           id="main-pane-glass"
-          label="Main pane glass"
-          description="Extend the translucent treatment to the main pane behind sessions and editors."
+          label={t("Main pane glass")}
+          description={t(
+            "Extend the translucent treatment to the main pane behind sessions and editors.",
+          )}
         >
           <Toggle
-            label="Main pane glass"
+            label={t("Main pane glass")}
             on={appearance.bodyGlass}
             onChange={appearance.onBodyGlass}
             disabled={glassDisabled}
@@ -2163,29 +2278,33 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
 
       <ChatBackgroundCard appearance={appearance} />
 
-      <Group title="Layout">
+      <Group title={t("Layout")}>
         <Row
           id="collapsed-project-rail"
-          label="Collapsed project rail"
-          description="Keep project navigation available as a compact icon rail, or hide the rail completely."
+          label={t("Collapsed project rail")}
+          description={t(
+            "Keep project navigation available as a compact icon rail, or hide the rail completely.",
+          )}
         >
           <Segmented
-            label="Collapsed project rail"
+            label={t("Collapsed project rail")}
             value={appearance.collapsedProjectRailMode}
             options={[
-              { value: "compact", label: "Icon rail" },
-              { value: "hidden", label: "Hidden" },
+              { value: "compact", label: t("Icon rail") },
+              { value: "hidden", label: t("Hidden") },
             ]}
             onChange={appearance.onCollapsedProjectRailMode}
           />
         </Row>
         <Row
           id="interface-scale"
-          label="Interface scale"
-          description="Zoom the whole interface. You can also use Ctrl+=, Ctrl+-, and Ctrl+0 (Cmd on macOS)."
+          label={t("Interface scale")}
+          description={t(
+            "Zoom the whole interface. You can also use Ctrl+=, Ctrl+-, and Ctrl+0 (Cmd on macOS).",
+          )}
         >
           <Slider
-            label="Interface scale"
+            label={t("Interface scale")}
             value={Math.round(appearance.uiScale * 100)}
             display={`${Math.round(appearance.uiScale * 100)}%`}
             min={Math.round(UI_SCALE_MIN * 100)}
@@ -2196,11 +2315,13 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
         </Row>
         <Row
           id="show-excluded-files"
-          label="Show excluded files"
-          description="Show files and folders Git excludes, such as build output and dependencies, in the explorer."
+          label={t("Show excluded files")}
+          description={t(
+            "Show files and folders Git excludes, such as build output and dependencies, in the explorer.",
+          )}
         >
           <Toggle
-            label="Show excluded files"
+            label={t("Show excluded files")}
             on={appearance.showExcludedFiles}
             onChange={appearance.onShowExcludedFiles}
           />
@@ -2215,6 +2336,7 @@ function ChatBackgroundCard({
 }: {
   appearance: AppearanceSettings;
 }) {
+  const { t } = useTranslation();
   const src = chatBackgroundSrc(appearance.chatBackgroundPath);
   const hasImage = Boolean(appearance.chatBackgroundPath && src);
   const emptyVisibility = Math.round(
@@ -2228,8 +2350,10 @@ function ChatBackgroundCard({
   return (
     <Group
       id="chat-background"
-      title="Chat background"
-      description="An image behind your chat panes. It stays on this device."
+      title={t("Chat background")}
+      description={t(
+        "An image behind your chat panes. It stays on this device.",
+      )}
     >
       <div className="border-b border-content/5 p-4 last:border-b-0">
         <div className="overflow-hidden rounded-lg border border-content/10">
@@ -2268,7 +2392,7 @@ function ChatBackgroundCard({
               ) : (
                 <ImagePlus className="size-5" aria-hidden />
               )}
-              <span className="text-[12px]">Choose an image</span>
+              <span className="text-[12px]">{t("Choose an image")}</span>
             </button>
           )}
         </div>
@@ -2281,14 +2405,14 @@ function ChatBackgroundCard({
               {busy ? (
                 <Loader className="size-3.5 animate-spin" aria-hidden />
               ) : null}
-              Change
+              {t("Change")}
             </SecondaryButton>
             <SecondaryButton
               onClick={() => void appearance.onClearChatBackground()}
               disabled={busy}
               danger
             >
-              Remove
+              {t("Remove")}
             </SecondaryButton>
           </div>
         ) : null}
@@ -2301,7 +2425,7 @@ function ChatBackgroundCard({
       {hasImage ? (
         <>
           <Row
-            label="Background effect"
+            label={t("Background effect")}
             description={
               NEW_THREAD_BACKGROUND_EFFECT_DESCRIPTIONS[
                 appearance.newThreadBackgroundEffect
@@ -2309,7 +2433,7 @@ function ChatBackgroundCard({
             }
           >
             <Segmented
-              label="Background effect"
+              label={t("Background effect")}
               value={appearance.newThreadBackgroundEffect}
               options={NEW_THREAD_BACKGROUND_EFFECTS.map((effect) => ({
                 value: effect,
@@ -2320,25 +2444,25 @@ function ChatBackgroundCard({
             />
           </Row>
           <Row
-            label="Show on"
-            description="Empty sessions only, or every conversation."
+            label={t("Show on")}
+            description={t("Empty sessions only, or every conversation.")}
           >
             <Segmented
-              label="Show background on"
+              label={t("Show background on")}
               value={appearance.chatBackgroundScope}
               options={[
-                { value: "empty", label: "Empty only" },
-                { value: "all", label: "All sessions" },
+                { value: "empty", label: t("Empty only") },
+                { value: "all", label: t("All sessions") },
               ]}
               onChange={appearance.onChatBackgroundScope}
             />
           </Row>
           <Row
-            label="Empty chat visibility"
-            description="Background strength before a chat has messages."
+            label={t("Empty chat visibility")}
+            description={t("Background strength before a chat has messages.")}
           >
             <Slider
-              label="Empty chat background visibility"
+              label={t("Empty chat background visibility")}
               value={emptyVisibility}
               display={`${emptyVisibility}%`}
               min={Math.round(CHAT_BACKGROUND_OPACITY_MIN * 100)}
@@ -2347,11 +2471,13 @@ function ChatBackgroundCard({
             />
           </Row>
           <Row
-            label="Session visibility"
-            description="Background strength once the conversation has messages."
+            label={t("Session visibility")}
+            description={t(
+              "Background strength once the conversation has messages.",
+            )}
           >
             <Slider
-              label="Session background visibility"
+              label={t("Session background visibility")}
               value={sessionVisibility}
               display={`${sessionVisibility}%`}
               min={Math.round(CHAT_BACKGROUND_OPACITY_MIN * 100)}
@@ -2392,6 +2518,7 @@ function ShortcutEditor({
   onDisable: () => void | Promise<void>;
   onReset: () => void | Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [recording, setRecording] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -2532,7 +2659,7 @@ function ShortcutEditor({
           className="pointer-events-none absolute top-1/2 right-full z-40 mr-3 -translate-y-1/2 text-[10px] whitespace-nowrap text-content/50"
           aria-live="polite"
         >
-          Del disables · Esc cancels
+          {t("Del disables · Esc cancels")}
         </p>
       ) : null}
       {error ? (
@@ -2618,6 +2745,7 @@ function KeybindingShortcutEditor({
 }
 
 function KeybindingsPage() {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [overrides, setOverrides] = useState(loadKeybindingOverrides);
   useEffect(
@@ -2636,8 +2764,10 @@ function KeybindingsPage() {
 
   return (
     <Group
-      title="Shortcuts"
-      description="Click a shortcut to record new keys. Press Delete while recording to disable it."
+      title={t("Shortcuts")}
+      description={t(
+        "Click a shortcut to record new keys. Press Delete while recording to disable it.",
+      )}
       action={
         <div className="flex items-center gap-3">
           <span className="shrink-0 text-[12px] text-content/40 tabular-nums">
@@ -2648,8 +2778,8 @@ function KeybindingsPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Filter"
-              aria-label="Filter keybindings"
+              placeholder={t("Filter")}
+              aria-label={t("Filter keybindings")}
               spellCheck={false}
               autoComplete="off"
               className="min-w-0 flex-1 bg-transparent text-[12px] text-content outline-none placeholder:text-content/35"
@@ -2659,13 +2789,13 @@ function KeybindingsPage() {
       }
     >
       <div className="flex items-center border-b border-stroke bg-content/5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-content/40">
-        <span className="min-w-0 flex-1">Command</span>
-        <span className="w-40 shrink-0">Keybinding</span>
-        <span className="w-28 shrink-0">When</span>
+        <span className="min-w-0 flex-1">{t("Command")}</span>
+        <span className="w-40 shrink-0">{t("Keybinding")}</span>
+        <span className="w-28 shrink-0">{t("When")}</span>
       </div>
       {rows.length === 0 ? (
         <p className="px-4 py-3 text-[12px] text-content/45">
-          No matching bindings
+          {t("No matching bindings")}
         </p>
       ) : (
         rows.map((row) => {
@@ -2709,7 +2839,10 @@ function binaryInspectionError(
   inspection: HarnessBinaryInspection,
 ): string | null {
   if (inspection.error) return inspection.error;
-  if (provider === "codex" && !/^codex-cli\s+\d+\.\d+\.\d+/.test(inspection.version ?? "")) {
+  if (
+    provider === "codex" &&
+    !/^codex-cli\s+\d+\.\d+\.\d+/.test(inspection.version ?? "")
+  ) {
     return "Codex CLI returned an invalid version.";
   }
   if (provider === "opencode") {
@@ -2727,6 +2860,7 @@ function ProviderBinaryControl({
 }: {
   provider: ConfigurableBinaryProvider;
 }) {
+  const { t } = useTranslation();
   const root = useRef<HTMLSpanElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const editInput = useRef<HTMLInputElement>(null);
@@ -2844,7 +2978,9 @@ function ProviderBinaryControl({
           setEditing(false);
         }}
         className={`grid size-6 place-items-center rounded hover:bg-content/10 focus-visible:outline-2 focus-visible:outline-accent ${
-          restartRequired ? "text-amber-300" : "text-content/35 hover:text-content"
+          restartRequired
+            ? "text-amber-300"
+            : "text-content/35 hover:text-content"
         }`}
       >
         <FolderOpen className="size-3.5" strokeWidth={1.75} />
@@ -2888,13 +3024,13 @@ function ProviderBinaryControl({
             </span>
             <div className="flex items-center gap-1.5">
               <span className="rounded-full bg-content/10 px-1.5 py-0.5 text-[10px] text-content/50">
-                Global path
+                {t("Global path")}
               </span>
               <span className="rounded-full bg-content/10 px-1.5 py-0.5 text-[10px] text-content/50">
                 {error
-                  ? "Needs attention"
+                  ? t("Needs attention")
                   : restartRequired
-                    ? "Restart required"
+                    ? t("Restart required")
                     : overridden
                       ? "Configured"
                       : "Auto-detected"}
@@ -2907,7 +3043,7 @@ function ProviderBinaryControl({
                 htmlFor={`${provider}-binary-path`}
                 className="text-[11px] text-content/50"
               >
-                CLI path
+                {t("CLI path")}
               </label>
               <input
                 id={`${provider}-binary-path`}
@@ -2921,7 +3057,9 @@ function ProviderBinaryControl({
                 className="mt-1.5 h-8 w-full rounded-md border border-content/10 bg-content/[0.04] px-2 font-mono text-[11px] text-content outline-none placeholder:font-sans placeholder:text-content/35 focus:border-accent/45 disabled:opacity-50"
               />
               <p className="mt-1.5 text-[10px] text-content/40">
-                Enter the absolute path to the CLI executable. Changes apply after restarting MonoCode.
+                {t(
+                  "Enter the absolute path to the CLI executable. Changes apply after restarting MonoCode.",
+                )}
               </p>
               {error ? (
                 <span
@@ -2940,18 +3078,18 @@ function ProviderBinaryControl({
                     queueMicrotask(() => trigger.current?.focus());
                   }}
                 >
-                  Cancel
+                  {t("Cancel")}
                 </SecondaryButton>
                 {overridden ? (
                   <SecondaryButton
                     disabled={working}
                     onClick={() => void useAuto()}
                   >
-                    Use auto-detected path
+                    {t("Use auto-detected path")}
                   </SecondaryButton>
                 ) : null}
                 <SecondaryButton type="submit" disabled={working}>
-                  Save path
+                  {t("Save path")}
                 </SecondaryButton>
               </div>
             </form>
@@ -2960,31 +3098,33 @@ function ProviderBinaryControl({
               <div className="mt-2 rounded-md border border-content/10 bg-content/[0.03] px-2.5 py-2">
                 <span className="block max-h-12 overflow-y-auto whitespace-pre-wrap break-all font-mono text-[10px] text-content/65">
                   {inspection?.path ??
-                    (error ? "CLI could not be resolved" : "Checking the selected CLI…")}
+                    (error
+                      ? "CLI could not be resolved"
+                      : "Checking the selected CLI…")}
                 </span>
                 <span className="mt-1 block max-h-10 overflow-y-auto whitespace-pre-wrap break-words text-[10px] text-content/40">
                   {inspection?.version ??
                     (error ? "Retry to check this CLI" : "Checking version…")}
                 </span>
               </div>
-               {error ? (
-                 <span
-                   role="alert"
-                   title={error}
-                   className="mt-1.5 block max-h-20 overflow-y-auto whitespace-pre-wrap break-words text-[10px] leading-4 text-red-400"
-                 >
-                   {error}
-                 </span>
-               ) : null}
-               {revealError ? (
-                 <span
-                   role="alert"
-                   className="mt-1.5 block max-h-20 overflow-y-auto whitespace-pre-wrap break-words text-[10px] leading-4 text-red-400"
-                 >
-                   Could not open the CLI location: {revealError}
-                 </span>
-               ) : null}
-               <div className="mt-3 flex justify-end gap-2">
+              {error ? (
+                <span
+                  role="alert"
+                  title={error}
+                  className="mt-1.5 block max-h-20 overflow-y-auto whitespace-pre-wrap break-words text-[10px] leading-4 text-red-400"
+                >
+                  {error}
+                </span>
+              ) : null}
+              {revealError ? (
+                <span
+                  role="alert"
+                  className="mt-1.5 block max-h-20 overflow-y-auto whitespace-pre-wrap break-words text-[10px] leading-4 text-red-400"
+                >
+                  {t("Could not open the CLI location:")} {revealError}
+                </span>
+              ) : null}
+              <div className="mt-3 flex justify-end gap-2">
                 {error ? (
                   <SecondaryButton
                     disabled={working}
@@ -2996,7 +3136,9 @@ function ProviderBinaryControl({
                     }
                   >
                     <RefreshCw className="size-3.5" strokeWidth={1.75} />
-                    {overridden ? "Retry configured path" : "Retry auto-detect"}
+                    {overridden
+                      ? t("Retry configured path")
+                      : t("Retry auto-detect")}
                   </SecondaryButton>
                 ) : null}
                 <SecondaryButton
@@ -3006,14 +3148,16 @@ function ProviderBinaryControl({
                     if (inspection) {
                       void revealPath(inspection.path).catch((cause) => {
                         setRevealError(
-                          cause instanceof Error ? cause.message : String(cause),
+                          cause instanceof Error
+                            ? cause.message
+                            : String(cause),
                         );
                       });
                     }
                   }}
                 >
                   <ExternalLink className="size-3.5" strokeWidth={1.75} />
-                  Open location
+                  {t("Open location")}
                 </SecondaryButton>
                 <SecondaryButton
                   aria-label={`Edit ${title} CLI path`}
@@ -3021,7 +3165,7 @@ function ProviderBinaryControl({
                   onClick={() => setEditing(true)}
                 >
                   <Pencil className="size-3.5" strokeWidth={1.75} />
-                  Edit path
+                  {t("Edit path")}
                 </SecondaryButton>
               </div>
             </>
@@ -3039,6 +3183,7 @@ function ProvidersPage({
   cwd?: string;
   recents?: RecentProject[];
 }) {
+  const { t, locale } = useTranslation();
   useSyncExternalStore(subscribeModels, getModelSnapshot, getModelSnapshot);
   useSyncExternalStore(
     subscribeHarnessAvailability,
@@ -3063,7 +3208,7 @@ function ProvidersPage({
     const options: { value: string; label: string; icon?: ReactNode }[] = [
       {
         value: GLOBAL_PROVIDER_SCOPE,
-        label: "Global",
+        label: t("Global"),
         icon: (
           <Globe
             className="size-3.5 shrink-0 text-content/60"
@@ -3085,7 +3230,7 @@ function ProvidersPage({
       });
     }
     return options;
-  }, [cwd, recents]);
+  }, [cwd, recents, locale, t]);
 
   const project = scope === GLOBAL_PROVIDER_SCOPE ? null : scope;
   const projectSettings = project ? loadProjectProviderSettings(project) : {};
@@ -3155,10 +3300,10 @@ function ProvidersPage({
 
       <Group
         id="agent-clis"
-        title="Agent CLIs"
+        title={t("Agent CLIs")}
         action={
           <Select
-            label="Provider defaults scope"
+            label={t("Provider defaults scope")}
             value={scope}
             options={scopeOptions}
             onChange={setScope}
@@ -3167,7 +3312,9 @@ function ProvidersPage({
         description={
           project
             ? `These defaults apply to ${projectName(project)} only. A provider with Show in picker off is also kept out of new conversations started in this project. CLI paths remain global for MonoCode.`
-            : "A provider is listed as installed once its CLI is found on your PATH. Uninstalled CLIs stay listed but are left out of the model picker, as are installed ones with Show in picker off. The model beside a provider is what its new conversations start with; Use by default picks the provider itself. CLI paths are global for MonoCode and apply to every project."
+            : t(
+                "A provider is listed as installed once its CLI is found on your PATH. Uninstalled CLIs stay listed but are left out of the model picker, as are installed ones with Show in picker off. The model beside a provider is what its new conversations start with; Use by default picks the provider itself. CLI paths are global for MonoCode and apply to every project.",
+              )
         }
       >
         {HARNESSES.map((harness) => {
@@ -3211,14 +3358,16 @@ function ProvidersPage({
         })}
       </Group>
 
-      <Group title="Advanced">
+      <Group title={t("Advanced")}>
         <Row
           id="claude-hooks"
-          label="Claude Code hooks"
-          description="Run the hooks configured in your settings.json files — PreToolUse command rewrites, blocks, notifications, and the rest — just as the Claude Code CLI would. Turn this off if a hook is misbehaving and you need the session back. Takes effect on the next turn."
+          label={t("Claude Code hooks")}
+          description={t(
+            "Run the hooks configured in your settings.json files — PreToolUse command rewrites, blocks, notifications, and the rest — just as the Claude Code CLI would. Turn this off if a hook is misbehaving and you need the session back. Takes effect on the next turn.",
+          )}
         >
           <Toggle
-            label="Claude Code hooks"
+            label={t("Claude Code hooks")}
             on={claudeHooks}
             onChange={onClaudeHooks}
           />
@@ -3235,6 +3384,7 @@ type AccountEditor = {
 };
 
 function ProviderAccountsSettings() {
+  const { t } = useTranslation();
   const [version, setVersion] = useState(0);
   const [editor, setEditor] = useState<AccountEditor | null>(null);
   const [working, setWorking] = useState<string | null>(null);
@@ -3330,8 +3480,10 @@ function ProviderAccountsSettings() {
   return (
     <Group
       id="provider-accounts"
-      title="Accounts"
-      description="Create isolated sign-ins for providers that support account profiles. Account switching stays available from the usage control in the footer."
+      title={t("Accounts")}
+      description={t(
+        "Create isolated sign-ins for providers that support account profiles. Account switching stays available from the usage control in the footer.",
+      )}
     >
       {PROVIDER_ACCOUNT_PROVIDERS.map((provider) => {
         const accounts = providerAccounts(provider);
@@ -3363,7 +3515,7 @@ function ProviderAccountsSettings() {
                 className="flex shrink-0 items-center gap-1.5 rounded-md border border-content/10 px-2.5 py-1 text-[12px] text-content/70 transition-transform duration-150 hover:bg-content/10 hover:text-content active:scale-[0.97] disabled:cursor-default disabled:opacity-40"
               >
                 <Plus className="size-3.5" strokeWidth={1.75} aria-hidden />
-                Add account
+                {t("Add account")}
               </button>
             </div>
             <div className="border-t border-content/5 bg-content/[0.015] pl-10">
@@ -3413,14 +3565,14 @@ function ProviderAccountsSettings() {
                     <div className="flex shrink-0 items-center gap-1">
                       {account.isDefault ? (
                         <span className="mr-1 text-[10px] font-medium uppercase tracking-wide text-content/30">
-                          Default
+                          {t("Default")}
                         </span>
                       ) : null}
                       <button
                         type="button"
                         disabled={Boolean(working)}
                         aria-label={`Rename ${account.label}`}
-                        title="Rename account"
+                        title={t("Rename account")}
                         onClick={() => startRename(account)}
                         className="grid size-7 place-items-center rounded-md text-content/40 transition-transform duration-150 hover:bg-content/10 hover:text-content active:scale-[0.96] disabled:opacity-35"
                       >
@@ -3431,7 +3583,7 @@ function ProviderAccountsSettings() {
                           type="button"
                           disabled={Boolean(working)}
                           aria-label={`Remove ${account.label}`}
-                          title="Remove account"
+                          title={t("Remove account")}
                           onClick={() => void removeAccount(account)}
                           className="grid size-7 place-items-center rounded-md text-content/35 transition-transform duration-150 hover:bg-red-400/10 hover:text-red-400 active:scale-[0.96] disabled:opacity-35"
                         >
@@ -3488,6 +3640,7 @@ function ProviderAccountEditor({
   onCancel: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+  const { t } = useTranslation();
   const adding = !editor.accountId;
   return (
     <form
@@ -3499,14 +3652,14 @@ function ProviderAccountEditor({
         className="flex items-center pr-1 h-8 min-w-0 flex-1 overflow-hidden rounded-md border border-content/10 bg-content/[0.04] focus-within:border-accent/45"
       >
         <label className="h-full min-w-0 flex-1">
-          <span className="sr-only">Account name</span>
+          <span className="sr-only">{t("Account name")}</span>
           <input
             autoFocus
             type="text"
             maxLength={48}
             value={editor.label}
             disabled={working}
-            placeholder="Work or Personal"
+            placeholder={t("Work or Personal")}
             aria-label={`${adding ? "New" : "Rename"} ${HARNESS_TITLE[editor.provider]} account`}
             onChange={(event) => onLabel(event.target.value)}
             className="h-full w-full bg-transparent px-2.5 text-[12px] text-content outline-none placeholder:text-content/25 disabled:opacity-50"
@@ -3518,7 +3671,7 @@ function ProviderAccountEditor({
           onClick={onCancel}
           className="flex h-6 shrink-0 items-center rounded-[4.5px] bg-content/[0.05] px-2.5 text-[11px] text-content/45 transition-transform duration-150 hover:bg-content/10 hover:text-content active:scale-[0.97] disabled:opacity-40"
         >
-          Cancel
+          {t("Cancel")}
         </button>
         <button
           type="submit"
@@ -3528,9 +3681,9 @@ function ProviderAccountEditor({
           {working ? <Loader className="size-3 animate-spin" /> : null}
           {adding
             ? working
-              ? "Waiting for browser…"
-              : "Sign in and add"
-            : "Save"}
+              ? t("Waiting for browser…")
+              : t("Sign in and add")
+            : t("Save")}
         </button>
       </div>
     </form>
@@ -3585,6 +3738,7 @@ function ProviderRow({
   onModelChange: (harness: HarnessId, model: string) => void;
   onPickerVisible: (visible: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const models = modelsFor(harness);
   const available = isHarnessAvailable(harness);
   const current =
@@ -3604,7 +3758,7 @@ function ProviderRow({
           <ProviderBinaryControl provider={harness} />
           {isDefault ? (
             <span className="rounded-full bg-content/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-content/60">
-              Default
+              {t("Default")}
             </span>
           ) : null}
         </span>
@@ -3630,12 +3784,12 @@ function ProviderRow({
         onClick={() => current && onDefault(harness, current.id)}
         disabled={isDefault || !current}
       >
-        {isDefault ? "Default" : "Use by default"}
+        {isDefault ? t("Default") : t("Use by default")}
       </SecondaryButton>
       {available ? (
         <div className="flex items-center gap-2">
           <span className="text-[12px] text-content/50">
-            {pickerLocked ? "Hidden globally" : "Show in picker"}
+            {pickerLocked ? t("Hidden globally") : t("Show in picker")}
           </span>
           <Toggle
             label={`Show ${HARNESS_TITLE[harness]} in the model picker`}
@@ -3683,6 +3837,7 @@ function ArchivePage({
   onRestoreProject?: (path: string) => void;
   onDeleteProject?: (path: string) => void;
 }) {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState(loadSessionSidebarFilters);
   const [deleting, setDeleting] = useState<ArchivedProject | null>(null);
   const archivedProjects = useArchivedProjects();
@@ -3703,12 +3858,14 @@ function ArchivePage({
   return (
     <>
       <Group
-        title="Archived projects"
-        description="Archive a project from the rail to keep its chats without listing it in the sidebar."
+        title={t("Archived projects")}
+        description={t(
+          "Archive a project from the rail to keep its chats without listing it in the sidebar.",
+        )}
       >
         {archivedProjects.length === 0 ? (
           <p className="px-4 py-3.5 text-[12px] text-content/45">
-            No archived projects.
+            {t("No archived projects.")}
           </p>
         ) : (
           archivedProjects.map((project) => (
@@ -3726,12 +3883,12 @@ function ArchivePage({
               </div>
               {onRestoreProject ? (
                 <SecondaryButton onClick={() => onRestoreProject(project.path)}>
-                  Restore
+                  {t("Restore")}
                 </SecondaryButton>
               ) : null}
               {onDeleteProject ? (
                 <SecondaryButton danger onClick={() => setDeleting(project)}>
-                  Delete
+                  {t("Delete")}
                 </SecondaryButton>
               ) : null}
             </div>
@@ -3743,27 +3900,29 @@ function ArchivePage({
         title={
           looksLikeProject(cwd)
             ? `Archived in ${projectName(cwd)}`
-            : "Archived conversations"
+            : t("Archived conversations")
         }
       >
         <Row
           id="show-archived"
-          label="Show archived in the sidebar"
-          description="Keep archived conversations listed alongside the active ones."
+          label={t("Show archived in the sidebar")}
+          description={t(
+            "Keep archived conversations listed alongside the active ones.",
+          )}
         >
           <Toggle
-            label="Show archived in the sidebar"
+            label={t("Show archived in the sidebar")}
             on={filters.showArchived}
             onChange={onShowArchived}
           />
         </Row>
         {!looksLikeProject(cwd) ? (
           <p className="px-4 py-3.5 text-[12px] text-content/45">
-            Open a project to see its archived conversations.
+            {t("Open a project to see its archived conversations.")}
           </p>
         ) : archived.length === 0 ? (
           <p className="px-4 py-3.5 text-[12px] text-content/45">
-            No archived conversations in this project.
+            {t("No archived conversations in this project.")}
           </p>
         ) : (
           archived.map((session) => (
@@ -3788,13 +3947,13 @@ function ArchivePage({
               <SecondaryButton
                 onClick={() => onArchiveSession(session.id, false)}
               >
-                Unarchive
+                {t("Unarchive")}
               </SecondaryButton>
               <SecondaryButton
                 danger
                 onClick={() => onDeleteSession(session.id)}
               >
-                Delete
+                {t("Delete")}
               </SecondaryButton>
             </div>
           ))
@@ -3835,14 +3994,15 @@ function PageHeader({
   title: string;
   description: string;
 }) {
+  const { t } = useTranslation();
   return (
     <header className="pb-4">
       <h1 className="text-[20px] font-semibold leading-tight text-content">
-        {title}
+        {t(title)}
       </h1>
       {description ? (
         <p className="mt-1.5 max-w-xl text-[13px] leading-relaxed text-content/45">
-          {description}
+          {t(description)}
         </p>
       ) : null}
     </header>
@@ -3867,6 +4027,7 @@ function Group({
   action?: ReactNode;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
   const revealed = useContext(RevealedSetting);
   const flash = id != null && revealed === id;
 
@@ -3881,7 +4042,7 @@ function Group({
           <h2 className="text-[13px] font-semibold text-content">{title}</h2>
           {description ? (
             <p className="mt-1 text-[12px] leading-relaxed text-content/45">
-              {description}
+              {t(description)}
             </p>
           ) : null}
         </div>
@@ -3910,6 +4071,7 @@ function Row({
   description?: string;
   children?: ReactNode;
 }) {
+  const { t } = useTranslation();
   const revealed = useContext(RevealedSetting);
   const flash = id != null && revealed === id;
 
@@ -3925,7 +4087,7 @@ function Row({
         <div className="text-[13px] font-medium text-content">{label}</div>
         {description ? (
           <p className="mt-1 text-[12px] leading-relaxed text-content/45">
-            {description}
+            {t(description)}
           </p>
         ) : null}
       </div>
@@ -4091,9 +4253,10 @@ function AccentColorPicker({
 
 /** macOS keeps the decision after the first prompt; only System Settings can flip it. Windows toasts are governed by Settings > Notifications. */
 function NotificationsBlocked() {
+  const { t } = useTranslation();
   return (
     <span className="flex items-center gap-2 text-[12px] text-content/45">
-      Permission needed
+      {t("Permission needed")}
       {IS_MAC || IS_WIN ? (
         <button
           type="button"
@@ -4102,7 +4265,7 @@ function NotificationsBlocked() {
           }}
           className="rounded-md border border-content/10 px-2 py-1 text-content/70 hover:bg-content/10 hover:text-content"
         >
-          Open System Settings
+          {t("Open System Settings")}
         </button>
       ) : null}
     </span>

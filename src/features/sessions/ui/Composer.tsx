@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   ArrowUp,
   AiIdea,
@@ -310,6 +311,7 @@ function MessageQueue({
   onSteer?: (messageId: string) => void;
   onResume?: () => void;
 }) {
+  const { t } = useTranslation();
   const [editingId, setEditingId] = useState<string>();
   const [editDraft, setEditDraft] = useState("");
   const onEditingChangeRef = useRef(onEditingChange);
@@ -351,7 +353,7 @@ function MessageQueue({
           <div className="flex h-7 items-center gap-2 border-b border-stroke text-[12px]">
             <Pause className="size-3.5" />
             <span className="min-w-0 flex-1 truncate">
-              Queue paused because you interrupted
+              {t("Queue paused because you interrupted")}
             </span>
             <button
               type="button"
@@ -359,7 +361,7 @@ function MessageQueue({
               className="flex h-6 shrink-0 items-center gap-1.5 rounded-md px-1.5 hover:bg-content/10 hover:text-content"
             >
               <Play className="size-3.5" />
-              Resume
+              {t("Resume")}
             </button>
           </div>
         ) : null}
@@ -380,7 +382,7 @@ function MessageQueue({
                 <>
                   <textarea
                     autoFocus
-                    aria-label="Edit queued message"
+                    aria-label={t("Edit queued message")}
                     value={editDraft}
                     rows={1}
                     onChange={(event) => setEditDraft(event.target.value)}
@@ -398,8 +400,8 @@ function MessageQueue({
                   />
                   <button
                     type="button"
-                    title="Save queued message"
-                    aria-label="Save queued message"
+                    title={t("Save queued message")}
+                    aria-label={t("Save queued message")}
                     disabled={
                       !editDraft.trim() && message.attachments.length === 0
                     }
@@ -410,8 +412,8 @@ function MessageQueue({
                   </button>
                   <button
                     type="button"
-                    title="Cancel queued message edit"
-                    aria-label="Cancel queued message edit"
+                    title={t("Cancel queued message edit")}
+                    aria-label={t("Cancel queued message edit")}
                     onClick={cancelEdit}
                     className="grid size-6 shrink-0 place-items-center rounded-md hover:bg-content/10 hover:text-content"
                   >
@@ -429,12 +431,12 @@ function MessageQueue({
                     className="flex h-6 shrink-0 items-center gap-1.5 rounded-md px-1.5 hover:bg-content/10 hover:text-content"
                   >
                     <CornerDownRight className="size-3.5" />
-                    Steer
+                    {t("Steer")}
                   </button>
                   <button
                     type="button"
-                    title="Edit queued message"
-                    aria-label="Edit queued message"
+                    title={t("Edit queued message")}
+                    aria-label={t("Edit queued message")}
                     onClick={() => startEdit(message)}
                     className="grid size-6 shrink-0 place-items-center rounded-md hover:bg-content/10 hover:text-content"
                   >
@@ -442,8 +444,8 @@ function MessageQueue({
                   </button>
                   <button
                     type="button"
-                    title="Remove queued message"
-                    aria-label="Remove queued message"
+                    title={t("Remove queued message")}
+                    aria-label={t("Remove queued message")}
                     onClick={() => onDelete?.(message.id)}
                     className="grid size-6 shrink-0 place-items-center rounded-md hover:bg-content/10 hover:text-content"
                   >
@@ -540,6 +542,7 @@ export function Composer({
   onEditingLastTurnChange,
   children,
 }: Props) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLTextAreaElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const plusRef = useRef<HTMLDivElement>(null);
@@ -1826,7 +1829,7 @@ export function Composer({
         >
           {fileDrag ? (
             <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center rounded-lg bg-accent/8 text-[12px] text-content/70">
-              Drop files to attach
+              {t("Drop files to attach")}
             </div>
           ) : null}
           {hideTopBar ? null : (
@@ -1955,7 +1958,7 @@ export function Composer({
               rows={1}
               spellCheck={false}
               defaultValue={initialDraft}
-              placeholder={
+              placeholder={t(
                 worktreeRemoved
                   ? "Select a branch or worktree to continue…"
                   : inboxCard
@@ -1967,8 +1970,8 @@ export function Composer({
                         : (placeholder ??
                           (shell
                             ? "Ask, build, / for commands, @ for references... "
-                            : "Ask, build, / for commands, @ for references... "))
-              }
+                            : "Ask, build, / for commands, @ for references... ")),
+              )}
               aria-label={inputAriaLabel}
               disabled={disabled}
               className={`composer-field scrollbar-none relative max-h-40 w-full resize-none overflow-x-hidden whitespace-pre-wrap wrap-break-word bg-transparent px-3 text-sm leading-5.5 outline-none placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap font-sans ${
@@ -2005,7 +2008,7 @@ export function Composer({
               className={compact ? "hidden" : "relative shrink-0"}
             >
               <ToolButton
-                label="Add files or choose a mode"
+                label={t("Add files or choose a mode")}
                 active={plusOpen}
                 onClick={() => setPlusOpen((open) => !open)}
               >
@@ -2022,7 +2025,7 @@ export function Composer({
                   className="p-1.5"
                 >
                   <p className="px-2 pb-1 pt-0.5 text-[10px] font-medium uppercase tracking-wide text-content/40">
-                    Add to message
+                    {t("Add to message")}
                   </p>
                   <button
                     type="button"
@@ -2036,7 +2039,9 @@ export function Composer({
                   >
                     <FilePlus className="mt-0.5 size-4 shrink-0" />
                     <span className="min-w-0">
-                      <span className="block text-[13px]">Upload file</span>
+                      <span className="block text-[13px]">
+                        {t("Upload file")}
+                      </span>
                       <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
                         {attachmentsSupported
                           ? "Attach files or images"
@@ -2060,9 +2065,11 @@ export function Composer({
                   >
                     <AiIdea className="mt-0.5 size-4 shrink-0 text-yellow-300/80" />
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[13px]">Plan mode</span>
+                      <span className="block text-[13px]">
+                        {t("Plan mode")}
+                      </span>
                       <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
-                        Review a plan before building
+                        {t("Review a plan before building")}
                       </span>
                     </span>
                     {planSelected ? (
@@ -2085,9 +2092,9 @@ export function Composer({
                   >
                     <CursorMagicSelection className="mt-0.5 size-4 shrink-0 text-sky-300/80" />
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[13px]">Operator</span>
+                      <span className="block text-[13px]">{t("Operator")}</span>
                       <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
-                        Give this thread access to MonoCode
+                        {t("Give this thread access to MonoCode")}
                       </span>
                     </span>
                     {operatorSelected ? (
@@ -2112,13 +2119,15 @@ export function Composer({
                       <Share className="mt-0.5 size-4 shrink-0 text-fuchsia-300/65" />
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-1.5">
-                          <span className="text-[13px]">Orchestrator</span>
+                          <span className="text-[13px]">
+                            {t("Orchestrator")}
+                          </span>
                           <span className="rounded-full bg-fuchsia-300/10 px-1.5 py-0.5 text-[9px] font-medium leading-none tracking-wide text-fuchsia-200/55 mb-px">
                             v1
                           </span>
                         </span>
                         <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
-                          Plan and coordinate agent work
+                          {t("Plan and coordinate agent work")}
                         </span>
                       </span>
                       {orchestrationSelected && (
@@ -2143,9 +2152,9 @@ export function Composer({
                     >
                       <CircleDashed className="mt-0.5 size-4 shrink-0 text-content/60" />
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[13px]">Draft</span>
+                        <span className="block text-[13px]">{t("Draft")}</span>
                         <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
-                          Save this message without starting the agent
+                          {t("Save this message without starting the agent")}
                         </span>
                       </span>
                       {draftSelected ? (
@@ -2159,8 +2168,8 @@ export function Composer({
             {!compact && operatorSelected ? (
               <button
                 type="button"
-                title="Turn off Operator"
-                aria-label="Turn off Operator"
+                title={t("Turn off Operator")}
+                aria-label={t("Turn off Operator")}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {
                   setOperatorSelected(false);
@@ -2169,15 +2178,15 @@ export function Composer({
                 className="flex h-6.5 shrink-0 items-center gap-1 rounded-md bg-sky-500/15 px-1.5 text-[11px] font-medium text-sky-700 hover:bg-sky-500/20 dark:bg-sky-400/10 dark:text-sky-200/90 dark:hover:bg-sky-400/15"
               >
                 <CursorMagicSelection className="size-3.5" />
-                Operator
+                {t("Operator")}
                 <X className="size-3" />
               </button>
             ) : null}
             {!compact && orchestrationSelected && (
               <button
                 type="button"
-                title="Turn off Orchestrator mode"
-                aria-label="Turn off Orchestrator mode"
+                title={t("Turn off Orchestrator mode")}
+                aria-label={t("Turn off Orchestrator mode")}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {
                   setOrchestrationSelected(false);
@@ -2186,14 +2195,14 @@ export function Composer({
                 className="flex h-6.5 shrink-0 items-center gap-1 rounded-md bg-fuchsia-500/15 px-1.5 text-[11px] font-medium text-fuchsia-700 hover:bg-fuchsia-500/20 dark:bg-fuchsia-400/10 dark:text-fuchsia-200/90 dark:hover:bg-fuchsia-400/15"
               >
                 <Share className="size-3.5" />
-                Orchestrator
+                {t("Orchestrator")}
                 <X className="size-3" />
               </button>
             )}
             {!compact && planSelected ? (
               <button
                 type="button"
-                title="Turn off Plan mode"
+                title={t("Turn off Plan mode")}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   setPlanSelected(false);
@@ -2202,14 +2211,14 @@ export function Composer({
                 className="flex h-6.5 shrink-0 items-center gap-1 rounded-md bg-yellow-300/12 px-1.5 text-[11px] text-yellow-200/90 hover:bg-yellow-300/18"
               >
                 <AiIdea className="size-3.5" />
-                Plan
+                {t("Plan")}
                 <X className="size-3" />
               </button>
             ) : null}
             {!compact && draftSelected ? (
               <button
                 type="button"
-                title="Turn off Draft mode"
+                title={t("Turn off Draft mode")}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {
                   setDraftSelected(false);
@@ -2218,7 +2227,7 @@ export function Composer({
                 className="flex h-6.5 shrink-0 items-center gap-1 rounded-md border border-dashed border-content/25 bg-content/5 px-1.5 text-[11px] text-content/70 hover:bg-content/10 hover:text-content"
               >
                 <CircleDashed className="size-3.5" />
-                Draft
+                {t("Draft")}
                 <X className="size-3" />
               </button>
             ) : null}
@@ -2278,14 +2287,14 @@ export function Composer({
             {resendEdited ? (
               <button
                 type="button"
-                title="Stop editing last message"
-                aria-label="Stop editing last message"
+                title={t("Stop editing last message")}
+                aria-label={t("Stop editing last message")}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={exitEditMode}
                 className="edit-last-turn-button flex h-6.5 shrink-0 items-center gap-1 rounded-md border border-current/20 px-2 text-[11px] font-medium transition-[background-color,color,border-color] hover:border-current/35 hover:bg-content/15 hover:text-content focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
               >
                 <X className="size-3" strokeWidth={1.8} />
-                <span>Cancel edit</span>
+                <span>{t("Cancel edit")}</span>
               </button>
             ) : null}
             <div className="flex shrink-0 items-center gap-1">
@@ -2294,7 +2303,7 @@ export function Composer({
                 disabled={disabled}
                 hasValue={hasValue && !worktreeRemoved}
                 allowBusySubmit={allowBusySubmit}
-                label={draftSelected ? "Save draft" : "Send"}
+                label={draftSelected ? "Save draft" : t("Send")}
                 onSend={() => submit(ref.current?.value ?? "")}
                 onStop={() => onStop?.()}
               />
@@ -2399,6 +2408,7 @@ export function ComposerAction({
   onSend: () => void;
   onStop: () => void;
 }) {
+  const { t } = useTranslation();
   if (disabled) {
     return (
       <button
@@ -2426,8 +2436,8 @@ export function ComposerAction({
     ) : (
       <button
         type="button"
-        title="Stop"
-        aria-label="Stop"
+        title={t("Stop")}
+        aria-label={t("Stop")}
         onClick={onStop}
         className="grid size-6.5 place-items-center rounded-md bg-white text-black hover:bg-white/90"
       >

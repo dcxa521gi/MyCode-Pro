@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   CaseSensitive,
   ChevronLeft,
@@ -40,6 +41,7 @@ export function ProjectSearch({
   onOpenFile,
   onClose,
 }: Props) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -141,7 +143,9 @@ export function ProjectSearch({
 
   if (!cwd || cwd === "~") {
     return (
-      <p className="px-3 py-2 text-[12px] text-content/50">No project folder</p>
+      <p className="px-3 py-2 text-[12px] text-content/50">
+        {t("No project folder")}
+      </p>
     );
   }
 
@@ -168,8 +172,8 @@ export function ProjectSearch({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={onQueryKeyDown}
-            placeholder="Search"
-            aria-label="Search"
+            placeholder={t("Search")}
+            aria-label={t("Search")}
             spellCheck={false}
             className="min-w-0 flex-1 bg-transparent py-1.5 text-[12px] text-content outline-none placeholder:text-content/35"
           />

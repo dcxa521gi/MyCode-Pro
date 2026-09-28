@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n";
 import { RefreshCw, Terminal } from "../../shared/ui/icons";
 import {
   useCallback,
@@ -25,8 +26,15 @@ import {
   type ProviderRateLimits,
   type RateLimitProvider,
 } from "../../features/providers/model/rateLimits";
-import { HARNESS_LABEL, HARNESS_TITLE, type HarnessId } from "../../features/sessions/model/session";
-import { loginHarness, supportsHarnessLogin } from "../../integrations/harness/core/auth";
+import {
+  HARNESS_LABEL,
+  HARNESS_TITLE,
+  type HarnessId,
+} from "../../features/sessions/model/session";
+import {
+  loginHarness,
+  supportsHarnessLogin,
+} from "../../integrations/harness/core/auth";
 import {
   runningTerminalChipLabel,
   type RunningTerminal,
@@ -85,6 +93,7 @@ export function UsageFooter({
   ) => void;
   onManageAccounts?: (provider: ProviderAccountProvider) => void;
 }) {
+  const { t } = useTranslation();
   const wantClaude = providers.includes("claude");
   const wantCodex = providers.includes("codex");
   const wantOpencode = providers.includes("opencode");
@@ -457,7 +466,7 @@ export function UsageFooter({
               onClick={onTerminalClick}
             >
               <Terminal className="size-3.5" strokeWidth={1.75} aria-hidden />
-              <span>Terminal</span>
+              <span>{t("Terminal")}</span>
             </button>
           ) : null}
         </div>

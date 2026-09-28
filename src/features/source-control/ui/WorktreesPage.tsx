@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useMemo, useState } from "react";
 import { CreateWorktreeDialog } from "./CreateWorktreeDialog";
 import { DeleteWorktreeDialog } from "./DeleteWorktreeDialog";
@@ -13,8 +14,16 @@ import {
 } from "../../../shared/ui/icons";
 import { revealPath } from "../../../platform/tauri/fs";
 import { useProjectWorktrees } from "../hooks/useProjectWorktrees";
-import { isEqualOrInside, pathKey, prettyCwd, projectName } from "../../../shared/lib/paths";
-import { loadArchivedProjects, type RecentProject } from "../../projects/model/recents";
+import {
+  isEqualOrInside,
+  pathKey,
+  prettyCwd,
+  projectName,
+} from "../../../shared/lib/paths";
+import {
+  loadArchivedProjects,
+  type RecentProject,
+} from "../../projects/model/recents";
 import type { Session } from "../../sessions/model/session";
 import {
   checkWorktreeRemoval,
@@ -38,6 +47,7 @@ export function WorktreesPage({
   onCheckRemove?: RemoveWorktree;
   onDeleteSessions?: (sessionIds: readonly string[]) => Promise<boolean>;
 }) {
+  const { t } = useTranslation();
   const projects = useMemo(() => {
     const choices: RecentProject[] = [];
     const seen = new Set<string>();
@@ -111,7 +121,7 @@ export function WorktreesPage({
           className={`flex h-7 shrink-0 items-center gap-1.5 rounded-md bg-content/8 px-2 text-[11px] hover:bg-content/12 disabled:opacity-40 active:scale-[0.97] ${loadError ? "text-red-400" : "text-content/65"}`}
         >
           <RefreshCw className="size-3.5" />
-          <span>Refresh</span>
+          <span>{t("Refresh")}</span>
         </button>
       </div>
       {error && (

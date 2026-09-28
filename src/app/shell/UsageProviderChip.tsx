@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import {
   clampUsedPercent,
@@ -12,7 +13,10 @@ import {
   type RateLimitWindow,
 } from "../../features/providers/model/rateLimits";
 import type { CodexRateLimitResetOutcome } from "../../features/providers/model/rateLimitsFetch";
-import { mascotPath, projectMascot } from "../../features/projects/model/projectMascots";
+import {
+  mascotPath,
+  projectMascot,
+} from "../../features/projects/model/projectMascots";
 import { projectKey, projectName } from "../../shared/lib/paths";
 import { HARNESS_TITLE } from "../../features/sessions/model/session";
 import {
@@ -23,7 +27,13 @@ import {
   resolveTabGroupMascot,
 } from "../../features/workspace/model/tabGroups";
 import { HarnessIcon } from "../../features/sessions/ui/HarnessIcon";
-import { ArrowLeft, Check, ChevronRight, Plus, RefreshCw } from "../../shared/ui/icons";
+import {
+  ArrowLeft,
+  Check,
+  ChevronRight,
+  Plus,
+  RefreshCw,
+} from "../../shared/ui/icons";
 import { Popover, type PopoverDismissReason } from "../../shared/ui/Popover";
 import {
   ProviderSignInPanel,
@@ -434,6 +444,7 @@ function ProviderAccountPicker({
   onManage?: () => void;
   onSelect: (accountId: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div>
       <div className="flex h-7 items-center gap-1">
@@ -501,7 +512,7 @@ function ProviderAccountPicker({
         onClick={onAdd}
       >
         <Plus className="size-3.5" strokeWidth={1.75} aria-hidden />
-        Add account
+        {t("Add account")}
       </button>
       {onManage ? (
         <button
@@ -529,6 +540,7 @@ function AddProviderAccount({
   onAdd?: (label: string) => Promise<ProviderAccount>;
   onComplete: () => void;
 }) {
+  const { t } = useTranslation();
   const [label, setLabel] = useState("");
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -567,14 +579,14 @@ function AddProviderAccount({
         Give this account a local name, then finish sign-in in your browser.
       </p>
       <label className="mt-3 block text-[10px] font-medium text-content/55">
-        Account name
+        {t("Account name")}
         <input
           autoFocus
           type="text"
           maxLength={48}
           value={label}
           disabled={running}
-          placeholder="Work or Personal"
+          placeholder={t("Work or Personal")}
           className="mt-1.5 h-8 w-full rounded-lg border border-content/10 bg-content/[0.04] px-2.5 text-[11px] text-content outline-none placeholder:text-content/25 focus:border-accent/45 disabled:opacity-55"
           onChange={(event) => setLabel(event.target.value)}
         />
@@ -587,7 +599,7 @@ function AddProviderAccount({
         {running ? (
           <RefreshCw className="size-3.5 animate-spin" aria-hidden />
         ) : null}
-        {running ? "Waiting for browser…" : "Sign in and add account"}
+        {running ? t("Waiting for browser…") : "Sign in and add account"}
       </button>
       {error ? (
         <p className="mt-2 text-[10px] leading-4 text-red-500" role="status">
@@ -848,6 +860,7 @@ function BankedResetRow({
   onCancel: () => void;
   onUse: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <article className="rounded-lg bg-content/[0.04] px-2.5 py-2 ring-1 ring-inset ring-content/[0.06]">
       <h4 className="text-[10px] font-medium leading-4 text-content/70">
@@ -915,7 +928,7 @@ function BankedResetRow({
               className="h-6 rounded-md px-2 text-[10px] text-content/50 hover:bg-content/10 hover:text-content"
               onClick={onCancel}
             >
-              Cancel
+              {t("Cancel")}
             </button>
             <button
               type="button"
@@ -938,13 +951,14 @@ function EmptyUsageState({
   limits: ProviderRateLimits;
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg bg-content/[0.04] px-3 py-4 text-center ring-1 ring-inset ring-content/[0.06]">
       <p className="text-[11px] font-medium text-content/65">
         {loading
           ? "Loading usage…"
           : limits.status === "unavailable"
-            ? "Not connected"
+            ? t("Not connected")
             : "Usage unavailable"}
       </p>
       {limits.error ? (

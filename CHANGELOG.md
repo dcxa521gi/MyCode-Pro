@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-28 (dcxa521gi fork)
+
+### Added
+
+- English and Simplified Chinese language packs for core settings, navigation, the Windows menu bar, composer and common actions.
+- Settings → General → Language with automatic time-zone detection, persistent manual override, immediate switching and cross-window synchronization.
+- Chinese settings search and bilingual Windows NSIS installer.
+- Tests for regional detection, persistence, unavailable storage, cross-window updates and switching without remounting the settings UI.
+
+### Changed
+
+- Manual update guidance and fork download documentation point to dcxa521gi/monocode Releases.
+- Upstream publishing jobs are limited to the upstream repository because they require its Apple and update-signing secrets.
+
 ## [0.3.0] - 2026-09-27
 
 ### Added

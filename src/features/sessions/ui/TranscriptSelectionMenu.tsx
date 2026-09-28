@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { FilePlusCorner, MessageSquarePlus } from "../../../shared/ui/icons";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Popover } from "../../../shared/ui/Popover";
@@ -16,6 +17,7 @@ export function TranscriptSelectionMenu({
   onAddToNotes,
   onDismiss,
 }: Props) {
+  const { t } = useTranslation();
   const onDismissRef = useRef(onDismiss);
   onDismissRef.current = onDismiss;
 
@@ -50,7 +52,7 @@ export function TranscriptSelectionMenu({
       <div className="flex min-w-36 flex-col items-stretch gap-0.5">
         {onAddToChat ? (
           <SelectionAction
-            label="Add to chat"
+            label={t("Add to chat")}
             onSelect={() => onAddToChat(selection.text)}
             onDismiss={onDismiss}
           >

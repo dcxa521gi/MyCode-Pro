@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import "./QuickModelSelector.css";
 import { QuickPermissions } from "./QuickPermissions";
 import {
@@ -59,6 +60,7 @@ export function QuickModelSelector({
   runtimeMode,
   onRuntimeModeChange,
 }: Props) {
+  const { t } = useTranslation();
   const catalogVersion = useSyncExternalStore(
     subscribeModels,
     getModelSnapshot,
@@ -182,7 +184,7 @@ export function QuickModelSelector({
     >
       <nav
         role="tablist"
-        aria-label="Providers"
+        aria-label={t("Providers")}
         className="grid h-11 shrink-0 grid-flow-col auto-cols-fr items-center gap-1 border-b border-stroke px-2"
       >
         {tabs.map((id, index) => {

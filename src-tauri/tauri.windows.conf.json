@@ -18,13 +18,13 @@
     ]
   },
   "bundle": {
-    "targets": [
-      "nsis"
-    ],
+    "targets": ["nsis"],
     "createUpdaterArtifacts": false,
     "category": "DeveloperTool",
     "windows": {
       "nsis": {
+        "languages": ["English", "SimpChinese"],
+        "displayLanguageSelector": true,
         "installMode": "currentUser",
         "sidebarImage": "icons/installer-sidebar.bmp",
         "installerIcon": "icons/icon.ico"

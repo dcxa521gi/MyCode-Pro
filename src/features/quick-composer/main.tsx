@@ -16,6 +16,9 @@ import {
 import { QuickGitPopup } from "./ui/QuickGitPopup";
 import { QuickComposer } from "./ui/QuickComposer";
 import "../../styles/index.css";
+import { initLanguage } from "../../shared/i18n";
+
+initLanguage();
 
 /**
  * Only the theme, not the workspace's glass, backgrounds, or scale: the panel

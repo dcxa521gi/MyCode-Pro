@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useState } from "react";
 import { useLockOverscroll } from "../../../shared/hooks/useLockOverscroll";
 import { formatLiveElapsed, type LiveAgent } from "../model/liveAgents";
@@ -11,7 +12,12 @@ import {
   resolveTabGroupLabel,
   resolveTabGroupMascot,
 } from "../../workspace/model/tabGroups";
-import { Check, ChevronDown, ChevronUp, CircleAlert } from "../../../shared/ui/icons";
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  CircleAlert,
+} from "../../../shared/ui/icons";
 import { HarnessIcon } from "./HarnessIcon";
 import { ProjectMascot } from "../../projects/ui/ProjectMascot";
 import { TerminalSpinner } from "./TerminalSpinner";
@@ -40,6 +46,7 @@ export function LiveAgentsPreview({
   groupCustomColors: groupCustomColorsProp,
   groupMascots: groupMascotsProp,
 }: Props) {
+  const { t } = useTranslation();
   const [loadedGroupLabels] = useState(loadTabGroupLabels);
   const [loadedGroupColors] = useState(loadTabGroupColors);
   const [loadedGroupCustomColors] = useState(loadTabGroupCustomColors);
@@ -69,7 +76,7 @@ export function LiveAgentsPreview({
 
   return (
     <section
-      aria-label="Working agents"
+      aria-label={t("Working agents")}
       className={`shrink-0 px-2 ${bottomSpacing ? "pb-2" : ""}`}
       data-live-agents-preview="full"
     >

@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useState, type FormEvent } from "react";
 import { Modal } from "../../../shared/ui/Modal";
 import type { LinkedWorkItem } from "../model/session";
@@ -14,6 +15,7 @@ export function LinkSessionWorkItemDialog({
   onSave: (item: LinkedWorkItem | undefined) => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const [url, setUrl] = useState(initial?.url ?? "");
   const [error, setError] = useState("");
 
@@ -85,7 +87,7 @@ export function LinkSessionWorkItemDialog({
             onClick={onClose}
             className="rounded-md px-3 py-1.5 hover:bg-content/8 active:scale-[0.97]"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="submit"

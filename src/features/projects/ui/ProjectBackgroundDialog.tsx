@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { Loader } from "../../../shared/ui/icons";
 import { Modal } from "../../../shared/ui/Modal";
@@ -39,6 +40,7 @@ type Props = {
 };
 
 export function ProjectBackgroundDialog({ project, name, onClose }: Props) {
+  const { t } = useTranslation();
   const initial = loadProjectChatBackgroundSettings(project);
   const [path, setPath] = useState(initial?.path ?? null);
   const [emptyOpacity, setEmptyOpacity] = useState(
@@ -208,7 +210,7 @@ export function ProjectBackgroundDialog({ project, name, onClose }: Props) {
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <span className="text-[13px] font-medium text-content">
-                  Background effect
+                  {t("Background effect")}
                 </span>
                 <p className="text-[11px] text-content/45 line-clamp-1">
                   {NEW_THREAD_BACKGROUND_EFFECT_DESCRIPTIONS[effect]}
@@ -234,15 +236,15 @@ export function ProjectBackgroundDialog({ project, name, onClose }: Props) {
           </div>
         ) : null}
 
-        <ProjectBackgroundRow label="Show on">
+        <ProjectBackgroundRow label={t("Show on")}>
           <div
             role="radiogroup"
             aria-label="Show project background on"
             className="grid w-44 grid-cols-2 gap-0.5 rounded-md border border-content/10 p-0.5 text-[12px]"
           >
             {[
-              { value: "empty" as const, label: "Empty only" },
-              { value: "all" as const, label: "All sessions" },
+              { value: "empty" as const, label: t("Empty only") },
+              { value: "all" as const, label: t("All sessions") },
             ].map((option) => (
               <button
                 key={option.value}
@@ -262,7 +264,7 @@ export function ProjectBackgroundDialog({ project, name, onClose }: Props) {
           </div>
         </ProjectBackgroundRow>
 
-        <ProjectBackgroundRow label="Empty chat visibility">
+        <ProjectBackgroundRow label={t("Empty chat visibility")}>
           <div className="flex w-56 items-center gap-3">
             <input
               type="range"
@@ -281,7 +283,7 @@ export function ProjectBackgroundDialog({ project, name, onClose }: Props) {
           </div>
         </ProjectBackgroundRow>
 
-        <ProjectBackgroundRow label="Session visibility">
+        <ProjectBackgroundRow label={t("Session visibility")}>
           <div className="flex w-56 items-center gap-3">
             <input
               type="range"

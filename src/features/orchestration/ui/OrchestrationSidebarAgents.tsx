@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useContext, useEffect, useState, useSyncExternalStore } from "react";
 import { findModel } from "../../sessions/model/models";
 import { orchestrator } from "../model/orchestration";
@@ -11,7 +12,12 @@ import {
   OrchestrationActions,
   OrchestrationWorkers,
 } from "./OrchestrationActions";
-import { Check, ChevronDown, ChevronRight, CircleAlert } from "../../../shared/ui/icons";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  CircleAlert,
+} from "../../../shared/ui/icons";
 import { TerminalSpinner } from "../../sessions/ui/TerminalSpinner";
 
 export function OrchestrationSidebarAgents({
@@ -21,6 +27,7 @@ export function OrchestrationSidebarAgents({
   leadId: string;
   summary: OrchestrationSummary;
 }) {
+  const { t } = useTranslation();
   const actions = useContext(OrchestrationActions);
   const workers = useContext(OrchestrationWorkers);
   const runs = useSyncExternalStore(
@@ -294,7 +301,7 @@ export function OrchestrationSidebarAgents({
                 )
               }
             >
-              Resume
+              {t("Resume")}
             </button>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   type SessionFolderTarget,
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function SessionFolderPicker({ folders, onPick, onDismiss }: Props) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const [query, setQuery] = useState("");
@@ -92,8 +94,8 @@ export function SessionFolderPicker({ folders, onPick, onDismiss }: Props) {
         />
         <button
           type="button"
-          title="Cancel"
-          aria-label="Cancel"
+          title={t("Cancel")}
+          aria-label={t("Cancel")}
           onClick={onDismiss}
           className="grid size-6 shrink-0 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content"
         >

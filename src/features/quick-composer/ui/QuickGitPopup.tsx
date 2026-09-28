@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   useCallback,
   useEffect,
@@ -131,6 +132,7 @@ export function QuickGitPopupPicker({
   request: QuickGitRequest;
   onFinish: (id: string, choice?: QuickWorkspace) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const finished = useRef(false);
   const { choice } = request;
   const cwd = choice.tree?.path ?? choice.cwd ?? "";
@@ -173,7 +175,7 @@ export function QuickGitPopupPicker({
           className="rounded-md px-2 py-1 text-content/70 hover:bg-content/10"
           onClick={() => finish()}
         >
-          Close
+          {t("Close")}
         </button>
       </div>
     );

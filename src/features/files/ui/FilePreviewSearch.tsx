@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   useCallback,
   useEffect,
@@ -148,6 +149,7 @@ export function FilePreviewSearch({
   contentVersion: string;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -419,7 +421,7 @@ export function FilePreviewSearch({
             <ChevronDown className="size-3.5" strokeWidth={1.75} />
           </FindButton>
           <FindButton
-            label="Close"
+            label={t("Close")}
             title="Close (Escape)"
             onClick={closeSearch}
           >

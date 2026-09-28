@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useCallback, useEffect, useState } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { SecondaryButton } from "../../../shared/ui/SecondaryButton";
@@ -16,6 +17,7 @@ import {
 } from "../../inbox/model/jira";
 
 export function JiraSettings() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<JiraStatus | null>(null);
   const [site, setSite] = useState("");
   const [email, setEmail] = useState("");
@@ -104,7 +106,7 @@ export function JiraSettings() {
             <p className="break-all">{status.email}</p>
           </div>
           <SecondaryButton onClick={() => void disconnect()} disabled={busy}>
-            {busy ? "Disconnecting" : "Disconnect"}
+            {busy ? "Disconnecting" : t("Disconnect")}
           </SecondaryButton>
         </div>
       ) : (
@@ -168,7 +170,7 @@ export function JiraSettings() {
               type="submit"
               disabled={busy || !site.trim() || !email.trim() || !token.trim()}
             >
-              {busy ? "Connecting" : "Connect"}
+              {busy ? "Connecting" : t("Connect")}
             </SecondaryButton>
             <button
               type="button"
@@ -193,7 +195,7 @@ export function JiraSettings() {
         <div className="mt-4 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="text-[13px] font-medium text-content">
-              Projects
+              {t("Projects")}
             </span>
             <SecondaryButton
               disabled={busy || checking}

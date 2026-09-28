@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   useState,
   type ComponentType,
@@ -60,6 +61,7 @@ export function DeleteWorktreeDialog({
   onClose: () => void;
   onDeleted: () => void;
 }) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [deleteSessions, setDeleteSessions] = useState(false);
   const [error, setError] = useState<string>();
@@ -181,7 +183,7 @@ export function DeleteWorktreeDialog({
             onClick={onClose}
             className="rounded-md px-3 py-1.5 hover:bg-content/8 active:scale-[0.97]"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="submit"

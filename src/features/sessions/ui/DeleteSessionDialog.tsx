@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useState } from "react";
 import { prettyCwd } from "../../../shared/lib/paths";
 import { Modal } from "../../../shared/ui/Modal";
@@ -16,6 +17,7 @@ export function DeleteSessionDialog({
   unusedWorktree: string;
   onClose: (choice: SessionDeleteChoice) => void;
 }) {
+  const { t } = useTranslation();
   const [deleteWorktree, setDeleteWorktree] = useState(false);
   return (
     <Modal
@@ -49,7 +51,7 @@ export function DeleteSessionDialog({
             onClick={() => onClose({ confirmed: false, deleteWorktree: false })}
             className="rounded-md px-3 py-1.5 hover:bg-content/8 active:scale-[0.97]"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="button"

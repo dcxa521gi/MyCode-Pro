@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useGithubPrChecks } from "../hooks/useGithubPrChecks";
 import { summarizePrChecks } from "../model/githubPrChecks";
 import type { CiRepairRequest } from "../model/ciRepair";
@@ -35,10 +36,7 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import {
-  InboxFiltersMenu,
-  INBOX_FILTER_MENU_WIDTH,
-} from "./InboxFiltersMenu";
+import { InboxFiltersMenu, INBOX_FILTER_MENU_WIDTH } from "./InboxFiltersMenu";
 import { InboxConnectMenu } from "./InboxConnectMenu";
 import { InboxProviderMark } from "./InboxProviderMark";
 import { ProjectLogoIcon } from "../../projects/ui/ProjectLogoIcon";
@@ -106,8 +104,14 @@ import { copyText } from "../../../platform/tauri/clipboard";
 import { projectKey, projectName } from "../../../shared/lib/paths";
 import { IS_MAC } from "../../../platform/tauri/platform";
 import { playCue } from "../../settings/model/sounds";
-import { sameProjectPath, type RecentProject } from "../../projects/model/recents";
-import { sessionDisplayTitle, type LinkedWorkItem } from "../../sessions/model/session";
+import {
+  sameProjectPath,
+  type RecentProject,
+} from "../../projects/model/recents";
+import {
+  sessionDisplayTitle,
+  type LinkedWorkItem,
+} from "../../sessions/model/session";
 import type { SessionSummary } from "../../sessions/data/sessionStore";
 import {
   inboxItemMatchesLinkedWorkItem,
@@ -189,10 +193,7 @@ import {
   type InboxReplyTarget,
 } from "./InboxComments";
 import { InboxPrDiff } from "./InboxPrDiff";
-import {
-  InboxPrChecks,
-  PrChecksTab,
-} from "./InboxPrChecks";
+import { InboxPrChecks, PrChecksTab } from "./InboxPrChecks";
 import {
   InboxDiscussionPanel,
   type InboxSessionPortal,
@@ -396,6 +397,7 @@ export function InboxView({
   target = null,
   onOpenIntegrations,
 }: Props) {
+  const { t } = useTranslation();
   const [discussionOpen, setDiscussionOpen] = useState(false);
   const listLock = useLockOverscroll<HTMLDivElement>();
   const listScrollRef = useRef<HTMLDivElement>(null);
@@ -769,11 +771,13 @@ export function InboxView({
 
   const inboxSeenTick = useInboxSeenTick();
   useEffect(() => {
-    rememberInboxItems(items.map((item) => ({
-      key: inboxItemKey(item),
-      updatedAt: item.updatedAt,
-      projectPath: item.projectPath,
-    })));
+    rememberInboxItems(
+      items.map((item) => ({
+        key: inboxItemKey(item),
+        updatedAt: item.updatedAt,
+        projectPath: item.projectPath,
+      })),
+    );
   }, [items]);
   const sourceEntries = useMemo(
     () =>
@@ -963,18 +967,20 @@ export function InboxView({
             title="Mark all as read"
             aria-label="Mark all as read"
             disabled={!sourceHasUnseen}
-            onClick={() => setReadStatusError(
-              markInboxItemsSeen(sourceEntries)
-                ? null
-                : "Could not save read status. Please try again.",
-            )}
+            onClick={() =>
+              setReadStatusError(
+                markInboxItemsSeen(sourceEntries)
+                  ? null
+                  : "Could not save read status. Please try again.",
+              )
+            }
             className="grid size-6 shrink-0 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-content/45"
           >
             <CheckCheck className="size-3.5" strokeWidth={1.75} />
           </button>
           <button
             type="button"
-            aria-label="Refresh"
+            aria-label={t("Refresh")}
             onClick={() => setRefresh((value) => value + 1)}
             className="grid size-6 shrink-0 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content"
           >
@@ -1121,7 +1127,7 @@ export function InboxView({
   return (
     <div
       role="region"
-      aria-label="Inbox"
+      aria-label={t("Inbox")}
       data-app-inbox
       className="flex min-h-0 min-w-0 flex-1 flex-col text-content"
     >
@@ -1139,7 +1145,7 @@ export function InboxView({
             className="size-3.5 shrink-0 text-content/45"
             strokeWidth={1.75}
           />
-          <span className="min-w-0 truncate text-content">Inbox</span>
+          <span className="min-w-0 truncate text-content">{t("Inbox")}</span>
         </div>
         {IS_MAC ? null : <WindowControls />}
       </div>
@@ -1673,6 +1679,7 @@ export function GithubPrActions({
   headRef: string;
   onChange?: (item: InboxItem) => void;
 }) {
+  const { t } = useTranslation();
   const mergeGroup = useRef<HTMLDivElement>(null);
   const [mergeAction, setMergeAction] = useState<GithubPrMergeAction>("merge");
   const [mergeMenuOpen, setMergeMenuOpen] = useState(false);
@@ -1905,7 +1912,7 @@ export function GithubPrActions({
               onClick={dismissConfirmation}
               className={`h-7 rounded-md px-3 text-[12px] text-content/65 hover:bg-content/8 hover:text-content disabled:cursor-default disabled:opacity-40 ${PR_ACTION_PRESS}`}
             >
-              Cancel
+              {t("Cancel")}
             </button>
             <button
               type="button"
@@ -2160,21 +2167,21 @@ export function InboxDetail({
           ? jiraIssueDetails(jiraKey)
           : Promise.reject(new Error("Missing Jira issue"))
         : gitlabKind
-        ? gitlabWorkItemDetails(item.repo, gitlabKind, item.number)
-        : azureDevOpsKind
-          ? azureDevOpsWorkItemDetails(
-              item.repo,
-              azureDevOpsKind,
-              item.number,
-            )
-          : githubKind
-            ? githubWorkItemDetails(
-                item.projectPath,
+          ? gitlabWorkItemDetails(item.repo, gitlabKind, item.number)
+          : azureDevOpsKind
+            ? azureDevOpsWorkItemDetails(
                 item.repo,
-                githubKind,
+                azureDevOpsKind,
                 item.number,
               )
-            : Promise.reject(new Error("Unknown inbox item"));
+            : githubKind
+              ? githubWorkItemDetails(
+                  item.projectPath,
+                  item.repo,
+                  githubKind,
+                  item.number,
+                )
+              : Promise.reject(new Error("Unknown inbox item"));
     void pending
       .then((next) => {
         if (cancelled) return;
@@ -2740,10 +2747,7 @@ export function InboxDetail({
                           ? { ...item, projectPath: startProject }
                           : item;
                         void Promise.resolve(
-                          onStart(
-                            next,
-                            tracker ? details?.body : undefined,
-                          ),
+                          onStart(next, tracker ? details?.body : undefined),
                         )
                           .catch((err: unknown) => {
                             setStartError(
@@ -2983,6 +2987,7 @@ export function InboxDetail({
 }
 
 function CopyBranchNameButton({ branch }: { branch: string }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | null>(null);
 
@@ -2996,8 +3001,8 @@ function CopyBranchNameButton({ branch }: { branch: string }) {
   return (
     <button
       type="button"
-      title={copied ? "Copied" : "Copy branch name"}
-      aria-label={copied ? "Copied" : "Copy branch name"}
+      title={copied ? t("Copied") : "Copy branch name"}
+      aria-label={copied ? t("Copied") : "Copy branch name"}
       className="shrink-0 rounded p-0.5 text-content/40 hover:bg-content/8 hover:text-content/70"
       onClick={() => {
         void copyText(branch).then(

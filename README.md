@@ -16,6 +16,17 @@ Works with your subscriptions on Claude Code, Codex, Cursor, Grok Build, OpenCod
 
 ## Install
 
+### 中文语言包分支（Windows）
+
+此仓库基于 [hardbeat920/monocode](https://github.com/hardbeat920/monocode)，加入简体中文 / English 切换。
+
+- 下载：[本仓库 Windows 安装包](https://github.com/dcxa521gi/monocode/releases/latest)。
+- 入口：**设置 → 常规 → 语言**（Settings → General → Language）。
+- 默认按电脑时区自动选择：中文地区时区使用简体中文，其他地区使用英文；手动选择优先，立即生效并保存。
+- 当前覆盖主要设置、导航、输入框和常用操作，部分高级页面及原生提示仍保留英文。详见[语言包说明](docs/localization.md)。
+
+以下为上游项目的通用安装说明；本分支的 Windows 安装包请使用上方链接。
+
 > Install and log in to at least one provider first:
 >
 > - [Claude Code](https://claude.com/product/claude-code) - `claude auth login`

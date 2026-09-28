@@ -1,4 +1,12 @@
-import { LoaderCircle, Plus, Search, File, Trash2, X } from "../../../shared/ui/icons";
+import { useTranslation } from "../../../shared/i18n";
+import {
+  LoaderCircle,
+  Plus,
+  Search,
+  File,
+  Trash2,
+  X,
+} from "../../../shared/ui/icons";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import {
   Fragment,
@@ -42,7 +50,10 @@ import {
 } from "../noteImages";
 import { projectKey, projectName } from "../../../shared/lib/paths";
 import { IS_MAC } from "../../../platform/tauri/platform";
-import { looksLikeProject, type RecentProject } from "../../projects/model/recents";
+import {
+  looksLikeProject,
+  type RecentProject,
+} from "../../projects/model/recents";
 import {
   loadTabGroupColors,
   loadTabGroupCustomColors,
@@ -51,7 +62,10 @@ import {
   resolveTabGroupLogo,
   resolveTabGroupMascot,
 } from "../../workspace/model/tabGroups";
-import { AgentMarkdown, MarkdownSourceHighlight } from "../../sessions/ui/AgentMarkdown";
+import {
+  AgentMarkdown,
+  MarkdownSourceHighlight,
+} from "../../sessions/ui/AgentMarkdown";
 
 const MIN_WIDTH = 240;
 const MAX_WIDTH = 420;
@@ -100,6 +114,7 @@ export function NotesView({
   onClose,
   onToggleSidebar,
 }: Props) {
+  const { t } = useTranslation();
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const listLock = useLockOverscroll<HTMLDivElement>();
@@ -317,7 +332,7 @@ export function NotesView({
   return (
     <div
       role="region"
-      aria-label="Notes"
+      aria-label={t("Notes")}
       data-app-notes
       className="flex min-h-0 min-w-0 flex-1 flex-col text-content"
     >
@@ -335,7 +350,7 @@ export function NotesView({
             className="size-3.5 shrink-0 text-content/45"
             strokeWidth={1.75}
           />
-          <span className="min-w-0 truncate text-content">Notes</span>
+          <span className="min-w-0 truncate text-content">{t("Notes")}</span>
         </div>
         {IS_MAC ? null : <WindowControls />}
       </div>
@@ -550,6 +565,7 @@ function NoteEditor({
   onDelete: (id: string) => void | Promise<void>;
   onAddToChat: (note: Note) => void;
 }) {
+  const { t } = useTranslation();
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const blank = !note.body.trim() && note.title === "Untitled";
   const [mode, setMode] = useMarkdownMode(note.id);
@@ -844,7 +860,7 @@ function NoteEditor({
               onClick={() => onAddToChat(draft)}
               className="inline-flex items-center gap-1 rounded-md bg-content px-3 h-6.5 text-[12px] text-background-base hover:bg-content/80 disabled:cursor-default disabled:opacity-40"
             >
-              Add to chat
+              {t("Add to chat")}
             </button>
             <button
               type="button"
@@ -857,7 +873,7 @@ function NoteEditor({
               className="inline-flex items-center gap-1.5 rounded-md px-3 h-7 text-[12px] text-content/70 hover:bg-content/10 hover:text-red-400"
             >
               <Trash2 className="size-3.5" strokeWidth={1.75} />
-              Delete
+              {t("Delete")}
             </button>
           </div>
           {saveError ? (
@@ -874,7 +890,7 @@ function NoteEditor({
                 }}
                 className="shrink-0 underline hover:no-underline"
               >
-                Retry
+                {t("Retry")}
               </button>
             </div>
           ) : null}

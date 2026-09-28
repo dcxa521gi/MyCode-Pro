@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n";
 import {
   useCallback,
   useEffect,
@@ -101,6 +102,7 @@ export function ColorSwatchRow({
 }
 
 export function ColorPickerPopover({ value, onChange }: Props) {
+  const { t } = useTranslation();
   const [hsv, setHsv] = useState<Hsv>(() => hexToHsv(value));
   const svRef = useRef<HTMLDivElement>(null);
   const hueRef = useRef<HTMLDivElement>(null);
@@ -212,7 +214,7 @@ export function ColorPickerPopover({ value, onChange }: Props) {
       <div
         ref={hueRef}
         role="slider"
-        aria-label="Hue"
+        aria-label={t("Hue")}
         aria-valuemin={0}
         aria-valuemax={360}
         aria-valuenow={Math.round(hsv.h)}

@@ -1,4 +1,10 @@
-import { Folder, LoaderCircle, MessageSquare, Search } from "../../../shared/ui/icons";
+import { useTranslation } from "../../../shared/i18n";
+import {
+  Folder,
+  LoaderCircle,
+  MessageSquare,
+  Search,
+} from "../../../shared/ui/icons";
 import {
   useEffect,
   useMemo,
@@ -37,10 +43,16 @@ import {
 } from "../../files/model/fileIndex";
 import { prettyCwd, projectName } from "../../../shared/lib/paths";
 import { IS_MAC } from "../../../platform/tauri/platform";
-import { looksLikeProject, type RecentProject } from "../../projects/model/recents";
+import {
+  looksLikeProject,
+  type RecentProject,
+} from "../../projects/model/recents";
 import { searchProject, type OpenFileFn } from "../model/search";
 import { type Session } from "../../sessions/model/session";
-import { searchSessions, type SessionSummary } from "../../sessions/data/sessionStore";
+import {
+  searchSessions,
+  type SessionSummary,
+} from "../../sessions/data/sessionStore";
 
 const SCOPES: { id: SearchScope; label: string }[] = [
   { id: "all", label: "All" },
@@ -80,6 +92,7 @@ export function SearchView({
   onOpenSession,
   onOpenProject,
 }: Props) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -324,7 +337,7 @@ export function SearchView({
   return (
     <div
       role="search"
-      aria-label="Search"
+      aria-label={t("Search")}
       data-app-search
       className="flex min-h-0 min-w-0 flex-1 flex-col text-content"
     >
@@ -345,7 +358,7 @@ export function SearchView({
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={onQueryKeyDown}
             placeholder="Search everything..."
-            aria-label="Search"
+            aria-label={t("Search")}
             spellCheck={false}
             autoComplete="off"
             autoCorrect="off"

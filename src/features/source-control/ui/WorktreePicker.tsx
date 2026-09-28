@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useRef, useState } from "react";
 import { useProjectBranchesState } from "../hooks/useProjectBranches";
 import { useProjectWorktrees } from "../hooks/useProjectWorktrees";
@@ -38,6 +39,7 @@ export function WorktreePicker({
   onManage?: () => void;
   onClose?: () => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [branchPicker, setBranchPicker] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -157,7 +159,7 @@ export function WorktreePicker({
                 ? inWorktree
                   ? "Worktree unavailable"
                   : "No repo"
-                : "Loading…"
+                : t("Loading…")
         }
         worktree={!worktreeRemoved && inWorktree}
       />

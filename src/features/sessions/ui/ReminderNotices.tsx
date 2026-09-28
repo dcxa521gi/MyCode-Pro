@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { LAYER } from "../../../shared/lib/layers";
@@ -44,6 +45,7 @@ export function ReminderNotices({
   onOpenSettings: () => void;
   onHeightChange?: (height: number) => void;
 }) {
+  const { t } = useTranslation();
   const panelRef = useRef<HTMLElement>(null);
   const [snooze, setSnooze] = useState<{
     reminder: SessionReminder;
@@ -90,7 +92,7 @@ export function ReminderNotices({
           <div role="alert" className="px-3 py-2 text-[12px] text-content/70">
             Couldn’t load reminders.{" "}
             <button className="underline" onClick={onRetry}>
-              Retry
+              {t("Retry")}
             </button>
           </div>
         ) : null}

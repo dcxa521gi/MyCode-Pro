@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertCircle,
@@ -151,6 +152,7 @@ function ImageView({
   size: number;
   mime: string;
 }) {
+  const { t } = useTranslation();
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const [zoom, setZoom] = useState<number | "fit">("fit");
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
@@ -234,7 +236,7 @@ function ImageView({
         <span className="flex-1" />
         {IS_MAC ? (
           <ZoomButton
-            label={copied ? "Copied" : "Copy original file"}
+            label={copied ? t("Copied") : "Copy original file"}
             onClick={copyOriginal}
           >
             {copied ? (
@@ -328,6 +330,7 @@ function FileCard({
   icon: React.ReactNode;
   onRetry?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="grid h-full place-items-center p-6">
       <div className="max-w-md text-center">
@@ -341,7 +344,7 @@ function FileCard({
           {onRetry ? (
             <CardButton onClick={onRetry}>
               <RotateCcw className="size-3" strokeWidth={1.75} />
-              Retry
+              {t("Retry")}
             </CardButton>
           ) : null}
           <CardButton onClick={() => void revealPath(path).catch(() => {})}>
@@ -349,7 +352,7 @@ function FileCard({
             Reveal
           </CardButton>
           <CardButton onClick={() => void copyText(path).catch(() => {})}>
-            Copy path
+            {t("Copy path")}
           </CardButton>
         </div>
       </div>

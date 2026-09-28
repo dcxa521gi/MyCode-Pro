@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Plus, RefreshCw, X } from "../../../shared/ui/icons";
 
@@ -488,6 +489,7 @@ export function BtwSheet({
   onOpenFile?: (path: string) => void;
   onOpenDiff?: (path: string) => void;
 }) {
+  const { t } = useTranslation();
   const sheetRef = useRef<HTMLElement | null>(null);
   const glassRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -747,7 +749,7 @@ export function BtwSheet({
                           ? `Delete “${label}”`
                           : "Discard new question"
                       }
-                      title={tab.thread ? "Delete" : "Discard"}
+                      title={tab.thread ? t("Delete") : "Discard"}
                       onClick={() => btw.closeTab(tab)}
                       className={`mr-1 grid size-5 shrink-0 place-items-center rounded text-content/40 transition-opacity hover:bg-content/10 hover:text-content focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-accent ${
                         selected ? "" : "opacity-0 group-hover:opacity-100"
@@ -814,7 +816,7 @@ export function BtwSheet({
                   className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md px-2 text-[11px] font-medium text-red-100/80 transition-colors hover:bg-red-200/10 hover:text-red-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-red-200/60"
                 >
                   <RefreshCw className="size-3" strokeWidth={1.75} />
-                  Retry
+                  {t("Retry")}
                 </button>
               </div>
             </div>

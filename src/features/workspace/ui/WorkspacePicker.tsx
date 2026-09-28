@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { NativePopupHost } from "../../../shared/ui/NativePopupHost";
 import {
   useCallback,
@@ -170,6 +171,7 @@ function WorkspaceModePicker({
   onOpenChange?: (open: boolean) => void;
   popoverSide?: "top" | "bottom";
 }) {
+  const { t } = useTranslation();
   const host = useContext(NativePopupHost);
   const [open, setOpen] = useState(initialOpen);
   useEffect(() => {
@@ -298,12 +300,12 @@ function WorkspaceModePicker({
           onDismiss={dismiss}
           ignore={WORKSPACE_SURFACES}
           role="dialog"
-          aria-label="Workspace"
+          aria-label={t("Workspace")}
           data-workspace-picker
           className="overflow-hidden p-1.5"
         >
           <div className="flex items-center justify-between gap-3 px-2 py-1 text-[11px] font-medium text-content/45">
-            <span>Workspace</span>
+            <span>{t("Workspace")}</span>
             {shortcut ? (
               <kbd className="font-sans text-[10px] font-normal text-content/35">
                 {shortcut}

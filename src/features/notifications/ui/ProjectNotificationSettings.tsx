@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronRight, Folder, Minus } from "../../../shared/ui/icons";
 import { NotificationMuteControl } from "./NotificationMuteControl";
@@ -40,6 +41,7 @@ export function ProjectNotificationSettings({
   notificationSettingsRequest = 0,
   highlighted = false,
 }: Props) {
+  const { t } = useTranslation();
   const notificationProjects = useNotificationProjects([
     cwd,
     notificationProjectPath ?? "",
@@ -134,7 +136,7 @@ export function ProjectNotificationSettings({
                 setSelected([]);
               }}
             >
-              {selecting ? "Done" : "Select projects"}
+              {selecting ? t("Done") : "Select projects"}
             </SecondaryButton>
           </div>
         ) : null}
@@ -154,7 +156,8 @@ export function ProjectNotificationSettings({
             role="status"
             className="px-4 py-3.5 text-[12px] leading-relaxed text-content/45"
           >
-            Open a project or connect an Inbox provider to configure its notifications.
+            Open a project or connect an Inbox provider to configure its
+            notifications.
           </p>
         ) : null}
         {projects.length ? (

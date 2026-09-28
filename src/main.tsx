@@ -3,7 +3,10 @@ import ReactDOM from "react-dom/client";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import App from "./app/App";
-import { activateWindowAppearance, initAppearance } from "./features/settings/model/appearance";
+import {
+  activateWindowAppearance,
+  initAppearance,
+} from "./features/settings/model/appearance";
 import { initSounds } from "./features/settings/model/sounds";
 import {
   abortQuit,
@@ -17,7 +20,9 @@ import { setHomeDir } from "./shared/lib/paths";
 import { consumeInstalledUpdate } from "./app/model/updateNotice";
 import { initializeProviderBinaryPaths } from "./features/providers/model/providerBinaryPaths";
 import "./styles/index.css";
+import { initLanguage } from "./shared/i18n";
 
+initLanguage();
 initAppearance();
 initSounds();
 // Prime the real home directory before the first render so every `~/` file
@@ -72,21 +77,23 @@ void listen("quit_aborted", () => {
   abortQuit();
 });
 
-void Promise.all([homeDirPrimed, providerBinaryPathsPrimed, loadBootWorkspace()]).then(
-  ([, , { windowTransfer, resumed, history, historyCwd }]) => {
-    const installedUpdate = windowTransfer ? null : consumeInstalledUpdate();
-    ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-      <React.StrictMode>
-        <BootGate>
-          <App
-            windowTransfer={windowTransfer}
-            resumed={resumed}
-            installedUpdate={installedUpdate}
-            history={history}
-            historyCwd={historyCwd}
-          />
-        </BootGate>
-      </React.StrictMode>,
-    );
-  },
-);
+void Promise.all([
+  homeDirPrimed,
+  providerBinaryPathsPrimed,
+  loadBootWorkspace(),
+]).then(([, , { windowTransfer, resumed, history, historyCwd }]) => {
+  const installedUpdate = windowTransfer ? null : consumeInstalledUpdate();
+  ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <React.StrictMode>
+      <BootGate>
+        <App
+          windowTransfer={windowTransfer}
+          resumed={resumed}
+          installedUpdate={installedUpdate}
+          history={history}
+          historyCwd={historyCwd}
+        />
+      </BootGate>
+    </React.StrictMode>,
+  );
+});

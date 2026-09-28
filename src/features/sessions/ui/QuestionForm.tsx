@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   useEffect,
   useMemo,
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export function QuestionForm({ prompt, onReply, onInteraction }: Props) {
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [custom, setCustom] = useState<Record<string, string>>({});
@@ -56,7 +58,10 @@ export function QuestionForm({ prompt, onReply, onInteraction }: Props) {
   );
 
   const finish = (nextAnswers = answers, nextCustom = custom) => {
-    onReply(prompt.requestId, buildQuestionReply(questions, nextAnswers, nextCustom));
+    onReply(
+      prompt.requestId,
+      buildQuestionReply(questions, nextAnswers, nextCustom),
+    );
   };
 
   const skipCurrent = () => {
@@ -181,7 +186,7 @@ export function QuestionForm({ prompt, onReply, onInteraction }: Props) {
             disabled={!ready}
             className="h-6 rounded-md bg-content px-2.5 text-[11px] font-medium text-background-base hover:bg-content/80 disabled:opacity-40"
           >
-            Continue
+            {t("Continue")}
           </button>
         </div>
       </form>
@@ -255,12 +260,17 @@ function QuestionFields({
   };
 
   return (
-    <fieldset className="min-w-0" aria-label={question.header || question.prompt}>
+    <fieldset
+      className="min-w-0"
+      aria-label={question.header || question.prompt}
+    >
       <p className="text-[13px] font-medium leading-snug text-content">
         {question.prompt}
       </p>
       {question.multiSelect ? (
-        <p className="mt-0.5 text-[11px] text-content/40">Select all that apply</p>
+        <p className="mt-0.5 text-[11px] text-content/40">
+          Select all that apply
+        </p>
       ) : null}
       {options.length === 0 && question.allowCustom ? (
         <input

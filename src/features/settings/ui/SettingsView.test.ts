@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { invoke } from "@tauri-apps/api/core";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { SettingsView } from "./SettingsView";
+import { setLanguage } from "../../../shared/i18n";
+import { searchSettings } from "../model/settings";
 import { rememberNotificationProjects } from "../../notifications/model/notificationProjects";
 import {
   SETTINGS_INDEX,
@@ -15,10 +17,7 @@ import {
   providerAccounts,
   saveProviderAccount,
 } from "../../providers/model/providerAccounts";
-import {
-  HARNESSES,
-  HARNESS_TITLE,
-} from "../../sessions/model/session";
+import { HARNESSES, HARNESS_TITLE } from "../../sessions/model/session";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: vi.fn(async () => undefined),
@@ -89,6 +88,7 @@ function renderedSettingIds(): string[] {
 }
 
 beforeEach(() => {
+  setLanguage("en");
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   mockLocalStorage();
   container = document.createElement("div");
@@ -96,6 +96,33 @@ beforeEach(() => {
   root = createRoot(container);
   onSelectSection = vi.fn();
   vi.mocked(invoke).mockReset().mockResolvedValue(undefined);
+});
+
+it("switches languages without remounting settings and supports Chinese search", async () => {
+  await render("general");
+  const select = container.querySelector<HTMLSelectElement>(
+    'select[aria-label="Display language"]',
+  )!;
+  expect(select).not.toBeNull();
+  await act(async () => {
+    select.value = "zh-CN";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  expect(container.textContent).toContain("界面语言");
+  expect(container.textContent).toContain("声音");
+  expect(container.textContent).toContain("常规");
+  expect(localStorage.getItem("monocode.language")).toBe("zh-CN");
+  expect(searchSettings("语言")[0].settingId).toBe("language");
+  expect(
+    searchSettings("外观").some((result) => result.section === "appearance"),
+  ).toBe(true);
+  expect(container.querySelector("select")).toBe(select);
+  await act(async () => {
+    select.value = "en";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  expect(container.textContent).toContain("Display language");
+  expect(container.textContent).toContain("Sounds");
 });
 
 afterEach(async () => {
@@ -288,7 +315,9 @@ describe("settings pages", () => {
     const save = async (provider: "Codex" | "OpenCode", path: string) => {
       const id = `${provider.toLowerCase()}-binary-path`;
       if (!document.querySelector(`#${id}`)) {
-        if (!document.querySelector(`[aria-label="Edit ${provider} CLI path"]`)) {
+        if (
+          !document.querySelector(`[aria-label="Edit ${provider} CLI path"]`)
+        ) {
           await act(async () =>
             container
               .querySelector<HTMLButtonElement>(
@@ -350,11 +379,13 @@ describe("settings pages", () => {
       ).codex,
     ).toBe("/opt/codex/bin/codex");
     await act(async () =>
-      Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
-        (button) => button.textContent === "Cancel",
-      )!.click(),
+      Array.from(document.querySelectorAll<HTMLButtonElement>("button"))
+        .find((button) => button.textContent === "Cancel")!
+        .click(),
     );
-    expect(document.querySelector('[aria-label="Retry Codex configured path"]')).not.toBeNull();
+    expect(
+      document.querySelector('[aria-label="Retry Codex configured path"]'),
+    ).not.toBeNull();
 
     failAutoCodex = true;
     await save("Codex", "");
@@ -625,7 +656,8 @@ describe("settings pages", () => {
     vi.mocked(invoke).mockImplementation(async (command) => {
       if (command === "harness_resolve_codex") return { path: "/auto/codex" };
       if (command === "harness_exec") return "codex-cli 0.156.1";
-      if (command === "reveal_path") throw new Error("File manager unavailable");
+      if (command === "reveal_path")
+        throw new Error("File manager unavailable");
       return undefined;
     });
     await render("providers");

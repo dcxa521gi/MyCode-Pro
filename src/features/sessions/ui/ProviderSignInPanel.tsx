@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import type { HarnessId } from "../model/session";
 import { HARNESS_TITLE } from "../model/session";
 import { HarnessIcon } from "./HarnessIcon";
@@ -22,6 +23,7 @@ export function ProviderSignInPanel({
   completeActionLabel?: string;
   autoFocus?: boolean;
 }) {
+  const { t } = useTranslation();
   const title = HARNESS_TITLE[harness];
   const complete = state === "complete";
 
@@ -54,7 +56,7 @@ export function ProviderSignInPanel({
           <Check className="size-3.5" aria-hidden />
         ) : null}
         {state === "running"
-          ? "Waiting for browser…"
+          ? t("Waiting for browser…")
           : complete
             ? (completeActionLabel ?? "Signed in")
             : `Sign in to ${title}`}

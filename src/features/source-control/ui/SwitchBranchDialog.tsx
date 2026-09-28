@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { NativePopupHost } from "../../../shared/ui/NativePopupHost";
 import { Loader, WandSparkles } from "../../../shared/ui/icons";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -29,6 +30,7 @@ export function SwitchBranchDialog({
   onCommit,
   onCancel,
 }: Props) {
+  const { t } = useTranslation();
   const host = useContext(NativePopupHost);
   const [message, setMessage] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -151,7 +153,7 @@ export function SwitchBranchDialog({
             onClick={onCancel}
             className="rounded-md px-3 py-1.5 text-[12px] text-content/70 hover:bg-content/8 hover:text-content disabled:opacity-40"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="button"

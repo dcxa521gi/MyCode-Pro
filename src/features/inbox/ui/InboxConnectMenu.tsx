@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   INBOX_SOURCE_LABELS,
   type ConnectableInboxSource,
@@ -18,6 +19,7 @@ export function InboxConnectMenu({
   onConnect: (source: ConnectableInboxSource) => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Popover
       anchor={anchor}
@@ -30,7 +32,7 @@ export function InboxConnectMenu({
       className="p-1"
     >
       <div className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-content/40">
-        Not connected
+        {t("Not connected")}
       </div>
       {sources.map((source) => (
         <button
@@ -49,7 +51,7 @@ export function InboxConnectMenu({
             className="block size-3.5 shrink-0"
           />
           <span className="min-w-0 flex-1 truncate">
-            Connect {INBOX_SOURCE_LABELS[source]}
+            {t("Connect")} {INBOX_SOURCE_LABELS[source]}
           </span>
         </button>
       ))}

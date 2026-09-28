@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LAYER } from "../../../shared/lib/layers";
@@ -15,7 +16,13 @@ type Props = {
  * Delete drops the project from the rail and its saved chats. The folder on
  * disk is left alone; opening it again brings the project back empty.
  */
-export function RemoveProjectDialog({ name, path, onCancel, onConfirm }: Props) {
+export function RemoveProjectDialog({
+  name,
+  path,
+  onCancel,
+  onConfirm,
+}: Props) {
+  const { t } = useTranslation();
   const [sessions, setSessions] = useState<number | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -59,9 +66,9 @@ export function RemoveProjectDialog({ name, path, onCancel, onConfirm }: Props) 
             Delete “{name}”?
           </h2>
           <p className="text-[12px] leading-snug text-content/55">
-            All conversations for this project will be deleted. It also
-            leaves the sidebar. The folder on disk stays put, and opening it
-            again brings the project back empty.
+            All conversations for this project will be deleted. It also leaves
+            the sidebar. The folder on disk stays put, and opening it again
+            brings the project back empty.
           </p>
           {sessions != null && sessions > 0 ? (
             <p className="text-[12px] leading-snug text-content/45">
@@ -82,14 +89,14 @@ export function RemoveProjectDialog({ name, path, onCancel, onConfirm }: Props) 
             onClick={onCancel}
             className="rounded-md px-3 py-1.5 text-[12px] text-content/70 hover:bg-content/8 hover:text-content"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="button"
             onClick={onConfirm}
             className="rounded-md bg-red-500/20 px-3 py-1.5 text-[12px] font-medium text-red-300 hover:bg-red-500/30"
           >
-            Delete
+            {t("Delete")}
           </button>
         </div>
       </div>

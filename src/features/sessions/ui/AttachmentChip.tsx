@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useState } from "react";
 import { X } from "../../../shared/ui/icons";
 import { attachmentPreviewSrc } from "../model/attachments";
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function AttachmentChip({ attachment, onRemove }: Props) {
+  const { t } = useTranslation();
   const [previewOpen, setPreviewOpen] = useState(false);
   const preview = attachmentPreviewSrc(attachment);
   const image = attachment.kind === "image" && preview;
@@ -54,7 +56,7 @@ export function AttachmentChip({ attachment, onRemove }: Props) {
         {onRemove ? (
           <button
             type="button"
-            title="Remove"
+            title={t("Remove")}
             aria-label={`Remove ${attachment.name}`}
             onClick={(event) => {
               event.stopPropagation();

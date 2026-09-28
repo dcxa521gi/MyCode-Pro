@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useState } from "react";
 import {
   loadNotificationPreferences,
@@ -21,6 +22,7 @@ export function NotificationMuteDatePicker({
   onChanged,
   onCancel,
 }: Props) {
+  const { t } = useTranslation();
   const [value, setValue] = useState(() => {
     const until =
       projectIds.length === 1
@@ -85,7 +87,7 @@ export function NotificationMuteDatePicker({
           onClick={onCancel}
           className="rounded px-2 py-1.5 text-xs text-content/50 hover:bg-content/5 hover:text-content focus-visible:outline-2 focus-visible:outline-accent"
         >
-          Cancel
+          {t("Cancel")}
         </button>
         <button
           type="submit"
