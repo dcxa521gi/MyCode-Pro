@@ -1,8 +1,12 @@
+import { useTranslation } from "../../../shared/i18n";
 import { CircleDashed, X } from "../../../shared/ui/icons";
 import { MAX_PREVIEW_LINES } from "../../../integrations/harness/core/preview";
 import { formatInteger } from "../../../shared/lib/numbers";
 import { displayPath, resolveWorkspacePath } from "../../../shared/lib/paths";
-import type { ToolPreview, ToolPreviewLine } from "../../sessions/model/session";
+import type {
+  ToolPreview,
+  ToolPreviewLine,
+} from "../../sessions/model/session";
 import { FileTypeIcon } from "./FileTypeIcon";
 
 type Status = "pending" | "accepted" | "rejected";
@@ -70,6 +74,7 @@ export function FilePreview({
   onOpenFile,
   variant = "card",
 }: Props) {
+  const { t } = useTranslation();
   const path = preview.path;
   const filePath = path ? (resolveWorkspacePath(path, cwd) ?? path) : undefined;
   const fileName = preview.fileName || fileNameOf(path);
@@ -143,7 +148,7 @@ export function FilePreview({
           >
             {preview.contentOnly && !lines.length ? (
               <p className="px-3 py-2 font-mono text-xs text-content/50">
-                Empty file
+                {t("Empty file")}
               </p>
             ) : null}
             {lines.map((line, index) => (

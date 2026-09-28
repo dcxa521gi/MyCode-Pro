@@ -1,3 +1,5 @@
+import { translate as uiTranslate } from "../../../shared/i18n";
+import { useTranslation } from "../../../shared/i18n";
 import { RefreshCw, Search } from "../../../shared/ui/icons";
 import {
   useEffect,
@@ -35,7 +37,13 @@ export function reloadActionHint(mod = MOD, shift = SHIFT) {
 }
 
 const ACTIONS: Action[] = [
-  { id: "reload", label: "Reload MonoCode", hint: reloadActionHint() },
+  {
+    id: "reload",
+    get label() {
+      return uiTranslate("Reload MyCode");
+    },
+    hint: reloadActionHint(),
+  },
 ];
 
 type Props = {
@@ -57,6 +65,7 @@ export function FilePicker({
   onRunAction,
   onClose,
 }: Props) {
+  const { t } = useTranslation();
   const search = useRef<HTMLInputElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -222,7 +231,7 @@ export function FilePicker({
               ref={search}
               type="text"
               value={query}
-              placeholder="Go to File (type > for commands)"
+              placeholder={t("Go to File (type > for commands)")}
               aria-label={paletteMode ? "Command Palette" : "Go to File"}
               spellCheck={false}
               autoComplete="off"
@@ -305,6 +314,7 @@ function ActionList({
   onActive: (index: number) => void;
   onRun: (action: RankedAction) => void;
 }) {
+  const { t } = useTranslation();
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const activeRef = useRef<HTMLButtonElement>(null);
 
@@ -316,7 +326,7 @@ function ActionList({
     <div
       ref={lockOverscroll}
       role="listbox"
-      aria-label="Commands"
+      aria-label={t("Commands")}
       className="max-h-[min(380px,50vh)] overflow-y-auto overscroll-none px-1.5 pb-1.5"
     >
       {actions.map((action, index) => {
@@ -370,6 +380,7 @@ function FileList({
   onActive: (index: number) => void;
   onPick: (file: RankedFile) => void;
 }) {
+  const { t } = useTranslation();
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const activeRef = useRef<HTMLButtonElement>(null);
   const pointer = useRef({ x: Number.NaN, y: Number.NaN, allow: false });
@@ -405,7 +416,7 @@ function FileList({
     <div
       ref={lockOverscroll}
       role="listbox"
-      aria-label="Files"
+      aria-label={t("Files")}
       onMouseMove={onListMouseMove}
       className="max-h-[min(380px,50vh)] overflow-y-auto overscroll-none px-1.5 pb-1.5"
     >

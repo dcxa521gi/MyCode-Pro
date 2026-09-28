@@ -39,6 +39,7 @@ type LoadState =
  * turn out not to be an image get a card pointing at the file on disk.
  */
 export function BinaryFileView({ path, cwd }: Props) {
+  const { t } = useTranslation();
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -97,7 +98,7 @@ export function BinaryFileView({ path, cwd }: Props) {
   if (state.status === "loading") {
     return (
       <div className="grid h-full place-items-center text-[12px] text-content/45">
-        Opening {basename(path)}…
+        {t("Opening")} {basename(path)}…
       </div>
     );
   }
@@ -247,7 +248,7 @@ function ImageView({
           </ZoomButton>
         ) : null}
         <ZoomButton
-          label="Zoom out"
+          label={t("Zoom out")}
           onClick={() =>
             setZoom((value) => clampZoom((value === "fit" ? 1 : value) / 1.5))
           }
@@ -256,14 +257,14 @@ function ImageView({
         </ZoomButton>
         <button
           type="button"
-          title="Fit to window"
+          title={t("Fit to window")}
           onClick={() => setZoom("fit")}
           className="w-11 rounded text-center tabular-nums hover:text-content"
         >
-          {zoom === "fit" ? "Fit" : `${Math.round(zoom * 100)}%`}
+          {zoom === "fit" ? t("Fit") : `${Math.round(zoom * 100)}%`}
         </button>
         <ZoomButton
-          label="Zoom in"
+          label={t("Zoom in")}
           onClick={() =>
             setZoom((value) => clampZoom((value === "fit" ? 1 : value) * 1.5))
           }
@@ -279,7 +280,7 @@ function ImageView({
             {
               kind: "item",
               id: "copy-original",
-              label: "Copy Original File",
+              label: t("Copy Original File"),
             },
           ]}
           ariaLabel="Image actions"
@@ -349,7 +350,7 @@ function FileCard({
           ) : null}
           <CardButton onClick={() => void revealPath(path).catch(() => {})}>
             <Folder className="size-3" strokeWidth={1.75} />
-            Reveal
+            {t("Reveal")}
           </CardButton>
           <CardButton onClick={() => void copyText(path).catch(() => {})}>
             {t("Copy path")}

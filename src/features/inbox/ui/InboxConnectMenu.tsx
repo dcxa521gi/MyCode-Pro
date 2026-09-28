@@ -27,7 +27,7 @@ export function InboxConnectMenu({
       width={WIDTH}
       onDismiss={onClose}
       role="menu"
-      aria-label="Connect an inbox source"
+      aria-label={t("Connect an inbox source")}
       onContextMenu={(event) => event.preventDefault()}
       className="p-1"
     >

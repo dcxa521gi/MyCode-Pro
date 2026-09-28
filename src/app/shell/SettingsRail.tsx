@@ -24,6 +24,7 @@ const SECTION_ICONS: Record<SettingsSectionId, IconComponent> = {
   keybindings: Keyboard,
   chat: MessageSquare,
   providers: Bot,
+  "local-ai": Sparkles,
   skills: Sparkles,
   inbox: Inbox,
   worktrees: FolderTree,

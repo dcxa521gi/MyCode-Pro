@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   ChevronDown,
   Lock,
@@ -41,6 +42,7 @@ export function AccessPicker({
   onClose,
   busy = false,
 }: Props) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(() =>
     Math.max(0, RUNTIME_MODES.indexOf(value)),
@@ -126,7 +128,7 @@ export function AccessPicker({
           autoFocus
           onDismiss={(reason) => dismiss(reason === "escape")}
           role="listbox"
-          aria-label="Access"
+          aria-label={t("Access")}
           data-access-picker
           tabIndex={-1}
           onKeyDown={onMenuKey}
@@ -168,8 +170,9 @@ export function AccessPicker({
           })}
           {busy ? (
             <p className="px-2 py-1.5 text-[11px] leading-4 text-content/50">
-              Access changes apply to the next turn. Stop and resend to apply
-              them now.
+              {t(
+                "Access changes apply to the next turn. Stop and resend to apply them now.",
+              )}
             </p>
           ) : null}
         </Popover>

@@ -36,11 +36,11 @@ export function ProviderSignInPanel({
         <HarnessIcon harness={harness} className="size-9" />
       </span>
       <h2 className="mt-3.5 text-[15px] font-medium leading-5 text-content">
-        {complete ? `Signed in to ${title}` : "Authentication required"}
+        {complete ? `Signed in to ${title}` : t("Authentication required")}
       </h2>
       <p className="mt-1 max-w-56 text-[11px] leading-4 text-content/45">
         {complete
-          ? "You can retry your last message now."
+          ? t("You can retry your last message now.")
           : `Sign in to continue using ${title}.`}
       </p>
       <button

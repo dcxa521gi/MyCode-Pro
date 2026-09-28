@@ -6,25 +6,23 @@ function shell(text: string): Block {
   return { id: text, role: "tool", text, tool: { kind: "shell" } };
 }
 
-describe("MonoCode CLI tool calls", () => {
+describe("MyCode CLI tool calls", () => {
   it("recognizes app actions with absolute, quoted, or bare executables", () => {
     expect(
       monoCodeToolCall(
         shell(
-          "/repo/target/debug/MonoCode.app/Contents/MacOS/monocode app notes.list --json '{}'",
+          "/repo/target/debug/MyCode.app/Contents/MacOS/monocode app notes.list --json '{}'",
         ),
       )?.label,
     ).toBe("List notes");
     expect(
       monoCodeToolCall(
-        shell(
-          "'/Applications/MonoCode App/monocode' app folders.move --input -",
-        ),
+        shell("'/Applications/MyCode App/monocode' app folders.move --input -"),
       )?.label,
     ).toBe("Move a session");
     expect(
       monoCodeToolCall(
-        shell('"C:\\Program Files\\MonoCode\\monocode.exe" app notes.list'),
+        shell('"C:\\Program Files\\MyCode\\monocode.exe" app notes.list'),
       )?.label,
     ).toBe("List notes");
     expect(monoCodeToolCall(shell("monocode app --help"))?.label).toBe(
@@ -83,7 +81,7 @@ describe("MonoCode CLI tool calls", () => {
       "monocode app notes.list; echo extra",
       "monocode app notes.list | cat",
       "monocode app notes.list\necho extra",
-      "monocode app notes.list --json \"$(echo extra)\"",
+      'monocode app notes.list --json "$(echo extra)"',
     ]) {
       expect(monoCodeToolCall(shell(command))).toBeUndefined();
     }
@@ -104,18 +102,18 @@ describe("MonoCode CLI tool calls", () => {
     ).toBeUndefined();
     expect(
       monoCodeToolCall(
-        shell("monocode app sessions.send --json '{\"prompt\":\"a; b\"}'"),
+        shell('monocode app sessions.send --json \'{"prompt":"a; b"}\''),
       )?.command,
-    ).toBe("monocode app sessions.send --json '{\"prompt\":\"a; b\"}'");
+    ).toBe('monocode app sessions.send --json \'{"prompt":"a; b"}\'');
   });
 
-  it("names a group only when all its tool calls use MonoCode", () => {
+  it("names a group only when all its tool calls use MyCode", () => {
     const calls = [
       shell("monocode app --help"),
       shell("monocode app notes.list"),
     ];
-    expect(monoCodeWorkSummary(calls, true)).toBe("Using MonoCode");
-    expect(monoCodeWorkSummary(calls, false)).toBe("Used MonoCode");
+    expect(monoCodeWorkSummary(calls, true)).toBe("Using MyCode");
+    expect(monoCodeWorkSummary(calls, false)).toBe("Used MyCode");
     expect(
       monoCodeWorkSummary([...calls, shell("git status")], true),
     ).toBeUndefined();

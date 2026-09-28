@@ -148,7 +148,7 @@ export function CommitDiff({ cwd, sha }: Props) {
     return (
       <div className="grid h-full place-items-center p-6 text-center">
         <AlertCircle className="mx-auto mb-3 size-5 text-red-400" />
-        <p className="text-[13px] text-content">Couldn’t load commit</p>
+        <p className="text-[13px] text-content">{t("Couldn’t load commit")}</p>
         <p className="mt-1 text-[12px] text-content/50">{error}</p>
       </div>
     );

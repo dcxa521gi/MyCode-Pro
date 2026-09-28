@@ -429,8 +429,8 @@ export function UsageFooter({
           <button
             type="button"
             className="grid size-4.5 shrink-0 place-items-center rounded text-content/40 hover:bg-content/10 hover:text-content disabled:opacity-50"
-            aria-label="Refresh usage"
-            title="Refresh usage"
+            aria-label={t("Refresh usage")}
+            title={t("Refresh usage")}
             disabled={refreshing}
             onClick={() => void refresh(true)}
           >
@@ -486,6 +486,7 @@ function TerminalLiveMark() {
 }
 
 function SessionChip({ session }: { session: UsageFooterSession }) {
+  const { t } = useTranslation();
   const trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [loginState, setLoginState] = useState<ProviderSignInState>("idle");
@@ -551,7 +552,7 @@ function SessionChip({ session }: { session: UsageFooterSession }) {
         <span>{HARNESS_LABEL[session.harness]}</span>
         {authRequired ? (
           <span className="text-[10px] text-amber-600 dark:text-amber-300">
-            sign in
+            {t("sign in")}
           </span>
         ) : null}
       </button>
@@ -590,6 +591,7 @@ function RunningTerminalChip({
   open: boolean;
   onToggle?: (fileId: string) => void;
 }) {
+  const { t } = useTranslation();
   const root = useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const label = runningTerminalChipLabel(terminals);
@@ -644,7 +646,7 @@ function RunningTerminalChip({
           autoFocus
           onDismiss={() => setMenuOpen(false)}
           role="menu"
-          aria-label="Running terminals"
+          aria-label={t("Running terminals")}
           className="min-w-[12rem] p-1"
         >
           {terminals.map((terminal) => (

@@ -1,3 +1,4 @@
+import { translate as uiTranslate } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import { Check, CircleDot, GitPullRequest } from "../../../shared/ui/icons";
 import { type ReactNode } from "react";
@@ -44,10 +45,30 @@ type Props = {
 };
 
 const TIME_OPTIONS: { id: InboxTimeFilter; label: string }[] = [
-  { id: "all", label: "All time" },
-  { id: "today", label: "Today" },
-  { id: "7d", label: "Last 7 days" },
-  { id: "30d", label: "Last 30 days" },
+  {
+    id: "all",
+    get label() {
+      return uiTranslate("All time");
+    },
+  },
+  {
+    id: "today",
+    get label() {
+      return uiTranslate("Today");
+    },
+  },
+  {
+    id: "7d",
+    get label() {
+      return uiTranslate("Last 7 days");
+    },
+  },
+  {
+    id: "30d",
+    get label() {
+      return uiTranslate("Last 30 days");
+    },
+  },
 ];
 
 const KIND_OPTIONS: {
@@ -57,12 +78,16 @@ const KIND_OPTIONS: {
 }[] = [
   {
     id: "issue",
-    label: "Issues",
+    get label() {
+      return uiTranslate("Issues");
+    },
     icon: <CircleDot className="size-3.5 shrink-0" strokeWidth={1.75} />,
   },
   {
     id: "pr",
-    label: "Pull requests",
+    get label() {
+      return uiTranslate("Pull requests");
+    },
     icon: <GitPullRequest className="size-3.5 shrink-0" strokeWidth={1.75} />,
   },
 ];
@@ -152,7 +177,7 @@ export function InboxFiltersMenu({
       maxHeight={480}
       onDismiss={onClose}
       role="menu"
-      aria-label="Filter inbox"
+      aria-label={t("Filter inbox")}
       onContextMenu={(event) => event.preventDefault()}
       className="overflow-y-auto overscroll-none p-1"
     >
@@ -166,9 +191,9 @@ export function InboxFiltersMenu({
         onClick={toggleAssigned}
       />
 
-      <SectionLabel>Status</SectionLabel>
+      <SectionLabel>{t("Status")}</SectionLabel>
       <FilterItem
-        label="Open"
+        label={t("Open")}
         checked={filters.status.open}
         onClick={() => toggleStatus("open")}
       />
@@ -180,19 +205,19 @@ export function InboxFiltersMenu({
         />
       ) : null}
       <FilterItem
-        label="Closed"
+        label={t("Closed")}
         checked={filters.status.closed}
         onClick={() => toggleStatus("closed")}
       />
       {!tracker ? (
         <FilterItem
-          label="Merged"
+          label={t("Merged")}
           checked={filters.status.merged}
           onClick={() => toggleStatus("merged")}
         />
       ) : null}
 
-      <SectionLabel>Time</SectionLabel>
+      <SectionLabel>{t("Time")}</SectionLabel>
       {TIME_OPTIONS.map((option) => (
         <FilterItem
           key={option.id}
@@ -204,7 +229,7 @@ export function InboxFiltersMenu({
 
       {!tracker ? (
         <>
-          <SectionLabel>Type</SectionLabel>
+          <SectionLabel>{t("Type")}</SectionLabel>
           {KIND_OPTIONS.map((option) => (
             <FilterItem
               key={option.id}
@@ -310,7 +335,7 @@ export function InboxFiltersMenu({
             }}
             className="flex h-7 w-full items-center rounded-lg px-2 text-left text-[13px] leading-none text-content/70 hover:bg-content/5 hover:text-content"
           >
-            Clear filters
+            {t("Clear filters")}
           </button>
         </>
       ) : null}

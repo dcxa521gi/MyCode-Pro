@@ -1,3 +1,4 @@
+import { translate as uiTranslate } from "../../shared/i18n";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   AppWindow,
@@ -93,7 +94,13 @@ function projectMenuExtraItems(
   currentProjectGroupId?: string,
 ): TabGroupMenuExtraItem[] {
   const groupSubmenu: ExplorerMenuItem[] = [
-    { kind: "item", id: "project-group:new", label: "New group…" },
+    {
+      kind: "item",
+      id: "project-group:new",
+      get label() {
+        return uiTranslate("New group…");
+      },
+    },
     ...(projectGroups.length > 0 ? [{ kind: "sep" } as const] : []),
     ...projectGroups.map((group) => ({
       kind: "item" as const,
@@ -105,29 +112,49 @@ function projectMenuExtraItems(
     {
       kind: "item",
       id: "project-group:none",
-      label: "Ungrouped",
+      get label() {
+        return uiTranslate("Ungrouped");
+      },
       checked: currentProjectGroupId == null,
     },
   ];
   const items: TabGroupMenuExtraItem[] = [
     {
       id: "background",
-      label: "Background image",
+      get label() {
+        return uiTranslate("Background image");
+      },
       icon: ImagePlus,
     },
     {
       id: "project-group",
-      label: "Move to group",
+      get label() {
+        return uiTranslate("Move to group");
+      },
       icon: FolderTree,
       submenu: groupSubmenu,
     },
     pinned
-      ? { id: "unpin", label: "Unpin project", icon: PinOff }
-      : { id: "pin", label: "Pin project", icon: Pin },
+      ? {
+          id: "unpin",
+          get label() {
+            return uiTranslate("Unpin project");
+          },
+          icon: PinOff,
+        }
+      : {
+          id: "pin",
+          get label() {
+            return uiTranslate("Pin project");
+          },
+          icon: Pin,
+        },
     { id: "reveal", label: REVEAL_LABEL, icon: FolderOpen },
     {
       id: "external-editor",
-      label: "Open in editor",
+      get label() {
+        return uiTranslate("Open in editor");
+      },
       icon: AppWindow,
       disabled: externalEditors === null,
       submenu:
@@ -136,7 +163,9 @@ function projectMenuExtraItems(
               {
                 kind: "item",
                 id: "external-editor:loading",
-                label: "Looking for editors…",
+                get label() {
+                  return uiTranslate("Looking for editors…");
+                },
                 disabled: true,
               },
             ]
@@ -150,14 +179,18 @@ function projectMenuExtraItems(
                 {
                   kind: "item",
                   id: "external-editor:none",
-                  label: "No supported editors found",
+                  get label() {
+                    return uiTranslate("No supported editors found");
+                  },
                   disabled: true,
                 },
               ],
     },
     {
       id: "notifications-mute",
-      label: "Mute notifications",
+      get label() {
+        return uiTranslate("Mute notifications");
+      },
       icon: BellOff,
       sepBefore: true,
       disabled: !notificationReady,
@@ -167,14 +200,30 @@ function projectMenuExtraItems(
   if (canConfigureNotifications) {
     items.push({
       id: "notifications-settings",
-      label: "Notification settings…",
+      get label() {
+        return uiTranslate("Notification settings…");
+      },
       icon: Settings,
     });
   }
   if (canRemove) {
     items.push(
-      { id: "archive", label: "Archive", icon: Archive, sepBefore: true },
-      { id: "delete", label: "Delete", icon: Trash2, danger: true },
+      {
+        id: "archive",
+        get label() {
+          return uiTranslate("Archive");
+        },
+        icon: Archive,
+        sepBefore: true,
+      },
+      {
+        id: "delete",
+        get label() {
+          return uiTranslate("Delete");
+        },
+        icon: Trash2,
+        danger: true,
+      },
     );
   }
   return items;
@@ -424,7 +473,9 @@ export function useProjectMenu({
           menuMuteStatus
             ? {
                 id: "notifications-resume",
-                label: "Resume notifications",
+                get label() {
+                  return uiTranslate("Resume notifications");
+                },
                 description: menuMuteStatus,
                 icon: BellOff,
               }
@@ -509,8 +560,12 @@ export function useProjectMenu({
         extraItems={[
           {
             id: "delete-project-group",
-            label: "Delete group",
-            description: "Projects will become ungrouped",
+            get label() {
+              return uiTranslate("Delete group");
+            },
+            get description() {
+              return uiTranslate("Projects will become ungrouped");
+            },
             icon: Trash2,
             danger: true,
           },

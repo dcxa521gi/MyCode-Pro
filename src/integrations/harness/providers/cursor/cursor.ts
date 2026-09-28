@@ -2,7 +2,10 @@ import { nativeModelId } from "../../../../features/sessions/model/models";
 import { AcpSubagents } from "../../core/acpSubagents";
 import type { RuntimeMode } from "../../../../features/sessions/model/session";
 import { promptBlocks } from "../../../../features/sessions/model/attachments";
-import { isTaskListToolName, taskListFromToolInput } from "../../../../features/sessions/model/taskList";
+import {
+  isTaskListToolName,
+  taskListFromToolInput,
+} from "../../../../features/sessions/model/taskList";
 import { AcpClient, type AcpHandlers } from "../../core/acp";
 import {
   killChild,
@@ -233,7 +236,7 @@ export async function forgetCursorSession(sessionId: string): Promise<void> {
   await stopCursorTitleGeneration(sessionId);
 }
 
-/** Seed ACP resume state for a restored MonoCode session. */
+/** Seed ACP resume state for a restored MyCode session. */
 export function bindCursorSession(
   threadId: string,
   acpSessionId: string,

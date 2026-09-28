@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { StickyNote } from "../../../shared/ui/icons";
 import { useEffect, useRef, type MouseEvent as ReactMouseEvent } from "react";
 import type { RankedFile } from "../../files/model/fileIndex";
@@ -25,6 +26,7 @@ export function FileMentionPicker({
   onActive,
   onPick,
 }: Props) {
+  const { t } = useTranslation();
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const activeRef = useRef<HTMLButtonElement>(null);
   const pointer = useRef({ x: Number.NaN, y: Number.NaN, allow: false });
@@ -63,15 +65,15 @@ export function FileMentionPicker({
     >
       {files.length === 0 ? (
         <p className="px-3 py-2.5 text-[12px] text-content/50">
-            {loading
-              ? "Indexing files…"
-              : query.trim()
-                ? includeNotes
-                  ? "No matching files or notes"
-                  : "No matching files or folders"
-                : includeNotes
-                  ? "No files or notes found"
-                  : "No files or folders found"}
+          {loading
+            ? t("Indexing files…")
+            : query.trim()
+              ? includeNotes
+                ? t("No matching files or notes")
+                : t("No matching files or folders")
+              : includeNotes
+                ? t("No files or notes found")
+                : t("No files or folders found")}
         </p>
       ) : (
         <div
@@ -85,7 +87,11 @@ export function FileMentionPicker({
             const highlighted = index === active;
             const note = isNoteMentionPath(file.path);
             const slash = file.relative.lastIndexOf("/");
-            const dir = note ? "" : slash === -1 ? "" : file.relative.slice(0, slash);
+            const dir = note
+              ? ""
+              : slash === -1
+                ? ""
+                : file.relative.slice(0, slash);
             const nameOffset = slash === -1 ? 0 : slash + 1;
             const namePositions = note
               ? file.positions
@@ -131,7 +137,7 @@ export function FileMentionPicker({
                 </span>
                 {note ? (
                   <span className="shrink-0 font-mono text-[11px] text-content/40">
-                    Note
+                    {t("Note")}
                   </span>
                 ) : dir ? (
                   <span className="min-w-0 max-w-[45%] truncate font-mono text-[11px] text-content/40">

@@ -99,23 +99,23 @@ export function WorktreesPage({
           className="flex h-7.5 items-center gap-1.5 rounded-md px-2 text-[11px] hover:bg-content/12 disabled:opacity-40 active:scale-[0.97]"
         >
           <Plus className="size-3" />
-          Create worktree
+          {t("Create worktree")}
         </button>
       </div>
       <div className="flex items-center justify-between gap-3">
         <p className="min-w-0 flex-1 text-[12px] text-content/50">
-          Sessions can share a worktree. Deleting one keeps its sessions by
-          default and discards uncommitted changes. Its branch and commits are
-          kept.
+          {t(
+            "Sessions can share a worktree. Deleting one keeps its sessions by default and discards uncommitted changes. Its branch and commits are kept.",
+          )}
         </p>
         <button
           type="button"
           title={
             loadError
               ? `Refresh failed: ${loadError}. Click to retry.`
-              : "Refresh worktrees"
+              : t("Refresh worktrees")
           }
-          aria-label="Refresh worktrees"
+          aria-label={t("Refresh worktrees")}
           disabled={!project}
           onClick={refresh}
           className={`flex h-7 shrink-0 items-center gap-1.5 rounded-md bg-content/8 px-2 text-[11px] hover:bg-content/12 disabled:opacity-40 active:scale-[0.97] ${loadError ? "text-red-400" : "text-content/65"}`}
@@ -131,7 +131,7 @@ export function WorktreesPage({
       )}
       {!project ? (
         <p className="text-[12px] text-content/50">
-          Add a project to manage its worktrees.
+          {t("Add a project to manage its worktrees.")}
         </p>
       ) : !data && loadError ? (
         <p role="alert" className="break-words text-[12px] text-red-400">
@@ -140,14 +140,18 @@ export function WorktreesPage({
       ) : !data ? (
         <p className="flex items-center gap-2 text-[12px] text-content/50">
           <Loader className="size-4 animate-spin" />
-          Loading worktrees…
+          {t("Loading worktrees…")}
         </p>
       ) : !worktrees.length ? (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-stroke px-4 py-8 text-center">
           <FolderTree className="size-5 text-content/35" />
-          <p className="text-[13px] font-medium">No additional worktrees</p>
+          <p className="text-[13px] font-medium">
+            {t("No additional worktrees")}
+          </p>
           <p className="text-[12px] text-content/50">
-            Create a worktree to work on another branch in a separate folder.
+            {t(
+              "Create a worktree to work on another branch in a separate folder.",
+            )}
           </p>
         </div>
       ) : (
@@ -169,7 +173,7 @@ export function WorktreesPage({
                     </span>
                     {pathKey(tree.path) === pathKey(project) && (
                       <span className="text-[10px] text-content/40">
-                        Selected project folder
+                        {t("Selected project folder")}
                       </span>
                     )}
                   </div>
@@ -186,31 +190,32 @@ export function WorktreesPage({
                   </p>
                   <p className="mt-2 flex flex-wrap gap-x-3 text-[11px] text-content/55">
                     <span>
-                      {count} session{count === 1 ? "" : "s"} in this worktree
+                      {count} {t("session")}
+                      {count === 1 ? "" : "s"} {t("in this worktree")}
                     </span>
                     <span className={tree.dirty ? "text-amber-400" : ""}>
                       {tree.missing
-                        ? "Missing folder"
+                        ? t("Missing folder")
                         : tree.dirty == null
-                          ? "Status unavailable"
+                          ? t("Status unavailable")
                           : tree.dirty
-                            ? "Uncommitted changes"
-                            : "Clean"}
+                            ? t("Uncommitted changes")
+                            : t("Clean")}
                     </span>
                     {!!tree.unpushed && (
                       <span>
-                        {tree.unpushed} unpublished commit
+                        {tree.unpushed} {t("unpublished commit")}
                         {tree.unpushed === 1 ? "" : "s"}
                       </span>
                     )}
-                    {tree.locked && <span>Locked</span>}
+                    {tree.locked && <span>{t("Locked")}</span>}
                   </p>
                 </div>
                 <button
                   type="button"
                   disabled={tree.missing}
                   aria-label={`Reveal ${tree.branch ?? "worktree"}`}
-                  title="Reveal folder"
+                  title={t("Reveal folder")}
                   onClick={() =>
                     void revealPath(tree.path).catch((e) => setError(String(e)))
                   }
@@ -238,7 +243,7 @@ export function WorktreesPage({
       )}
       {data && (
         <p className="break-all text-[11px] text-content/40">
-          New worktrees are created in {prettyCwd(data.defaultRoot)}.
+          {t("New worktrees are created in")} {prettyCwd(data.defaultRoot)}.
         </p>
       )}
       {creating && (

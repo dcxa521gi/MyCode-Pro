@@ -1,6 +1,12 @@
-import { promptBlocks, type PromptContentBlock } from "../../../../features/sessions/model/attachments";
+import {
+  promptBlocks,
+  type PromptContentBlock,
+} from "../../../../features/sessions/model/attachments";
 import type { AgentModel } from "../../../../features/sessions/model/models";
-import type { Attachment, RuntimeMode } from "../../../../features/sessions/model/session";
+import type {
+  Attachment,
+  RuntimeMode,
+} from "../../../../features/sessions/model/session";
 
 export type HermesBackgroundDispatch = {
   callId: string;
@@ -43,7 +49,7 @@ export function hermesPromptBlocks(
   return promptBlocks(text, attachments);
 }
 
-/** Map MonoCode access levels to Hermes' edit-approval modes. */
+/** Map MyCode access levels to Hermes' edit-approval modes. */
 export function hermesModeId(
   runtimeMode: RuntimeMode,
   planning = false,

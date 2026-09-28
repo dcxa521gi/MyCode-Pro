@@ -10,6 +10,7 @@ describe("automation templates", () => {
   it("keeps popular examples in their real category too", () => {
     const popular = templatesForCategory("popular");
     expect(popular.map((template) => template.id)).toEqual([
+      "local-work-report",
       "find-critical-bugs",
       "scan-vulnerabilities",
       "generate-docs",
@@ -23,9 +24,9 @@ describe("automation templates", () => {
     for (const category of AUTOMATION_TEMPLATE_CATEGORIES) {
       expect(templatesForCategory(category.id).length).toBeGreaterThan(0);
     }
-    expect(AUTOMATION_TEMPLATES.every((template) => template.prompt.trim())).toBe(
-      true,
-    );
+    expect(
+      AUTOMATION_TEMPLATES.every((template) => template.prompt.trim()),
+    ).toBe(true);
   });
 
   it("only uses inbox events that actually fire", () => {

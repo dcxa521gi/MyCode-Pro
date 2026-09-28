@@ -1,35 +1,11 @@
-# Language packs / 语言包
+# MyCode 语言设置
 
-This fork adds English and Simplified Chinese UI support. Open **Settings → General → Language** (设置 → 常规 → 语言). Choices are automatic, 简体中文, and English. Changes apply immediately, preserve open sessions and drafts, persist on this device, and propagate to other windows.
+入口：设置 → 常规 → 语言。提供自动、简体中文和 English。
 
-## Automatic selection
+自动模式按命名时区判断中文地区，其他地区使用英文；时区未知或为 UTC 时参考系统首选语言。不能用 UTC 偏移推断语言，例如上海和新加坡都在 UTC+8。手动选择优先，跨窗口同步，重新打开后保留。
 
-- Named Chinese-region time zones (including Shanghai, Urumqi, Hong Kong, Macau, Taipei and their legacy aliases) select Simplified Chinese.
-- Other region time zones select English. UTC offsets are not used: Singapore and Shanghai both use UTC+8 but are different regions.
-- If time zone information is unavailable or UTC, the first system/browser language selects Chinese when it starts with `zh`; otherwise English.
-- An explicit choice always overrides detection. Automatic mode rechecks on window focus, including after a computer time-zone change.
+界面字符串集中在 `src/shared/i18n/zh-CN.json`。动态信息使用格式化消息；静态菜单标签在读取时翻译。自动化模板有独立中文内容，日期和时间显示使用当前界面语言。Windows 托盘同步语言。
 
-Time zone is a regional heuristic, not a reliable indication of someone's preferred language. The visible manual override is intentional. Traditional Chinese is not a separate pack in this release.
+用户输入、文件内容、服务商返回的错误原文、模型名称、API 协议名称、路径和命令标识不做机器翻译。已有用户编写的自动化指令不会被语言切换覆盖；新建模板按当前语言填入。
 
-## Coverage and extension
-
-Translations are in `src/shared/i18n/zh-CN.json`. English source messages are the keys and also the fallback. React components use `useTranslation()` and `t(message)` at render time. Static setting metadata is translated when displayed and included in localized search. Do not translate stored identifiers, commands, file paths, user content, provider output or model names.
-
-The initial pack covers General/Appearance/Chat settings, settings navigation, the Windows menu bar, project/session navigation, the composer and common actions/dialog buttons. Less common advanced views, native OS/tray dialogs, upstream release notes, and messages returned by providers may still use English. Missing keys intentionally retain English. This release does not claim a complete translation of every upstream screen.
-
-To extend a pack, add the English message and translation to the JSON dictionary and call `t()` where that UI text is rendered. Subscribe through `useTranslation()` in each independently rendered component. Include the locale in memo dependencies if a memo stores translated text. To add another language, extend `Locale`, the language selector and time-zone policy, then add detection and UI tests.
-
-## Windows distribution
-
-Version 0.4.0 belongs to the dcxa521gi fork. Download installers from https://github.com/dcxa521gi/monocode/releases. The installer itself also offers English and Simplified Chinese. Installer language selection follows NSIS/Windows conventions; **the app's automatic selection uses the computer time zone**.
-
-Build with `npm ci` and `npm run build:windows`. The NSIS installer is generated under `target/release/bundle/nsis/`. The build also runs the binary's help command to catch missing native DLL dependencies without opening the session database. This fork does not configure signed automatic updates; the manual update notice points to this fork's Releases page. Installers are not Authenticode-signed.
-
-## Manual acceptance
-
-1. On first launch with an Asia/Shanghai time zone, confirm settings and main navigation display Chinese.
-2. Select English in 设置 → 常规 → 语言. Confirm the page updates immediately and open drafts remain intact.
-3. Close and reopen the app; English should remain selected.
-4. Select 自动（跟随电脑时区）. Shanghai should use Chinese; America/New_York and Asia/Singapore should use English.
-5. Search settings for 语言 or 外观 in Chinese mode. Open another MonoCode window and verify a language change reaches both windows.
-6. Confirm that source files, project names, agent messages and executable command strings are unchanged.
+新增界面文案需要同时加入英文来源和中文词条，并验证切换后更新，避免把翻译结果用作协议值、配置 ID 或文件路径。

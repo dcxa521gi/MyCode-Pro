@@ -33,8 +33,8 @@ export function CreateBranchDialog({ busy, error, onCreate, onCancel }: Props) {
 
   return (
     <Modal
-      title="New branch"
-      description="Create and check out a branch in this project."
+      title={t("New branch")}
+      description={t("Create and check out a branch in this project.")}
       size="sm"
       onClose={() => {
         if (!busy) onCancel();
@@ -43,14 +43,14 @@ export function CreateBranchDialog({ busy, error, onCreate, onCancel }: Props) {
       <form className="flex flex-col gap-4 p-4" onSubmit={submit}>
         <label className="flex flex-col gap-1.5">
           <span className="text-[12px] font-medium text-content/70">
-            Branch name
+            {t("Branch name")}
           </span>
           <input
             ref={input}
             type="text"
             value={name}
-            placeholder="feature/my-branch"
-            aria-label="Branch name"
+            placeholder={t("feature/my-branch")}
+            aria-label={t("Branch name")}
             spellCheck={false}
             autoComplete="off"
             autoCorrect="off"
@@ -84,7 +84,7 @@ export function CreateBranchDialog({ busy, error, onCreate, onCancel }: Props) {
             {busy ? (
               <Loader className="size-3.5 animate-spin" strokeWidth={1.75} />
             ) : null}
-            Create branch
+            {t("Create branch")}
           </button>
         </div>
       </form>

@@ -82,7 +82,7 @@ const GIT_POLL_MS = 2000;
 
 function confirmNative(message: string, okLabel?: string): Promise<boolean> {
   return ask(message, {
-    title: "MonoCode",
+    title: "MyCode",
     kind: "warning",
     ...(okLabel ? { okLabel } : {}),
   });
@@ -196,7 +196,9 @@ export function GitChangesPanel({
       className="flex h-full min-h-0 flex-1 flex-col overflow-hidden"
     >
       <header className="flex h-9 shrink-0 items-center gap-2 border-b border-stroke px-3">
-        <span className="text-[12px] font-medium text-content">Changes</span>
+        <span className="text-[12px] font-medium text-content">
+          {t("Changes")}
+        </span>
         {status ? (
           <span role="status" className="text-[11px] text-content/50">
             {status}
@@ -224,7 +226,7 @@ export function GitChangesPanel({
             <button
               type="button"
               aria-haspopup="menu"
-              aria-label="Branch actions"
+              aria-label={t("Branch actions")}
               aria-expanded={branchMenuOpen}
               disabled={busy !== null}
               onClick={() => setBranchMenuOpen((open) => !open)}
@@ -239,7 +241,7 @@ export function GitChangesPanel({
             {branchMenuOpen ? (
               <div
                 role="menu"
-                aria-label="Branch actions"
+                aria-label={t("Branch actions")}
                 className="absolute top-full right-0 z-30 mt-1 min-w-36 rounded-md border border-content/10 bg-background-base py-1 shadow-lg"
               >
                 <button
@@ -262,7 +264,7 @@ export function GitChangesPanel({
                   ) : (
                     <RefreshCw className="size-3.5" strokeWidth={1.75} />
                   )}
-                  {busy === "pull" ? "Pulling…" : "Pull"}
+                  {busy === "pull" ? t("Pulling…") : t("Pull")}
                 </button>
               </div>
             ) : null}
@@ -357,6 +359,7 @@ function ChangedFiles({
   onOpenAllChanges: () => void;
   onMutated: (paths?: string[]) => void;
 }) {
+  const { t } = useTranslation();
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const menuRef = useRef<HTMLDivElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
@@ -556,7 +559,7 @@ function ChangedFiles({
   const confirmAmend = async () => {
     if (!amend || !index?.headPushed) return true;
     return confirmNative(
-      "Amend a commit that is already pushed? MonoCode cannot push the result. You will need a force push from the terminal.",
+      "Amend a commit that is already pushed? MyCode cannot push the result. You will need a force push from the terminal.",
       "Amend",
     );
   };
@@ -673,8 +676,8 @@ function ChangedFiles({
           />
           <button
             type="button"
-            title="Generate commit message"
-            aria-label="Generate commit message"
+            title={t("Generate commit message")}
+            aria-label={t("Generate commit message")}
             disabled={!canGenerate}
             onClick={() => void generate()}
             className="absolute top-1 right-1 grid size-5 place-items-center rounded-md text-content bg-content/10 hover:bg-content/20 hover:text-content disabled:opacity-40"
@@ -698,13 +701,13 @@ function ChangedFiles({
             }`}
           >
             <Check className="size-3.5" strokeWidth={2} />
-            {amend ? "Amend Commit" : "Commit"}
+            {amend ? t("Amend Commit") : t("Commit")}
           </button>
 
           <button
             type="button"
-            title="Commit options"
-            aria-label="Commit options"
+            title={t("Commit options")}
+            aria-label={t("Commit options")}
             aria-expanded={menuOpen}
             disabled={!canOpenMenu}
             onClick={() => setMenuOpen((open) => !open)}
@@ -719,7 +722,7 @@ function ChangedFiles({
           {menuOpen ? (
             <div
               role="menu"
-              aria-label="Commit options"
+              aria-label={t("Commit options")}
               className="absolute top-full right-0 z-30 mt-1 min-w-48 rounded-md border border-content/10 bg-background-base py-1 shadow-lg"
             >
               <button
@@ -729,7 +732,7 @@ function ChangedFiles({
                 onClick={() => void commit(true)}
                 className="flex h-7 w-full items-center px-3 text-left text-[12px] text-content hover:bg-content/10 disabled:opacity-40"
               >
-                Commit & Push
+                {t("Commit & Push")}
               </button>
               <button
                 type="button"
@@ -738,7 +741,7 @@ function ChangedFiles({
                 onClick={() => void commit(true, true)}
                 className="flex h-7 w-full items-center px-3 text-left text-[12px] text-content hover:bg-content/10 disabled:opacity-40"
               >
-                Commit, Push & Create PR
+                {t("Commit, Push & Create PR")}
               </button>
               <div className="my-1 border-t border-content/10" />
               <button
@@ -748,7 +751,7 @@ function ChangedFiles({
                 onClick={() => void toggleAmend()}
                 className="flex h-7 w-full items-center justify-between gap-2 px-3 text-left text-[12px] text-content hover:bg-content/10"
               >
-                Amend Last Commit
+                {t("Amend Last Commit")}
                 <span className="grid size-3.5 shrink-0 place-items-center">
                   {amend ? (
                     <Check className="size-3.5" strokeWidth={2} />
@@ -787,14 +790,14 @@ function ChangedFiles({
             {index
               ? index.ahead > 0 || index.behind > 0
                 ? syncStatusLabel(index)
-                : "No uncommitted changes"
-              : "Loading changes…"}
+                : t("No uncommitted changes")
+              : t("Loading changes…")}
           </p>
         ) : (
           <>
             {staged.length > 0 ? (
               <FileSection
-                title="Staged Changes"
+                title={t("Staged Changes")}
                 count={staged.length}
                 open={stagedExpanded}
                 onToggle={() => {
@@ -805,12 +808,12 @@ function ChangedFiles({
                 onToggleView={toggleView}
                 headerActions={[
                   {
-                    title: "Open All Changes",
+                    title: t("Open All Changes"),
                     icon: <FileDiff className="size-3.5" strokeWidth={1.75} />,
                     onClick: onOpenAllChanges,
                   },
                   {
-                    title: "Unstage All Changes",
+                    title: t("Unstage All Changes"),
                     icon: <Minus className="size-3.5" strokeWidth={1.75} />,
                     onClick: () => void runAll("unstage"),
                   },
@@ -830,7 +833,7 @@ function ChangedFiles({
             ) : null}
             {unstaged.length > 0 ? (
               <FileSection
-                title="Changes"
+                title={t("Changes")}
                 count={unstaged.length}
                 open={changesExpanded}
                 onToggle={() => {
@@ -841,17 +844,17 @@ function ChangedFiles({
                 onToggleView={toggleView}
                 headerActions={[
                   {
-                    title: "Open All Changes",
+                    title: t("Open All Changes"),
                     icon: <FileDiff className="size-3.5" strokeWidth={1.75} />,
                     onClick: onOpenAllChanges,
                   },
                   {
-                    title: "Discard All Changes",
+                    title: t("Discard All Changes"),
                     icon: <Undo2 className="size-3.5" strokeWidth={1.75} />,
                     onClick: () => void runAll("discard"),
                   },
                   {
-                    title: "Stage All Changes",
+                    title: t("Stage All Changes"),
                     icon: <Plus className="size-3.5" strokeWidth={1.75} />,
                     onClick: () => void runAll("stage"),
                   },
@@ -967,6 +970,7 @@ function GitSyncActions({
   onCreatePr: () => void;
   onViewPr: () => void;
 }) {
+  const { t } = useTranslation();
   if (!hasRemote) return null;
   const ahead = index.ahead;
   const behind = index.behind;
@@ -1015,7 +1019,7 @@ function GitSyncActions({
           ) : (
             <CloudUpload className="size-3.5 shrink-0" strokeWidth={1.75} />
           )}
-          <span className="min-w-0 truncate">Publish Branch</span>
+          <span className="min-w-0 truncate">{t("Publish Branch")}</span>
         </button>
       ) : canSync ? (
         <button
@@ -1029,7 +1033,7 @@ function GitSyncActions({
             className={`size-3.5 shrink-0 ${syncing ? "animate-spin" : ""}`}
             strokeWidth={1.75}
           />
-          <span className="min-w-0 truncate">Sync Changes</span>
+          <span className="min-w-0 truncate">{t("Sync Changes")}</span>
           {behind > 0 ? (
             <span className="shrink-0 tabular-nums text-content/55">
               ↓{behind}
@@ -1058,7 +1062,7 @@ function GitSyncActions({
           ) : (
             <GitPullRequest className="size-3.5 shrink-0" strokeWidth={1.75} />
           )}
-          Create PR
+          {t("Create PR")}
         </button>
       ) : null}
       {showViewPr ? (
@@ -1071,7 +1075,7 @@ function GitSyncActions({
         >
           <ExternalLink className="size-3.5 shrink-0" strokeWidth={1.75} />
           <span className="min-w-0 truncate">
-            {pr?.number ? `View PR #${pr.number}` : "View PR"}
+            {pr?.number ? `View PR #${pr.number}` : t("View PR")}
           </span>
         </button>
       ) : null}
@@ -1375,6 +1379,7 @@ function ChangeRow({
     action: "stage" | "unstage" | "discard",
   ) => void;
 }) {
+  const { t } = useTranslation();
   const name = basename(file.relative);
   const tree = depth !== undefined;
   const dir = tree ? "" : dirname(file.relative);
@@ -1418,7 +1423,7 @@ function ChangeRow({
         >
           {kind === "unstaged" ? (
             <IconAction
-              title="Discard Changes"
+              title={t("Discard Changes")}
               disabled={busy}
               onClick={() => onAction(file, "discard")}
             >
@@ -1427,7 +1432,7 @@ function ChangeRow({
           ) : null}
           {kind === "staged" ? (
             <IconAction
-              title="Unstage Changes"
+              title={t("Unstage Changes")}
               disabled={busy}
               onClick={() => onAction(file, "unstage")}
             >
@@ -1435,7 +1440,7 @@ function ChangeRow({
             </IconAction>
           ) : (
             <IconAction
-              title="Stage Changes"
+              title={t("Stage Changes")}
               disabled={busy}
               onClick={() => onAction(file, "stage")}
             >

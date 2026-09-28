@@ -1,3 +1,4 @@
+import { getLocale as uiLocale } from "../../../shared/i18n";
 import {
   isProjectMuted,
   NOTIFICATION_MUTE_HOURS,
@@ -11,7 +12,7 @@ export function notificationMuteStatus(
   if (!preference || !isProjectMuted(preference)) return null;
   return preference.mutedUntil === null
     ? "Muted until resumed"
-    : `Muted until ${new Date(preference.mutedUntil!).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`;
+    : `Muted until ${new Date(preference.mutedUntil!).toLocaleString(uiLocale(), { dateStyle: "medium", timeStyle: "short" })}`;
 }
 
 /** The same preset IDs and durations are used by project and Inbox menus. */

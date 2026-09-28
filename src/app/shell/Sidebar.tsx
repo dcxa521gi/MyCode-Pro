@@ -1,3 +1,4 @@
+import { getLocale as uiLocale } from "../../shared/i18n";
 import { useTranslation } from "../../shared/i18n";
 import { NO_BRANCH_LABEL } from "../../features/source-control/model/worktrees";
 import { OrchestrationSidebarAgents } from "../../features/orchestration/ui/OrchestrationSidebarAgents";
@@ -1546,8 +1547,8 @@ function SidebarComponent({
                 narrowedByUser ? (
                   <p className="px-3 py-2 text-[12px] text-content/50">
                     {searchNarrowed
-                      ? "No matching sessions"
-                      : "No sessions match these filters"}
+                      ? t("No matching sessions")
+                      : t("No sessions match these filters")}
                   </p>
                 ) : (
                   <SessionsEmpty message="Sessions you start will show up here" />
@@ -3426,7 +3427,7 @@ function formatRelative(value: number, now: number): string {
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d`;
   try {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(uiLocale(), {
       month: "short",
       day: "numeric",
     }).format(new Date(value));

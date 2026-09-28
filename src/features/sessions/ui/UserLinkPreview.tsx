@@ -1,3 +1,5 @@
+import { translate as uiTranslate } from "../../../shared/i18n";
+import { useTranslation } from "../../../shared/i18n";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   useCallback,
@@ -322,6 +324,7 @@ function GithubWorkItemCard({
   details: GithubWorkItemDetails | null;
   loadState: "idle" | "loading" | "ready" | "unavailable";
 }) {
+  const { t } = useTranslation();
   const status = workItemStatus(parsed.kind, item);
   const summary = plainTextSummary(details?.body ?? "");
   const updated = item?.updatedAt ? formatRelativeTime(item.updatedAt) : "";
@@ -367,7 +370,8 @@ function GithubWorkItemCard({
       ) : (
         <div className="mt-2">
           <h3 className="text-[13px] font-semibold text-content">
-            {parsed.kind === "pr" ? "Pull request" : "Issue"} #{parsed.number}
+            {parsed.kind === "pr" ? t("Pull request") : t("Issue")} #
+            {parsed.number}
           </h3>
           {summary ? (
             <p className="mt-1.5 line-clamp-3 text-[11px] leading-[1.45] text-content/55">
@@ -375,8 +379,9 @@ function GithubWorkItemCard({
             </p>
           ) : (
             <p className="mt-1 text-[11px] leading-relaxed text-content/50">
-              Details aren&apos;t available here, but the link can still be
-              opened on GitHub.
+              {t(
+                "Details aren&apos;t available here, but the link can still be opened on GitHub.",
+              )}
             </p>
           )}
         </div>
@@ -391,7 +396,11 @@ function GithubWorkItemCard({
             />
           ) : null}
           {details?.author && updated ? <span aria-hidden>·</span> : null}
-          {updated ? <span className="shrink-0">Updated {updated}</span> : null}
+          {updated ? (
+            <span className="shrink-0">
+              {t("Updated")} {updated}
+            </span>
+          ) : null}
         </div>
       ) : null}
 
@@ -446,15 +455,16 @@ function GithubWorkItemCard({
 
       <div className="mt-3 flex items-center gap-1.5 border-t border-content/[0.07] pt-2 text-[10px] text-content/35">
         <ExternalLink className="size-3" aria-hidden="true" />
-        Click the chip to open on GitHub
+        {t("Click the chip to open on GitHub")}
       </div>
     </div>
   );
 }
 
 function GithubWorkItemCardSkeleton() {
+  const { t } = useTranslation();
   return (
-    <div aria-label="Loading GitHub details" className="mt-2.5 space-y-2">
+    <div aria-label={t("Loading GitHub details")} className="mt-2.5 space-y-2">
       <div className="h-3 w-4/5 rounded bg-content/10 motion-safe:animate-pulse" />
       <div className="h-2 w-full rounded bg-content/[0.07] motion-safe:animate-pulse" />
       <div className="h-2 w-2/3 rounded bg-content/[0.07] motion-safe:animate-pulse" />
@@ -533,27 +543,35 @@ function workItemStatus(
   if (item?.draft) {
     return {
       Icon: GitPullRequestDraft,
-      label: "Draft",
+      get label() {
+        return uiTranslate("Draft");
+      },
       className: "text-content/50",
     };
   }
   if (item?.state === "merged") {
     return {
       Icon: GitMerge,
-      label: "Merged",
+      get label() {
+        return uiTranslate("Merged");
+      },
       className: "text-violet-400/90",
     };
   }
   if (item?.state === "closed") {
     return {
       Icon: kind === "pr" ? GitPullRequestClosed : CircleX,
-      label: "Closed",
+      get label() {
+        return uiTranslate("Closed");
+      },
       className: "text-rose-400/90",
     };
   }
   return {
     Icon: kind === "pr" ? GitPullRequest : CircleDot,
-    label: "Open",
+    get label() {
+      return uiTranslate("Open");
+    },
     className: "text-emerald-400/90",
   };
 }

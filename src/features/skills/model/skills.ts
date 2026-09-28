@@ -7,9 +7,14 @@ import {
   type DiscoveredSkill,
 } from "../../../platform/tauri/fs";
 import { invalidateProjectFiles } from "../../files/model/fileIndex";
+import { OFFICE_SKILLS, officeSkillBody } from "./officeSkills";
+import { getLocale } from "../../../shared/i18n";
 import { fuzzyMatch } from "../../../shared/lib/fuzzy";
 import { joinPath } from "../../../shared/lib/paths";
-import { looksLikeProject, normalizeProjectPath } from "../../projects/model/recents";
+import {
+  looksLikeProject,
+  normalizeProjectPath,
+} from "../../projects/model/recents";
 import { isMarkdownBlockquotePosition } from "../../sessions/model/quoteDraft";
 import type { HarnessId } from "../../sessions/model/session";
 import { getHarness } from "../../../integrations/harness/core/registry";
@@ -328,6 +333,15 @@ export function mergeCatalog(discovered: DiscoveredSkill[]): Skill[] {
     if (skill.source === "agents") add(asSkill(skill));
   }
   add(BUILTIN_CREATE_SKILL);
+  for (const skill of OFFICE_SKILLS)
+    add({
+      kind: "builtin",
+      name: skill.name,
+      invocation: skill.name,
+      description: getLocale() === "zh-CN" ? skill.zh : skill.description,
+      scope: "builtin",
+      source: "monocode",
+    });
   for (const skill of discovered) {
     if (skill.source !== "agents") add(asSkill(skill));
   }
@@ -560,7 +574,8 @@ export function warmNativeSkills(
 export async function readSkillBody(
   skill: FileSkill | BuiltinSkill,
 ): Promise<string> {
-  if (skill.kind === "builtin") return CREATE_SKILL_BODY;
+  if (skill.kind === "builtin")
+    return officeSkillBody(skill.name) ?? CREATE_SKILL_BODY;
   try {
     return await readTextFile(skill.path);
   } catch {

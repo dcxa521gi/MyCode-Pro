@@ -1,3 +1,5 @@
+import { translate as uiTranslate } from "../../../shared/i18n";
+import { useTranslation } from "../../../shared/i18n";
 import {
   ChevronDown,
   ChevronRight,
@@ -169,51 +171,87 @@ function explorerItems(
     !!clip?.isDir &&
     (pasteParent === clip.path || pasteParent.startsWith(`${clip.path}/`));
   return [
-    { kind: "item", id: "new-file", label: "New File" },
-    { kind: "item", id: "new-folder", label: "New Folder" },
+    {
+      kind: "item",
+      id: "new-file",
+      get label() {
+        return uiTranslate("New File");
+      },
+    },
+    {
+      kind: "item",
+      id: "new-folder",
+      get label() {
+        return uiTranslate("New Folder");
+      },
+    },
     { kind: "sep" },
     {
       kind: "item",
       id: "cut",
-      label: "Cut",
+      get label() {
+        return uiTranslate("Cut");
+      },
       shortcut: `${MOD}X`,
       disabled: target.isRoot,
     },
     {
       kind: "item",
       id: "copy",
-      label: "Copy",
+      get label() {
+        return uiTranslate("Copy");
+      },
       shortcut: `${MOD}C`,
       disabled: target.isRoot,
     },
     {
       kind: "item",
       id: "paste",
-      label: "Paste",
+      get label() {
+        return uiTranslate("Paste");
+      },
       shortcut: `${MOD}V`,
       disabled: pasteBlocked,
     },
     {
       kind: "item",
       id: "duplicate",
-      label: "Duplicate",
+      get label() {
+        return uiTranslate("Duplicate");
+      },
       disabled: target.isRoot,
     },
     { kind: "sep" },
-    { kind: "item", id: "copy-path", label: "Copy Path" },
-    { kind: "item", id: "copy-relative-path", label: "Copy Relative Path" },
+    {
+      kind: "item",
+      id: "copy-path",
+      get label() {
+        return uiTranslate("Copy Path");
+      },
+    },
+    {
+      kind: "item",
+      id: "copy-relative-path",
+      get label() {
+        return uiTranslate("Copy Relative Path");
+      },
+    },
     { kind: "sep" },
     {
       kind: "item",
       id: "rename",
-      label: "Rename",
+      get label() {
+        return uiTranslate("Rename");
+      },
       shortcut: "F2",
       disabled: target.isRoot,
     },
     {
       kind: "item",
       id: "delete",
-      label: "Delete",
+      get label() {
+        return uiTranslate("Delete");
+      },
       shortcut: "⌫",
       disabled: target.isRoot,
       danger: true,
@@ -224,7 +262,9 @@ function explorerItems(
           {
             kind: "item" as const,
             id: "open-terminal",
-            label: "Open in Terminal",
+            get label() {
+              return uiTranslate("Open in Terminal");
+            },
           },
         ]
       : []),
@@ -1206,6 +1246,7 @@ function NameRow({
   onCommit: (raw: string) => Promise<void>;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const finished = useRef(false);
   const [value, setValue] = useState(initial);
@@ -1277,7 +1318,9 @@ function NameRow({
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
-          aria-label="Type file name. Press Enter to confirm or Escape to cancel."
+          aria-label={t(
+            "Type file name. Press Enter to confirm or Escape to cancel.",
+          )}
           onChange={(e) => {
             setValue(e.target.value);
             setSubmitError(null);
@@ -1314,6 +1357,7 @@ function NameIssueView({
   issue: NameIssue | null;
   fallback: string | null;
 }) {
+  const { t } = useTranslation();
   let body: ReactNode = null;
   if (fallback) {
     body = fallback;
@@ -1328,16 +1372,21 @@ function NameIssueView({
       case "exists":
         body = (
           <>
-            A file or folder <span className="font-semibold">{issue.name}</span>{" "}
-            already exists at this location. Please choose a different name.
+            {t("A file or folder")}{" "}
+            <span className="font-semibold">{issue.name}</span>{" "}
+            {t(
+              "already exists at this location. Please choose a different name.",
+            )}
           </>
         );
         break;
       case "invalid":
         body = (
           <>
-            The name <span className="font-semibold">{issue.name}</span> is not
-            valid as a file or folder name. Please choose a different name.
+            {t("The name")} <span className="font-semibold">{issue.name}</span>{" "}
+            {t(
+              "is not valid as a file or folder name. Please choose a different name.",
+            )}
           </>
         );
         break;

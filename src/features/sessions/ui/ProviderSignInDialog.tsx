@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useCallback, useEffect, useState } from "react";
 import { loginHarness } from "../../../integrations/harness/core/auth";
 import { HARNESS_TITLE, type HarnessId } from "../model/session";
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function ProviderSignInDialog({ harness, onClose }: Props) {
+  const { t } = useTranslation();
   const [state, setState] = useState<ProviderSignInState>("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -40,7 +42,7 @@ export function ProviderSignInDialog({ harness, onClose }: Props) {
   return (
     <Modal
       onClose={onClose}
-      title="Authentication required"
+      title={t("Authentication required")}
       description={`Sign in to continue using ${HARNESS_TITLE[harness]}.`}
       size="sm"
       minimalHeader

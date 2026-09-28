@@ -52,7 +52,7 @@ export type HarnessAdapter = {
   canSteer?: boolean;
   commands?: NativeCommandProvider;
   sendTurn(input: SendTurnInput): Promise<void>;
-  /** Trigger provider-owned compaction outside MonoCode's normal user-turn path. */
+  /** Trigger provider-owned compaction outside MyCode's normal user-turn path. */
   compactContext?(input: CompactContextInput): Promise<void>;
   /** Rewind provider state so the last user turn can be replaced. */
   rewindLastTurn?(input: RewindLastTurnInput): Promise<RewindLastTurnResult>;
@@ -74,7 +74,7 @@ export type HarnessAdapter = {
   stopSession(sessionId: string): Promise<void>;
   /** Drop resume state and kill the child (delete, harness switch, idle detach). */
   forgetSession(sessionId: string): Promise<void>;
-  /** Seed resume state from a restored MonoCode session. */
+  /** Seed resume state from a restored MyCode session. */
   bindSession(
     threadId: string,
     providerSessionId: string,
@@ -222,7 +222,17 @@ export function sendHarnessTurn(input: SendTurnInput & { harness: HarnessId }) {
       });
     activeTurnSessions.add(input.sessionId);
     try {
-      await adapter.sendTurn(input);
+      const memory = controlled
+        ? await invoke<string>("local_ai_memory", { cwd: input.cwd })
+        : "";
+      await adapter.sendTurn(
+        memory?.trim()
+          ? {
+              ...input,
+              text: `[MyCode local memory — user-maintained context]\n${memory}\n[End of local memory]\n\n${input.text}`,
+            }
+          : input,
+      );
     } finally {
       activeTurnSessions.delete(input.sessionId);
       if (controlled)

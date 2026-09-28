@@ -1,3 +1,4 @@
+import { useTranslation } from "../shared/i18n";
 import { acceptQuickLaunch } from "./model/quickLaunchSession";
 import {
   handleAgentApp,
@@ -529,7 +530,10 @@ import { SessionSurface } from "../features/sessions/ui/SessionSurface";
 import { ProjectTerminalDock } from "../features/terminal/ui/ProjectTerminalDock";
 import { SearchView } from "../features/search/ui/SearchView";
 import { requestTranscriptJump } from "../features/sessions/model/transcriptJump";
-import { SettingsView, type SettingsAnchor } from "../features/settings/ui/SettingsView";
+import {
+  SettingsView,
+  type SettingsAnchor,
+} from "../features/settings/ui/SettingsView";
 import type { ConnectableInboxSource } from "../features/inbox/model/inboxFilters";
 import { InboxView, LinkedWorkItemPanel } from "../features/inbox/ui/InboxView";
 import type { InboxSessionPortal } from "../features/inbox/ui/InboxDiscussionPanel";
@@ -555,7 +559,10 @@ import {
 import type { LinkedSessionUpdate } from "../features/inbox/model/linkedSessionUpdates";
 import { markLinkedSessionUpdateSeen } from "../features/inbox/model/linkedSessionSeen";
 import { inboxTrackerDescription } from "../features/inbox/model/inboxContext";
-import { gitlabWorkItemDetails, peekGitlabWorkItemDetails } from "../features/inbox/model/gitlab";
+import {
+  gitlabWorkItemDetails,
+  peekGitlabWorkItemDetails,
+} from "../features/inbox/model/gitlab";
 import {
   azureDevOpsWorkItemDetails,
   peekAzureDevOpsWorkItemDetails,
@@ -801,7 +808,7 @@ function filesInWorkspaceTabs(tabs: readonly WorkspaceTab[]): FilePaneTab[] {
 
 /** Native sheet. `window.confirm` is swallowed when a macOS menu accelerator fires. */
 function confirmDiscardUnsaved(message: string): Promise<boolean> {
-  return ask(message, { title: "MonoCode", kind: "warning" });
+  return ask(message, { title: "MyCode", kind: "warning" });
 }
 
 function titleTabsEqual(a: TitleTab[], b: TitleTab[]): boolean {
@@ -847,6 +854,7 @@ export default function App({
   history?: SessionSummary[];
   historyCwd?: string | null;
 }) {
+  const { t } = useTranslation();
   const [projectCwd, setProjectCwd] = useState(
     () =>
       windowTransfer?.projectCwd ??
@@ -2115,7 +2123,7 @@ export default function App({
     if (!document) {
       void message(
         "Release notes for this version are not available in this build.",
-        { title: "MonoCode" },
+        { title: t("MyCode") },
       );
       return;
     }
@@ -4435,7 +4443,7 @@ export default function App({
           } catch (error) {
             void message(
               `The session was deleted. Its worktree was kept.\n\n${String(error)}\n\nYou can manage it in Settings → Worktrees.`,
-              { title: "MonoCode", kind: "warning" },
+              { title: t("MyCode"), kind: "warning" },
             );
           }
         }
@@ -4443,7 +4451,7 @@ export default function App({
       } catch (error) {
         const detail = error instanceof Error ? error.message : String(error);
         void message(`Could not ${mode} this conversation.\n\n${detail}`, {
-          title: "MonoCode",
+          title: t("MyCode"),
           kind: "error",
         });
         return false;
@@ -4479,7 +4487,7 @@ export default function App({
         void message(
           `Could not unarchive this conversation.\n\n${String(error)}`,
           {
-            title: "MonoCode",
+            title: t("MyCode"),
             kind: "error",
           },
         );
@@ -4608,7 +4616,7 @@ export default function App({
           void refreshHistory(sidebarCwd);
           void message(
             `Could not update this conversation's GitHub link.\n\n${String(error)}`,
-            { title: "MonoCode", kind: "error" },
+            { title: t("MyCode"), kind: "error" },
           );
         },
       );
@@ -5798,7 +5806,7 @@ export default function App({
         operatorCommand.matched || operatorEnabledInThread(current.blocks);
       const promptText = operatorCommand.matched
         ? operatorCommand.text.trim() ||
-          "Explain what you can do in MonoCode with the app CLI."
+          "Explain what you can do in MyCode with the app CLI."
         : submittedText;
       const rawCommand =
         !operatorCommand.matched &&
@@ -5806,9 +5814,7 @@ export default function App({
       const ciContext = options?.ciRepair?.prompt ?? options?.ciContext;
       const harnessText =
         options?.ciRepair?.prompt ??
-        (rawCommand
-          ? submittedText
-          : composeNoteMessage(noteCard, promptText));
+        (rawCommand ? submittedText : composeNoteMessage(noteCard, promptText));
 
       const pendingSwitch =
         current.pendingSwitch && current.pendingSwitch.from !== current.harness
@@ -6010,7 +6016,7 @@ export default function App({
             },
             settings: { choices: [], maxWorkers: 2 },
             status: "planning",
-            title: "Orchestration plan",
+            title: t("Orchestration plan"),
             summary: "",
             tasks: [],
           }
@@ -6037,19 +6043,20 @@ export default function App({
       const card =
         options?.secondOpinion ??
         (handoffCard ? handoffTurnCard(handoffCard) : undefined);
-      const visibleText =
-        operatorCommand.matched
-          ? promptText
-          : card?.kind === "handoff"
-            ? submittedText
-            : card
-              ? SECOND_OPINION_TITLE
-              : submittedText;
+      const visibleText = operatorCommand.matched
+        ? promptText
+        : card?.kind === "handoff"
+          ? submittedText
+          : card
+            ? SECOND_OPINION_TITLE
+            : submittedText;
       const cards = {
         ...(rawCommand ? undefined : userTurnCards(noteCard, card)),
         ...(ciContext ? { ciContext } : {}),
         ...(operatorCommand.matched ? { monocode: true } : {}),
-        ...(options?.appRequestId ? { appRequestId: options.appRequestId } : {}),
+        ...(options?.appRequestId
+          ? { appRequestId: options.appRequestId }
+          : {}),
         // The orchestrator writes these turns, not the user; hide them.
         ...(options?.managed ? { internal: true } : {}),
       };
@@ -6069,7 +6076,9 @@ export default function App({
             const draftRemoved = draftBlock
               ? {
                   ...s,
-                  blocks: s.blocks.filter((block) => block.id !== draftBlock.id),
+                  blocks: s.blocks.filter(
+                    (block) => block.id !== draftBlock.id,
+                  ),
                 }
               : s;
             const selected = options?.buildTarget
@@ -6365,11 +6374,7 @@ export default function App({
           }
           if (turnGen.current.get(sessionId) !== gen) return;
           const latest = sessionsRef.current.find((s) => s.id === sessionId);
-          const brief = chooseHandoffBrief(
-            agentText,
-            latest ?? current,
-            text,
-          );
+          const brief = chooseHandoffBrief(agentText, latest ?? current, text);
           await forgetHarnessSession(pendingSwitch.from, sessionId);
           if (turnGen.current.get(sessionId) !== gen) return;
           wrap = { from: pendingSwitch.from, to: current.harness, text: brief };
@@ -6500,10 +6505,7 @@ export default function App({
           const earlier = queuedHandoff
             ? userMessagesAfterHandoff(current)
             : [];
-          if (
-            editedResend &&
-            canRewindHarnessLastTurn(current.harness)
-          ) {
+          if (editedResend && canRewindHarnessLastTurn(current.harness)) {
             try {
               await rewindHarnessLastTurn({
                 harness: current.harness,
@@ -6961,9 +6963,7 @@ export default function App({
         },
         submit: submitSession,
         saveDraft: (id, prompt, attachments, requestId) =>
-          flushSync(() =>
-            onSaveDraft(id, prompt, attachments, requestId),
-          ),
+          flushSync(() => onSaveDraft(id, prompt, attachments, requestId)),
       }),
     [appendTab, submitSession, onSaveDraft],
   );
@@ -8744,7 +8744,7 @@ export default function App({
           source.orchestrationLeadId ||
           orchestrator.run(source.id)
         )
-          throw new Error("This session cannot use the MonoCode app CLI");
+          throw new Error("This session cannot use the MyCode app CLI");
         const key = `${source.id}:${payload.requestId}`;
         const signature = JSON.stringify([payload.action, payload.input]);
         const previous = appReceipts.current.get(key);
@@ -8773,7 +8773,9 @@ export default function App({
                   previous.text !== launch.prompt ||
                   (!launch.draft && !!previous.draft)
                 )
-                  throw new Error("Request ID was already used for another session launch");
+                  throw new Error(
+                    "Request ID was already used for another session launch",
+                  );
                 return;
               }
               if (
@@ -9367,11 +9369,7 @@ export default function App({
   );
 
   const onRepairChecks = useCallback(
-    async (
-      item: InboxItem,
-      request: CiRepairRequest,
-      sessionId?: string,
-    ) => {
+    async (item: InboxItem, request: CiRepairRequest, sessionId?: string) => {
       const cwd = item.projectPath;
       if (!cwd) throw new Error("Choose a local project for this PR first.");
       let session = sessionId ? await ensureOpenSession(sessionId) : undefined;
@@ -9632,10 +9630,13 @@ export default function App({
         prefetchAhead();
         if (!session || session.inboxAsk) return;
         if (activeTabIdRef.current !== activeTabId) return;
-        const currentTab = tabsRef.current.find((tab) => tab.id === activeTabId);
+        const currentTab = tabsRef.current.find(
+          (tab) => tab.id === activeTabId,
+        );
         if (currentTab?.focusedId !== focusedId) return;
-        setTabs((prev) =>
-          switchSessionInTab(prev, activeTabId, focusedId, next) ?? prev,
+        setTabs(
+          (prev) =>
+            switchSessionInTab(prev, activeTabId, focusedId, next) ?? prev,
         );
         setComposerFocused(true);
         const linkedUpdate = linkedSessionUpdatesRef.current.get(next);
@@ -9923,8 +9924,7 @@ export default function App({
         else if (shortcut === "App: Command Palette")
           run("open_command_palette", a.onOpenCommandPalette);
         else if (shortcut === "View: Reload") run("reload", a.onReload);
-        else if (shortcut === "App: Search")
-          run("open_search", a.onOpenSearch);
+        else if (shortcut === "App: Search") run("open_search", a.onOpenSearch);
         else if (shortcut === "App: Settings")
           run("open_settings", () => a.openSettings());
         else if (shortcut === "App: Find in Files")
@@ -10484,7 +10484,8 @@ export default function App({
                   onToggleSidebar={onToggleSidebar}
                   onOpenFile={onOpenFile}
                   onOpenSession={(sessionId, blockId, query) => {
-                    if (blockId) requestTranscriptJump(sessionId, blockId, query);
+                    if (blockId)
+                      requestTranscriptJump(sessionId, blockId, query);
                     void onSelectHistorySession(sessionId);
                   }}
                   onOpenProject={onSelectProject}

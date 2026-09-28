@@ -46,7 +46,7 @@ export function EditorSelectionMenu({
       gap={6}
       onDismiss={onDismiss}
       role="toolbar"
-      aria-label="Selected code actions"
+      aria-label={t("Selected code actions")}
       className="p-1"
     >
       <button

@@ -11,13 +11,25 @@ use tauri::AppHandle;
 const SHOW: &str = "tray_show";
 const QUIT: &str = "tray_quit";
 
+pub fn refresh_language(app: &AppHandle) -> tauri::Result<()> {
+    let show = MenuItemBuilder::with_id(SHOW, crate::language::text("Show MyCode", "显示 MyCode"))
+        .build(app)?;
+    let quit = MenuItemBuilder::with_id(QUIT, crate::language::text("Quit MyCode", "退出 MyCode"))
+        .build(app)?;
+    let menu = MenuBuilder::new(app).items(&[&show, &quit]).build()?;
+    if let Some(tray) = app.tray_by_id("main") {
+        tray.set_menu(Some(menu))?;
+    }
+    Ok(())
+}
+
 pub fn install(app: &AppHandle) -> tauri::Result<()> {
-    let show = MenuItemBuilder::with_id(SHOW, "Show MonoCode").build(app)?;
-    let quit = MenuItemBuilder::with_id(QUIT, "Quit MonoCode").build(app)?;
+    let show = MenuItemBuilder::with_id(SHOW, "Show MyCode").build(app)?;
+    let quit = MenuItemBuilder::with_id(QUIT, "Quit MyCode").build(app)?;
     let menu = MenuBuilder::new(app).items(&[&show, &quit]).build()?;
 
     let mut tray = TrayIconBuilder::with_id("main")
-        .tooltip("MonoCode")
+        .tooltip("MyCode")
         .menu(&menu)
         // Left click reopens; the menu stays on the right button.
         .show_menu_on_left_click(false)

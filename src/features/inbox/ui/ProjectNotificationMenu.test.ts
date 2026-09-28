@@ -1,3 +1,4 @@
+import { getLocale } from "../../../shared/i18n";
 // @vitest-environment happy-dom
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -49,14 +50,60 @@ afterEach(() => {
 
 function button(label: string) {
   const result = [...document.querySelectorAll("button")].find(
-    (item) => (item.getAttribute("aria-label") ?? item.textContent) === label
-      || (/^\d+ hours?$/.test(label) && item.textContent?.startsWith(`${label} (`)),
+    (item) =>
+      (item.getAttribute("aria-label") ?? item.textContent) === label ||
+      (/^\d+ hours?$/.test(label) &&
+        item.textContent?.startsWith(`${label} (`)),
   );
   expect(result, label).toBeDefined();
   return result!;
 }
 
 it("opens a project in a detected editor from the project context menu", async () => {
+  await act(async () =>
+    root.render(
+      createElement(ProjectRail, {
+        cwd: "/work/private",
+        recents: [],
+        onSelectProject: vi.fn(),
+        onOpenProject: vi.fn(),
+      }),
+    ),
+  );
+  act(() =>
+    container.querySelector('button[aria-current="true"]')!.dispatchEvent(
+      new MouseEvent("contextmenu", {
+        bubbles: true,
+        clientX: 40,
+        clientY: 80,
+      }),
+    ),
+  );
+
+  const openInEditor = button("Open in editor");
+  act(() =>
+    openInEditor.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })),
+  );
+  expect(
+    document.querySelector('[role="menu"][aria-label="Open in editor"]'),
+  ).not.toBeNull();
+  await act(async () => button("Zed").click());
+  expect(vi.mocked(invoke)).toHaveBeenCalledWith("open_in_external_editor", {
+    editorId: "zed",
+    cwd: "/work/private",
+  });
+});
+
+it("opens path-based project actions immediately without Git discovery", async () => {
+  rememberNotificationProjects([
+    {
+      id: "local:/work/private",
+      name: "person/private",
+      detail: "github.com",
+      kind: "repository",
+      paths: ["/work/private"],
+    },
+  ]);
   await act(async () =>
     root.render(
       createElement(ProjectRail, {
@@ -78,38 +125,16 @@ it("opens a project in a detected editor from the project context menu", async (
         }),
       ),
   );
-
-  const openInEditor = button("Open in editor");
-  act(() =>
-    openInEditor.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })),
-  );
-  expect(
-    document.querySelector('[role="menu"][aria-label="Open in editor"]'),
-  ).not.toBeNull();
-  await act(async () => button("Zed").click());
-  expect(vi.mocked(invoke)).toHaveBeenCalledWith("open_in_external_editor", {
-    editorId: "zed",
-    cwd: "/work/private",
-  });
-});
-
-it("opens path-based project actions immediately without Git discovery", async () => {
-  rememberNotificationProjects([{
-    id: "local:/work/private", name: "person/private",
-    detail: "github.com", kind: "repository", paths: ["/work/private"],
-  }]);
-  await act(async () => root.render(createElement(ProjectRail, {
-    cwd: "/work/private", recents: [], onSelectProject: vi.fn(), onOpenProject: vi.fn(),
-  })));
-  act(() => container.querySelector('button[aria-current="true"]')!.dispatchEvent(
-    new MouseEvent("contextmenu", { bubbles: true, clientX: 40, clientY: 80 }),
-  ));
   expect(button("Mute notifications").disabled).toBe(false);
   act(() => button("Mute notifications").click());
   act(() => button("1 hour").click());
-  expect(loadNotificationPreferences()["local:/work/private"].mutedUntil).toBeGreaterThan(Date.now());
   expect(
-    vi.mocked(invoke).mock.calls.some(([command]) => command === "git_notification_context"),
+    loadNotificationPreferences()["local:/work/private"].mutedUntil,
+  ).toBeGreaterThan(Date.now());
+  expect(
+    vi
+      .mocked(invoke)
+      .mock.calls.some(([command]) => command === "git_notification_context"),
   ).toBe(false);
 });
 
@@ -117,51 +142,89 @@ it("shows persisted mute status on the project and in its reopened menu", async 
   updateNotificationPreferences(["local:/work/private"], {
     mutedUntil: null,
   });
-  await act(async () => root.render(createElement(ProjectRail, {
-    cwd: "/work/private",
-    recents: [],
-    onSelectProject: vi.fn(),
-    onOpenProject: vi.fn(),
-  })));
-  const indicator = container.querySelector('[role="img"][aria-label="Muted until resumed"]');
+  await act(async () =>
+    root.render(
+      createElement(ProjectRail, {
+        cwd: "/work/private",
+        recents: [],
+        onSelectProject: vi.fn(),
+        onOpenProject: vi.fn(),
+      }),
+    ),
+  );
+  const indicator = container.querySelector(
+    '[role="img"][aria-label="Muted until resumed"]',
+  );
   expect(indicator).not.toBeNull();
   expect(indicator?.getAttribute("title")).toBe("Muted until resumed");
   const project = container.querySelector('button[aria-current="true"]')!;
   expect(project.getAttribute("aria-label")).toContain("Muted until resumed");
-  await act(async () => project.dispatchEvent(new KeyboardEvent("keydown", {
-    key: "ContextMenu", bubbles: true,
-  })));
+  await act(async () =>
+    project.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ContextMenu",
+        bubbles: true,
+      }),
+    ),
+  );
   const resume = button("Resume notifications");
   expect(resume.textContent).toContain("Muted until resumed");
   const menu = resume.closest('[role="menu"]')!;
   expect(menu.firstElementChild).toBe(resume);
   expect(resume.nextElementSibling?.getAttribute("role")).toBe("separator");
-  expect(resume.nextElementSibling?.nextElementSibling?.getAttribute("aria-label")).toBe("Group name");
-  expect(menu.querySelectorAll('[aria-label="Resume notifications"]')).toHaveLength(1);
-  expect(button("Mute notifications").textContent).not.toContain("Muted until resumed");
+  expect(
+    resume.nextElementSibling?.nextElementSibling?.getAttribute("aria-label"),
+  ).toBe("Group name");
+  expect(
+    menu.querySelectorAll('[aria-label="Resume notifications"]'),
+  ).toHaveLength(1);
+  expect(button("Mute notifications").textContent).not.toContain(
+    "Muted until resumed",
+  );
   act(() => button("Resume notifications").click());
-  expect(container.querySelector('[role="img"][aria-label="Muted until resumed"]')).toBeNull();
+  expect(
+    container.querySelector('[role="img"][aria-label="Muted until resumed"]'),
+  ).toBeNull();
   expect(project.getAttribute("aria-label")).not.toContain("Muted");
   // Changes made elsewhere and automatic expiry update an already mounted rail.
   vi.useFakeTimers();
   const until = new Date(2030, 0, 15, 16, 30).getTime();
   vi.setSystemTime(until - 1000);
-  act(() => updateNotificationPreferences(["local:/work/private"], {
-    mutedUntil: until,
-  }));
-  const timedIndicator = container.querySelector('[role="img"][aria-label^="Muted until "]');
-  expect(timedIndicator?.getAttribute("title")).toBe(
-    `Muted until ${new Date(2030, 0, 15, 16, 30).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`,
+  act(() =>
+    updateNotificationPreferences(["local:/work/private"], {
+      mutedUntil: until,
+    }),
   );
-  await act(async () => project.dispatchEvent(new KeyboardEvent("keydown", {
-    key: "ContextMenu", bubbles: true,
-  })));
-  expect(button("Resume notifications").textContent).toContain(timedIndicator!.getAttribute("title"));
+  const timedIndicator = container.querySelector(
+    '[role="img"][aria-label^="Muted until "]',
+  );
+  expect(timedIndicator?.getAttribute("title")).toBe(
+    `Muted until ${new Date(2030, 0, 15, 16, 30).toLocaleString(getLocale(), { dateStyle: "medium", timeStyle: "short" })}`,
+  );
+  await act(async () =>
+    project.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ContextMenu",
+        bubbles: true,
+      }),
+    ),
+  );
+  expect(button("Resume notifications").textContent).toContain(
+    timedIndicator!.getAttribute("title"),
+  );
   await act(async () => vi.advanceTimersByTimeAsync(1000));
-  expect(container.querySelector('[role="img"][aria-label^="Muted until "]')).toBeNull();
+  expect(
+    container.querySelector('[role="img"][aria-label^="Muted until "]'),
+  ).toBeNull();
   expect(button("Mute notifications").textContent).not.toContain("Muted until");
-  expect(document.querySelector('[aria-label="Resume notifications"]')).toBeNull();
-  expect(document.querySelector('[role="menu"]')?.firstElementChild?.getAttribute("aria-label")).toBe("Group name");
+  expect(
+    document.querySelector('[aria-label="Resume notifications"]'),
+  ).toBeNull();
+  expect(
+    document
+      .querySelector('[role="menu"]')
+      ?.firstElementChild?.getAttribute("aria-label"),
+  ).toBe("Group name");
 });
 
 it("mutes a repository from its project context menu", async () => {
@@ -200,8 +263,7 @@ it("mutes a repository from its project context menu", async () => {
     "Could not save",
   );
   expect(
-    loadNotificationPreferences()["local:/work/private"]
-      .mutedUntil,
+    loadNotificationPreferences()["local:/work/private"].mutedUntil,
   ).toBeUndefined();
   write.mockRestore();
   const start = Date.now();
@@ -242,9 +304,10 @@ it("mutes a repository from its project context menu", async () => {
   );
   expect(document.activeElement).toBe(muteAgain);
   act(() => button("Resume notifications").click());
-  expect(
-    loadNotificationPreferences()["local:/work/private"],
-  ).toEqual({ disabled: ["issues"], resumedAt: expect.any(Number) });
+  expect(loadNotificationPreferences()["local:/work/private"]).toEqual({
+    disabled: ["issues"],
+    resumedAt: expect.any(Number),
+  });
   expect(document.activeElement).toBe(project);
 });
 

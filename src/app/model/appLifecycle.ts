@@ -16,14 +16,20 @@ import {
   workspaceFromResumed,
   type ResumedWorkspace,
 } from "../../features/sessions/model/inFlight";
-import { leafIds, type WorkspaceTab } from "../../features/workspace/model/layout";
+import {
+  leafIds,
+  type WorkspaceTab,
+} from "../../features/workspace/model/layout";
 import { killPty } from "../../platform/tauri/pty";
 import {
   projectTerminalFileIds,
   type DockSide,
   type ProjectTerminalDock,
 } from "../../features/projects/model/projectTerminal";
-import { sessionWorkCwd, type Session } from "../../features/sessions/model/session";
+import {
+  sessionWorkCwd,
+  type Session,
+} from "../../features/sessions/model/session";
 import { sessionChildHarnesses } from "../../features/sessions/model/handoff";
 import {
   getSession,
@@ -43,7 +49,11 @@ import {
 } from "../../features/workspace/model/workspaceSnapshot";
 import { loadWindowTransfer } from "./windowTransferBootstrap";
 import type { WindowTransferPayload } from "./windowTransfer";
-import { lastProjectPath, normalizeProjectPath, sameProjectPath } from "../../features/projects/model/recents";
+import {
+  lastProjectPath,
+  normalizeProjectPath,
+  sameProjectPath,
+} from "../../features/projects/model/recents";
 import type { ProjectReturnMemory } from "../../features/projects/model/projectReturn";
 
 export type { ResumedWorkspace };
@@ -163,7 +173,7 @@ export async function askQuitConfirmation(
     quitDialogOpen = true;
     try {
       confirmed = await ask(quitWhileBusyMessage(inFlight), {
-        title: "MonoCode",
+        title: "MyCode",
         kind: "warning",
         okLabel: "Quit",
       });
@@ -350,8 +360,8 @@ export async function confirmReload(
   hasUnsavedFiles: boolean,
 ): Promise<boolean> {
   if (!hasUnsavedFiles) return true;
-  return ask("Reload MonoCode and discard unsaved changes?", {
-    title: "MonoCode",
+  return ask("Reload MyCode and discard unsaved changes?", {
+    title: "MyCode",
     kind: "warning",
     okLabel: "Reload",
   });
@@ -382,7 +392,7 @@ export async function persistQuitState(
   // A quit ends the process, so a swallowed write is work that never comes
   // back: let it reject and let the caller call the quit off. An unload is a
   // reload, where best effort is enough and failing loudly helps nobody.
-  const write = <T,>(pending: Promise<T>): Promise<T | null> =>
+  const write = <T>(pending: Promise<T>): Promise<T | null> =>
     mode === "quit" ? pending : pending.catch(() => null);
 
   await Promise.all(
@@ -414,7 +424,9 @@ export async function persistQuitState(
   }
 }
 
-async function persistBootingResume(workspace: ResumedWorkspace): Promise<void> {
+async function persistBootingResume(
+  workspace: ResumedWorkspace,
+): Promise<void> {
   await Promise.all(
     workspace.sessions
       .filter(shouldPersistSession)
@@ -432,12 +444,10 @@ async function persistBootingResume(workspace: ResumedWorkspace): Promise<void> 
     ),
   ).catch(() => undefined);
   await replaceInFlightSessions(
-    workspace.sessions
-      .filter(wasTurnInterrupted)
-      .map((session) => ({
-        sessionId: session.id,
-        cwd: session.cwd,
-      })),
+    workspace.sessions.filter(wasTurnInterrupted).map((session) => ({
+      sessionId: session.id,
+      cwd: session.cwd,
+    })),
   ).catch(() => undefined);
 }
 
@@ -457,7 +467,7 @@ async function confirmAndCloseWindow(
     if (refs.length > 0) {
       const ok = await ask(
         "Close this window and stop its running chats? Other windows will stay open.",
-        { title: "MonoCode", kind: "warning", okLabel: "Close window" },
+        { title: "MyCode", kind: "warning", okLabel: "Close window" },
       );
       if (!ok) return;
     }

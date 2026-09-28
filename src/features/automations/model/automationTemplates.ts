@@ -1,4 +1,9 @@
-import type { AutomationScheduleKind, AutomationTriggerKind } from "./automations";
+import type {
+  AutomationScheduleKind,
+  AutomationTriggerKind,
+} from "./automations";
+import { getLocale, translate } from "../../../shared/i18n";
+import { AUTOMATION_ZH } from "./automationTemplates.zh-CN";
 
 export const AUTOMATION_TEMPLATE_CATEGORIES = [
   { id: "popular", label: "Popular" },
@@ -7,6 +12,7 @@ export const AUTOMATION_TEMPLATE_CATEGORIES = [
   { id: "incidents", label: "Incidents & Triage" },
   { id: "research", label: "Data & Research" },
   { id: "environment", label: "Environment" },
+  { id: "office", label: "Office & knowledge" },
 ] as const;
 
 export type AutomationTemplateCategoryId =
@@ -44,6 +50,60 @@ export type AutomationTemplate = {
 };
 
 export const AUTOMATION_TEMPLATES: AutomationTemplate[] = [
+  {
+    id: "local-work-report",
+    category: "office",
+    popular: true,
+    icon: "note",
+    name: "Local weekly work report",
+    description:
+      "Summarize local documents and Git changes into a report draft",
+    trigger: {
+      kind: "time",
+      event: "weekly",
+      scheduleKind: "weekly",
+      time: "17:00",
+      dayOfWeek: 5,
+    },
+    triggerLabel: "Friday at 17:00",
+    prompt:
+      "Review this workspace's documents and Git history from the last seven days. Write a concise Markdown report under reports/ with completed work, work in progress, blockers and next steps. Cite sources. Preserve existing files and choose a new filename. Do not send or publish the report. Do not claim unverified work is complete.",
+  },
+  {
+    id: "local-document-index",
+    category: "office",
+    icon: "file",
+    name: "Local document index",
+    description:
+      "Build a searchable Markdown index without moving original files",
+    trigger: {
+      kind: "time",
+      event: "weekdays",
+      scheduleKind: "weekdays",
+      time: "09:00",
+    },
+    triggerLabel: "Weekdays at 09:00",
+    prompt:
+      "Review documents in this workspace. Create a dated Markdown index under reports/ listing each document's path, subject and actionable items. Use only locally readable files. Skip credentials and private configuration. Do not rename, move, delete or upload originals. Clearly list formats you could not read.",
+  },
+  {
+    id: "project-knowledge-review",
+    category: "office",
+    icon: "search",
+    name: "Project knowledge review",
+    description:
+      "Identify outdated project knowledge using recent local changes",
+    trigger: {
+      kind: "time",
+      event: "weekly",
+      scheduleKind: "weekly",
+      time: "10:00",
+      dayOfWeek: 1,
+    },
+    triggerLabel: "Monday at 10:00",
+    prompt:
+      "Compare recent Git commits with the project's documentation and knowledge notes. Identify stale commands, architecture descriptions and constraints. Write a dated Markdown proposal under reports/ with source references and suggested corrections. Preserve existing knowledge until the user reviews the proposal. Do not contact external services.",
+  },
   {
     id: "find-critical-bugs",
     category: "review",
@@ -357,7 +417,21 @@ export function templatesForCategory(
   category: AutomationTemplateCategoryId,
 ): AutomationTemplate[] {
   if (category === "popular") {
-    return AUTOMATION_TEMPLATES.filter((template) => template.popular);
+    return AUTOMATION_TEMPLATES.filter((template) => template.popular).map(
+      localizeTemplate,
+    );
   }
-  return AUTOMATION_TEMPLATES.filter((template) => template.category === category);
+  return AUTOMATION_TEMPLATES.filter(
+    (template) => template.category === category,
+  ).map(localizeTemplate);
+}
+
+function localizeTemplate(template: AutomationTemplate): AutomationTemplate {
+  return getLocale() === "zh-CN"
+    ? {
+        ...template,
+        ...AUTOMATION_ZH[template.id],
+        triggerLabel: translate(template.triggerLabel),
+      }
+    : template;
 }

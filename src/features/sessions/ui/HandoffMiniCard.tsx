@@ -36,7 +36,7 @@ export function HandoffMiniCard({ card, onDismiss }: Props) {
               strokeWidth={1.75}
             />
             <span className="min-w-0 truncate text-[11px] text-content/50">
-              Handoff
+              {t("Handoff")}
             </span>
           </span>
           <span className="mt-1 flex min-w-0 items-center gap-1.5 text-[13px] font-semibold leading-snug text-content">
@@ -64,7 +64,7 @@ export function HandoffMiniCard({ card, onDismiss }: Props) {
           <button
             type="button"
             title={t("Remove")}
-            aria-label="Remove handoff"
+            aria-label={t("Remove handoff")}
             onClick={onDismiss}
             className="absolute right-1.5 top-1.5 grid size-5 place-items-center rounded text-content/40 hover:bg-content/10 hover:text-content"
           >

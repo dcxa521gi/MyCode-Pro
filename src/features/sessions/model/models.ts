@@ -283,6 +283,18 @@ export function hasLiveCatalog(harness: HarnessId): boolean {
   return overlays[harness] != null;
 }
 
+/** A successful empty discovery must not keep deleted custom connections. */
+export function clearHarnessModels(harness: HarnessId): void {
+  if (overlays[harness] == null) return;
+  const next = { ...overlays };
+  const defaults = { ...overlayDefaults };
+  delete next[harness];
+  delete defaults[harness];
+  overlays = next;
+  overlayDefaults = defaults;
+  emit();
+}
+
 /** Test seam. */
 export function resetHarnessModelOverlays() {
   overlays = {};
@@ -369,8 +381,9 @@ export function resolveModel(harness: HarnessId, id?: string): AgentModel {
       name: nativeId
         ? nativeId
             .replace(/^gpt/i, "GPT")
-            .replace(/-([a-z])/g, (_, letter: string) =>
-              `-${letter.toUpperCase()}`,
+            .replace(
+              /-([a-z])/g,
+              (_, letter: string) => `-${letter.toUpperCase()}`,
             )
         : harness.charAt(0).toUpperCase() + harness.slice(1),
       nativeId,

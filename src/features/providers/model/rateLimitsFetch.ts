@@ -40,9 +40,7 @@ export async function fetchOpencodeGoRateLimits(): Promise<ProviderRateLimits> {
   } catch (error) {
     return errorRateLimits(
       "opencode",
-      error instanceof Error
-        ? error.message
-        : "OpenCode Go usage unavailable",
+      error instanceof Error ? error.message : "OpenCode Go usage unavailable",
     );
   }
   if (result.status === "ok" && result.body) {
@@ -235,7 +233,7 @@ async function requestCodexAccount<T>(
           {
             clientInfo: {
               name: "monocode",
-              title: "MonoCode",
+              title: "MyCode",
               version: "0.1.0",
             },
             capabilities: { experimentalApi: true },

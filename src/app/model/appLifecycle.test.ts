@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { invoke } from "@tauri-apps/api/core";
 import { ask } from "@tauri-apps/plugin-dialog";
-import { forgetHarnessSession, killAllChildren } from "../../integrations/harness";
+import {
+  forgetHarnessSession,
+  killAllChildren,
+} from "../../integrations/harness";
 import { newSession } from "../../features/sessions/model/session";
 import { newTab } from "../../features/workspace/model/layout";
 import {
@@ -18,7 +21,10 @@ import {
   hydrateWorkspaceSnapshot,
   parseWorkspaceSnapshot,
 } from "../../features/workspace/model/workspaceSnapshot";
-import { loadWorkspaceSnapshot, saveWorkspaceSnapshot } from "../../features/sessions/data/sessionStore";
+import {
+  loadWorkspaceSnapshot,
+  saveWorkspaceSnapshot,
+} from "../../features/sessions/data/sessionStore";
 import { reconcileProjectReturn } from "../../features/projects/model/projectReturn";
 
 vi.mock("@tauri-apps/api/core", () => ({
@@ -31,7 +37,10 @@ vi.mock("./windowTransferBootstrap", () => ({
   loadWindowTransfer: vi.fn().mockResolvedValue(null),
 }));
 vi.mock("../../features/sessions/data/sessionStore", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../../features/sessions/data/sessionStore")>();
+  const actual =
+    await importOriginal<
+      typeof import("../../features/sessions/data/sessionStore")
+    >();
   return {
     ...actual,
     loadWorkspaceSnapshot: vi.fn().mockResolvedValue(null),
@@ -204,12 +213,17 @@ describe("project choices through lifecycle saves", () => {
     const { handleQuitRequested } = await import("./appLifecycle");
     await handleQuitRequested();
     expect([...(lastSavedMemory() ?? [])]).toEqual([...state.memory]);
-    const args = vi.mocked(invoke).mock.calls
-      .filter(([command]) => command === "workspace_set_snapshot").at(-1)?.[1];
-    const saved = args && typeof args === "object" && "snapshot" in args
-      ? parseWorkspaceSnapshot(args.snapshot) : null;
-    expect(saved?.sessions.find((session) => session.id === "a1")?.worktreeCwd)
-      .toBe("/alpha-worktrees/feature");
+    const args = vi
+      .mocked(invoke)
+      .mock.calls.filter(([command]) => command === "workspace_set_snapshot")
+      .at(-1)?.[1];
+    const saved =
+      args && typeof args === "object" && "snapshot" in args
+        ? parseWorkspaceSnapshot(args.snapshot)
+        : null;
+    expect(
+      saved?.sessions.find((session) => session.id === "a1")?.worktreeCwd,
+    ).toBe("/alpha-worktrees/feature");
   });
 });
 
@@ -291,9 +305,7 @@ describe("coordinated quit", () => {
   }
 
   function invokedWith(command: string) {
-    return vi
-      .mocked(invoke)
-      .mock.calls.find(([name]) => name === command)?.[1];
+    return vi.mocked(invoke).mock.calls.find(([name]) => name === command)?.[1];
   }
 
   it("reports this window's live turns to the coordinator", async () => {
@@ -394,9 +406,9 @@ describe("confirming reload", () => {
   it("allows reload after unsaved changes are confirmed", async () => {
     await expect(confirmReload(true)).resolves.toBe(true);
     expect(ask).toHaveBeenCalledWith(
-      "Reload MonoCode and discard unsaved changes?",
+      "Reload MyCode and discard unsaved changes?",
       {
-        title: "MonoCode",
+        title: "MyCode",
         kind: "warning",
         okLabel: "Reload",
       },
@@ -451,9 +463,8 @@ describe("remembering the terminal dock side across restarts", () => {
 
   it("saves the chosen side on a coordinated quit", async () => {
     const state = dockWorkspace("right");
-    const { handleQuitRequested, setQuitWorkspace } = await import(
-      "./appLifecycle"
-    );
+    const { handleQuitRequested, setQuitWorkspace } =
+      await import("./appLifecycle");
     const release = setQuitWorkspace(
       () => state.sessions,
       () => state.tabs,

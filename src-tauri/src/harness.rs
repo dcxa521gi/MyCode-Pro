@@ -487,6 +487,12 @@ pub fn harness_spawn(
         .stderr(Stdio::piped());
     prepare_child(&mut cmd, &command);
     apply_provider_account(&app, &mut cmd, account.as_ref())?;
+    crate::local_ai::configure_child(
+        &app,
+        &mut cmd,
+        binary_provider.as_deref(),
+        args.iter().any(|arg| arg == "--no-session-persistence"),
+    )?;
 
     crate::control::configure_child(&app, &session_id, &mut cmd);
 
@@ -1221,7 +1227,7 @@ struct ProcessSnapshot {
     harness_parent: Option<u32>,
 }
 
-/// Kill harness trees left behind by a previous MonoCode that exited
+/// Kill harness trees left behind by a previous MyCode that exited
 /// before SIGKILL ran (crash, force-quit, or the detached escalate thread).
 /// Off-thread: the sweep shells out to `ps` and then waits on a SIGKILL, and
 /// launch would otherwise hold the first window for both. Nothing this run

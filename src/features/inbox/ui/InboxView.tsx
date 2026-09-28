@@ -1,3 +1,5 @@
+import { getLocale as uiLocale } from "../../../shared/i18n";
+import { translate as uiTranslate } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import { useGithubPrChecks } from "../hooks/useGithubPrChecks";
 import { summarizePrChecks } from "../model/githubPrChecks";
@@ -901,7 +903,7 @@ export function InboxView({
         {visibleSources.length > 0 ? (
           <div
             role="tablist"
-            aria-label="Inbox source"
+            aria-label={t("Inbox source")}
             className="flex min-w-0 basis-0 items-center gap-px"
             style={{ flexGrow: visibleSources.length }}
           >
@@ -919,10 +921,10 @@ export function InboxView({
           <button
             ref={connectButtonRef}
             type="button"
-            aria-label="Connect an inbox source"
+            aria-label={t("Connect an inbox source")}
             aria-haspopup="menu"
             aria-expanded={connectMenuOpen}
-            title="Connect an inbox source"
+            title={t("Connect an inbox source")}
             onClick={() => setConnectMenuOpen((open) => !open)}
             className={`flex h-6 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-[12px] leading-none ${
               connectMenuOpen
@@ -931,7 +933,7 @@ export function InboxView({
             }`}
           >
             <Plus className="size-3.5 shrink-0" strokeWidth={1.75} />
-            <span className="min-w-0 truncate">Add connection</span>
+            <span className="min-w-0 truncate">{t("Add connection")}</span>
           </button>
         ) : null}
       </div>
@@ -942,8 +944,8 @@ export function InboxView({
             <input
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Filter inbox"
-              aria-label="Filter inbox"
+              placeholder={t("Filter inbox")}
+              aria-label={t("Filter inbox")}
               spellCheck={false}
               autoComplete="off"
               className="h-7 w-full rounded-md bg-transparent pl-7 pr-2 text-[12px] text-content outline-none placeholder:text-content/40"
@@ -951,8 +953,8 @@ export function InboxView({
           </div>
           <button
             type="button"
-            title="Filter inbox"
-            aria-label="Filter inbox"
+            title={t("Filter inbox")}
+            aria-label={t("Filter inbox")}
             aria-expanded={!!filterMenu}
             aria-haspopup="menu"
             onClick={onFilterButtonClick}
@@ -964,8 +966,8 @@ export function InboxView({
           </button>
           <button
             type="button"
-            title="Mark all as read"
-            aria-label="Mark all as read"
+            title={t("Mark all as read")}
+            aria-label={t("Mark all as read")}
             disabled={!sourceHasUnseen}
             onClick={() =>
               setReadStatusError(
@@ -1006,7 +1008,7 @@ export function InboxView({
       >
         {noSourcesConnected ? (
           <p className="px-3 py-3 text-[12px] text-content/50">
-            Add a connection to start using the Inbox.
+            {t("Add a connection to start using the Inbox.")}
           </p>
         ) : sourceError && visibleItems.length === 0 ? (
           <p className="px-3 py-2 text-[12px] text-content/50">{sourceError}</p>
@@ -1021,26 +1023,26 @@ export function InboxView({
                 ? isTrackerSource(source)
                   ? `No matching ${INBOX_SOURCE_LABELS[source]} issues`
                   : source === "gitlab"
-                    ? "No matching issues or merge requests"
-                    : "No matching issues or pull requests"
+                    ? t("No matching issues or merge requests")
+                    : t("No matching issues or pull requests")
                 : isTrackerSource(source)
                   ? `No ${INBOX_SOURCE_LABELS[source]} issues match these filters`
                   : source === "gitlab" || source === "azuredevops"
                     ? activeFilters.assignedToMe
-                      ? "Nothing needs your attention"
+                      ? t("Nothing needs your attention")
                       : source === "gitlab"
-                        ? "No GitLab items match these filters"
-                        : "No ADO items match these filters"
-                    : "No issues or pull requests match these filters"
+                        ? t("No GitLab items match these filters")
+                        : t("No ADO items match these filters")
+                    : t("No issues or pull requests match these filters")
               : isTrackerSource(source)
                 ? `No ${INBOX_SOURCE_LABELS[source]} issues`
                 : source === "gitlab"
                   ? projects.length === 0
-                    ? "Open a project to fill the inbox"
-                    : "No matching issues or merge requests"
+                    ? t("Open a project to fill the inbox")
+                    : t("No matching issues or merge requests")
                   : projects.length === 0
-                    ? "Open a project to fill the inbox"
-                    : "No matching issues or pull requests"}
+                    ? t("Open a project to fill the inbox")
+                    : t("No matching issues or pull requests")}
           </p>
         ) : (
           <ul className="flex flex-col gap-0.5 p-1.5">
@@ -1085,7 +1087,7 @@ export function InboxView({
       <div
         role="separator"
         aria-orientation="vertical"
-        aria-label="Resize inbox list"
+        aria-label={t("Resize inbox list")}
         className={`absolute inset-y-0 -right-px z-10 w-1.5 cursor-col-resize touch-none ${
           resize.dragging ? "bg-content/15" : "hover:bg-content/10"
         }`}
@@ -1207,6 +1209,7 @@ export function LinkedWorkItemPanel({
   visible?: boolean;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const logos = useTabGroupLogos();
@@ -1343,7 +1346,7 @@ export function LinkedWorkItemPanel({
               className={ACTION_OUTLINE}
             >
               <ExternalLink className="size-3.5" strokeWidth={1.75} />
-              Open on GitHub
+              {t("Open on GitHub")}
             </button>
           </div>
         ) : (
@@ -1381,11 +1384,14 @@ function InboxDetailBody({
   onOpenSession?: (sessionId: string) => void | Promise<void>;
   onItemChange?: (item: InboxItem) => void;
 }) {
+  const { t } = useTranslation();
   if (!item) {
     return (
       <div className="flex h-full flex-col items-center justify-center px-6 text-center">
         <Inbox className="mb-3 size-6 text-content/30" strokeWidth={1.75} />
-        <p className="text-[13px] text-content/45">Select an inbox item</p>
+        <p className="text-[13px] text-content/45">
+          {t("Select an inbox item")}
+        </p>
       </div>
     );
   }
@@ -1587,18 +1593,30 @@ const GITHUB_PR_MERGE_OPTIONS: Array<{
 }> = [
   {
     action: "merge",
-    label: "Create a merge commit",
-    description: "Add every commit to the base branch.",
+    get label() {
+      return uiTranslate("Create a merge commit");
+    },
+    get description() {
+      return uiTranslate("Add every commit to the base branch.");
+    },
   },
   {
     action: "squash",
-    label: "Squash and merge",
-    description: "Combine the commits into one.",
+    get label() {
+      return uiTranslate("Squash and merge");
+    },
+    get description() {
+      return uiTranslate("Combine the commits into one.");
+    },
   },
   {
     action: "rebase",
-    label: "Rebase and merge",
-    description: "Add the commits without a merge commit.",
+    get label() {
+      return uiTranslate("Rebase and merge");
+    },
+    get description() {
+      return uiTranslate("Add the commits without a merge commit.");
+    },
   },
 ];
 
@@ -1615,28 +1633,36 @@ function githubPrActionCopy(
   switch (action) {
     case "merge":
       return {
-        title: "Merge this pull request?",
+        get title() {
+          return uiTranslate("Merge this pull request?");
+        },
         detail: `Every commit from ${source} will be added to ${destination} with a merge commit.`,
         confirm: "Merge pull request",
         progress: "Merging…",
       };
     case "squash":
       return {
-        title: "Squash and merge?",
+        get title() {
+          return uiTranslate("Squash and merge?");
+        },
         detail: `The commits from ${source} will be combined into one commit on ${destination}.`,
         confirm: "Squash and merge",
         progress: "Merging…",
       };
     case "rebase":
       return {
-        title: "Rebase and merge?",
+        get title() {
+          return uiTranslate("Rebase and merge?");
+        },
         detail: `The commits from ${source} will be rebased individually onto ${destination}.`,
         confirm: "Rebase and merge",
         progress: "Merging…",
       };
     case "draft":
       return {
-        title: "Convert to draft?",
+        get title() {
+          return uiTranslate("Convert to draft?");
+        },
         detail:
           "Reviewers will see that this pull request is not ready to merge.",
         confirm: "Convert to draft",
@@ -1644,7 +1670,9 @@ function githubPrActionCopy(
       };
     case "ready":
       return {
-        title: "Mark as ready for review?",
+        get title() {
+          return uiTranslate("Mark as ready for review?");
+        },
         detail:
           "Reviewers will see that this pull request is ready for feedback.",
         confirm: "Ready for review",
@@ -1652,7 +1680,9 @@ function githubPrActionCopy(
       };
     case "close":
       return {
-        title: "Close this pull request?",
+        get title() {
+          return uiTranslate("Close this pull request?");
+        },
         detail:
           "The pull request will close without merging. You can reopen it later.",
         confirm: "Close pull request",
@@ -1660,7 +1690,9 @@ function githubPrActionCopy(
       };
     case "reopen":
       return {
-        title: "Reopen this pull request?",
+        get title() {
+          return uiTranslate("Reopen this pull request?");
+        },
         detail: "The pull request will return to the open state.",
         confirm: "Reopen pull request",
         progress: "Reopening…",
@@ -1751,7 +1783,7 @@ export function GithubPrActions({
         <div
           ref={mergeGroup}
           role="group"
-          aria-label="Merge pull request"
+          aria-label={t("Merge pull request")}
           className="inline-flex h-7 overflow-hidden rounded-md bg-content text-background-base"
         >
           <button
@@ -1762,13 +1794,13 @@ export function GithubPrActions({
           >
             <GitMerge className="size-3.5" strokeWidth={1.75} />
             {selectedMerge?.action === "merge"
-              ? "Merge pull request"
+              ? t("Merge pull request")
               : selectedMerge?.label}
           </button>
           <button
             type="button"
-            title="Merge options"
-            aria-label="Merge options"
+            title={t("Merge options")}
+            aria-label={t("Merge options")}
             aria-haspopup="menu"
             aria-expanded={mergeMenuOpen}
             disabled={busy}
@@ -1787,7 +1819,7 @@ export function GithubPrActions({
           className={stateButton}
         >
           <GitPullRequest className="size-3.5" strokeWidth={1.75} />
-          Ready for review
+          {t("Ready for review")}
         </button>
       ) : null}
       {state === "open" && !item.draft ? (
@@ -1798,7 +1830,7 @@ export function GithubPrActions({
           className={stateButton}
         >
           <GitPullRequestDraft className="size-3.5" strokeWidth={1.75} />
-          Convert to draft
+          {t("Convert to draft")}
         </button>
       ) : null}
       {state === "open" ? (
@@ -1809,7 +1841,7 @@ export function GithubPrActions({
           className={`${stateButton} hover:text-rose-400`}
         >
           <GitPullRequestClosed className="size-3.5" strokeWidth={1.75} />
-          Close pull request
+          {t("Close pull request")}
         </button>
       ) : null}
       {state === "closed" ? (
@@ -1820,7 +1852,7 @@ export function GithubPrActions({
           className={stateButton}
         >
           <GitPullRequest className="size-3.5" strokeWidth={1.75} />
-          Reopen pull request
+          {t("Reopen pull request")}
         </button>
       ) : null}
       {notice ? (
@@ -1837,7 +1869,7 @@ export function GithubPrActions({
           onDismiss={() => setMergeMenuOpen(false)}
           role="menu"
           tabIndex={-1}
-          aria-label="Merge method"
+          aria-label={t("Merge method")}
           className="p-1"
         >
           {GITHUB_PR_MERGE_OPTIONS.map((option) => (
@@ -1972,6 +2004,7 @@ export function InboxDetail({
   onOpenSession?: (sessionId: string) => void | Promise<void>;
   onItemChange?: (item: InboxItem) => void;
 }) {
+  const { t } = useTranslation();
   const detailLock = useLockOverscroll<HTMLDivElement>();
   const panel = mode === "panel";
   const linear = item.provider === "linear";
@@ -2555,9 +2588,9 @@ export function InboxDetail({
       <span className="shrink-0">
         {item.kind === "pr"
           ? gitlab
-            ? "Merge request"
-            : "Pull request"
-          : "Issue"}
+            ? t("Merge request")
+            : t("Pull request")
+          : t("Issue")}
       </span>
       <span className="shrink-0 tabular-nums">{inboxItemRef(item)}</span>
       <span
@@ -2652,7 +2685,7 @@ export function InboxDetail({
                         ))}
                       </span>
                     ) : (
-                      <span>Unassigned</span>
+                      <span>{t("Unassigned")}</span>
                     )}
                   </>
                 ) : null}
@@ -2661,16 +2694,20 @@ export function InboxDetail({
                     <span aria-hidden>·</span>
                     <time
                       dateTime={item.createdAt}
-                      title={new Date(item.createdAt).toLocaleString()}
+                      title={new Date(item.createdAt).toLocaleString(
+                        uiLocale(),
+                      )}
                     >
-                      Created {formatRelativeTime(item.createdAt)}
+                      {t("Created")} {formatRelativeTime(item.createdAt)}
                     </time>
                   </>
                 ) : null}
                 {formatRelativeTime(item.updatedAt) ? (
                   <>
                     <span aria-hidden>·</span>
-                    <span>Updated {formatRelativeTime(item.updatedAt)}</span>
+                    <span>
+                      {t("Updated")} {formatRelativeTime(item.updatedAt)}
+                    </span>
                   </>
                 ) : null}
                 {baseRef && headRef ? (
@@ -2699,8 +2736,8 @@ export function InboxDetail({
                 <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
                   <span className="mr-0.5 inline-flex shrink-0 items-center gap-1 text-[11px] text-content/45">
                     <MessageMultiple className="size-3.5" strokeWidth={1.75} />
-                    Related{" "}
-                    {relatedSessions.length === 1 ? "thread" : "threads"}
+                    {t("Related")}{" "}
+                    {relatedSessions.length === 1 ? t("thread") : t("threads")}
                   </span>
                   {relatedSessions.map((session) => {
                     const title = sessionDisplayTitle(
@@ -2718,7 +2755,7 @@ export function InboxDetail({
                         <span className="truncate">{title}</span>
                         {session.archived ? (
                           <span className="shrink-0 text-content/40">
-                            Archived
+                            {t("Archived")}
                           </span>
                         ) : null}
                       </button>
@@ -2758,7 +2795,7 @@ export function InboxDetail({
                       }}
                       className={`${ACTION_FILLED} disabled:cursor-default disabled:opacity-40`}
                     >
-                      {starting ? "Sending..." : "Send to agent"}
+                      {starting ? t("Sending...") : t("Send to agent")}
                     </button>
                     {chooseStartProject ? (
                       <InboxProjectPicker
@@ -2784,7 +2821,7 @@ export function InboxDetail({
                     className={ACTION_OUTLINE}
                   >
                     <MessageSquare className="size-3.5" strokeWidth={1.75} />{" "}
-                    Ask
+                    {t("Ask")}
                   </button>
                 ) : null}
                 {panel ? null : (
@@ -2814,12 +2851,12 @@ export function InboxDetail({
                   className="flex items-stretch gap-4"
                 >
                   <InboxDetailTab
-                    label="Summary"
+                    label={t("Summary")}
                     selected={tab === "summary"}
                     onSelect={() => setTab("summary")}
                   />
                   <InboxDetailTab
-                    label="Code"
+                    label={t("Code")}
                     selected={tab === "code"}
                     onSelect={() => setTab("code")}
                   />
@@ -2834,7 +2871,7 @@ export function InboxDetail({
                 {tab === "code" && inboxShowsFullFileDiff(item) ? (
                   <div
                     role="group"
-                    aria-label="Diff context"
+                    aria-label={t("Diff context")}
                     className="ml-auto flex items-center self-center rounded-md border border-content/10 bg-content/[0.03] p-0.5"
                   >
                     <button
@@ -2847,7 +2884,7 @@ export function InboxDetail({
                           : "text-content/45 hover:text-content/70"
                       }`}
                     >
-                      Hunks
+                      {t("Hunks")}
                     </button>
                     <button
                       type="button"
@@ -2859,7 +2896,7 @@ export function InboxDetail({
                           : "text-content/45 hover:text-content/70"
                       }`}
                     >
-                      Full file
+                      {t("Full file")}
                     </button>
                   </div>
                 ) : null}
@@ -2905,7 +2942,9 @@ export function InboxDetail({
                   fullFile={fullFile}
                 />
               ) : (
-                <p className="text-[13px] text-content/45">No file changes</p>
+                <p className="text-[13px] text-content/45">
+                  {t("No file changes")}
+                </p>
               )
             ) : isPr && tab === "checks" ? (
               <InboxPrChecks
@@ -2950,7 +2989,9 @@ export function InboxDetail({
                     allowRemoteMedia
                   />
                 ) : (
-                  <p className="text-[13px] text-content/45">No description</p>
+                  <p className="text-[13px] text-content/45">
+                    {t("No description")}
+                  </p>
                 )}
                 <InboxComments
                   thread={thread}

@@ -1,4 +1,11 @@
-import { useTranslation, type LanguagePreference } from "../../../shared/i18n";
+import { getLocale as uiLocale } from "../../../shared/i18n";
+import {
+  useTranslation,
+  formatMessage,
+  type LanguagePreference,
+} from "../../../shared/i18n";
+import { ModelConnections } from "../../providers/ui/ModelConnections";
+import { LocalCapabilitiesPage } from "./LocalCapabilitiesPage";
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ask } from "@tauri-apps/plugin-dialog";
@@ -533,6 +540,9 @@ export function SettingsView({
                 <AppearancePage appearance={appearance} />
               ) : null}
               {section === "chat" ? <ChatPage /> : null}
+              {section === "local-ai" ? (
+                <LocalCapabilitiesPage key={cwd} cwd={cwd} />
+              ) : null}
               {section === "keybindings" ? <KeybindingsPage /> : null}
               {section === "providers" ? (
                 <ProvidersPage cwd={cwd} recents={recents} />
@@ -812,14 +822,14 @@ function GeneralPage({
           >
             <option value="auto">{t("Automatic (computer time zone)")}</option>
             <option value="zh-CN">简体中文</option>
-            <option value="en">English</option>
+            <option value="en">{t("English")}</option>
           </select>
         </Row>
       </Group>
       <Group
         title={t("Alerts")}
         description={t(
-          "How MonoCode reaches you while you are looking somewhere else.",
+          "How MyCode reaches you while you are looking somewhere else.",
         )}
       >
         <Row
@@ -839,7 +849,7 @@ function GeneralPage({
           id="notifications"
           label={t("Notifications")}
           description={t(
-            "Notify when a reminder is due, or when an agent finishes or needs input in another session or while MonoCode is in the background. Click the notification to open that session.",
+            "Notify when a reminder is due, or when an agent finishes or needs input in another session or while MyCode is in the background. Click the notification to open that session.",
           )}
         >
           {notificationsEnabled && notificationPermission === "denied" ? (
@@ -909,7 +919,7 @@ function GeneralPage({
           <Row
             id="quick-composer"
             label={t("Quick composer")}
-            description={`Press ${quickComposerShortcutLabel(loadQuickComposerShortcut())} in any app to float a prompt over it and start a session without switching to MonoCode. Change the shortcut in Keybindings. Return starts it in the background; ⌘Return starts it and brings the session forward.`}
+            description={`Press ${quickComposerShortcutLabel(loadQuickComposerShortcut())} in any app to float a prompt over it and start a session without switching to MyCode. Change the shortcut in Keybindings. Return starts it in the background; ⌘Return starts it and brings the session forward.`}
           >
             {quickComposerError ? (
               <span className="text-[12px] text-content/45">
@@ -1218,7 +1228,7 @@ function InboxPage({
         title={
           <span className="flex items-center gap-2">
             <InboxProviderMark provider="github" className="size-4 shrink-0" />
-            GitHub
+            {t("GitHub")}
           </span>
         }
         description={t(
@@ -1233,7 +1243,7 @@ function InboxPage({
         title={
           <span className="flex items-center gap-2">
             <InboxProviderMark provider="gitlab" className="size-4 shrink-0" />
-            GitLab
+            {t("GitLab")}
           </span>
         }
         description={t(
@@ -1251,7 +1261,7 @@ function InboxPage({
               provider="azuredevops"
               className="size-4 shrink-0"
             />
-            ADO
+            {t("ADO")}
           </span>
         }
         description={t(
@@ -1266,7 +1276,7 @@ function InboxPage({
         title={
           <span className="flex items-center gap-2">
             <InboxProviderMark provider="jira" className="size-4 shrink-0" />
-            Jira
+            {t("Jira")}
           </span>
         }
         description={t("Jira Cloud issues from the projects you pick.")}
@@ -1279,7 +1289,7 @@ function InboxPage({
         title={
           <span className="flex items-center gap-2">
             <InboxProviderMark provider="linear" className="size-4 shrink-0" />
-            Linear
+            {t("Linear")}
           </span>
         }
         description={t("Issues assigned to you, from the teams you pick.")}
@@ -1321,7 +1331,7 @@ function GithubSettings() {
   }, [checkStatus]);
 
   const description = status?.connected
-    ? "GitHub CLI is installed and authenticated. MonoCode uses it for GitHub inbox items."
+    ? "GitHub CLI is installed and authenticated. MyCode uses it for GitHub inbox items."
     : status?.installed
       ? "Run gh auth login in a terminal, complete the sign-in flow, then check again."
       : "Install GitHub CLI from cli.github.com, run gh auth login in a terminal, then check again.";
@@ -1347,7 +1357,7 @@ function GithubSettings() {
           </SecondaryButton>
         ) : null}
         <SecondaryButton onClick={() => void checkStatus()} disabled={checking}>
-          {checking ? "Checking" : t("Check again")}
+          {checking ? t("Checking") : t("Check again")}
         </SecondaryButton>
       </Row>
       {error ? (
@@ -1445,7 +1455,7 @@ function GitlabSettings() {
                 type="url"
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
-                placeholder="https://gitlab.com"
+                placeholder={t("https://gitlab.com")}
                 aria-label={t("GitLab URL")}
                 autoComplete="url"
                 spellCheck={false}
@@ -1460,7 +1470,7 @@ function GitlabSettings() {
                 onKeyDown={(event) => {
                   if (event.key === "Enter") void onSave();
                 }}
-                placeholder="glpat-…"
+                placeholder={t("glpat-…")}
                 aria-label={t("GitLab access token")}
                 autoComplete="off"
                 spellCheck={false}
@@ -1471,7 +1481,7 @@ function GitlabSettings() {
               onClick={() => void onSave()}
               disabled={busy || !token.trim()}
             >
-              {busy ? "Saving" : t("Connect")}
+              {busy ? t("Saving") : t("Connect")}
             </SecondaryButton>
           </div>
         )}
@@ -1571,7 +1581,7 @@ function AzureDevOpsSettings() {
                 type="url"
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
-                placeholder="https://dev.azure.com/myorg"
+                placeholder={t("https://dev.azure.com/myorg")}
                 aria-label={t("Azure DevOps organization URL")}
                 autoComplete="url"
                 spellCheck={false}
@@ -1586,7 +1596,7 @@ function AzureDevOpsSettings() {
                 onKeyDown={(event) => {
                   if (event.key === "Enter") void onSave();
                 }}
-                placeholder="PAT…"
+                placeholder={t("PAT…")}
                 aria-label={t("Azure DevOps personal access token")}
                 autoComplete="off"
                 spellCheck={false}
@@ -1597,7 +1607,7 @@ function AzureDevOpsSettings() {
               onClick={() => void onSave()}
               disabled={busy || !token.trim()}
             >
-              {busy ? "Saving" : t("Connect")}
+              {busy ? t("Saving") : t("Connect")}
             </SecondaryButton>
           </div>
         )}
@@ -1720,7 +1730,7 @@ function LinearSettings() {
                 onKeyDown={(event) => {
                   if (event.key === "Enter") void onSave();
                 }}
-                placeholder="lin_api_…"
+                placeholder={t("lin_api_…")}
                 aria-label={t("Linear API key")}
                 autoComplete="off"
                 spellCheck={false}
@@ -1731,7 +1741,7 @@ function LinearSettings() {
               onClick={() => void onSave()}
               disabled={busy || !token.trim()}
             >
-              {busy ? "Saving" : t("Connect")}
+              {busy ? t("Saving") : t("Connect")}
             </SecondaryButton>
           </div>
         )}
@@ -1815,7 +1825,9 @@ function UpdateRow({
 
   const status =
     snapshot.phase === "available"
-      ? `Version ${snapshot.availableVersion} is available.`
+      ? formatMessage("Version {version} is available.", {
+          version: snapshot.availableVersion ?? "",
+        })
       : snapshot.phase === "downloading"
         ? `Downloading${snapshot.progress != null ? ` ${snapshot.progress}%` : "…"}`
         : snapshot.phase === "checking"
@@ -2224,7 +2236,7 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
                 "Light mode always uses an opaque window, so these are off. Your dark-mode values are preserved.",
               )
             : t(
-                "How much of the desktop shows through MonoCode. Blur costs more to composite the higher it goes.",
+                "How much of the desktop shows through MyCode. Blur costs more to composite the higher it goes.",
               )
         }
       >
@@ -2377,7 +2389,7 @@ function ChatBackgroundCard({
                 />
               )}
               <span className="pointer-events-none absolute bottom-2 left-2 text-[11px] text-content/40">
-                Empty chat preview at {emptyVisibility}%
+                {t("Empty chat preview at")} {emptyVisibility}%
               </span>
             </div>
           ) : (
@@ -2771,7 +2783,7 @@ function KeybindingsPage() {
       action={
         <div className="flex items-center gap-3">
           <span className="shrink-0 text-[12px] text-content/40 tabular-nums">
-            {rows.length} {rows.length === 1 ? "binding" : "bindings"}
+            {rows.length} {rows.length === 1 ? t("binding") : t("bindings")}
           </span>
           <label className="flex h-7 w-44 shrink-0 items-center gap-2 rounded-md border border-content/10 px-2 text-content/45 focus-within:border-content/20">
             <Search className="size-3.5 shrink-0" strokeWidth={1.75} />
@@ -3020,7 +3032,7 @@ function ProviderBinaryControl({
         >
           <div className="flex items-center justify-between gap-3">
             <span className="text-[12px] font-medium text-content">
-              {title} CLI
+              {title} {t("CLI")}
             </span>
             <div className="flex items-center gap-1.5">
               <span className="rounded-full bg-content/10 px-1.5 py-0.5 text-[10px] text-content/50">
@@ -3032,8 +3044,8 @@ function ProviderBinaryControl({
                   : restartRequired
                     ? t("Restart required")
                     : overridden
-                      ? "Configured"
-                      : "Auto-detected"}
+                      ? t("Configured")
+                      : t("Auto-detected")}
               </span>
             </div>
           </div>
@@ -3058,7 +3070,7 @@ function ProviderBinaryControl({
               />
               <p className="mt-1.5 text-[10px] text-content/40">
                 {t(
-                  "Enter the absolute path to the CLI executable. Changes apply after restarting MonoCode.",
+                  "Enter the absolute path to the CLI executable. Changes apply after restarting MyCode.",
                 )}
               </p>
               {error ? (
@@ -3297,6 +3309,7 @@ function ProvidersPage({
   return (
     <>
       <ProviderAccountsSettings />
+      <ModelConnections />
 
       <Group
         id="agent-clis"
@@ -3311,9 +3324,9 @@ function ProvidersPage({
         }
         description={
           project
-            ? `These defaults apply to ${projectName(project)} only. A provider with Show in picker off is also kept out of new conversations started in this project. CLI paths remain global for MonoCode.`
+            ? `These defaults apply to ${projectName(project)} only. A provider with Show in picker off is also kept out of new conversations started in this project. CLI paths remain global for MyCode.`
             : t(
-                "A provider is listed as installed once its CLI is found on your PATH. Uninstalled CLIs stay listed but are left out of the model picker, as are installed ones with Show in picker off. The model beside a provider is what its new conversations start with; Use by default picks the provider itself. CLI paths are global for MonoCode and apply to every project.",
+                "A provider is listed as installed once its CLI is found on your PATH. Uninstalled CLIs stay listed but are left out of the model picker, as are installed ones with Show in picker off. The model beside a provider is what its new conversations start with; Use by default picks the provider itself. CLI paths are global for MyCode and apply to every project.",
               )
         }
       >
@@ -3440,7 +3453,7 @@ function ProviderAccountsSettings() {
   const removeAccount = async (account: ProviderAccount) => {
     if (account.isDefault || working) return;
     const confirmed = await ask(
-      `Remove “${account.label}”? Its stored credentials will be deleted and any running turns for this account will stop. Existing conversations stay in history, but cannot continue until you switch accounts.`,
+      `Remove “${t(account.label)}”? Its stored credentials will be deleted and any running turns for this account will stop. Existing conversations stay in history, but cannot continue until you switch accounts.`,
       {
         title: `Remove ${HARNESS_TITLE[account.provider]} account`,
         kind: "warning",
@@ -3504,7 +3517,7 @@ function ProviderAccountsSettings() {
                   </div>
                   <div className="mt-0.5 text-[11px] text-content/40">
                     {accounts.length}{" "}
-                    {accounts.length === 1 ? "account" : "accounts"}
+                    {accounts.length === 1 ? t("account") : t("accounts")}
                   </div>
                 </div>
               </div>
@@ -3571,7 +3584,9 @@ function ProviderAccountsSettings() {
                       <button
                         type="button"
                         disabled={Boolean(working)}
-                        aria-label={`Rename ${account.label}`}
+                        aria-label={formatMessage("Rename {name}", {
+                          name: account.label,
+                        })}
                         title={t("Rename account")}
                         onClick={() => startRename(account)}
                         className="grid size-7 place-items-center rounded-md text-content/40 transition-transform duration-150 hover:bg-content/10 hover:text-content active:scale-[0.96] disabled:opacity-35"
@@ -3582,7 +3597,9 @@ function ProviderAccountsSettings() {
                         <button
                           type="button"
                           disabled={Boolean(working)}
-                          aria-label={`Remove ${account.label}`}
+                          aria-label={formatMessage("Remove {name}", {
+                            name: account.label,
+                          })}
                           title={t("Remove account")}
                           onClick={() => void removeAccount(account)}
                           className="grid size-7 place-items-center rounded-md text-content/35 transition-transform duration-150 hover:bg-red-400/10 hover:text-red-400 active:scale-[0.96] disabled:opacity-35"
@@ -3765,18 +3782,25 @@ function ProviderRow({
       }
       description={
         available
-          ? `${models.length} ${models.length === 1 ? "model" : "models"} available.`
+          ? formatMessage(
+              models.length === 1
+                ? "{count} model available."
+                : "{count} models available.",
+              { count: models.length },
+            )
           : harnessUnavailableHint(harness)
       }
     >
       {current ? (
         <Select
-          label={`${HARNESS_TITLE[harness]} model`}
+          label={formatMessage("{provider} model", {
+            provider: HARNESS_TITLE[harness],
+          })}
           value={current.id}
           onChange={(next) => onModelChange(harness, next)}
           options={models.map((item) => ({
             value: item.id,
-            label: item.name,
+            label: t(item.name),
           }))}
         />
       ) : null}
@@ -3792,7 +3816,9 @@ function ProviderRow({
             {pickerLocked ? t("Hidden globally") : t("Show in picker")}
           </span>
           <Toggle
-            label={`Show ${HARNESS_TITLE[harness]} in the model picker`}
+            label={formatMessage("Show {provider} in the model picker", {
+              provider: HARNESS_TITLE[harness],
+            })}
             on={inPicker}
             onChange={onPickerVisible}
             disabled={pickerLocked}
@@ -3978,7 +4004,7 @@ function ArchivePage({
 function formatDate(value: number): string {
   if (!Number.isFinite(value) || value <= 0) return "";
   try {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(uiLocale(), {
       month: "short",
       day: "numeric",
     }).format(new Date(value));

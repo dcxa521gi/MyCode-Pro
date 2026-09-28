@@ -5,7 +5,10 @@ import {
   parseCodexRateLimits,
 } from "../../../../features/providers/model/rateLimits";
 import type { RuntimeMode } from "../../../../features/sessions/model/session";
-import { questionPromptTitle, type UserQuestionReply } from "../../../../features/sessions/model/userQuestion";
+import {
+  questionPromptTitle,
+  type UserQuestionReply,
+} from "../../../../features/sessions/model/userQuestion";
 import {
   killChild,
   resolveCodexBinary,
@@ -389,7 +392,10 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
   if (
     existing &&
     existing.cwd === input.cwd &&
-    sameProviderAccountId(existing.providerAccountId, input.providerAccountId) &&
+    sameProviderAccountId(
+      existing.providerAccountId,
+      input.providerAccountId,
+    ) &&
     existing.controlsAgents === controlsAgents
   ) {
     existing.onEvent = input.onEvent;
@@ -401,7 +407,10 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
     // control, so its local CLI socket matches the current policy.
     if (
       existing.cwd !== input.cwd ||
-      !sameProviderAccountId(existing.providerAccountId, input.providerAccountId)
+      !sameProviderAccountId(
+        existing.providerAccountId,
+        input.providerAccountId,
+      )
     ) {
       resumeByThread.delete(input.sessionId);
     }
@@ -496,7 +505,7 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
     await rpc.request("initialize", {
       clientInfo: {
         name: "monocode",
-        title: "MonoCode",
+        title: "MyCode",
         version: "0.1.0",
       },
       capabilities: {
@@ -1071,7 +1080,7 @@ async function handleServerRequest(
       if (!live.cancelled && !live.muteUpdates)
         live.onEvent({
           type: "status",
-          text: "This MCP server requested a form or browser sign-in that MonoCode does not support yet. Complete it in the server's own interface.",
+          text: "This MCP server requested a form or browser sign-in that MyCode does not support yet. Complete it in the server's own interface.",
         });
       await live.rpc.respond(id, {
         action: "cancel",

@@ -90,7 +90,7 @@ beforeEach(() => {
 });
 
 describe("provider-aware skill catalog", () => {
-  it("uses Pi discovery without adding MonoCode's built-in row", async () => {
+  it("uses Pi discovery without adding MyCode's built-in row", async () => {
     const catalog = await loadSkills({ harness: "pi", cwd: "/repo/" });
 
     expect(mocks.discoverPiSkills).toHaveBeenCalledWith("/repo");
@@ -311,7 +311,12 @@ describe("file skill visibility preferences", () => {
       (await loadSkills(context)).some((skill) => skill.name === "review"),
     ).toBe(true);
     saveDisabledSkillPaths([path]);
-    expect(await loadSkills(context)).toEqual([BUILTIN_CREATE_SKILL]);
+    expect((await loadSkills(context)).map((skill) => skill.name)).toEqual([
+      BUILTIN_CREATE_SKILL.name,
+      "mycode-documents",
+      "mycode-project-memory",
+      "mycode-work-report",
+    ]);
     saveDisabledSkillPaths([]);
     expect(
       (await loadSkills(context)).some((skill) => skill.name === "review"),
@@ -394,22 +399,26 @@ describe("file skill visibility preferences", () => {
     // 3. Complete a fresh scan that selects the personal file fallback
     mocks.listSkills.mockResolvedValueOnce([personalSkill]);
     await loadSkills(context);
-    expect(peekSkills(context)?.find((s) => s.name === "review")).toMatchObject({
-      name: "review",
-      path: personalPath,
-      scope: "user",
-    });
+    expect(peekSkills(context)?.find((s) => s.name === "review")).toMatchObject(
+      {
+        name: "review",
+        path: personalPath,
+        scope: "user",
+      },
+    );
 
     // 4. Resolve older scan with the obsolete project candidate
     pending.resolve([projectSkill]);
     await oldScan;
 
     // Assert that the personal fallback remains active
-    expect(peekSkills(context)?.find((s) => s.name === "review")).toMatchObject({
-      name: "review",
-      path: personalPath,
-      scope: "user",
-    });
+    expect(peekSkills(context)?.find((s) => s.name === "review")).toMatchObject(
+      {
+        name: "review",
+        path: personalPath,
+        scope: "user",
+      },
+    );
 
     // 5. Cover re-enabling during a scan:
     const reEnablePending = deferred<DiscoveredSkill[]>();
@@ -422,22 +431,26 @@ describe("file skill visibility preferences", () => {
     // Complete fresh scan returning restored project winner
     mocks.listSkills.mockResolvedValueOnce([projectSkill]);
     await loadSkills(context);
-    expect(peekSkills(context)?.find((s) => s.name === "review")).toMatchObject({
-      name: "review",
-      path: projectPath,
-      scope: "project",
-    });
+    expect(peekSkills(context)?.find((s) => s.name === "review")).toMatchObject(
+      {
+        name: "review",
+        path: projectPath,
+        scope: "project",
+      },
+    );
 
     // Resolve the in-flight older scan
     reEnablePending.resolve([personalSkill]);
     await inFlightPersonalScan;
 
     // Assert that project winner remains active
-    expect(peekSkills(context)?.find((s) => s.name === "review")).toMatchObject({
-      name: "review",
-      path: projectPath,
-      scope: "project",
-    });
+    expect(peekSkills(context)?.find((s) => s.name === "review")).toMatchObject(
+      {
+        name: "review",
+        path: projectPath,
+        scope: "project",
+      },
+    );
   });
 
   it("falls back to same-name personal skill when project skill is disabled, and injects its content", async (): Promise<void> => {
@@ -478,7 +491,8 @@ describe("file skill visibility preferences", () => {
 
     mocks.readTextFile.mockImplementation(async (targetPath: string) => {
       if (targetPath === projectSkillPath) return "Project review instructions";
-      if (targetPath === personalSkillPath) return "Personal review instructions";
+      if (targetPath === personalSkillPath)
+        return "Personal review instructions";
       return "";
     });
 
@@ -490,7 +504,10 @@ describe("file skill visibility preferences", () => {
       path: projectSkillPath,
       scope: "project",
     });
-    const initialTurn = await applySkillsToTurn("/review inspect this", context);
+    const initialTurn = await applySkillsToTurn(
+      "/review inspect this",
+      context,
+    );
     expect(initialTurn).toContain("Project review instructions");
 
     // 2. Disabling only the project file makes the personal file the active result
@@ -502,7 +519,10 @@ describe("file skill visibility preferences", () => {
       path: personalSkillPath,
       scope: "user",
     });
-    const fallbackTurn = await applySkillsToTurn("/review inspect this", context);
+    const fallbackTurn = await applySkillsToTurn(
+      "/review inspect this",
+      context,
+    );
     expect(fallbackTurn).toContain("Personal review instructions");
     expect(fallbackTurn).not.toContain("Project review instructions");
 
@@ -515,7 +535,10 @@ describe("file skill visibility preferences", () => {
       path: projectSkillPath,
       scope: "project",
     });
-    const restoredTurn = await applySkillsToTurn("/review inspect this", context);
+    const restoredTurn = await applySkillsToTurn(
+      "/review inspect this",
+      context,
+    );
     expect(restoredTurn).toContain("Project review instructions");
 
     // 4. Disabling lower-priority candidate does not affect enabled winner
@@ -532,7 +555,10 @@ describe("file skill visibility preferences", () => {
     saveDisabledSkillPaths([projectSkillPath, personalSkillPath]);
     const disabledSkills = await loadSkills(context);
     expect(disabledSkills.find((s) => s.name === "review")).toBeUndefined();
-    const disabledTurn = await applySkillsToTurn("/review inspect this", context);
+    const disabledTurn = await applySkillsToTurn(
+      "/review inspect this",
+      context,
+    );
     expect(disabledTurn).toBe("/review inspect this");
   });
 });

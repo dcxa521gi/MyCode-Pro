@@ -1,104 +1,53 @@
-<p align="center">
-  <img src="public/monocode.png" alt="MonoCode" width="88" />
-</p>
+<p align="center"><img src="public/mycode-icon.png" alt="MyCode" width="100" /></p>
+<h1 align="center">MyCode</h1>
+<p align="center">兼顾开发与通用办公的本地 AI 工作台</p>
 
-<h1 align="center">MonoCode</h1>
+MyCode 基于 [MonoCode](https://github.com/hardbeat920/monocode)，保留其简洁的工作区、会话、文件、终端和 Git 界面，并参考 [Cindy](https://github.com/makecindy/cindy) 已开源的本地模型连接、项目知识和自动化设计。
 
-<p align="center">
-  <strong>A desktop UI for your coding agents.</strong>
-</p>
+**不依赖 Cindy 账号、云服务或未开源后端。** 可使用自己选择的模型 API，也可连接 Ollama、LM Studio 等本地模型服务。
 
-<p align="center">
-  <img width="1680" height="1050" alt="Screenshot 2026-09-04 at 06 34 00" src="https://github.com/user-attachments/assets/2cd4a6ec-eb1e-4b45-8627-a76442ea3874" />
-</p>
+## 下载
 
-Works with your subscriptions on Claude Code, Codex, Cursor, Grok Build, OpenCode, Antigravity, Pi, omp, fx, and Hermes Agent. If they’re installed and logged in, MonoCode can run them. Tabs are sessions. The composer is the input. MonoCode does not sell tokens.
+[Windows x64 安装包与更新说明](https://github.com/dcxa521gi/MyCode/releases/latest)
 
-## Install
+设置 → 常规 → 关于中的版本检查与更新内容均来自本仓库的 GitHub Releases。检查到新版本后，点击下载打开该版本发布页；下载完成不代表已经安装，不使用上游更新服务器。
 
-### 中文语言包分支（Windows）
+## 主要能力
 
-此仓库基于 [hardbeat920/monocode](https://github.com/hardbeat920/monocode)，加入简体中文 / English 切换。
+- **双语界面**：简体中文 / English；默认按电脑时区选择，手动选择立即生效并保存。标签、操作提示、自动化模板与 Windows 托盘菜单随语言变化。
+- **模型连接**：DeepSeek、通义千问、Kimi、智谱、硅基流动、OpenAI、Anthropic、Gemini、OpenRouter、xAI、Groq、Ollama、LM Studio 和自定义端点模板。支持自定义模型 ID、协议、多个连接和连接测试。
+- **本地记忆**：个人记忆与按项目区分的知识，可审阅、修改、清空；从下一轮请求开始加入所选模型的上下文。
+- **本地 MCP**：配置本机 stdio 服务，接入新建的 Claude Code 会话，保留既有 CLI 配置。
+- **技能**：保留项目和个人技能管理；新增 `/mycode-documents`、`/mycode-project-memory`、`/mycode-work-report`，用于文档整理、知识梳理和工作报告。
+- **自动化**：保留本地定时与事件触发、运行记录和重试机制，新增工作周报、文档索引和项目知识复核模板。
+- **开发工作区**：多代理会话、任务编排、工作树、代码差异、终端、文件检索、笔记及 GitHub 等收件箱集成。
 
-- 下载：[本仓库 Windows 安装包](https://github.com/dcxa521gi/monocode/releases/latest)。
-- 入口：**设置 → 常规 → 语言**（Settings → General → Language）。
-- 默认按电脑时区自动选择：中文地区时区使用简体中文，其他地区使用英文；手动选择优先，立即生效并保存。
-- 当前覆盖主要设置、导航、输入框和常用操作，部分高级页面及原生提示仍保留英文。详见[语言包说明](docs/localization.md)。
+## 开始使用
 
-以下为上游项目的通用安装说明；本分支的 Windows 安装包请使用上方链接。
+1. 安装并登录需要的代理 CLI。原有 Claude Code、Codex、Cursor、OpenCode、Pi 等入口继续可用。
+2. 使用新增厂商连接时，安装 [Pi](https://pi.dev/)：`npm install -g @earendil-works/pi-coding-agent`。本次验证使用 Pi 0.84.3。
+3. 设置 → 服务商 → 模型连接，选择模板，填写实际账号可用的模型 ID 和 API Key。地址可按服务地区修改。
+4. 保存后在**新对话的 Pi 模型列表**选择对应连接。连接测试检查模型目录可达性；实际模型权限和工具调用能力取决于服务商与模型。
+5. 设置 → 记忆与 MCP，编辑个人/项目记忆，或配置本地工具。技能通过输入框的 `/` 选择器调用；自动化在工作区的自动化入口创建。
 
-> Install and log in to at least one provider first:
->
-> - [Claude Code](https://claude.com/product/claude-code) - `claude auth login`
-> - [Codex](https://developers.openai.com/codex/cli) - `codex login`
-> - [Cursor CLI](https://cursor.com/cli) - `agent login`
-> - [Grok Build](https://docs.x.ai/build/overview) - `curl -fsSL https://x.ai/cli/install.sh | bash` then `grok login`
-> - [OpenCode](https://opencode.ai) - `opencode auth login`
-> - [Antigravity](https://antigravity.google/docs/cli-install) (macOS/Linux) - `curl -fsSL https://antigravity.google/cli/install.sh | bash`, then run `agy` once to sign in
-> - [Pi](https://pi.dev/) - `npm install -g @earendil-works/pi-coding-agent`
-> - [omp](https://omp.sh) - `curl -fsSL https://omp.sh/install | sh`
-> - [fx](https://fx.sh) - `curl -fsSL https://fx.sh/setup.sh | bash` then `fx login`
-> - [Hermes Agent](https://github.com/NousResearch/hermes-agent) - macOS/Linux: `curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash`; Windows PowerShell: `iex (irm https://hermes-agent.nousresearch.com/install.ps1)`; then run `hermes model`
+Windows 模型密钥使用当前 Windows 账号的 DPAPI 加密，执行时传给 MyCode 启动的子进程，不写入浏览器存储或用户原有 CLI 配置。非 Windows 构建使用仅当前用户可读写的本地配置文件。记忆只有在发起请求时才发送给用户选择的模型，不上传到 Cindy。
 
-macOS (Apple Silicon): download [MonoCode.dmg](https://dl.usemono.dev/MonoCode.dmg), open it, drag MonoCode to Applications.
+为兼容已有分支数据，保留内部数据标识和历史存储键。安装新版本前正常退出已有 MonoCode/MyCode；安装包不会自动关闭或安装到当前运行的官方版本中。本仓库当前发布 Windows 安装包，其他平台源代码构建不等同于已发布安装包。
 
-macOS (Intel): download [MonoCode_x64.dmg](https://dl.usemono.dev/MonoCode_x64.dmg), open it, drag MonoCode to Applications.
+## 开发
 
-Linux (x86_64): download the `.deb` or AppImage from [GitHub Releases](https://github.com/hardbeat920/monocode/releases/latest). Install the `.deb` with `sudo apt install ./MonoCode_*.deb`, or make the AppImage executable with `chmod +x MonoCode_*.AppImage` and run it directly.
+需要 Node.js 22、Rust stable 和 Tauri 对应平台的构建依赖。
 
-Windows (x86_64): download the NSIS installer from [GitHub Releases](https://github.com/hardbeat920/monocode/releases/latest) and run it.
-
-## Some notes
-
-This is very early and you should expect bugs.
-
-### Agent access to MonoCode
-
-Type `/operator` at the start of a composer message to enable MonoCode access in that thread. For example, `/operator start two Codex sessions: one to inspect the API and one to review the UI`, or `/operator list my notes`. The slash picker also offers this command. The transcript shows only the request text in a translucent amber bubble; MonoCode removes the command from the request sent to the agent and supplies the local `app` CLI path and instructions on that turn. Later turns in the same thread can use the CLI without repeating `/operator`; other threads receive no CLI instructions or app access. The CLI can act only during an active agent turn. The agent can run the shown `app --help` command for the exact JSON input fields.
-
-- `models.list` shows available providers, models, settings, and permission modes.
-- `sessions.start` opens a tab in the current project with a prompt. By default it submits the prompt; set `draft: true` to save it unsent without starting an agent turn. It accepts a provider, model, effort or other model settings, permission mode, and current checkout or new worktree choice. Omit `runtimeMode` to inherit the calling session's permission mode, or set it explicitly to override. It returns the new session ID as soon as the tab and prompt are accepted, so the agent can move it into a folder immediately.
-- `sessions.list` shows project sessions. `sessions.read` returns up to three recent user/assistant exchanges, with a cursor for older exchanges and a per-message character cap. `sessions.send` submits a follow-up to an idle session, while `sessions.draft` saves an unsent message for the user to review. `folders.list` and `folders.move` organize project sessions in sidebar folders, including a new folder.
-- `notes.list` returns titles and short previews; `notes.read` returns one full note by ID.
-
-Orchestration workers keep their existing scoped `control` workflow and do not receive this app access.
-
-Small, focused pull requests are welcome. Anything large is worth an issue first - see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Build from source
-
-Supports macOS, Linux, and Windows.
-
-Need Node.js 20+ and a current stable Rust toolchain. On Linux, ensure standard Tauri prerequisites are installed (e.g. `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `libsoup-3.0-dev`, `libjavascriptcoregtk-4.1-dev`). On Windows, the installer bootstraps the [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/) runtime when it is missing.
-
-```bash
-npm install
-npm run tauri dev
-```
-
-### Ubuntu / Debian packages
-
-On an Ubuntu/Debian workstation, the repository can install the native Tauri prerequisites and build distributable Linux packages directly:
-
-```bash
-npm run setup:linux:deb
+```sh
 npm ci
-npm run build:linux
-```
-
-The Linux build emits `.deb` and AppImage bundles under `target/release/bundle/`.
-Tauri loads `src-tauri/tauri.linux.conf.json` automatically for Linux development and builds.
-
-### Windows packages
-
-```bash
-npm ci
+npm run dev
+npm run check:web
+npm run check:rust
 npm run build:windows
 ```
 
-The Windows build emits an NSIS installer under `target/release/bundle/nsis/`.
-Tauri loads `src-tauri/tauri.windows.conf.json` automatically for Windows development and builds.
+更多实现边界、参考来源与验证说明见 [本地能力说明](docs/mycode-local-features.md) 和 [语言说明](docs/localization.md)。
 
-## License
+## 来源与许可
 
-[MIT](LICENSE). Provider names and logos are trademarks of their owners - see [NOTICE](NOTICE).
+保留 MonoCode 原有 MIT 许可证及作者署名。Cindy 为 Apache-2.0 项目；此版本参考其本地能力设计，在现有 Tauri 架构内实现，没有打包 Cindy 云端、账号或私有后端。服务商名称及标识属于各自所有者。

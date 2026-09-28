@@ -172,7 +172,7 @@ export function QuickModelSelector({
 
   return (
     <section
-      aria-label="Model selector"
+      aria-label={t("Model selector")}
       className="flex min-h-0 flex-col border-t border-stroke"
       onKeyDown={(event) => {
         if (event.key === "Escape") {
@@ -240,14 +240,14 @@ export function QuickModelSelector({
                 setActive(0);
               }}
               role="combobox"
-              aria-label="Search models"
+              aria-label={t("Search models")}
               aria-controls={listId}
               aria-expanded="true"
               aria-autocomplete="list"
               aria-activedescendant={
                 models[active] ? `${listId}-${active}` : undefined
               }
-              placeholder="Search models…"
+              placeholder={t("Search models…")}
               autoComplete="off"
               spellCheck={false}
               className="min-w-0 flex-1 bg-transparent text-[13px] text-content outline-none placeholder:text-content/35"
@@ -275,7 +275,7 @@ export function QuickModelSelector({
             ref={listRef}
             id={listId}
             role="listbox"
-            aria-label="Models"
+            aria-label={t("Models")}
             className="h-60 min-h-0 overflow-y-auto overscroll-none p-2"
           >
             {models.length ? (
@@ -341,10 +341,10 @@ export function QuickModelSelector({
             ) : (
               <p className="px-2 py-6 text-center text-[12px] text-content/45">
                 {query
-                  ? "No matching models"
+                  ? t("No matching models")
                   : visibleTab === "favorites"
-                    ? "No favorite models"
-                    : "Loading models…"}
+                    ? t("No favorite models")
+                    : t("Loading models…")}
               </p>
             )}
           </div>
@@ -354,7 +354,7 @@ export function QuickModelSelector({
                 {canToggleFast ? (
                   <button
                     type="button"
-                    aria-label="Fast mode"
+                    aria-label={t("Fast mode")}
                     aria-pressed={fastEnabled}
                     title={
                       fastEnabled ? "Turn off fast mode" : "Turn on fast mode"
@@ -377,8 +377,8 @@ export function QuickModelSelector({
                 </span>
                 <button
                   type="button"
-                  aria-label="Reset to saved defaults"
-                  title="Reset to saved defaults"
+                  aria-label={t("Reset to saved defaults")}
+                  title={t("Reset to saved defaults")}
                   onClick={resetSettings}
                   className="grid size-7 place-items-center rounded-md text-content/40 hover:bg-selection-hover hover:text-content"
                 >
@@ -430,7 +430,7 @@ export function QuickModelSelector({
         {model.harness !== "fx" ? (
           <aside className="flex min-h-0 w-1/2 shrink-0 flex-col border-l border-stroke">
             <h3 className="flex h-10 shrink-0 items-center border-b border-stroke px-4 text-[12px] font-medium text-content/55">
-              Permissions
+              {t("Permissions")}
             </h3>
             <QuickPermissions
               embedded

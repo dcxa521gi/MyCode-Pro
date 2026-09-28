@@ -340,7 +340,7 @@ async function startLive(
       {
         clientInfo: {
           name: "monocode-text",
-          title: "MonoCode",
+          title: "MyCode",
           version: "0.1.0",
         },
         capabilities: { experimentalApi: true },

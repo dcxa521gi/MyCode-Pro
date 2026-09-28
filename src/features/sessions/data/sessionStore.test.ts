@@ -136,9 +136,14 @@ describe("persisting a subagent's trail", () => {
 
 describe("sanitizeSessionForPersist", () => {
   it("keeps the stripped /operator turn marker for later turns", () => {
-    const submitted = appendUser(newSession("codex", "/repo"), "list notes", [], {
-      monocode: true,
-    });
+    const submitted = appendUser(
+      newSession("codex", "/repo"),
+      "list notes",
+      [],
+      {
+        monocode: true,
+      },
+    );
     expect(sanitizeSessionForPersist(submitted).blocks[0]).toMatchObject({
       role: "user",
       text: "list notes",
@@ -424,7 +429,7 @@ describe("sanitizeSessionForPersist", () => {
       {
         id: "i1",
         role: "system",
-        text: "Turn interrupted when MonoCode quit.",
+        text: "Turn interrupted when MyCode quit.",
         notice: "interrupt",
       },
       {

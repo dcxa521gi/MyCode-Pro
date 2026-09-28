@@ -1,7 +1,10 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { homeDir } from "../../../platform/tauri/fs";
 import { supportsProviderAccounts } from "../../../features/providers/model/providerAccounts";
-import { HARNESS_TITLE, type HarnessId } from "../../../features/sessions/model/session";
+import {
+  HARNESS_TITLE,
+  type HarnessId,
+} from "../../../features/sessions/model/session";
 import * as child from "./child";
 import { harnessLoginArgs } from "./authSupport";
 
@@ -46,7 +49,7 @@ const inflight = new Map<string, Promise<void>>();
 
 /**
  * Launch the provider's own login flow. The child owns browser opening and
- * credential storage; MonoCode only supervises its exit status. Duplicate
+ * credential storage; MyCode only supervises its exit status. Duplicate
  * clicks share one run so two OAuth flows cannot race each other.
  */
 export function loginHarness(

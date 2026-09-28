@@ -1,3 +1,4 @@
+import { getLocale as uiLocale } from "../../../shared/i18n";
 import { invoke } from "@tauri-apps/api/core";
 import { clearKnownInboxItems } from "./inboxSeen";
 import {
@@ -261,12 +262,12 @@ export function githubStatus(): Promise<GithubStatus> {
   return invoke<GithubStatus>("git_github_status");
 }
 
-/** Whether the active GitHub CLI account has starred MonoCode. */
+/** Whether the active GitHub CLI account has starred MyCode. */
 export function githubMonocodeStarStatus(): Promise<GithubStarStatus> {
   return invoke<GithubStarStatus>("github_monocode_star_status");
 }
 
-/** Star MonoCode for the active GitHub CLI account. */
+/** Star MyCode for the active GitHub CLI account. */
 export function starMonocodeOnGithub(): Promise<void> {
   return invoke<void>("github_star_monocode");
 }
@@ -414,10 +415,9 @@ export function formatRelativeTime(
     amount = Math.abs(value);
   }
   try {
-    return new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(
-      value,
-      unit,
-    );
+    return new Intl.RelativeTimeFormat(locale ?? uiLocale(), {
+      numeric: "auto",
+    }).format(value, unit);
   } catch {
     return "";
   }
@@ -839,9 +839,7 @@ async function fetchRepositoryInboxItems(
         state: query.state,
         limit: query.state === "all" ? INBOX_ALL_LIMIT : undefined,
       });
-      return items.map((item) =>
-        toInboxItem(item, project.path, project.repo),
-      );
+      return items.map((item) => toInboxItem(item, project.path, project.repo));
     }),
   );
   return collectInboxResults(await Promise.allSettled(jobs), preferredPaths);

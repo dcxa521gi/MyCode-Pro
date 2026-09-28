@@ -433,7 +433,7 @@ export function QuickComposer({ onShown }: { onShown: () => void }) {
         placeholder={
           cwd
             ? `Start a ${HARNESS_TITLE[model.harness]} session in ${projectName(cwd)}…`
-            : "Open a project in MonoCode first"
+            : "Open a project in MyCode first"
         }
         disabled={!cwd}
         aria-label={t("Prompt")}
@@ -471,7 +471,7 @@ export function QuickComposer({ onShown }: { onShown: () => void }) {
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => openPicker("project")}
           disabled={projects.length === 0}
-          title="Project (⌘P)"
+          title={t("Project (⌘P)")}
           aria-expanded={picker === "project"}
           className={`flex min-w-0 max-w-[40%] items-center gap-1.5 rounded-md px-2 py-1 text-[12px] disabled:opacity-50 ${picker === "project" ? "bg-selection-emphasis text-content" : "text-content/70 hover:bg-selection-hover hover:text-content"}`}
         >
@@ -483,7 +483,7 @@ export function QuickComposer({ onShown }: { onShown: () => void }) {
             />
           ) : null}
           <span className="truncate">
-            {cwd ? projectName(cwd) : "No project"}
+            {cwd ? projectName(cwd) : t("No project")}
           </span>
           <ChevronDown className="size-3 shrink-0 opacity-60" />
         </button>
@@ -491,7 +491,7 @@ export function QuickComposer({ onShown }: { onShown: () => void }) {
           type="button"
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => openPicker("model")}
-          title="Model (⌘.)"
+          title={t("Model (⌘.)")}
           aria-expanded={picker === "model"}
           className={`flex min-w-0 max-w-[40%] items-center gap-1.5 rounded-md px-2 py-1 text-[12px] ${picker === "model" ? "bg-selection-emphasis text-content" : "text-content/70 hover:bg-selection-hover hover:text-content"}`}
         >
@@ -509,10 +509,10 @@ export function QuickComposer({ onShown }: { onShown: () => void }) {
           ) : (
             <>
               <span>
-                <Kbd>↵</Kbd> start
+                <Kbd>↵</Kbd> {t("start")}
               </span>
               <span>
-                <Kbd>⌘↵</Kbd> start and open
+                <Kbd>⌘↵</Kbd> {t("start and open")}
               </span>
             </>
           )}

@@ -52,6 +52,11 @@ function resolveLocale(): Locale {
 function refresh() {
   locale = resolveLocale();
   if (typeof document !== "undefined") document.documentElement.lang = locale;
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    void import("@tauri-apps/api/core")
+      .then(({ invoke }) => invoke("app_set_locale", { locale }))
+      .catch(() => undefined);
+  }
   listeners.forEach((listener) => listener());
 }
 
@@ -104,6 +109,15 @@ export function translate(message: string, target: Locale = locale): string {
     Object.prototype.hasOwnProperty.call(zhCN, message)
     ? ((zhCN as Record<string, string>)[message] ?? message)
     : message;
+}
+
+export function formatMessage(
+  message: string,
+  values: Record<string, string | number>,
+): string {
+  return translate(message).replace(/\{(\w+)\}/g, (match, key: string) =>
+    String(values[key] ?? match),
+  );
 }
 
 export function useTranslation() {

@@ -49,7 +49,8 @@ export function NoteMiniCard({ card, onDismiss, embedded = false }: Props) {
             strokeWidth={1.75}
           />
           <span className="min-w-0 truncate text-[11px] text-content/50">
-            Note{!embedded && card.slug ? ` · ${card.slug}` : ""}
+            {t("Note")}
+            {!embedded && card.slug ? ` · ${card.slug}` : ""}
           </span>
         </span>
         <span className="mt-1 line-clamp-1 text-[13px] font-semibold leading-snug text-content">

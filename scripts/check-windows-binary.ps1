@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$binary = Join-Path $repoRoot 'target\release\monocode.exe'
+$binary = Join-Path $repoRoot 'target\release\MyCode.exe'
 if (-not (Test-Path -LiteralPath $binary)) {
     throw "Windows binary was not built: $binary"
 }

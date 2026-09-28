@@ -10,6 +10,7 @@ export default defineConfig(async ({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    optimizeDeps: { entries: ["index.html", "quick-composer.html"] },
     clearScreen: false,
     build: {
       rollupOptions: {
@@ -35,7 +36,9 @@ export default defineConfig(async ({ mode }) => {
             }
           : undefined,
       watch: {
-        ignored: stable ? ["**/*"] : ["**/src-tauri/**"],
+        ignored: stable
+          ? ["**/*"]
+          : ["**/src-tauri/**", "**/target/**", "**/build/cindy-reference/**"],
       },
     },
   };

@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   useEffect,
@@ -62,6 +63,7 @@ export function InboxComments({
   replyMode,
   onReply,
 }: Props) {
+  const { t } = useTranslation();
   if (thread && thread.comments.length === 0 && !thread.truncated) {
     if (loading) return <CommentsPending />;
     return null;
@@ -95,7 +97,9 @@ export function InboxComments({
       <div className="flex items-center gap-2 text-[12px] text-content/50">
         <h2 className="text-content/70">{label}</h2>
         {thread.truncated ? (
-          <span>Latest comments · more on {moreOn}</span>
+          <span>
+            {t("Latest comments · more on")} {moreOn}
+          </span>
         ) : null}
         {loading ? (
           <LoaderCircle
@@ -135,6 +139,7 @@ export function InboxCommentForm({
   onCancelReply: () => void;
   onSubmit: (body: string) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState("");
   const field = useRef<HTMLTextAreaElement>(null);
   const canPost = draft.trim().length > 0 && !posting;
@@ -181,12 +186,12 @@ export function InboxCommentForm({
       {replyTo ? (
         <div className="flex items-center gap-2 text-[12px] text-content/50">
           <span className="min-w-0 truncate">
-            Replying to {replyTo.author || "comment"}
+            {t("Replying to")} {replyTo.author || "comment"}
           </span>
           <button
             type="button"
-            title="Cancel reply"
-            aria-label="Cancel reply"
+            title={t("Cancel reply")}
+            aria-label={t("Cancel reply")}
             onClick={onCancelReply}
             className="grid size-5 shrink-0 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content"
           >
@@ -213,7 +218,7 @@ export function InboxCommentForm({
             disabled={!canPost}
             className="inline-flex h-7 items-center rounded-md bg-content px-3 text-[12px] text-background-base hover:bg-content/80 disabled:cursor-default disabled:opacity-40"
           >
-            {posting ? "Posting..." : replyTo ? "Reply" : "Comment"}
+            {posting ? t("Posting...") : replyTo ? t("Reply") : t("Comment")}
           </button>
         </div>
       </div>
@@ -223,10 +228,11 @@ export function InboxCommentForm({
 }
 
 function CommentsPending() {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-2 border-t border-stroke pt-5 text-[12px] text-content/45">
       <LoaderCircle className="size-3.5 animate-spin" strokeWidth={1.75} />
-      Loading comments
+      {t("Loading comments")}
     </div>
   );
 }
@@ -246,6 +252,7 @@ function InboxComment({
   replyMode?: "thread" | "parent";
   onReply?: (target: InboxReplyTarget) => void;
 }) {
+  const { t } = useTranslation();
   const time = formatRelativeTime(comment.createdAt);
   const review = githubReviewStateLabel(comment.state);
   const location = commentLocation(comment);
@@ -295,7 +302,7 @@ function InboxComment({
                         ? "Open on GitLab"
                         : provider === "azuredevops"
                           ? "Open on ADO"
-                          : "Open on GitHub"
+                          : t("Open on GitHub")
                 }
                 onClick={() => void openUrl(comment.url)}
                 className="hover:text-content"
@@ -333,7 +340,7 @@ function InboxComment({
               }
               className="hover:text-content"
             >
-              Reply
+              {t("Reply")}
             </button>
           </span>
         ) : null}
@@ -353,9 +360,7 @@ function InboxComment({
           {comment.replies.map((reply, index) => (
             <div
               key={reply.id}
-              className={`py-2.5 ${
-                index > 0 ? "border-t border-stroke" : ""
-              }`}
+              className={`py-2.5 ${index > 0 ? "border-t border-stroke" : ""}`}
             >
               <InboxComment
                 comment={reply}

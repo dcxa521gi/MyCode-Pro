@@ -59,7 +59,7 @@ export function GitHistoryGraph({
         }`}
       >
         <span className="text-[10px] font-semibold tracking-[0.04em] text-content/55 uppercase">
-          Graph
+          {t("Graph")}
         </span>
         {expanded ? (
           <ChevronDown
@@ -84,7 +84,7 @@ export function GitHistoryGraph({
             </p>
           ) : commits.length === 0 ? (
             <p className="px-3 py-2 text-[12px] text-content/45">
-              No commits yet
+              {t("No commits yet")}
             </p>
           ) : (
             <ul className="min-w-0 max-w-full">
@@ -308,6 +308,7 @@ export function GraphResizeSash({
   onHeightCommit: (height: number) => void;
   maxHeight: () => number;
 }) {
+  const { t } = useTranslation();
   const drag = useRef<{ start: number; size: number } | null>(null);
   const [dragging, setDragging] = useState(false);
   const paintedRef = useRef(height);
@@ -374,7 +375,7 @@ export function GraphResizeSash({
     <div
       role="separator"
       aria-orientation="horizontal"
-      aria-label="Resize graph"
+      aria-label={t("Resize graph")}
       aria-valuenow={height}
       className={`z-10 h-1.5 shrink-0 cursor-row-resize touch-none ${
         dragging ? "bg-content/15" : "hover:bg-content/10"

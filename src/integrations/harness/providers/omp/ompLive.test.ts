@@ -185,22 +185,70 @@ describe("Pi-family edit recovery", () => {
 });
 
 describe("OMP command lifecycle over the real RPC multiplexer", () => {
-  it.each([["pi", sendPiTurn], ["omp", sendOmpTurn]] as const)(
+  it.each([
+    ["pi", sendPiTurn],
+    ["omp", sendOmpTurn],
+  ] as const)(
     "forwards %s extension result details into the subagent trail",
     async (flavor, send) => {
       const sessionId = `${flavor}-subagent`;
-      const turn = send({ ...input(sessionId, "Investigate auth"), model: `${flavor}:default` });
-      await vi.waitFor(() => expect(transport.requests.some((r) => r.sessionId === sessionId && r.command.type === "prompt")).toBe(true));
+      const turn = send({
+        ...input(sessionId, "Investigate auth"),
+        model: `${flavor}:default`,
+      });
+      await vi.waitFor(() =>
+        expect(
+          transport.requests.some(
+            (r) => r.sessionId === sessionId && r.command.type === "prompt",
+          ),
+        ).toBe(true),
+      );
       try {
-        frame(sessionId, { type: "tool_execution_start", toolCallId: "spawn", toolName: "task", args: { agent: "scout", task: "Check auth" } });
-        const result = { content: [{ type: "text", text: "Found auth" }], details: { results: [
-          { agent: "scout", task: "Check auth", exitCode: 0, messages: [{ role: "assistant", content: [{ type: "text", text: "Reading auth" }] }] },
-        ] } };
-        frame(sessionId, { type: "tool_execution_update", toolCallId: "spawn", partialResult: result });
-        frame(sessionId, { type: "tool_execution_end", toolCallId: "spawn", result, isError: false });
-        const session = events.reduce(applyHarnessEvent, newSession(flavor, "/repo"));
-        const row = session.blocks.find((block) => block.tool?.callId === "spawn");
-        expect(row?.agentRun?.steps).toEqual([expect.objectContaining({ kind: "message", text: "Reading auth" })]);
+        frame(sessionId, {
+          type: "tool_execution_start",
+          toolCallId: "spawn",
+          toolName: "task",
+          args: { agent: "scout", task: "Check auth" },
+        });
+        const result = {
+          content: [{ type: "text", text: "Found auth" }],
+          details: {
+            results: [
+              {
+                agent: "scout",
+                task: "Check auth",
+                exitCode: 0,
+                messages: [
+                  {
+                    role: "assistant",
+                    content: [{ type: "text", text: "Reading auth" }],
+                  },
+                ],
+              },
+            ],
+          },
+        };
+        frame(sessionId, {
+          type: "tool_execution_update",
+          toolCallId: "spawn",
+          partialResult: result,
+        });
+        frame(sessionId, {
+          type: "tool_execution_end",
+          toolCallId: "spawn",
+          result,
+          isError: false,
+        });
+        const session = events.reduce(
+          applyHarnessEvent,
+          newSession(flavor, "/repo"),
+        );
+        const row = session.blocks.find(
+          (block) => block.tool?.callId === "spawn",
+        );
+        expect(row?.agentRun?.steps).toEqual([
+          expect.objectContaining({ kind: "message", text: "Reading auth" }),
+        ]);
         expect(row?.tool?.status).toBe("completed");
         expect(row?.tool?.detail).toBe("Found auth");
       } finally {
@@ -210,7 +258,10 @@ describe("OMP command lifecycle over the real RPC multiplexer", () => {
     },
   );
 
-  it.each([["pi", sendPiTurn], ["omp", sendOmpTurn]] as const)(
+  it.each([
+    ["pi", sendPiTurn],
+    ["omp", sendOmpTurn],
+  ] as const)(
     "keeps a %s tool finished when a progress update arrives after its end",
     async (flavor, send) => {
       const sessionId = `${flavor}-late-update`;
@@ -388,7 +439,7 @@ describe("OMP command lifecycle over the real RPC multiplexer", () => {
     await running.turn;
   });
 
-  it("reflects command-driven model/settings and session changes in MonoCode", async () => {
+  it("reflects command-driven model/settings and session changes in MyCode", async () => {
     const running = await started();
     frame("omp-test", {
       type: "config_update",

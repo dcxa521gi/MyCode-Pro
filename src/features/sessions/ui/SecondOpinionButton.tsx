@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   Check,
   ChevronDown,
@@ -80,14 +81,17 @@ export function HandoffButton({
   from,
   onPick,
 }: Pick<Props, "from" | "onPick">) {
+  const { t } = useTranslation();
   return (
     <SecondOpinionButton
       from={from}
       onPick={onPick}
       icon={Replace}
-      title="Handoff"
+      title={t("Handoff")}
       disabledTitle="Install another provider to hand off"
-      description="Hand this session to another agent to continue the work."
+      description={t(
+        "Hand this session to another agent to continue the work.",
+      )}
       menuLabel="Hand this session to another agent"
     />
   );
@@ -106,6 +110,7 @@ export function BuildTargetButton({
   disabled?: boolean;
   onPick: (target: ModelTarget) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <SecondOpinionButton
       from={from}
@@ -113,9 +118,11 @@ export function BuildTargetButton({
       fromSettings={settings}
       onPick={onPick}
       icon={ChevronDown}
-      title="Build with another model"
+      title={t("Build with another model")}
       disabledTitle="No build providers are available"
-      description="Choose the model and provider that should build this plan."
+      description={t(
+        "Choose the model and provider that should build this plan.",
+      )}
       menuLabel="Build this plan with another model or provider"
       includeCurrent
       disabled={disabled}

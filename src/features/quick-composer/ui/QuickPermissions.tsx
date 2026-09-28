@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   Check,
@@ -47,6 +48,7 @@ export function QuickPermissions({
   onClose: () => void;
   embedded?: boolean;
 }) {
+  const { t } = useTranslation();
   const root = useRef<HTMLDivElement>(null);
   const id = useId();
   const [active, setActive] = useState(RUNTIME_MODES.indexOf(value));
@@ -62,7 +64,7 @@ export function QuickPermissions({
     <div
       ref={root}
       role="listbox"
-      aria-label="Permissions"
+      aria-label={t("Permissions")}
       aria-activedescendant={`${id}-${active}`}
       tabIndex={embedded ? 0 : -1}
       className={`min-h-0 overflow-y-auto overscroll-none p-2 outline-none ${embedded ? "" : "border-t border-stroke"}`}

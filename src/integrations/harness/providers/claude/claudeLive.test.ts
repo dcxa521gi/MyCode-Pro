@@ -45,7 +45,10 @@ const {
   __claudeTestReset,
 } = await import("./claude");
 import type { HarnessEvent } from "../../core/types";
-import type { RuntimeMode, TurnIntent } from "../../../../features/sessions/model/session";
+import type {
+  RuntimeMode,
+  TurnIntent,
+} from "../../../../features/sessions/model/session";
 
 function parse() {
   return sent.map((line) => JSON.parse(line) as Record<string, unknown>);
@@ -244,7 +247,8 @@ function emitBashFinished(taskId = "b1") {
     task_id: taskId,
     tool_use_id: "toolu_bash",
     status: "completed",
-    summary: 'Background command "sleep 30 && echo done" completed (exit code 0)',
+    summary:
+      'Background command "sleep 30 && echo done" completed (exit code 0)',
   });
 }
 
@@ -733,7 +737,7 @@ describe("claude subagents", () => {
       summary: "Found the tokens",
     });
     // The notification wakes Claude for a follow-up turn; that turn's result
-    // is what ends the MonoCode turn.
+    // is what ends the MyCode turn.
     await new Promise((r) => setTimeout(r, 30));
     expect(settled).toBe(false);
     emitFollowUpTurn("The explorer found the tokens.");
@@ -1059,9 +1063,9 @@ describe("claude background tasks", () => {
     });
     const items = groupTurnItems(session.blocks.slice(1));
     const group = items.at(-1);
-    expect(group?.type === "activity" && workSummaryLine(group.blocks, true)).toBe(
-      "Running in background",
-    );
+    expect(
+      group?.type === "activity" && workSummaryLine(group.blocks, true),
+    ).toBe("Running in background");
   });
 
   it("lets the turn go if a finished task never wakes Claude", async () => {

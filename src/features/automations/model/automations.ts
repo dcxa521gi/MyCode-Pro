@@ -1,3 +1,4 @@
+import { getLocale as uiLocale } from "../../../shared/i18n";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type { HarnessId, RuntimeMode } from "../../sessions/model/session";
@@ -97,7 +98,7 @@ export type DueAutomationRun = {
 export function formatAutomationRunAt(at: number): string {
   if (!Number.isFinite(at) || at <= 0) return "—";
   const date = new Date(at);
-  const month = date.toLocaleDateString(undefined, { month: "short" });
+  const month = date.toLocaleDateString(uiLocale(), { month: "short" });
   const time = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
   return `${date.getDate()} ${month}, ${time}`;
 }
@@ -276,7 +277,7 @@ export function gmtOffsetLabel(date = new Date()): string {
 export function nextRunPreview(at: number): string {
   const date = new Date(at);
   const day = date
-    .toLocaleDateString(undefined, {
+    .toLocaleDateString(uiLocale(), {
       weekday: "short",
       day: "numeric",
       month: "short",
@@ -284,7 +285,7 @@ export function nextRunPreview(at: number): string {
     .replace(/,/g, "");
   const time = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
   const zone =
-    new Intl.DateTimeFormat(undefined, { timeZoneName: "short" })
+    new Intl.DateTimeFormat(uiLocale(), { timeZoneName: "short" })
       .formatToParts(date)
       .find((part) => part.type === "timeZoneName")?.value ??
     gmtOffsetLabel(date);
@@ -501,7 +502,9 @@ export async function claimDueAutomations(
   const due = automations.filter(
     (automation) =>
       automation.enabled &&
-      automationTriggers(automation).some((trigger) => trigger.kind === "time") &&
+      automationTriggers(automation).some(
+        (trigger) => trigger.kind === "time",
+      ) &&
       automation.nextRunAt <= now,
   );
   const claimed: DueAutomationRun[] = [];
@@ -592,7 +595,7 @@ function clamp(value: number, min: number, max: number): number {
 
 function formatClock(value: string): string {
   const [hour, minute] = parseTime(value);
-  return new Date(2000, 0, 1, hour, minute).toLocaleTimeString(undefined, {
+  return new Date(2000, 0, 1, hour, minute).toLocaleTimeString(uiLocale(), {
     hour: "numeric",
     minute: "2-digit",
   });

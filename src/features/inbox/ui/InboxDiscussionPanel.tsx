@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useRef, useState } from "react";
 import { PanelLeft, RotateCcw } from "../../../shared/ui/icons";
 import { IconButton } from "../../../app/shell/TitleBar";
@@ -22,6 +23,7 @@ export function InboxDiscussionPanel({
   onRestart: (item: InboxItem) => Promise<string>;
   onMount: (portal: InboxSessionPortal | null) => void;
 }) {
+  const { t } = useTranslation();
   const host = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,7 +68,7 @@ export function InboxDiscussionPanel({
     >
       <div
         role="separator"
-        aria-label="Resize discussion"
+        aria-label={t("Resize discussion")}
         aria-orientation="vertical"
         onPointerDown={resize.onPointerDown}
         onDoubleClick={resize.onDoubleClick}
@@ -74,25 +76,25 @@ export function InboxDiscussionPanel({
       />
       <header className="flex h-11 shrink-0 items-center border-b border-stroke px-3">
         <span className="min-w-0 flex-1 truncate text-[13px] font-medium">
-          Ask · {inboxItemRef(item)}
+          {t("Ask ·")} {inboxItemRef(item)}
         </span>
         <IconButton
-          label="Restart conversation"
+          label={t("Restart conversation")}
           disabled={loading}
           onClick={() => {
             setLoading(true);
             setError(null);
             void onRestart(item)
-              .then(sessionId => {
+              .then((sessionId) => {
                 if (host.current) onMount({ sessionId, host: host.current });
               })
-              .catch(reason => setError(String(reason)))
+              .catch((reason) => setError(String(reason)))
               .finally(() => setLoading(false));
           }}
         >
           <RotateCcw className="size-3.5" />
         </IconButton>
-        <IconButton label="Close panel" onClick={onClose}>
+        <IconButton label={t("Close panel")} onClick={onClose}>
           <PanelLeft className="size-3.5" />
         </IconButton>
       </header>

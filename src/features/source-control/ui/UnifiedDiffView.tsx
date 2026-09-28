@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import {
   Check,
   ChevronDown,
@@ -23,7 +24,10 @@ import { useColorScheme } from "../../../shared/hooks/useColorScheme";
 import { formatInteger } from "../../../shared/lib/numbers";
 import type { ColorScheme } from "../../settings/model/appearance";
 import { basename } from "../../../platform/tauri/fs";
-import { highlightDiffFile, type SyntaxToken } from "../../files/editor/syntaxTokens";
+import {
+  highlightDiffFile,
+  type SyntaxToken,
+} from "../../files/editor/syntaxTokens";
 import { DiffCommentComposer } from "./DiffCommentComposer";
 import {
   expandFold,
@@ -95,6 +99,7 @@ export function UnifiedDiffView({
   onDiscardFile,
   onStageHunk,
 }: Props) {
+  const { t } = useTranslation();
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const colorScheme = useColorScheme();
   const [open, setOpen] = useState<Set<string>>(() =>
@@ -175,7 +180,9 @@ export function UnifiedDiffView({
 
   if (files.length === 0) {
     return (
-      <p className="px-4 py-6 text-[13px] text-content/45">No file changes</p>
+      <p className="px-4 py-6 text-[13px] text-content/45">
+        {t("No file changes")}
+      </p>
     );
   }
 
@@ -202,8 +209,8 @@ export function UnifiedDiffView({
         <span className="ml-auto flex items-center gap-0.5">
           <button
             type="button"
-            title="Expand all files"
-            aria-label="Expand all files"
+            title={t("Expand all files")}
+            aria-label={t("Expand all files")}
             onClick={() => setOpen(new Set(files.map((file) => file.id)))}
             className="grid size-7 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content"
           >
@@ -211,8 +218,8 @@ export function UnifiedDiffView({
           </button>
           <button
             type="button"
-            title="Collapse all files"
-            aria-label="Collapse all files"
+            title={t("Collapse all files")}
+            aria-label={t("Collapse all files")}
             disabled={open.size === 0}
             onClick={() => setOpen(new Set())}
             className="grid size-7 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content disabled:opacity-40"
@@ -231,8 +238,9 @@ export function UnifiedDiffView({
       >
         {truncated ? (
           <p className="px-3 py-3 text-[12px] text-content/45">
-            Diff is too large to display in full. File list is shown without
-            patches.
+            {t(
+              "Diff is too large to display in full. File list is shown without patches.",
+            )}
           </p>
         ) : null}
         <div
@@ -369,9 +377,7 @@ const FileSection = memo(function FileSection({
         className={`${
           fileLayout === "stacked" ? "sticky top-0 z-30 backdrop-blur-xl" : ""
         } flex items-center gap-2 bg-content/2 px-3 py-1.5 ${
-          fileLayout === "stacked" || expanded
-            ? "border-b border-stroke"
-            : ""
+          fileLayout === "stacked" || expanded ? "border-b border-stroke" : ""
         }`}
       >
         <button
@@ -498,10 +504,13 @@ function FileBody({
   onReveal: (foldId: string, direction: "up" | "down" | "all") => void;
   onStageHunk?: (id: string, pos: number) => void;
 }) {
-  if (file.binary) return <EmptyBody>Binary file changed</EmptyBody>;
-  if (file.tooLarge) return <EmptyBody>Diff is too large to display</EmptyBody>;
+  const { t } = useTranslation();
+  if (file.binary) return <EmptyBody>{t("Binary file changed")}</EmptyBody>;
+  if (file.tooLarge)
+    return <EmptyBody>{t("Diff is too large to display")}</EmptyBody>;
   if (file.emptyMessage) return <EmptyBody>{file.emptyMessage}</EmptyBody>;
-  if (file.blocks.length === 0) return <EmptyBody>No textual diff</EmptyBody>;
+  if (file.blocks.length === 0)
+    return <EmptyBody>{t("No textual diff")}</EmptyBody>;
 
   return (
     <VirtualRows
@@ -854,6 +863,7 @@ function FoldBar({
   hidden: number;
   onReveal: (direction: "up" | "down" | "all") => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className="flex items-center gap-1 bg-content/8 px-2"
@@ -861,8 +871,8 @@ function FoldBar({
     >
       <button
         type="button"
-        title="Expand upward"
-        aria-label="Expand unmodified lines upward"
+        title={t("Expand upward")}
+        aria-label={t("Expand unmodified lines upward")}
         onClick={() => onReveal("up")}
         className="grid size-5 place-items-center rounded text-content/40 hover:bg-content/10 hover:text-content"
       >
@@ -870,8 +880,8 @@ function FoldBar({
       </button>
       <button
         type="button"
-        title="Expand downward"
-        aria-label="Expand unmodified lines downward"
+        title={t("Expand downward")}
+        aria-label={t("Expand unmodified lines downward")}
         onClick={() => onReveal("down")}
         className="grid size-5 place-items-center rounded text-content/40 hover:bg-content/10 hover:text-content"
       >
@@ -882,7 +892,7 @@ function FoldBar({
         onClick={() => onReveal("all")}
         className="min-w-0 flex-1 py-1 text-left font-mono text-[11px] text-content/45 hover:text-content/70"
       >
-        {hidden} unmodified {hidden === 1 ? "line" : "lines"}
+        {hidden} {t("unmodified")} {hidden === 1 ? t("line") : t("lines")}
       </button>
     </div>
   );

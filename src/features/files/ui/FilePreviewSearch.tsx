@@ -351,7 +351,7 @@ export function FilePreviewSearch({
       {open ? (
         <div
           role="search"
-          aria-label="Find in preview"
+          aria-label={t("Find in preview")}
           className="relative z-30 flex h-[35px] shrink-0 items-center gap-1 border-b border-stroke px-2 py-1 text-content"
           onKeyDown={onKeyDown}
         >
@@ -366,8 +366,8 @@ export function FilePreviewSearch({
               ref={inputRef}
               type="text"
               value={query}
-              aria-label="Find"
-              placeholder="Find"
+              aria-label={t("Find")}
+              placeholder={t("Find")}
               autoComplete="off"
               autoCorrect="off"
               autoCapitalize="off"
@@ -387,13 +387,13 @@ export function FilePreviewSearch({
             </span>
           </div>
           <FindToggle
-            label="Aa"
+            label={t("Aa")}
             title={`Match Case (${ALT}C)`}
             pressed={caseSensitive}
             onClick={() => toggle(setCaseSensitive)}
           />
           <FindToggle
-            label="ab"
+            label={t("ab")}
             title={`Match Whole Word (${ALT}W)`}
             pressed={wholeWord}
             onClick={() => toggle(setWholeWord)}
@@ -405,7 +405,7 @@ export function FilePreviewSearch({
             onClick={() => toggle(setRegexp)}
           />
           <FindButton
-            label="Previous Match"
+            label={t("Previous Match")}
             title={`Previous Match (${MOD}${SHIFT}G)`}
             disabled={total === 0}
             onClick={() => step(-1)}
@@ -413,7 +413,7 @@ export function FilePreviewSearch({
             <ChevronUp className="size-3.5" strokeWidth={1.75} />
           </FindButton>
           <FindButton
-            label="Next Match"
+            label={t("Next Match")}
             title={`Next Match (${MOD}G)`}
             disabled={total === 0}
             onClick={() => step(1)}
@@ -422,7 +422,7 @@ export function FilePreviewSearch({
           </FindButton>
           <FindButton
             label={t("Close")}
-            title="Close (Escape)"
+            title={t("Close (Escape)")}
             onClick={closeSearch}
           >
             <X className="size-3.5" strokeWidth={1.75} />

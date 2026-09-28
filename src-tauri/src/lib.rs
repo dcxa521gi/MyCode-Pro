@@ -14,8 +14,10 @@ mod gitlab;
 mod harness;
 mod inbox_media;
 mod jira;
+mod language;
 mod linear;
 mod link_preview;
+mod local_ai;
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "macos")]
@@ -42,7 +44,7 @@ mod windows;
 mod worktree_lifecycle;
 mod worktrees;
 
-// Phase 1 seam: spawn / kill harness children per MonoCode thread.
+// Phase 1 seam: spawn / kill harness children per MyCode thread.
 // Adapters own the protocol; this host only supervises processes.
 
 /// Project directory for new sessions — prefer cwd, else home.
@@ -276,6 +278,13 @@ pub fn run() {
             reminders::reminder_register_window,
             reminders::reminder_open,
             automations::automations_list,
+            local_ai::local_ai_config,
+            language::app_set_locale,
+            local_ai::local_ai_save_connection,
+            local_ai::local_ai_remove_connection,
+            local_ai::local_ai_save_context,
+            local_ai::local_ai_memory,
+            local_ai::local_ai_test_connection,
             automations::automations_upsert,
             automations::automations_delete,
             automations::automation_runs_list,
@@ -508,7 +517,7 @@ pub fn run() {
             project_logo::forget_logo_file,
         ])
         .build(tauri::generate_context!())
-        .expect("error while building MonoCode");
+        .expect("error while building MyCode");
 
     app.run(|handle, event| match event {
         #[cfg(target_os = "macos")]

@@ -274,7 +274,7 @@ export type MappedCodexNotification = {
 };
 
 /**
- * Translate a Codex app-server notification into MonoCode HarnessEvents.
+ * Translate a Codex app-server notification into MyCode HarnessEvents.
  * Unknown methods return empty events (non-fatal).
  */
 export function mapCodexNotification(
@@ -433,7 +433,7 @@ export function mapCodexNotification(
   return { events: [] };
 }
 
-/** Codex thread items MonoCode already renders elsewhere or that are internal metadata. */
+/** Codex thread items MyCode already renders elsewhere or that are internal metadata. */
 const SILENT_ITEM_TYPES = new Set([
   "userMessage",
   "contextCompaction",
@@ -826,7 +826,8 @@ function mapSubAgentActivity(
   completed: boolean,
 ): HarnessEvent {
   const kind = (stringField(item, "kind") ?? "").toLowerCase();
-  const path = stringField(item, "agentPath") ?? stringField(item, "agent_path");
+  const path =
+    stringField(item, "agentPath") ?? stringField(item, "agent_path");
   const leaf = path?.split(/[/\\]/).filter(Boolean).pop();
   const title = leaf ? `${formatAgentType(leaf)} subagent` : "Subagent";
   if (kind === "interrupted") {

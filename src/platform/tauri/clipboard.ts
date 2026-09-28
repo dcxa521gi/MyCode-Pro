@@ -1,5 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
-import { MAX_ATTACHMENTS, MAX_EMBED_BYTES } from "../../features/sessions/model/attachments";
+import {
+  MAX_ATTACHMENTS,
+  MAX_EMBED_BYTES,
+} from "../../features/sessions/model/attachments";
 import type { Attachment } from "../../features/sessions/model/session";
 
 type CopiedFile = { name: string; mimeType: string; data: string };
@@ -14,7 +17,7 @@ const MAX_CLIPBOARD_HTML_CHARS =
   MAX_CLIPBOARD_BASE64_CHARS +
   MAX_CLIPBOARD_METADATA_CHARS;
 
-/** HTML keeps arbitrary files together with text across MonoCode windows. */
+/** HTML keeps arbitrary files together with text across MyCode windows. */
 export async function copyMessage(
   text: string,
   attachments: Attachment[] = [],

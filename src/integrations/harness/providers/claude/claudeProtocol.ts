@@ -7,7 +7,10 @@ import type {
 } from "../../../../features/sessions/model/session";
 import { attachmentPathText } from "../../../../features/sessions/model/attachments";
 import { parseResetTimestamp } from "../../../../features/providers/model/rateLimits";
-import { isTaskListToolName, taskListFromToolInput } from "../../../../features/sessions/model/taskList";
+import {
+  isTaskListToolName,
+  taskListFromToolInput,
+} from "../../../../features/sessions/model/taskList";
 import {
   questionPromptTitle,
   questionsFromUnknown,
@@ -254,7 +257,7 @@ export function buildClaudeSpawnArgs(input: {
   if (input.includePartialMessages !== false) {
     args.push("--include-partial-messages");
   }
-  // Isolated spawns are MonoCode's own helper calls (titles, summaries); the
+  // Isolated spawns are MyCode's own helper calls (titles, summaries); the
   // user's hooks have no business firing there. Interactive sessions inherit
   // whatever the caller decided so `~/.claude` hooks keep working.
   const settings: ClaudeCliSettings = {
@@ -797,7 +800,9 @@ export function assistantTextBlocks(rec: Record<string, unknown>): string[] {
 }
 
 /** Reasoning a message carries, used to mirror a subagent's thinking. */
-export function assistantThinkingBlocks(rec: Record<string, unknown>): string[] {
+export function assistantThinkingBlocks(
+  rec: Record<string, unknown>,
+): string[] {
   const message = asRecord(rec.message);
   const content = message?.content;
   if (!Array.isArray(content)) return [];

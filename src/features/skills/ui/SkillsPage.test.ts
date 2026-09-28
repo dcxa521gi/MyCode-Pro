@@ -6,7 +6,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SkillsPage } from "./SkillsPage";
 import { SettingsView } from "../../settings/ui/SettingsView";
 import type { DiscoveredSkill } from "../../../platform/tauri/fs";
-import { loadDisabledSkillPaths, saveDisabledSkillPaths } from "../model/skills";
+import {
+  loadDisabledSkillPaths,
+  saveDisabledSkillPaths,
+} from "../model/skills";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 vi.mock("@tauri-apps/api/window", () => ({
@@ -514,7 +517,7 @@ describe("Settings skill preview", () => {
     expect(
       container
         .querySelector(
-          '[aria-label="Include Personal guide in MonoCode catalog"]',
+          '[aria-label="Include Personal guide in MyCode catalog"]',
         )
         ?.getAttribute("aria-checked"),
     ).toBe("false");

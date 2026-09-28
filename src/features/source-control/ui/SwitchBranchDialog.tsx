@@ -94,7 +94,7 @@ export function SwitchBranchDialog({
       >
         <div className="flex flex-col gap-1">
           <h2 className="text-[13px] font-medium leading-tight text-content">
-            Uncommitted changes
+            {t("Uncommitted changes")}
           </h2>
           <p className="text-[12px] leading-snug text-content/55">
             {creating
@@ -110,7 +110,7 @@ export function SwitchBranchDialog({
             value={message}
             placeholder={`Message (${MOD}↩ to commit)`}
             disabled={Boolean(busy) || generating}
-            aria-label="Commit message"
+            aria-label={t("Commit message")}
             className="max-h-40 w-full resize-none overflow-y-auto rounded-md bg-content/10 py-1 pr-8 pl-2 text-[13px] leading-5 text-content outline-none placeholder:text-content/35 disabled:opacity-40"
             onChange={(event) => setMessage(event.target.value)}
             onKeyDown={(event) => {
@@ -126,8 +126,8 @@ export function SwitchBranchDialog({
           />
           <button
             type="button"
-            title="Generate commit message"
-            aria-label="Generate commit message"
+            title={t("Generate commit message")}
+            aria-label={t("Generate commit message")}
             disabled={Boolean(busy) || generating}
             onClick={() => void generate()}
             className="absolute top-1 right-1 grid size-5 place-items-center rounded-md bg-content/10 text-content hover:bg-content/20 hover:text-content disabled:opacity-40"
@@ -164,7 +164,7 @@ export function SwitchBranchDialog({
             {busy === "commit" ? (
               <Loader className="size-3.5 animate-spin" strokeWidth={1.75} />
             ) : null}
-            Commit & switch
+            {t("Commit & switch")}
           </button>
           <button
             type="button"
@@ -175,7 +175,7 @@ export function SwitchBranchDialog({
             {busy === "stash" ? (
               <Loader className="size-3.5 animate-spin" strokeWidth={1.75} />
             ) : null}
-            Stash & switch
+            {t("Stash & switch")}
           </button>
         </div>
       </div>

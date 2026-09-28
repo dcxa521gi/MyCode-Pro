@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { memo, useSyncExternalStore } from "react";
 import {
@@ -24,7 +25,10 @@ import { editorPathsEqual } from "../../search/model/search";
 import type { PlanBuildTarget, Session } from "../../sessions/model/session";
 import { Play } from "../../../shared/ui/icons";
 import { BuildTargetButton } from "../../sessions/ui/SecondOpinionButton";
-import { loadDiffViewer, subscribeDiffViewer } from "../../settings/model/settings";
+import {
+  loadDiffViewer,
+  subscribeDiffViewer,
+} from "../../settings/model/settings";
 import { AgentTabView } from "../../sessions/ui/AgentTabView";
 import { MarkdownPreview } from "../../sessions/ui/AgentMarkdown";
 import { BinaryFileView } from "./BinaryFileView";
@@ -274,6 +278,7 @@ function PlanSurface({
     target?: PlanBuildTarget,
   ) => void;
 }) {
+  const { t } = useTranslation();
   const plan = file.plan;
   const [mode, setMode] = useMarkdownMode(file.path);
   const session = plan
@@ -287,7 +292,7 @@ function PlanSurface({
     return (
       <div className="grid h-full place-items-center p-6 text-center">
         <p className="text-[13px] text-content/70">
-          This plan is no longer in the session.
+          {t("This plan is no longer in the session.")}
         </p>
       </div>
     );
@@ -347,7 +352,7 @@ function PlanSurface({
         }
         source={
           <textarea
-            aria-label="Plan markdown"
+            aria-label={t("Plan markdown")}
             spellCheck={false}
             value={block.text}
             disabled={

@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n";
 import { useLockOverscroll } from "../../shared/hooks/useLockOverscroll";
 import {
   releaseNotesMarkdown,
@@ -10,6 +11,7 @@ export function ReleaseNotesSurface({
 }: {
   source: ReleaseNotesTabSource;
 }) {
+  const { t } = useTranslation();
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const markdown = releaseNotesMarkdown(source);
 
@@ -19,14 +21,16 @@ export function ReleaseNotesSurface({
       className="h-full overflow-y-auto overscroll-none"
     >
       <article
-        aria-label="Release notes"
+        aria-label={t("Release notes")}
         className="mx-auto w-full max-w-3xl px-8 py-10"
       >
         {markdown ? (
           <AgentMarkdown text={markdown} streaming={false} />
         ) : (
           <p className="text-[13px] text-content/60">
-            Release notes for this version are not available in this build.
+            {t(
+              "Release notes for this version are not available in this build.",
+            )}
           </p>
         )}
       </article>

@@ -24,16 +24,18 @@ describe("runtimeModeToCodexConfig", () => {
   it("opens loopback for a lead, since every sandbox denies network by default", () => {
     // Without this an orchestration lead cannot reach its own control CLI.
     for (const mode of ["supervised", "auto-accept-edits", "auto"] as const)
-      expect(
-        runtimeModeToCodexConfig(mode, true).sandboxPolicy,
-      ).toMatchObject({ networkAccess: true });
+      expect(runtimeModeToCodexConfig(mode, true).sandboxPolicy).toMatchObject({
+        networkAccess: true,
+      });
     // Ordinary sessions keep the default, and full access needs no flag.
     expect(runtimeModeToCodexConfig("auto").sandboxPolicy).not.toHaveProperty(
       "networkAccess",
     );
-    expect(runtimeModeToCodexConfig("full-access", true).sandboxPolicy).toEqual({
-      type: "dangerFullAccess",
-    });
+    expect(runtimeModeToCodexConfig("full-access", true).sandboxPolicy).toEqual(
+      {
+        type: "dangerFullAccess",
+      },
+    );
   });
 
   it("maps auto-accept-edits to workspace-write with user reviewer", () => {
@@ -55,7 +57,7 @@ describe("runtimeModeToCodexConfig", () => {
 
   it("opens the sandbox network only for a lead, which needs the control socket", () => {
     // Both sandboxed policies default networkAccess to false, which denies
-    // loopback too, so the control CLI cannot reach MonoCode without this.
+    // loopback too, so the control CLI cannot reach MyCode without this.
     for (const mode of ["supervised", "auto-accept-edits", "auto"] as const) {
       expect(runtimeModeToCodexConfig(mode).sandboxPolicy).not.toHaveProperty(
         "networkAccess",
@@ -65,9 +67,11 @@ describe("runtimeModeToCodexConfig", () => {
       });
     }
     // full-access already permits it, and its policy takes no such field.
-    expect(runtimeModeToCodexConfig("full-access", true).sandboxPolicy).toEqual({
-      type: "dangerFullAccess",
-    });
+    expect(runtimeModeToCodexConfig("full-access", true).sandboxPolicy).toEqual(
+      {
+        type: "dangerFullAccess",
+      },
+    );
   });
 
   it("carries the lead's network grant onto the turn, including a plan turn", () => {

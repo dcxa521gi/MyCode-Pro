@@ -439,7 +439,7 @@ struct DockMenuTargetIvars {
 
 define_class!(
     #[unsafe(super(NSObject))]
-    #[name = "MonoCodeDockMenuTarget"]
+    #[name = "MyCodeDockMenuTarget"]
     #[ivars = DockMenuTargetIvars]
     struct DockMenuTarget;
 
@@ -644,7 +644,7 @@ fn write_dev_bundle_icons(app: &Path, app_name: &str) -> Result<(), String> {
 
 /// Must match `CFBundleIdentifier` in the generated dev bundle plist and tauri.conf.json.
 #[cfg(debug_assertions)]
-const DEV_BUNDLE_DEFAULT_NAME: &str = "MonoCode";
+const DEV_BUNDLE_DEFAULT_NAME: &str = "MyCode";
 #[cfg(debug_assertions)]
 const DEV_BUNDLE_NAME_ENV: &str = "MONOCODE_DEV_APP_NAME";
 #[cfg(debug_assertions)]
@@ -762,8 +762,8 @@ mod tests {
     #[test]
     fn sanitized_dev_bundle_name_accepts_single_component() {
         assert_eq!(
-            sanitized_dev_bundle_name("  MonoCode Dev  "),
-            Some("MonoCode Dev".into())
+            sanitized_dev_bundle_name("  MyCode Dev  "),
+            Some("MyCode Dev".into())
         );
     }
 
@@ -777,8 +777,8 @@ mod tests {
     #[test]
     fn bundle_name_from_app_path_reads_existing_bundle_name() {
         assert_eq!(
-            bundle_name_from_app_path(Path::new("/tmp/MonoCode Dev.app")),
-            Some("MonoCode Dev".into())
+            bundle_name_from_app_path(Path::new("/tmp/MyCode Dev.app")),
+            Some("MyCode Dev".into())
         );
     }
 
@@ -791,8 +791,8 @@ mod tests {
 
     #[test]
     fn dev_bundle_plist_uses_the_provided_app_name() {
-        let plist = String::from_utf8(dev_bundle_plist("MonoCode Dev")).unwrap();
-        assert!(plist.contains("<string>MonoCode Dev</string>"));
-        assert!(!plist.contains("<string>MonoCode</string>"));
+        let plist = String::from_utf8(dev_bundle_plist("MyCode Dev")).unwrap();
+        assert!(plist.contains("<string>MyCode Dev</string>"));
+        assert!(!plist.contains("<string>MyCode</string>"));
     }
 }

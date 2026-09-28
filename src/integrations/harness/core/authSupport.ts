@@ -1,4 +1,7 @@
-import type { Block, HarnessId } from "../../../features/sessions/model/session";
+import type {
+  Block,
+  HarnessId,
+} from "../../../features/sessions/model/session";
 
 /**
  * Account-level login commands that can run without an interactive provider
@@ -10,7 +13,7 @@ const LOGIN_ARGS: Partial<Record<HarnessId, readonly string[]>> = {
   codex: ["login"],
   cursor: ["login"],
   grok: ["login", "--oauth"],
-  // MonoCode uses fx through Vercel AI Gateway. Choosing it explicitly avoids
+  // MyCode uses fx through Vercel AI Gateway. Choosing it explicitly avoids
   // leaving `fx login` waiting on a TTY-only provider picker.
   fx: ["login", "vercel"],
 };

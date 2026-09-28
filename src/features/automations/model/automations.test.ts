@@ -1,3 +1,4 @@
+import { getLocale } from "../../../shared/i18n";
 import { describe, expect, it } from "vitest";
 import {
   applyTriggers,
@@ -192,7 +193,7 @@ describe("automation schedules", () => {
 describe("automation run display", () => {
   it("formats the triggered timestamp as day month, 24h time", () => {
     const stamp = new Date(2026, 8, 19, 13, 36).getTime();
-    const month = new Date(stamp).toLocaleDateString(undefined, {
+    const month = new Date(stamp).toLocaleDateString(getLocale(), {
       month: "short",
     });
     expect(formatAutomationRunAt(stamp)).toBe(`19 ${month}, 13:36`);

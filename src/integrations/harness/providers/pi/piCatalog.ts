@@ -1,5 +1,8 @@
 import { homeDir } from "../../../../platform/tauri/fs";
-import { setHarnessModels } from "../../../../features/sessions/model/models";
+import {
+  clearHarnessModels,
+  setHarnessModels,
+} from "../../../../features/sessions/model/models";
 import {
   killChild,
   spawnChild,
@@ -20,6 +23,7 @@ function refreshCatalog(flavor: PiFlavor): Promise<void> {
   const run = discoverModels(flavor)
     .then((models) => {
       if (models.length > 0) setHarnessModels(flavor.id, models);
+      else clearHarnessModels(flavor.id);
     })
     .catch((error: unknown) => {
       console.debug(`[monocode] ${flavor.id} catalog`, error);

@@ -24,6 +24,7 @@ export type SettingsSectionId =
   | "keybindings"
   | "chat"
   | "providers"
+  | "local-ai"
   | "skills"
   | "inbox"
   | "worktrees"
@@ -53,7 +54,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     group: "app",
     label: "General",
     description:
-      "The build you are running, how MonoCode reaches you, and the panels it shows.",
+      "The build you are running, how MyCode reaches you, and the panels it shows.",
     keywords: "version update sounds notifications notes rail",
   },
   {
@@ -87,9 +88,17 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     group: "agents",
     label: "Providers",
     description:
-      "Provider accounts, agent CLIs MonoCode can drive, and the model new sessions start with.",
+      "Provider accounts, agent CLIs MyCode can drive, and the model new sessions start with.",
     keywords:
       "account sign in login model harness claude codex gemini cli default hooks",
+  },
+  {
+    id: "local-ai",
+    group: "agents",
+    label: "Memory & MCP",
+    description:
+      "Personal memory, project knowledge and local tools. Everything is stored on this computer.",
+    keywords: "memory knowledge local mcp tools 记忆 知识 本地 工具",
   },
   {
     id: "skills",

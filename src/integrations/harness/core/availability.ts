@@ -1,3 +1,4 @@
+import { formatMessage, translate } from "../../../shared/i18n";
 import type { HarnessId } from "../../../features/sessions/model/session";
 import { HARNESSES } from "../../../features/sessions/model/session";
 import {
@@ -65,16 +66,23 @@ const PROBE_TTL_MS = 30_000;
 
 export function harnessUnavailableHint(id: HarnessId): string {
   const { name, install } = CLI[id];
-  const how = install ? ` (\`${install}\`)` : "";
-  return `${name} not found${how}. Install it, or restart MonoCode if it is already installed.`;
+  const how = install ? ` (\`${translate(install)}\`)` : "";
+  return formatMessage(
+    "{name} not found{how}. Install it, or restart MyCode if it is already installed.",
+    { name, how },
+  );
 }
 
-export function probeHarnessAvailability(
-  options?: { force?: boolean },
-): Promise<void> {
+export function probeHarnessAvailability(options?: {
+  force?: boolean;
+}): Promise<void> {
   if (inflight) return inflight;
   const lastProbe = harnessAvailabilityProbedAt();
-  if (!options?.force && lastProbe > 0 && Date.now() - lastProbe < PROBE_TTL_MS) {
+  if (
+    !options?.force &&
+    lastProbe > 0 &&
+    Date.now() - lastProbe < PROBE_TTL_MS
+  ) {
     return Promise.resolve();
   }
   inflight = Promise.all(

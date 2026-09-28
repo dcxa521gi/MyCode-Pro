@@ -214,7 +214,7 @@ export function setPiBinaryResolver(
 /**
  * Live Pi adapter. Spawns `pi --mode rpc` with the user's config and extensions
  * loaded (no `--no-extensions`). Todos/subagents packages in `~/.pi/agent`
- * keep working; TUI-only widgets do not appear in MonoCode.
+ * keep working; TUI-only widgets do not appear in MyCode.
  */
 export async function sendTurn(
   flavor: PiFlavor,
@@ -934,7 +934,13 @@ function handleFrame(
         preview: previewFromTool(tool.name, tool.input, execUpdate.detail),
       });
       if (toolKindFromName(tool.name) === "agent") {
-        for (const event of piSubagentEvents(tool.id, tool.input, rec.partialResult, false)) live.onEvent(event);
+        for (const event of piSubagentEvents(
+          tool.id,
+          tool.input,
+          rec.partialResult,
+          false,
+        ))
+          live.onEvent(event);
       }
     }
   }
@@ -954,7 +960,14 @@ function handleFrame(
         preview: previewFromTool(tool.name, tool.input, execEnd.detail),
       });
       if (toolKindFromName(tool.name) === "agent") {
-        for (const event of piSubagentEvents(tool.id, tool.input, rec.result, true, execEnd.isError)) live.onEvent(event);
+        for (const event of piSubagentEvents(
+          tool.id,
+          tool.input,
+          rec.result,
+          true,
+          execEnd.isError,
+        ))
+          live.onEvent(event);
       }
     }
   }

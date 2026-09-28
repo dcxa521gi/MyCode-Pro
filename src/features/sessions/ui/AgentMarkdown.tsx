@@ -1,3 +1,4 @@
+import { translate as uiTranslate } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import { code } from "@streamdown/code";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
@@ -137,26 +138,42 @@ const REVEAL_LABEL = IS_MAC
     : "Open Containing Folder";
 
 function fileLinkMenuItems(
-  canOpenInMonoCode: boolean,
+  canOpenInMyCode: boolean,
   canCopyRelativePath: boolean,
 ): ExplorerMenuItem[] {
   return [
     {
       kind: "item",
       id: "open-monocode",
-      label: "Open in MonoCode",
-      disabled: !canOpenInMonoCode,
+      get label() {
+        return uiTranslate("Open in MyCode");
+      },
+      disabled: !canOpenInMyCode,
     },
-    { kind: "item", id: "open-default", label: "Open in Default App" },
+    {
+      kind: "item",
+      id: "open-default",
+      get label() {
+        return uiTranslate("Open in Default App");
+      },
+    },
     { kind: "item", id: "reveal", label: REVEAL_LABEL },
     { kind: "sep" },
-    { kind: "item", id: "copy-path", label: "Copy Path" },
+    {
+      kind: "item",
+      id: "copy-path",
+      get label() {
+        return uiTranslate("Copy Path");
+      },
+    },
     ...(canCopyRelativePath
       ? [
           {
             kind: "item" as const,
             id: "copy-relative-path",
-            label: "Copy Relative Path",
+            get label() {
+              return uiTranslate("Copy Relative Path");
+            },
           },
         ]
       : []),

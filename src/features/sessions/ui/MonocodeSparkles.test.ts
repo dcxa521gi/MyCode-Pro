@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { shouldCelebrateMonocode } from "./MonocodeSparkles";
 
-describe("MonoCode sparkles", () => {
+describe("MyCode sparkles", () => {
   it("celebrates only a turn sent moments ago", () => {
     const now = 1_000_000;
     expect(shouldCelebrateMonocode("fresh", now - 500, now)).toBe(true);

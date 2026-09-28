@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n";
 import { useRef, useState } from "react";
 import {
   contextRatio,
@@ -34,6 +35,7 @@ export function ContextMeter({
   onCompact?: () => void;
   compactDisabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -53,7 +55,7 @@ export function ContextMeter({
       {onCompact ? (
         <button
           type="button"
-          title="Context usage"
+          title={t("Context usage")}
           aria-label={`${headline}, ${detail}. Open context actions`}
           aria-expanded={actionsOpen}
           onClick={() => setOpen((value) => !value)}
@@ -89,7 +91,7 @@ export function ContextMeter({
               }}
               className="mt-1.5 w-full rounded-md bg-content/10 px-2 py-1 text-[11px] text-content hover:bg-content/15 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Compact now
+              {t("Compact now")}
             </button>
           ) : null}
         </Popover>

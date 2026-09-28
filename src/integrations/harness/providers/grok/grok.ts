@@ -37,7 +37,10 @@ import type {
   SendTurnInput,
   SteerTurnInput,
 } from "../../core/types";
-import { questionPromptTitle, type UserQuestionReply } from "../../../../features/sessions/model/userQuestion";
+import {
+  questionPromptTitle,
+  type UserQuestionReply,
+} from "../../../../features/sessions/model/userQuestion";
 
 type Live = {
   subagents: AcpSubagents;
@@ -496,7 +499,10 @@ function handleNotification(live: Live, method: string, params: unknown) {
         ? unwrapSessionNotification(params)
         : null;
   if (!updateParams) return;
-  for (const event of live.subagents.route(updateParams, eventsFromAcpUpdate(updateParams))) {
+  for (const event of live.subagents.route(
+    updateParams,
+    eventsFromAcpUpdate(updateParams),
+  )) {
     if (
       event.type === "context" &&
       event.window == null &&
@@ -539,7 +545,7 @@ async function handleRequest(
     if (plan) live.onEvent({ type: "plan", text: plan });
     await live.acp
       // End the provider-owned plan turn without approving implementation.
-      // MonoCode's separate Build turn is the only approval boundary.
+      // MyCode's separate Build turn is the only approval boundary.
       .respond(id, { outcome: "abandoned" })
       .catch(() => undefined);
     return;

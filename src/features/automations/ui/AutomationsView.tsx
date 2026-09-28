@@ -1,3 +1,4 @@
+import { translate as uiTranslate } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import {
   useCallback,
@@ -200,6 +201,7 @@ function AutomationsContent({
   onLaunch,
   onOpenSession,
 }: Pick<Props, "cwd" | "recents" | "onLaunch" | "onOpenSession">) {
+  const { t } = useTranslation();
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [runs, setRuns] = useState<AutomationRun[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(
@@ -371,11 +373,11 @@ function AutomationsContent({
         <div className="flex h-9 shrink-0 items-center gap-1 border-b border-stroke px-2">
           <label className="relative flex h-7 min-w-0 flex-1 items-center">
             <Search className="pointer-events-none absolute left-2 size-3 shrink-0 text-content/40" />
-            <span className="sr-only">Filter automations</span>
+            <span className="sr-only">{t("Filter automations")}</span>
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Filter automations"
+              placeholder={t("Filter automations")}
               spellCheck={false}
               autoComplete="off"
               className="h-7 w-full rounded-md bg-transparent pl-7 pr-2 text-[12px] outline-none placeholder:text-content/40"
@@ -383,8 +385,8 @@ function AutomationsContent({
           </label>
           <button
             type="button"
-            title="New automation"
-            aria-label="New automation"
+            title={t("New automation")}
+            aria-label={t("New automation")}
             onClick={beginCreate}
             className="grid size-6 shrink-0 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content"
           >
@@ -427,7 +429,9 @@ function AutomationsContent({
             </ul>
           ) : (
             <p className="px-3 py-8 text-center text-[12px] text-content/45">
-              {query.trim() ? "No matching automations" : "No automations yet"}
+              {query.trim()
+                ? t("No matching automations")
+                : t("No automations yet")}
             </p>
           )}
         </div>
@@ -601,6 +605,7 @@ function AutomationPicker({
   onBlank: () => void;
   onPick: (template: AutomationTemplate) => void;
 }) {
+  const { t } = useTranslation();
   const [category, setCategory] =
     useState<AutomationTemplateCategoryId>("popular");
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
@@ -613,10 +618,10 @@ function AutomationPicker({
     >
       <div className="mx-auto w-full max-w-5xl px-8 pt-5 pb-10">
         <h1 className="text-[20px] font-semibold leading-tight text-content">
-          New automation
+          {t("New automation")}
         </h1>
         <p className="mt-1.5 text-[13px] text-content/50">
-          Pick an example or start from scratch.
+          {t("Pick an example or start from scratch.")}
         </p>
         <div className="mt-4 flex flex-wrap gap-1.5">
           {AUTOMATION_TEMPLATE_CATEGORIES.map((option) => {
@@ -632,7 +637,7 @@ function AutomationPicker({
                     : "text-content/55 hover:bg-content/8 hover:text-content"
                 }`}
               >
-                {option.label}
+                {t(option.label)}
               </button>
             );
           })}
@@ -649,10 +654,10 @@ function AutomationPicker({
               </span>
               <span className="min-w-0">
                 <span className="block text-[13px] font-medium text-content">
-                  Start from scratch
+                  {t("Start from scratch")}
                 </span>
                 <span className="mt-1 block text-[12px] leading-snug text-content/50">
-                  Write your own instructions and choose a trigger.
+                  {t("Write your own instructions and choose a trigger.")}
                 </span>
               </span>
             </div>
@@ -709,6 +714,7 @@ function RunRow({
   draft: AutomationDraft;
   onOpenSession: (sessionId: string) => void | Promise<void>;
 }) {
+  const { t } = useTranslation();
   const trigger = runTriggerMeta(run, draft);
   const sessionId = run.sessionId;
   return (
@@ -718,7 +724,7 @@ function RunRow({
         disabled={!sessionId}
         title={
           sessionId
-            ? "Open session"
+            ? t("Open session")
             : (run.error ?? "This run has no session yet")
         }
         onClick={() => {
@@ -785,7 +791,13 @@ function runTriggerMeta(
   run: AutomationRun,
   draft: AutomationDraft,
 ): { kind: AutomationTriggerKind; label: string } {
-  if (run.trigger === "manual") return { kind: "time", label: "Test run" };
+  if (run.trigger === "manual")
+    return {
+      kind: "time",
+      get label() {
+        return uiTranslate("Test run");
+      },
+    };
   if (run.trigger === "event") {
     const kind = run.eventKind ?? draft.triggerKind;
     const event = run.event ?? draft.triggerEvent;
@@ -802,7 +814,13 @@ function runTriggerMeta(
     };
   }
   const first = draft.triggers[0];
-  if (!first) return { kind: "time", label: "Scheduled" };
+  if (!first)
+    return {
+      kind: "time",
+      get label() {
+        return uiTranslate("Scheduled");
+      },
+    };
   const event =
     findTriggerEvent(first.kind, first.event)?.label ?? triggerName(first.kind);
   return { kind: first.kind, label: event };
@@ -932,7 +950,7 @@ function AutomationEditor({
     ) {
       options.push({
         value: draft.sessionFolderId,
-        label: "Removed folder",
+        label: t("Removed folder"),
         keywords: draft.sessionFolderId,
       });
     }
@@ -992,10 +1010,10 @@ function AutomationEditor({
             <div className="flex items-start gap-6">
               <input
                 autoFocus
-                aria-label="Automation name"
+                aria-label={t("Automation name")}
                 value={draft.name}
                 onChange={(event) => update("name", event.target.value)}
-                placeholder="Untitled"
+                placeholder={t("Untitled")}
                 className="min-w-0 flex-1 bg-transparent text-[20px] font-semibold leading-tight text-content outline-none placeholder:text-content/35"
               />
               <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
@@ -1005,7 +1023,7 @@ function AutomationEditor({
                     onClick={onClose}
                     className={ACTION_OUTLINE}
                   >
-                    {draft.id ? "Reset" : t("Cancel")}
+                    {draft.id ? t("Reset") : t("Cancel")}
                   </button>
                 ) : null}
                 {onRun ? (
@@ -1020,7 +1038,7 @@ function AutomationEditor({
                     ) : (
                       <Play className="size-3.5" />
                     )}
-                    Run now
+                    {t("Run now")}
                   </button>
                 ) : null}
                 <button
@@ -1031,7 +1049,7 @@ function AutomationEditor({
                   {saving ? (
                     <LoaderCircle className="size-3.5 animate-spin" />
                   ) : null}
-                  {draft.id ? t("Save") : "Create"}
+                  {draft.id ? t("Save") : t("Create")}
                 </button>
               </div>
             </div>
@@ -1043,7 +1061,7 @@ function AutomationEditor({
                 compact
               />
               <span className="shrink-0">
-                {draft.enabled ? "Active" : "Inactive"}
+                {draft.enabled ? t("Active") : t("Inactive")}
               </span>
               <span
                 aria-hidden
@@ -1065,8 +1083,8 @@ function AutomationEditor({
                   <button
                     ref={menuButton}
                     type="button"
-                    title="Automation actions"
-                    aria-label="Automation actions"
+                    title={t("Automation actions")}
+                    aria-label={t("Automation actions")}
                     aria-haspopup="menu"
                     aria-expanded={menuOpen}
                     onClick={() => setMenuOpen((open) => !open)}
@@ -1087,7 +1105,7 @@ function AutomationEditor({
                       width={200}
                       constrainHeight={false}
                       role="menu"
-                      aria-label="Automation actions"
+                      aria-label={t("Automation actions")}
                       onDismiss={() => setMenuOpen(false)}
                       className="p-1"
                     >
@@ -1101,7 +1119,7 @@ function AutomationEditor({
                         className="flex h-8 w-full items-center gap-2 rounded-lg px-2 text-left text-[13px] text-red-300/90 hover:bg-red-500/15"
                       >
                         <Trash2 className="size-3.5" strokeWidth={1.75} />
-                        Delete automation
+                        {t("Delete automation")}
                       </button>
                     </Popover>
                   ) : null}
@@ -1112,7 +1130,7 @@ function AutomationEditor({
           {historyAvailable ? (
             <div
               role="tablist"
-              aria-label="Automation view"
+              aria-label={t("Automation view")}
               className="flex h-9 items-stretch gap-4"
             >
               <PageTab
@@ -1125,7 +1143,7 @@ function AutomationEditor({
               <PageTab
                 id={historyTabId}
                 controls={tabPanelId}
-                label="Run history"
+                label={t("Run history")}
                 selected={showingHistory}
                 onSelect={() => setTab("history")}
               />
@@ -1152,7 +1170,7 @@ function AutomationEditor({
         {!showingHistory ? (
           <div className="mx-auto w-full max-w-5xl space-y-8 px-8 py-5 pb-10">
             <section>
-              <SectionTitle>Triggers</SectionTitle>
+              <SectionTitle>{t("Triggers")}</SectionTitle>
               <div className="mt-3 rounded-md border border-content/10">
                 {draft.triggers.length > 0 ? (
                   <ul className="px-3 py-1.5">
@@ -1193,7 +1211,7 @@ function AutomationEditor({
                   }`}
                 >
                   <Plus className="size-3.5" />
-                  Add Trigger
+                  {t("Add Trigger")}
                 </button>
               </div>
               {triggerOpen ? (
@@ -1204,7 +1222,7 @@ function AutomationEditor({
                   gap={4}
                   width={250}
                   role="menu"
-                  aria-label="Choose automation trigger"
+                  aria-label={t("Choose automation trigger")}
                   layer={LAYER.popover}
                   ignore="[data-trigger-submenu]"
                   onDismiss={() => {
@@ -1215,12 +1233,12 @@ function AutomationEditor({
                 >
                   <label className="flex h-11 items-center gap-2.5 border-b border-stroke px-3 text-content/45 focus-within:text-content/70">
                     <Search className="size-3.5 shrink-0" strokeWidth={1.75} />
-                    <span className="sr-only">Search triggers</span>
+                    <span className="sr-only">{t("Search triggers")}</span>
                     <input
                       autoFocus
                       value={triggerQuery}
                       onChange={(event) => setTriggerQuery(event.target.value)}
-                      placeholder="Search triggers"
+                      placeholder={t("Search triggers")}
                       className="min-w-0 flex-1 bg-transparent text-[13px] text-content outline-none placeholder:text-content/35"
                     />
                   </label>
@@ -1286,7 +1304,7 @@ function AutomationEditor({
                     })}
                     {triggerCategories.length === 0 ? (
                       <p className="px-2 py-5 text-center text-[12px] text-content/40">
-                        No matching triggers
+                        {t("No matching triggers")}
                       </p>
                     ) : null}
                   </div>
@@ -1332,7 +1350,7 @@ function AutomationEditor({
             </section>
 
             <section>
-              <SectionTitle>Instructions</SectionTitle>
+              <SectionTitle>{t("Instructions")}</SectionTitle>
               <div className="relative mt-3 rounded-md border border-content/10 bg-content/3 backdrop-blur-sm has-focus:border-content/20">
                 <PromptField
                   value={draft.prompt}
@@ -1379,19 +1397,21 @@ function AutomationEditor({
                 </div>
               </div>
               <p className="mt-2 px-1 text-[11px] text-content/35">
-                Skills, @file references, and built-in commands work here.
+                {t(
+                  "Skills, @file references, and built-in commands work here.",
+                )}
               </p>
             </section>
 
             <section>
-              <SectionTitle>Session</SectionTitle>
+              <SectionTitle>{t("Session")}</SectionTitle>
               <div className="mt-3 divide-y divide-content/7 rounded-md border border-content/10">
                 <SettingsRow
-                  label="Working copy"
+                  label={t("Working copy")}
                   hint="This repo, or a fresh worktree"
                 >
                   <SettingsSelect
-                    label="Working copy"
+                    label={t("Working copy")}
                     value={
                       draft.workspaceMode === "worktree"
                         ? "worktree"
@@ -1409,11 +1429,11 @@ function AutomationEditor({
                   />
                 </SettingsRow>
                 <SettingsRow
-                  label="Conversation"
+                  label={t("Conversation")}
                   hint="New chat, or continue the last run"
                 >
                   <SettingsSelect
-                    label="Conversation"
+                    label={t("Conversation")}
                     value={draft.reuseSession ? "reuse" : "fresh"}
                     disabled={draft.workspaceMode === "worktree"}
                     options={CONVERSATION_OPTIONS}
@@ -1423,14 +1443,14 @@ function AutomationEditor({
                   />
                 </SettingsRow>
                 <SettingsRow
-                  label="Session folder"
+                  label={t("Session folder")}
                   hint="Where runs appear in the sidebar"
                 >
                   <SearchableSelect
                     variant="pill"
                     searchable={folderOptions.length > 6}
                     align="end"
-                    label="Session folder"
+                    label={t("Session folder")}
                     value={draft.sessionFolderId}
                     options={folderOptions}
                     onChange={(value) => update("sessionFolderId", value)}
@@ -1446,18 +1466,18 @@ function AutomationEditor({
                     {t("Advanced")}
                   </span>
                   <span className="mt-0.5 block text-[11px] text-content/40">
-                    Catch-up window for missed runs
+                    {t("Catch-up window for missed runs")}
                   </span>
                 </span>
                 <ChevronDown className="size-3.5 text-content/40" />
               </summary>
               <div className="divide-y divide-content/7 border-t border-content/8">
                 <SettingsRow
-                  label="Missed-run grace"
+                  label={t("Missed-run grace")}
                   hint="Catch up if a scheduled run was missed"
                 >
                   <SettingsSelect
-                    label="Missed-run grace"
+                    label={t("Missed-run grace")}
                     value={String(draft.missedRunGraceMinutes)}
                     options={GRACE_OPTIONS}
                     onChange={(value) =>
@@ -1470,14 +1490,14 @@ function AutomationEditor({
           </div>
         ) : (
           <section className="mx-auto w-full max-w-5xl px-8 py-5 pb-10">
-            <SectionTitle>Run history</SectionTitle>
+            <SectionTitle>{t("Run history")}</SectionTitle>
             {runs.length > 0 ? (
               <div className="mt-3 overflow-hidden rounded-md border border-content/10">
                 <div className={`${RUN_GRID} h-10 text-[11px] text-content/40`}>
-                  <span>Trigger</span>
-                  <span>Triggered</span>
-                  <span>Status</span>
-                  <span className="text-right">Duration</span>
+                  <span>{t("Trigger")}</span>
+                  <span>{t("Triggered")}</span>
+                  <span>{t("Status")}</span>
+                  <span className="text-right">{t("Duration")}</span>
                 </div>
                 <ul className="divide-y divide-content/8 border-t border-content/8">
                   {runs.slice(0, 100).map((run) => (
@@ -1492,7 +1512,7 @@ function AutomationEditor({
               </div>
             ) : (
               <div className="mt-3 rounded-md border border-dashed border-content/10 px-4 py-16 text-center text-[12px] text-content/40">
-                This automation has not run yet.
+                {t("This automation has not run yet.")}
               </div>
             )}
           </section>
@@ -1647,21 +1667,66 @@ function ToggleSwitch({
 }
 
 const WORKSPACE_OPTIONS = [
-  { value: "current", label: "Current" },
-  { value: "worktree", label: "Fresh worktree" },
+  {
+    value: "current",
+    get label() {
+      return uiTranslate("Current");
+    },
+  },
+  {
+    value: "worktree",
+    get label() {
+      return uiTranslate("Fresh worktree");
+    },
+  },
 ] as const;
 
 const CONVERSATION_OPTIONS = [
-  { value: "fresh", label: "Start fresh" },
-  { value: "reuse", label: "Continue last" },
+  {
+    value: "fresh",
+    get label() {
+      return uiTranslate("Start fresh");
+    },
+  },
+  {
+    value: "reuse",
+    get label() {
+      return uiTranslate("Continue last");
+    },
+  },
 ] as const;
 
 const GRACE_OPTIONS = [
-  { value: "0", label: "Do not catch up" },
-  { value: "30", label: "30 minutes" },
-  { value: "120", label: "2 hours" },
-  { value: "720", label: "12 hours" },
-  { value: "1440", label: "24 hours" },
+  {
+    value: "0",
+    get label() {
+      return uiTranslate("Do not catch up");
+    },
+  },
+  {
+    value: "30",
+    get label() {
+      return uiTranslate("30 minutes");
+    },
+  },
+  {
+    value: "120",
+    get label() {
+      return uiTranslate("2 hours");
+    },
+  },
+  {
+    value: "720",
+    get label() {
+      return uiTranslate("12 hours");
+    },
+  },
+  {
+    value: "1440",
+    get label() {
+      return uiTranslate("24 hours");
+    },
+  },
 ] as const;
 
 const TEMPLATE_ICONS: Record<AutomationTemplateIcon, typeof Search> = {
@@ -1681,7 +1746,12 @@ const TRIGGER_CATEGORIES: readonly {
   value: AutomationTriggerKind;
   label: string;
 }[] = [
-  { value: "time", label: "Scheduled" },
+  {
+    value: "time",
+    get label() {
+      return uiTranslate("Scheduled");
+    },
+  },
   { value: "github", label: "GitHub" },
   { value: "linear", label: "Linear" },
   { value: "jira", label: "Jira" },
@@ -1696,25 +1766,94 @@ type TriggerEvent = {
 
 const TRIGGER_EVENTS: Record<AutomationTriggerKind, readonly TriggerEvent[]> = {
   time: [
-    { value: "hourly", label: "Hourly" },
-    { value: "daily", label: "Daily" },
-    { value: "weekdays", label: "Weekdays" },
-    { value: "weekly", label: "Weekly" },
+    {
+      value: "hourly",
+      get label() {
+        return uiTranslate("Hourly");
+      },
+    },
+    {
+      value: "daily",
+      get label() {
+        return uiTranslate("Daily");
+      },
+    },
+    {
+      value: "weekdays",
+      get label() {
+        return uiTranslate("Weekdays");
+      },
+    },
+    {
+      value: "weekly",
+      get label() {
+        return uiTranslate("Weekly");
+      },
+    },
   ],
   github: [
-    { value: "draft_opened", label: "Draft opened" },
-    { value: "pull_request_opened", label: "Pull request opened" },
-    { value: "issue_opened", label: "Issue opened" },
+    {
+      value: "draft_opened",
+      get label() {
+        return uiTranslate("Draft opened");
+      },
+    },
+    {
+      value: "pull_request_opened",
+      get label() {
+        return uiTranslate("Pull request opened");
+      },
+    },
+    {
+      value: "issue_opened",
+      get label() {
+        return uiTranslate("Issue opened");
+      },
+    },
   ],
-  linear: [{ value: "issue_created", label: "Issue created" }],
-  jira: [{ value: "issue_created", label: "Issue appeared" }],
+  linear: [
+    {
+      value: "issue_created",
+      get label() {
+        return uiTranslate("Issue created");
+      },
+    },
+  ],
+  jira: [
+    {
+      value: "issue_created",
+      get label() {
+        return uiTranslate("Issue appeared");
+      },
+    },
+  ],
   gitlab: [
-    { value: "merge_request_opened", label: "Merge request opened" },
-    { value: "issue_opened", label: "Issue opened" },
+    {
+      value: "merge_request_opened",
+      get label() {
+        return uiTranslate("Merge request opened");
+      },
+    },
+    {
+      value: "issue_opened",
+      get label() {
+        return uiTranslate("Issue opened");
+      },
+    },
   ],
   azuredevops: [
-    { value: "pull_request_appeared", label: "Pull request appeared" },
-    { value: "work_item_appeared", label: "Work item appeared" },
+    {
+      value: "pull_request_appeared",
+      get label() {
+        return uiTranslate("Pull request appeared");
+      },
+    },
+    {
+      value: "work_item_appeared",
+      get label() {
+        return uiTranslate("Work item appeared");
+      },
+    },
   ],
 };
 
@@ -1767,6 +1906,7 @@ function TriggerRow({
   onChange: (trigger: AutomationTrigger) => void;
   onRemove: () => void;
 }) {
+  const { t } = useTranslation();
   const [branches, setBranches] = useState<string[]>([]);
   const projectPath = looksLikeProject(cwd) ? cwd : "";
   const push = trigger.event === "push_to_branch";
@@ -1821,7 +1961,7 @@ function TriggerRow({
       </div>
       <button
         type="button"
-        aria-label="Remove trigger"
+        aria-label={t("Remove trigger")}
         onClick={onRemove}
         className="grid size-7 shrink-0 place-items-center rounded-md text-content/35 opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-content/8 hover:text-content focus-visible:opacity-100"
       >
@@ -1840,6 +1980,7 @@ function TimeTriggerSentence({
   nextAt: number;
   onChange: (trigger: AutomationTrigger) => void;
 }) {
+  const { t } = useTranslation();
   const dayOptions = AUTOMATION_WEEKDAYS.map((label, value) => ({
     value: String(value),
     label,
@@ -1862,26 +2003,26 @@ function TimeTriggerSentence({
       {trigger.scheduleKind === "weekly" ? (
         <>
           <TriggerPill
-            label="Day"
+            label={t("Day")}
             value={String(trigger.dayOfWeek)}
             options={dayOptions}
             onChange={(value) =>
               onChange({ ...trigger, dayOfWeek: Number(value) })
             }
           />
-          <span>at</span>
+          <span>{t("at")}</span>
         </>
       ) : null}
       {trigger.scheduleKind === "hourly" ? (
         <TriggerPill
-          label="Minute"
+          label={t("Minute")}
           value={String(trigger.minute)}
           options={minuteOptions}
           onChange={(value) => onChange({ ...trigger, minute: Number(value) })}
         />
       ) : (
         <TriggerPill
-          label="Time"
+          label={t("Time")}
           value={trigger.time}
           options={timeOptions(trigger.time)}
           onChange={(value) => onChange({ ...trigger, time: value })}
@@ -1904,6 +2045,7 @@ function EventTriggerSentence({
   projectChosen: boolean;
   onChange: (trigger: AutomationTrigger) => void;
 }) {
+  const { t } = useTranslation();
   const stem =
     trigger.event === "push_to_branch"
       ? "Push"
@@ -1914,12 +2056,12 @@ function EventTriggerSentence({
       <span>{stem}</span>
       {push ? (
         <>
-          <span>on</span>
+          <span>{t("on")}</span>
           <TriggerPill
-            label="Branch"
+            label={t("Branch")}
             value={trigger.branch}
             options={branchOptions}
-            placeholder="Select a branch"
+            placeholder={t("Select a branch")}
             disabled={!projectChosen}
             emptyLabel={
               projectChosen ? "No branches found" : "Choose a project first"
@@ -1928,11 +2070,11 @@ function EventTriggerSentence({
           />
         </>
       ) : null}
-      <span>by</span>
+      <span>{t("by")}</span>
       <TriggerPill
-        label="Actor"
+        label={t("Actor")}
         value={trigger.actor || "anyone"}
-        options={[{ value: "anyone", label: "Anyone" }]}
+        options={[{ value: "anyone", label: t("Anyone") }]}
         onChange={(value) => onChange({ ...trigger, actor: value })}
       />
     </>

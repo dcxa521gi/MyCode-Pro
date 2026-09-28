@@ -588,6 +588,7 @@ describe("settings navigation", () => {
       "keybindings",
       "chat",
       "providers",
+      "local-ai",
       "skills",
       "inbox",
       "archive",

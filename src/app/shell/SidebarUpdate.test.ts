@@ -80,7 +80,7 @@ describe("SidebarUpdate", () => {
       }),
     );
 
-    expect(markup).toContain("Update to 0.1.38");
+    expect(markup).toContain("Download version 0.1.38");
     expect(markup).toContain("v0.1.37");
     expect(markup).not.toContain('disabled=""');
   });

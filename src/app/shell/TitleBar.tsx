@@ -284,6 +284,7 @@ function TitleTabItem({
   onContextMenu: (id: string, event: ReactMouseEvent<HTMLDivElement>) => void;
   itemRef?: (el: HTMLDivElement | null) => void;
 }) {
+  const { t } = useTranslation();
   const { headline, meta, tooltip } = tabCopy(tab);
   const fileIcon = tab.files[0];
   const accessibleTooltip =
@@ -375,8 +376,8 @@ function TitleTabItem({
             {tab.dirty ? (
               <span
                 className="size-1.5 shrink-0 rounded-full bg-content/70"
-                title="Unsaved changes"
-                aria-label="Unsaved changes"
+                title={t("Unsaved changes")}
+                aria-label={t("Unsaved changes")}
               />
             ) : null}
           </span>
@@ -390,7 +391,7 @@ function TitleTabItem({
       {closable ? (
         <button
           type="button"
-          title="Close Tab"
+          title={t("Close Tab")}
           aria-label={`Close ${headline}`}
           data-no-drag
           data-tauri-drag-region="false"
@@ -507,13 +508,14 @@ export function IconButton({
 }
 
 export function DevModeLabel() {
+  const { t } = useTranslation();
   if (!import.meta.env.DEV) return null;
   return (
     <span
-      title="Development build"
+      title={t("Development build")}
       className="mr-1 min-w-0 truncate rounded-md bg-skill/15 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-skill"
     >
-      Development
+      {t("Development")}
     </span>
   );
 }
@@ -735,12 +737,12 @@ function TitleBarComponent({
       : "";
     const project = cwd ? basename(cwd) : "";
     if (activeName && project && activeName !== project) {
-      return `${activeName} — ${project} — MonoCode`;
+      return `${activeName} — ${project} — MyCode`;
     }
     if (project) {
-      return `${project} — MonoCode`;
+      return `${project} — MyCode`;
     }
-    return "MonoCode";
+    return "MyCode";
   }, [activeTab, cwd]);
 
   useEffect(() => {
@@ -765,7 +767,7 @@ function TitleBarComponent({
         {
           kind: "item",
           id: "close",
-          label: "Close Tab",
+          label: t("Close Tab"),
           shortcut: `${MOD}W`,
           disabled: !titleTabClosable(contextTab, tabs.length),
         },
@@ -779,13 +781,13 @@ function TitleBarComponent({
         {
           kind: "item",
           id: "right",
-          label: "Close Tabs to the Right",
+          label: t("Close Tabs to the Right"),
           disabled: contextCloseIds?.right.length === 0,
         },
         {
           kind: "item",
           id: "left",
-          label: "Close Tabs to the Left",
+          label: t("Close Tabs to the Left"),
           disabled: contextCloseIds?.left.length === 0,
         },
         ...(contextTab.sessionCount > 0 && (onArchiveTab || onDeleteTab)
@@ -953,7 +955,9 @@ function TitleBarComponent({
           onNewTerminal={onNewTerminal}
           buttonClassName="flex h-full min-w-0 max-w-64 shrink items-center gap-2 px-6 text-left text-sm font-medium leading-tight"
         >
-          <span className="min-w-0 truncate text-content/50">No project</span>
+          <span className="min-w-0 truncate text-content/50">
+            {t("No project")}
+          </span>
         </CwdPicker>
       ) : null}
 

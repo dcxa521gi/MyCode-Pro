@@ -2044,7 +2044,7 @@ export function Composer({
                       </span>
                       <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
                         {attachmentsSupported
-                          ? "Attach files or images"
+                          ? t("Attach files or images")
                           : `${HARNESS_TITLE[harness]} does not support attachments`}
                       </span>
                     </span>
@@ -2094,7 +2094,7 @@ export function Composer({
                     <span className="min-w-0 flex-1">
                       <span className="block text-[13px]">{t("Operator")}</span>
                       <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
-                        {t("Give this thread access to MonoCode")}
+                        {t("Give this thread access to MyCode")}
                       </span>
                     </span>
                     {operatorSelected ? (
@@ -2123,7 +2123,7 @@ export function Composer({
                             {t("Orchestrator")}
                           </span>
                           <span className="rounded-full bg-fuchsia-300/10 px-1.5 py-0.5 text-[9px] font-medium leading-none tracking-wide text-fuchsia-200/55 mb-px">
-                            v1
+                            {t("v1")}
                           </span>
                         </span>
                         <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">

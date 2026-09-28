@@ -65,7 +65,7 @@ export function NotificationMuteDatePicker({
       }}
     >
       <p className="mb-3 px-1 text-[11px] text-content/45">
-        Mute all notifications until
+        {t("Mute all notifications until")}
       </p>
       <DateTimePicker
         value={value}
@@ -94,7 +94,7 @@ export function NotificationMuteDatePicker({
           disabled={!projectIds.length}
           className="primary-action flex shrink-0 items-center rounded-md border border-transparent px-2.5 py-1 text-[12px] focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-default"
         >
-          Mute until then
+          {t("Mute until then")}
         </button>
       </div>
     </form>

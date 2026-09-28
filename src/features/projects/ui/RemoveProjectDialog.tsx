@@ -63,17 +63,18 @@ export function RemoveProjectDialog({
       >
         <div className="flex flex-col gap-1">
           <h2 className="text-[13px] font-medium leading-tight text-content">
-            Delete “{name}”?
+            {t("Delete “")}
+            {name}”?
           </h2>
           <p className="text-[12px] leading-snug text-content/55">
-            All conversations for this project will be deleted. It also leaves
-            the sidebar. The folder on disk stays put, and opening it again
-            brings the project back empty.
+            {t(
+              "All conversations for this project will be deleted. It also leaves the sidebar. The folder on disk stays put, and opening it again brings the project back empty.",
+            )}
           </p>
           {sessions != null && sessions > 0 ? (
             <p className="text-[12px] leading-snug text-content/45">
               {sessions === 1
-                ? "1 saved conversation will be removed."
+                ? t("1 saved conversation will be removed.")
                 : `${sessions} saved conversations will be removed.`}
             </p>
           ) : null}

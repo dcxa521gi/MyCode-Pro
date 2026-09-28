@@ -59,21 +59,21 @@ export function InboxNotificationMenu({
     {
       kind: "item",
       id: "read-all",
-      label: "Mark all as read",
+      label: t("Mark all as read"),
       disabled: !hasUnread,
     },
     { kind: "sep" },
     {
       kind: "item",
       id: "mute",
-      label: "Mute all projects",
+      label: t("Mute all projects"),
       disabled: !allIds.length,
       submenu: notificationMuteActions(),
     },
     {
       kind: "item",
       id: "resume",
-      label: "Resume muted projects",
+      label: t("Resume muted projects"),
       disabled: !mutedIds.length,
     },
   ];
@@ -81,7 +81,7 @@ export function InboxNotificationMenu({
     items.push({
       kind: "item",
       id: "settings",
-      label: "Notification settings…",
+      label: t("Notification settings…"),
     });
 
   if (customOpen)
@@ -91,13 +91,13 @@ export function InboxNotificationMenu({
         gap={0}
         width={280}
         role="dialog"
-        aria-label="Mute project notifications"
+        aria-label={t("Mute project notifications")}
         onDismiss={onClose}
         className="space-y-1 overflow-y-auto p-3"
       >
         <div className="space-y-1">
           <p className="px-1 text-xs font-medium text-content/85">
-            Mute all projects
+            {t("Mute all projects")}
           </p>
         </div>
         <NotificationMuteDatePicker

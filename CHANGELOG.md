@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.5.0] - 2026-09-28
+
+### 新增
+- 应用与仓库更名为 MyCode，替换应用、托盘和安装包图标。
+- 增加国内外模型厂商及本地模型连接模板，支持多连接、自定义协议与模型 ID、连接测试，通过 Pi 执行会话。
+- 增加个人记忆、项目记忆和本地 MCP 配置；记忆在下一轮请求生效，MCP 接入新的 Claude Code 会话。
+- 增加文档整理、项目知识、工作报告技能，以及周报、文档索引、知识复核自动化模板。
+
+### 改进
+- 扩展中英文标签、提示、动态菜单、自动化模板、日期和 Windows 托盘菜单的语言切换。
+- 关于页面实际查询本仓库 GitHub Releases 获取最新版本和对应版本的更新内容。
+- Windows 模型密钥使用 DPAPI 加密，保留原有 CLI 配置和历史数据标识。
+
+### 使用说明
+- 新模型连接需要安装 Pi；保存后在新的 Pi 对话中选择连接对应模型。
+- 自动化依赖桌面应用运行；云模型仍需自己的服务商账号和额度。
+- 不接入 Cindy 云服务、账号或未开源后端。更新下载打开本仓库发布页，不冒充自动安装。
+
+
 All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),

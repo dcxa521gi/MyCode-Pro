@@ -1,3 +1,4 @@
+import { getLocale as uiLocale } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import {
   ArrowUp,
@@ -123,7 +124,7 @@ import { lastUserTurnBlock } from "../model/editLastTurn";
 import {
   monoCodeToolCall,
   monoCodeWorkSummary,
-  type MonoCodeToolCall,
+  type MyCodeToolCall,
 } from "../model/monocodeToolCall";
 import {
   isOperatorUserTurn,
@@ -233,6 +234,7 @@ function AgentTranscriptComponent({
   onScrollerChange,
   managed = false,
 }: Props) {
+  const { t } = useTranslation();
   const blocks = useMemo(() => {
     if (!harness || !supportsHarnessLogin(harness)) return sourceBlocks;
     const visibleBlocks = sourceBlocks.filter(
@@ -639,7 +641,7 @@ function AgentTranscriptComponent({
               className="rounded-md bg-content/8 px-2.5 py-1.5 font-sans text-[12px] text-content/60 hover:bg-content/12 hover:text-content"
               onClick={loadEarlier}
             >
-              Load earlier messages
+              {t("Load earlier messages")}
             </button>
           </div>
         ) : null}
@@ -980,11 +982,16 @@ function InitialThinking({
   live: boolean;
   embedded?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className={`min-w-0 pt-3 pb-1 font-sans text-sm text-content/50 ${embedded ? "" : "px-4"}`}
     >
-      {live ? <Shimmer duration={1.6}>Thinking…</Shimmer> : "Thinking…"}
+      {live ? (
+        <Shimmer duration={1.6}>{t("Thinking…")}</Shimmer>
+      ) : (
+        t("Thinking…")
+      )}
     </div>
   );
 }
@@ -1139,6 +1146,7 @@ function TurnMetricsBadge({
   metrics?: TurnMetrics;
   elapsedMs: number | null;
 }) {
+  const { t } = useTranslation();
   const root = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   if (!metrics || !hasTurnMetrics(metrics)) return null;
@@ -1186,7 +1194,7 @@ function TurnMetricsBadge({
         role="img"
         tabIndex={0}
         aria-label={`Turn metrics: ${label}`}
-        title="Turn metrics"
+        title={t("Turn metrics")}
         className="grid rounded-md p-1 text-content/40 outline-none hover:bg-content/8 hover:text-content/70 focus-visible:ring-1 focus-visible:ring-accent"
       >
         <ChartBreakoutSquare className="size-3.5" strokeWidth={1.75} />
@@ -1221,7 +1229,7 @@ function hasTurnMetrics(metrics: TurnMetrics): boolean {
 }
 
 function formatMetricCount(value: number): string {
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(uiLocale(), {
     notation: "compact",
     maximumFractionDigits: value >= 1000 ? 1 : 0,
   }).format(Math.max(0, Math.round(value)));
@@ -1229,7 +1237,7 @@ function formatMetricCount(value: number): string {
 
 /** Wall-clock stamp for a finished turn, in the reader's own locale. */
 function formatClockTime(epochMs: number): string {
-  return new Date(epochMs).toLocaleTimeString(undefined, {
+  return new Date(epochMs).toLocaleTimeString(uiLocale(), {
     hour: "numeric",
     minute: "2-digit",
   });
@@ -1294,7 +1302,7 @@ function CopyTurnButton({
       </button>
       {error && (
         <span role="alert" className="max-w-xs text-xs text-content/70">
-          Copy failed. {error}
+          {t("Copy failed.")} {error}
         </span>
       )}
     </>
@@ -1308,6 +1316,7 @@ function SaveNoteButton({
   text: string;
   onSave: (text: string) => void | Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -1354,7 +1363,7 @@ function SaveNoteButton({
       </button>
       {error && (
         <span role="alert" className="max-w-xs text-xs text-content/70">
-          Could not save note. {error}
+          {t("Could not save note.")} {error}
         </span>
       )}
     </>
@@ -1720,7 +1729,7 @@ function UserMessageBlock({
               className="mt-1 rounded px-1 py-0.5 text-xs text-content/60 hover:bg-content/8 hover:text-content"
               onClick={toggle}
             >
-              {expanded ? "Show less" : "Show more"}
+              {expanded ? t("Show less") : t("Show more")}
             </button>
           ) : null}
           {block.ciContext ? (
@@ -1730,10 +1739,12 @@ function UserMessageBlock({
             >
               <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 rounded text-xs text-content/50 transition-colors hover:text-content/80 focus-visible:outline focus-visible:outline-1 focus-visible:outline-content/40 [&::-webkit-details-marker]:hidden">
                 <ChevronRight className="size-3 shrink-0 transition-transform group-open/ci:rotate-90" />
-                <span>CI context</span>
+                <span>{t("CI context")}</span>
               </summary>
               <p className="mt-2 text-xs text-content/50">
-                CI instructions and failure details included with this request.
+                {t(
+                  "CI instructions and failure details included with this request.",
+                )}
               </p>
               <pre className="mt-2 max-h-72 min-w-0 overflow-auto overscroll-contain rounded-md bg-content/5 p-2.5 font-mono text-[11px] leading-relaxed whitespace-pre-wrap break-words text-content/70">
                 {block.ciContext}
@@ -1749,8 +1760,8 @@ function UserMessageBlock({
               <span className="flex items-center gap-1">
                 <button
                   type="button"
-                  title="Remove draft"
-                  aria-label="Remove draft"
+                  title={t("Remove draft")}
+                  aria-label={t("Remove draft")}
                   onClick={() => onRemoveDraft?.(block)}
                   className="flex h-7 items-center gap-1.5 rounded-md px-2 text-xs text-content/55 hover:bg-content/10 hover:text-content"
                 >
@@ -1759,8 +1770,8 @@ function UserMessageBlock({
                 </button>
                 <button
                   type="button"
-                  title="Send draft"
-                  aria-label="Send draft"
+                  title={t("Send draft")}
+                  aria-label={t("Send draft")}
                   onClick={() => onSendDraft?.(block)}
                   className="primary-action flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-transform duration-150 active:scale-[0.97]"
                 >
@@ -1795,7 +1806,7 @@ function UserMessageBlock({
             {block.startedAt != null ? (
               <time
                 dateTime={new Date(block.startedAt).toISOString()}
-                title={new Date(block.startedAt).toLocaleString()}
+                title={new Date(block.startedAt).toLocaleString(uiLocale())}
                 className="ml-1 font-sans text-xs text-content/40"
               >
                 {formatClockTime(block.startedAt)}
@@ -2194,7 +2205,7 @@ function ActivityPhaseGroup({
          */}
         <span className="relative flex size-3.5 shrink-0 items-center justify-center">
           {monoCodePhase ? (
-            <MonoCodeMark className="size-3.5 group-hover:opacity-0" />
+            <MyCodeMark className="size-3.5 group-hover:opacity-0" />
           ) : (
             <ActivityPhaseIcon
               kind={phase.kind}
@@ -2978,7 +2989,7 @@ function ActivityToolRow({
   const appCall = monoCodeToolCall(block);
   if (appCall) {
     return (
-      <MonoCodeCallRow block={block} call={appCall} onApproval={onApproval} />
+      <MyCodeCallRow block={block} call={appCall} onApproval={onApproval} />
     );
   }
   const label = toolCallLabel(block, cwd);
@@ -3051,18 +3062,20 @@ function ActivityToolRow({
   );
 }
 
-function MonoCodeMark({ className = "size-4" }: { className?: string }) {
-  return <img src="/monocode.png" alt="" className={`shrink-0 ${className}`} />;
+function MyCodeMark({ className = "size-4" }: { className?: string }) {
+  return (
+    <img src="/mycode-icon.png" alt="" className={`shrink-0 ${className}`} />
+  );
 }
 
-/** MonoCode commands read like the other activity rows; failures expose their output. */
-function MonoCodeCallRow({
+/** MyCode commands read like the other activity rows; failures expose their output. */
+function MyCodeCallRow({
   block,
   call,
   onApproval,
 }: {
   block: Block;
-  call: MonoCodeToolCall;
+  call: MyCodeToolCall;
   onApproval?: (requestId: number, decision: ApprovalDecision) => void;
 }) {
   const state = toolCallState(block);
@@ -3088,7 +3101,7 @@ function MonoCodeCallRow({
         className={`flex min-w-0 max-w-full items-center gap-1 rounded bg-content/6 px-1 font-mono text-[13px] ${state === "rejected" ? "text-red-400" : "text-content/70"}`}
         title={command}
       >
-        <MonoCodeMark className="size-3.5" />
+        <MyCodeMark className="size-3.5" />
         <span className="min-w-0 truncate">{command}</span>
       </span>
       <ToolCallStatusIcon state={state} />
@@ -3106,7 +3119,7 @@ function MonoCodeCallRow({
         <button
           type="button"
           aria-expanded={errorOpen}
-          aria-label={`${errorOpen ? "Hide" : "Show"} error details for MonoCode: ${call.label}`}
+          aria-label={`${errorOpen ? "Hide" : "Show"} error details for MyCode: ${call.label}`}
           onClick={() => setErrorOpen((value) => !value)}
           className="flex w-full min-w-0 items-center gap-1.5 py-1 text-left"
         >
@@ -3267,7 +3280,7 @@ function ToolCall({
   if (appCall) {
     return (
       <div className={frame}>
-        <MonoCodeCallRow block={block} call={appCall} onApproval={onApproval} />
+        <MyCodeCallRow block={block} call={appCall} onApproval={onApproval} />
       </div>
     );
   }
@@ -3492,6 +3505,7 @@ function ApprovalControls({
   block: Block;
   onApproval?: (requestId: number, decision: ApprovalDecision) => void;
 }) {
+  const { t } = useTranslation();
   const approval = block.approval;
   if (!approval || approval.decided || !onApproval) return null;
   return (
@@ -3501,14 +3515,14 @@ function ApprovalControls({
         className="rounded-md bg-content px-2.5 py-0.5 text-[11px] hover:bg-content/80     text-background-base"
         onClick={() => onApproval(approval.requestId, "allow")}
       >
-        Allow
+        {t("Allow")}
       </button>
       <button
         type="button"
         className="rounded-md bg-content/10 px-2.5 py-0.5 text-[11px] text-content/70 hover:bg-content/20"
         onClick={() => onApproval(approval.requestId, "deny")}
       >
-        Deny
+        {t("Deny")}
       </button>
     </div>
   );
@@ -3587,6 +3601,7 @@ const INTERJECTION_BODY =
 /** A mid-turn interjection, e.g. OMP advisor notes: a labeled boundary with
  * a collapsible advisory body below it. */
 function InterjectionDivider({ block }: { block: Block }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
   const textRef = useRef<HTMLPreElement>(null);
@@ -3644,7 +3659,7 @@ function InterjectionDivider({ block }: { block: Block }) {
               onClick={() => setExpanded((value) => !value)}
               className="mt-1 py-1 font-sans text-xs text-content/55 hover:text-content"
             >
-              {expanded ? "Show less" : "Show more"}
+              {expanded ? t("Show less") : t("Show more")}
             </button>
           ) : null}
         </div>
