@@ -23,7 +23,7 @@ To extend a pack, add the English message and translation to the JSON dictionary
 
 Version 0.4.0 belongs to the dcxa521gi fork. Download installers from https://github.com/dcxa521gi/monocode/releases. The installer itself also offers English and Simplified Chinese. Installer language selection follows NSIS/Windows conventions; **the app's automatic selection uses the computer time zone**.
 
-Build with `npm ci` and `npm run build:windows`. The NSIS installer is generated under `target/release/bundle/nsis/`. This fork does not configure signed automatic updates; the manual update notice points to this fork's Releases page. Installers are not Authenticode-signed.
+Build with `npm ci` and `npm run build:windows`. The NSIS installer is generated under `target/release/bundle/nsis/`. The build also runs the binary's help command to catch missing native DLL dependencies without opening the session database. This fork does not configure signed automatic updates; the manual update notice points to this fork's Releases page. Installers are not Authenticode-signed.
 
 ## Manual acceptance
 
