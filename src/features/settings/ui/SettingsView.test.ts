@@ -1,3 +1,4 @@
+import { initializeProviderBinaryPaths } from "../../providers/model/providerBinaryPaths";
 // @vitest-environment happy-dom
 import { act, createElement, type ComponentProps } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -87,7 +88,7 @@ function renderedSettingIds(): string[] {
   );
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   setLanguage("en");
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   mockLocalStorage();
@@ -96,6 +97,7 @@ beforeEach(() => {
   root = createRoot(container);
   onSelectSection = vi.fn();
   vi.mocked(invoke).mockReset().mockResolvedValue(undefined);
+  await initializeProviderBinaryPaths();
 });
 
 it("switches languages without remounting settings and supports Chinese search", async () => {
@@ -190,7 +192,7 @@ describe("settings pages", () => {
       "gradient-blur",
     );
 
-    await render("providers");
+    await render("providers-cli");
     await render("appearance");
     expect(
       container
@@ -206,7 +208,7 @@ describe("settings pages", () => {
       provider: "codex",
       label: "Wrk",
     });
-    await render("providers");
+    await render("providers-cli");
 
     expect(container.textContent).toContain("Claude Code");
     expect(container.textContent).toContain("Codex");
@@ -295,7 +297,7 @@ describe("settings pages", () => {
       }
       return undefined;
     });
-    await render("providers");
+    await render("providers-cli");
 
     const details = container.querySelector<HTMLButtonElement>(
       '[aria-label="Show Codex CLI details"]',
@@ -358,7 +360,7 @@ describe("settings pages", () => {
     await act(async () => details.click());
     expect(document.body.textContent).toContain("/opt/codex/bin/codex");
     expect(document.body.textContent).toContain("codex-cli 0.156.1");
-    expect(document.body.textContent).toContain("Restart required");
+    expect(document.body.textContent).not.toContain("Restart required");
     await act(async () => details.click());
     const openCodeDetails = container.querySelector<HTMLButtonElement>(
       '[aria-label^="Show OpenCode CLI details"]',
@@ -389,14 +391,12 @@ describe("settings pages", () => {
 
     failAutoCodex = true;
     await save("Codex", "");
-    expect(document.querySelector('[role="alert"]')?.textContent).toContain(
-      "Codex auto-detection failed",
-    );
+    expect(document.querySelector('[role="alert"]')).toBeNull();
     expect(
       JSON.parse(
         localStorage.getItem("monocode.providerBinaryPaths.v1") ?? "{}",
       ).codex,
-    ).toBe("/opt/codex/bin/codex");
+    ).toBeUndefined();
 
     failAutoCodex = false;
     await save("Codex", "");
@@ -417,7 +417,7 @@ describe("settings pages", () => {
       }
       return undefined;
     });
-    await render("providers");
+    await render("providers-cli");
     await act(async () =>
       container
         .querySelector<HTMLButtonElement>(
@@ -627,7 +627,7 @@ describe("settings pages", () => {
   );
 
   it("shows path details for every Agent CLI", async () => {
-    await render("providers");
+    await render("providers-cli");
     for (const harness of HARNESSES) {
       expect(
         container.querySelector(
@@ -638,7 +638,7 @@ describe("settings pages", () => {
   });
 
   it("returns focus to the CLI trigger when the details popover closes", async () => {
-    await render("providers");
+    await render("providers-cli");
     const trigger = container.querySelector<HTMLButtonElement>(
       '[aria-label="Show Codex CLI details"]',
     )!;
@@ -660,7 +660,7 @@ describe("settings pages", () => {
         throw new Error("File manager unavailable");
       return undefined;
     });
-    await render("providers");
+    await render("providers-cli");
     await act(async () =>
       container
         .querySelector<HTMLButtonElement>(
@@ -960,7 +960,7 @@ describe("providers scope inheritance", () => {
       "monocode.hiddenPickerProviders",
       JSON.stringify(["cursor"]),
     );
-    await render("providers");
+    await render("providers-cli");
 
     await selectScope("repo");
 

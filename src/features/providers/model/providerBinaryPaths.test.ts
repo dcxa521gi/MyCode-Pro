@@ -63,24 +63,34 @@ describe("provider binary paths", () => {
     vi.resetModules();
     const firstWindow = await import("./providerBinaryPaths");
     await firstWindow.initializeProviderBinaryPaths();
-    expect(firstWindow.runtimeProviderBinaryPath("cursor")).toBe("/opt/cursor/old");
+    expect(firstWindow.runtimeProviderBinaryPath("cursor")).toBe(
+      "/opt/cursor/old",
+    );
 
     firstWindow.saveProviderBinaryPath("cursor", "/opt/cursor/new");
-    expect(firstWindow.runtimeProviderBinaryPath("cursor")).toBe("/opt/cursor/old");
+    expect(firstWindow.runtimeProviderBinaryPath("cursor")).toBe(
+      "/opt/cursor/old",
+    );
     expect(firstWindow.providerBinaryPathChangePending("cursor")).toBe(true);
 
     vi.resetModules();
     const secondWindow = await import("./providerBinaryPaths");
     await secondWindow.initializeProviderBinaryPaths();
-    expect(secondWindow.runtimeProviderBinaryPath("cursor")).toBe("/opt/cursor/old");
+    expect(secondWindow.runtimeProviderBinaryPath("cursor")).toBe(
+      "/opt/cursor/old",
+    );
     expect(secondWindow.providerBinaryPathChangePending("cursor")).toBe(true);
 
     mocks.invoke.mockResolvedValue({ cursor: "/opt/cursor/new" });
     vi.resetModules();
     const restartedWindow = await import("./providerBinaryPaths");
     await restartedWindow.initializeProviderBinaryPaths();
-    expect(restartedWindow.runtimeProviderBinaryPath("cursor")).toBe("/opt/cursor/new");
-    expect(restartedWindow.providerBinaryPathChangePending("cursor")).toBe(false);
+    expect(restartedWindow.runtimeProviderBinaryPath("cursor")).toBe(
+      "/opt/cursor/new",
+    );
+    expect(restartedWindow.providerBinaryPathChangePending("cursor")).toBe(
+      false,
+    );
   });
 
   it("reports storage failures without claiming the path was saved", () => {
@@ -88,5 +98,38 @@ describe("provider binary paths", () => {
       throw new Error("storage full");
     });
     expect(saveProviderBinaryPath("opencode", "/opt/opencode")).toBe(false);
+  });
+});
+
+describe("applying CLI paths", () => {
+  it("persists a quoted path natively and applies it without restart", async () => {
+    let stored = "{}";
+    vi.mocked(localStorage.getItem).mockImplementation(() => stored);
+    vi.mocked(localStorage.setItem).mockImplementation((_key, value) => {
+      stored = value;
+    });
+    const dispatchEvent = vi.fn();
+    vi.stubGlobal("window", { __TAURI_INTERNALS__: {}, dispatchEvent });
+    mocks.invoke.mockResolvedValue(undefined);
+    const paths = await import("./providerBinaryPaths");
+    expect(
+      await paths.applyProviderBinaryPath("codex", '"C:/MyCode/cli/codex.cmd"'),
+    ).toBe(true);
+    expect(mocks.invoke).toHaveBeenCalledWith("managed_cli_save_path", {
+      provider: "codex",
+      path: "C:/MyCode/cli/codex.cmd",
+    });
+    expect(paths.runtimeProviderBinaryPath("codex")).toBe(
+      "C:/MyCode/cli/codex.cmd",
+    );
+    expect(paths.providerBinaryPathChangePending("codex")).toBe(false);
+    expect(dispatchEvent).toHaveBeenCalledOnce();
+    mocks.invoke.mockRejectedValueOnce(new Error("invalid executable"));
+    expect(await paths.applyProviderBinaryPath("codex", "C:/missing.exe")).toBe(
+      false,
+    );
+    expect(paths.loadProviderBinaryPath("codex")).toBe(
+      "C:/MyCode/cli/codex.cmd",
+    );
   });
 });

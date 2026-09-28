@@ -1,3 +1,4 @@
+import { UsageSummary } from "../../features/settings/ui/UsageHistoryPage";
 import { useTranslation } from "../../shared/i18n";
 import {
   BellOff,
@@ -339,6 +340,15 @@ export function ProjectRail({
         />
       </div>
 
+      <div className="mx-3 mb-3 flex items-center gap-2.5 rounded-xl border border-accent/15 bg-accent/[0.04] px-3 py-2.5">
+        <img src="/mycode-icon.png" alt="" className="size-8 rounded-lg" />
+        <div className="min-w-0">
+          <div className="text-sm font-semibold tracking-wide">MyCode</div>
+          <div className="truncate text-[10px] text-content/45">
+            {t("Create · Build · Automate")}
+          </div>
+        </div>
+      </div>
       {settingsOpen ? (
         <SettingsNav
           section={settingsSection}
@@ -507,6 +517,12 @@ export function ProjectRail({
             groupColors={groupColors}
             groupCustomColors={groupCustomColors}
             groupMascots={groupMascots}
+          />
+          <UsageSummary
+            onOpen={() => {
+              onOpenSettings?.();
+              onSelectSettingsSection?.("usage");
+            }}
           />
           <SidebarUpdateFooter
             update={updateNotice}

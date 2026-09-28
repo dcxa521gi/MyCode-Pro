@@ -1,0 +1,162 @@
+use crate::session_store::SessionStore;
+use serde::Serialize;
+use serde_json::Value;
+use tauri::State;
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UsageRow {
+    session_id: String,
+    title: String,
+    harness: String,
+    model: String,
+    cwd: String,
+    updated_at: i64,
+    input_tokens: u64,
+    output_tokens: u64,
+    cache_read_tokens: u64,
+    cache_write_tokens: u64,
+    measured_turns: usize,
+    turns: usize,
+}
+
+#[tauri::command(async)]
+pub fn usage_history(store: State<'_, SessionStore>) -> Result<Vec<UsageRow>, String> {
+    let conn = store.lock_conn()?;
+    let mut stmt = conn.prepare("SELECT id,title,harness,model,cwd,updated_at,blocks_json FROM sessions ORDER BY updated_at DESC").map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, String>(3)?,
+                row.get::<_, String>(4)?,
+                row.get::<_, i64>(5)?,
+                row.get::<_, String>(6)?,
+            ))
+        })
+        .map_err(|e| e.to_string())?;
+    let mut result = Vec::new();
+    for row in rows {
+        let (session_id, title, harness, model, cwd, updated_at, blocks) =
+            row.map_err(|e| e.to_string())?;
+        let base = UsageRow {
+            session_id,
+            title,
+            harness,
+            model,
+            cwd,
+            updated_at,
+            input_tokens: 0,
+            output_tokens: 0,
+            cache_read_tokens: 0,
+            cache_write_tokens: 0,
+            measured_turns: 0,
+            turns: 0,
+        };
+        let blocks: Vec<Value> = serde_json::from_str(&blocks).unwrap_or_default();
+        result.extend(group_usage(&base, &blocks));
+    }
+    Ok(result)
+}
+
+fn group_usage(base: &UsageRow, blocks: &[Value]) -> Vec<UsageRow> {
+    let mut grouped = std::collections::BTreeMap::<(String, String), UsageRow>::new();
+    for block in blocks.iter().filter(|b| {
+        b.get("role").and_then(Value::as_str) == Some("user")
+            && b.get("draft") != Some(&Value::Bool(true))
+    }) {
+        let harness = block["turnModel"]["harness"]
+            .as_str()
+            .unwrap_or(&base.harness)
+            .to_string();
+        let model = block["turnModel"]["name"]
+            .as_str()
+            .unwrap_or(&base.model)
+            .to_string();
+        let usage = grouped
+            .entry((harness.clone(), model.clone()))
+            .or_insert_with(|| UsageRow {
+                harness,
+                model,
+                ..base.clone()
+            });
+        usage.turns += 1;
+        if let Some(metrics) = block.get("turnMetrics").and_then(Value::as_object) {
+            if [
+                "inputTokens",
+                "outputTokens",
+                "cacheReadTokens",
+                "cacheWriteTokens",
+            ]
+            .iter()
+            .any(|key| metrics.get(*key).and_then(Value::as_u64).is_some())
+            {
+                usage.measured_turns += 1;
+            }
+            usage.input_tokens += metrics
+                .get("inputTokens")
+                .and_then(Value::as_u64)
+                .unwrap_or(0);
+            usage.output_tokens += metrics
+                .get("outputTokens")
+                .and_then(Value::as_u64)
+                .unwrap_or(0);
+            usage.cache_read_tokens += metrics
+                .get("cacheReadTokens")
+                .and_then(Value::as_u64)
+                .unwrap_or(0);
+            usage.cache_write_tokens += metrics
+                .get("cacheWriteTokens")
+                .and_then(Value::as_u64)
+                .unwrap_or(0);
+        }
+    }
+    grouped.into_values().collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+    #[test]
+    fn attributes_each_turn_and_excludes_drafts_and_assistant_metrics() {
+        let base = UsageRow {
+            session_id: "s".into(),
+            title: "task".into(),
+            harness: "codex".into(),
+            model: "fallback".into(),
+            cwd: "/repo".into(),
+            updated_at: 0,
+            input_tokens: 0,
+            output_tokens: 0,
+            cache_read_tokens: 0,
+            cache_write_tokens: 0,
+            measured_turns: 0,
+            turns: 0,
+        };
+        let blocks = vec![
+            json!({"role":"user","turnModel":{"harness":"claude","name":"model-a"},"turnMetrics":{"inputTokens":100,"outputTokens":20}}),
+            json!({"role":"user"}),
+            json!({"role":"user","draft":true,"turnMetrics":{"inputTokens":900}}),
+            json!({"role":"assistant","turnMetrics":{"outputTokens":999}}),
+        ];
+        let rows = group_usage(&base, &blocks);
+        assert_eq!(rows.len(), 2);
+        let measured = rows.iter().find(|r| r.harness == "claude").unwrap();
+        assert_eq!(
+            (
+                measured.input_tokens,
+                measured.output_tokens,
+                measured.measured_turns
+            ),
+            (100, 20, 1)
+        );
+        let unknown = rows.iter().find(|r| r.harness == "codex").unwrap();
+        assert_eq!(
+            (unknown.input_tokens, unknown.measured_turns, unknown.turns),
+            (0, 0, 1)
+        );
+    }
+}

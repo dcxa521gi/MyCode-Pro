@@ -24,6 +24,10 @@ const SECTION_ICONS: Record<SettingsSectionId, IconComponent> = {
   keybindings: Keyboard,
   chat: MessageSquare,
   providers: Bot,
+  "providers-cli": Bot,
+  "im-bots": MessageSquare,
+  "task-import": FolderTree,
+  usage: SlidersHorizontal,
   "local-ai": Sparkles,
   skills: Sparkles,
   inbox: Inbox,
@@ -54,15 +58,40 @@ export function SettingsNav({ section, onSelect, onClose }: Props) {
             <div className="px-2 pb-1 text-xs font-semibold text-content/35">
               {t(group.label)}
             </div>
-            {group.sections.map((item) => (
-              <NavRow
-                key={item.id}
-                label={t(item.label)}
-                icon={SECTION_ICONS[item.id]}
-                active={item.id === section}
-                onClick={() => onSelect(item.id)}
-              />
-            ))}
+            {group.sections
+              .filter((item) => item.id !== "providers-cli")
+              .map((item) =>
+                item.id === "providers" ? (
+                  <div
+                    key={item.id}
+                    className="my-1 rounded-xl border border-content/10 bg-content/[0.025] p-1"
+                  >
+                    <div className="px-2 py-1 text-xs text-content/45">
+                      {t("Providers")}
+                    </div>
+                    <NavRow
+                      label={t("Model providers")}
+                      icon={Bot}
+                      active={section === "providers"}
+                      onClick={() => onSelect("providers")}
+                    />
+                    <NavRow
+                      label={t("CLI agent tools")}
+                      icon={Bot}
+                      active={section === "providers-cli"}
+                      onClick={() => onSelect("providers-cli")}
+                    />
+                  </div>
+                ) : (
+                  <NavRow
+                    key={item.id}
+                    label={t(item.label)}
+                    icon={SECTION_ICONS[item.id]}
+                    active={item.id === section}
+                    onClick={() => onSelect(item.id)}
+                  />
+                ),
+              )}
           </div>
         ))}
       </div>

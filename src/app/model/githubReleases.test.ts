@@ -23,10 +23,10 @@ describe("GitHub release metadata", () => {
     vi.stubGlobal("fetch", fetcher);
     const release = await fetchRelease("0.5.0");
     expect(fetcher.mock.calls[0][0]).toBe(
-      "https://api.github.com/repos/dcxa521gi/MyCode/releases/tags/v0.5.0",
+      "https://api.github.com/repos/dcxa521gi/MyCode-Pro/releases/tags/v0.5.0",
     );
     expect(release.url).toBe(
-      "https://github.com/dcxa521gi/MyCode/releases/tag/v0.5.0",
+      "https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.5.0",
     );
     expect(release.body).toBe("说明");
   });

@@ -24,9 +24,17 @@ function readProviderBinaryPaths(): StoredBinaryPaths {
 const runtimeBinaryPaths = readProviderBinaryPaths();
 
 export async function initializeProviderBinaryPaths(): Promise<void> {
-  const active = await invoke<StoredBinaryPaths>("harness_runtime_binary_paths", {
-    paths: readProviderBinaryPaths(),
-  });
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    const native = await invoke<StoredBinaryPaths>("managed_cli_paths");
+    const migrated = { ...readProviderBinaryPaths(), ...native };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+  }
+  const active = await invoke<StoredBinaryPaths>(
+    "harness_runtime_binary_paths",
+    {
+      paths: readProviderBinaryPaths(),
+    },
+  );
   for (const provider of Object.keys(runtimeBinaryPaths)) {
     delete runtimeBinaryPaths[provider as ConfigurableBinaryProvider];
   }
@@ -50,7 +58,9 @@ export function loadProviderBinaryPath(
 export function providerBinaryPathChangePending(
   provider: ConfigurableBinaryProvider,
 ): boolean {
-  return runtimeProviderBinaryPath(provider) !== loadProviderBinaryPath(provider);
+  return (
+    runtimeProviderBinaryPath(provider) !== loadProviderBinaryPath(provider)
+  );
 }
 
 export function saveProviderBinaryPath(
@@ -63,6 +73,24 @@ export function saveProviderBinaryPath(
     if (value) stored[provider] = value;
     else delete stored[provider];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function applyProviderBinaryPath(
+  provider: ConfigurableBinaryProvider,
+  path: string | null,
+): Promise<boolean> {
+  try {
+    const normalized = path?.trim().replace(/^"(.*)"$/, "$1") || null;
+    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window)
+      await invoke("managed_cli_save_path", { provider, path: normalized });
+    if (!saveProviderBinaryPath(provider, normalized)) return false;
+    if (normalized) runtimeBinaryPaths[provider] = normalized;
+    else delete runtimeBinaryPaths[provider];
+    window.dispatchEvent(new Event("mycode-cli-paths-changed"));
     return true;
   } catch {
     return false;

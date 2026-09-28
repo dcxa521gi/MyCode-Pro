@@ -1,5 +1,5 @@
 /** All update metadata belongs to this fork. No upstream/cloud fallback. */
-export const RELEASE_REPOSITORY = "dcxa521gi/MyCode";
+export const RELEASE_REPOSITORY = "dcxa521gi/MyCode-Pro";
 export const RELEASES_URL = `https://github.com/${RELEASE_REPOSITORY}/releases`;
 
 export type GitHubRelease = {

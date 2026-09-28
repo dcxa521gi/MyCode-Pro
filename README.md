@@ -8,14 +8,18 @@ MyCode 基于 [MonoCode](https://github.com/hardbeat920/monocode)，保留其简
 
 ## 下载
 
-[Windows x64 安装包与更新说明](https://github.com/dcxa521gi/MyCode/releases/latest)
+[Windows x64 安装包与更新说明](https://github.com/dcxa521gi/MyCode-Pro/releases/latest)
 
 设置 → 常规 → 关于中的版本检查与更新内容均来自本仓库的 GitHub Releases。检查到新版本后，点击下载打开该版本发布页；下载完成不代表已经安装，不使用上游更新服务器。
 
 ## 主要能力
 
 - **双语界面**：简体中文 / English；默认按电脑时区选择，手动选择立即生效并保存。标签、操作提示、自动化模板与 Windows 托盘菜单随语言变化。
-- **模型连接**：DeepSeek、通义千问、Kimi、智谱、硅基流动、OpenAI、Anthropic、Gemini、OpenRouter、xAI、Groq、Ollama、LM Studio 和自定义端点模板。支持自定义模型 ID、协议、多个连接和连接测试。
+- **模型连接**：DeepSeek、通义千问、Kimi、智谱、硅基流动、OpenAI、Anthropic、Gemini、OpenRouter、xAI、Groq、Ollama、LM Studio 和自定义端点模板。输入 Key 后自动获取模型，支持勾选模型、自定义模型 ID、协议、多个连接和连接测试。
+- **IM 机器人**：本机直连飞书/Lark、钉钉、企业微信、Telegram、Discord，指定允许用户、工作目录和模型；文本任务进入桌面会话并回传结果。
+- **任务导入**：扫描本机 Claude Code / Codex 历史，选择导入并继续任务，保留原始文件。
+- **用量统计**：左下角显示累计 Token，设置中按代理和任务查看服务商实际返回的用量。
+- **应用内 CLI 管理**：Claude Code、Codex、Pi、OpenCode 支持版本检查及一键安装/更新，路径保存后新会话立即生效。
 - **本地记忆**：个人记忆与按项目区分的知识，可审阅、修改、清空；从下一轮请求开始加入所选模型的上下文。
 - **本地 MCP**：配置本机 stdio 服务，接入新建的 Claude Code 会话，保留既有 CLI 配置。
 - **技能**：保留项目和个人技能管理；新增 `/mycode-documents`、`/mycode-project-memory`、`/mycode-work-report`，用于文档整理、知识梳理和工作报告。
@@ -25,8 +29,8 @@ MyCode 基于 [MonoCode](https://github.com/hardbeat920/monocode)，保留其简
 ## 开始使用
 
 1. 安装并登录需要的代理 CLI。原有 Claude Code、Codex、Cursor、OpenCode、Pi 等入口继续可用。
-2. 使用新增厂商连接时，安装 [Pi](https://pi.dev/)：`npm install -g @earendil-works/pi-coding-agent`。本次验证使用 Pi 0.84.3。
-3. 设置 → 服务商 → 模型连接，选择模板，填写实际账号可用的模型 ID 和 API Key。地址可按服务地区修改。
+2. 设置 → 服务商 → CLI 代理工具，点击 Pi 的“应用内安装 / 更新”。安装在 MyCode 数据目录，无需系统全局安装 Node/npm。
+3. 设置 → 服务商 → 模型服务商，选择模板并输入 API Key，自动获取后选择模型。没有模型目录的接口可手动填写模型 ID。地址可按服务地区修改。
 4. 保存后在**新对话的 Pi 模型列表**选择对应连接。连接测试检查模型目录可达性；实际模型权限和工具调用能力取决于服务商与模型。
 5. 设置 → 记忆与 MCP，编辑个人/项目记忆，或配置本地工具。技能通过输入框的 `/` 选择器调用；自动化在工作区的自动化入口创建。
 
@@ -50,4 +54,4 @@ npm run build:windows
 
 ## 来源与许可
 
-保留 MonoCode 原有 MIT 许可证及作者署名。Cindy 为 Apache-2.0 项目；此版本参考其本地能力设计，在现有 Tauri 架构内实现，没有打包 Cindy 云端、账号或私有后端。服务商名称及标识属于各自所有者。
+保留 MonoCode 原有 MIT 许可证及作者署名。Cindy 为 Apache-2.0 项目；本版本复用其开源 IM 传输包（见 `vendor/cindy-im/NOTICE.md` 和许可证），并在 Tauri 架构内实现模型连接与任务导入流程。没有接入 Cindy 云端、账号或私有后端。服务商名称及标识属于各自所有者。

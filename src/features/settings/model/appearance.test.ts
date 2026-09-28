@@ -73,9 +73,9 @@ describe("accent color setting", () => {
     localStorage.removeItem(ACCENT_COLOR_KEY);
   });
 
-  it("defaults to the original neutral appearance", () => {
-    expect(ACCENT_COLOR_DEFAULT).toBeNull();
-    expect(loadAccentColor()).toBeNull();
+  it("defaults to the MyCode copper appearance", () => {
+    expect(ACCENT_COLOR_DEFAULT).toBe("#c78f64");
+    expect(loadAccentColor()).toBe(ACCENT_COLOR_DEFAULT);
   });
 
   it("persists normalized hex colors and clears default or invalid values", () => {
@@ -88,7 +88,7 @@ describe("accent color setting", () => {
 
     saveAccentColor("tomato");
     expect(localStorage.getItem(ACCENT_COLOR_KEY)).toBeNull();
-    expect(loadAccentColor()).toBeNull();
+    expect(loadAccentColor()).toBe(ACCENT_COLOR_DEFAULT);
   });
 });
 

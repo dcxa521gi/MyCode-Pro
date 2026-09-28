@@ -26,13 +26,13 @@ describe("fork release updates", () => {
   it("compares versions numerically and opens the fork release without claiming installation", async () => {
     mocks.release.mockResolvedValue({
       version: "0.10.0",
-      url: "https://github.com/dcxa521gi/MyCode/releases/tag/v0.10.0",
+      url: "https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.10.0",
     });
     const updater = await import("./updater");
     expect((await updater.runUpdateFlow(false)).phase).toBe("available");
     expect((await updater.installPendingUpdate()).currentVersion).toBe("0.5.0");
     expect(mocks.open).toHaveBeenCalledWith(
-      "https://github.com/dcxa521gi/MyCode/releases/tag/v0.10.0",
+      "https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.10.0",
     );
   });
   it("does not offer a downgrade", async () => {

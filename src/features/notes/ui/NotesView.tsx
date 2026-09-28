@@ -203,7 +203,7 @@ export function NotesView({
     setCreating(true);
     try {
       const note = await createNote({
-        title: t("Untitled"),
+        title: "MyCode",
         body: "",
         ...(cwd && looksLikeProject(cwd) ? { sourceCwd: cwd } : {}),
       });
@@ -570,7 +570,7 @@ function NoteEditor({
 }) {
   const { t } = useTranslation();
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
-  const blank = !note.body.trim() && note.title === "Untitled";
+  const blank = !note.body.trim() && ["Untitled", "未命名", "MyCode"].includes(note.title);
   const [mode, setMode] = useMarkdownMode(note.id);
   type Edits = Partial<Pick<Note, "title" | "body" | "tags">>;
   const [edits, setEdits] = useState<Edits>({});

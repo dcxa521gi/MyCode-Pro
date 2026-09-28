@@ -4,8 +4,8 @@ version.workspace = true
 edition.workspace = true
 description = "MyCode — one UI for every agent harness"
 authors = ["Nick"]
-repository = "https://github.com/dcxa521gi/MyCode"
-homepage = "https://github.com/dcxa521gi/MyCode"
+repository = "https://github.com/dcxa521gi/MyCode-Pro"
+homepage = "https://github.com/dcxa521gi/MyCode-Pro"
 license.workspace = true
 
 [lib]

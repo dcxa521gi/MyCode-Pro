@@ -53,3 +53,6 @@ lerna-debug.log*
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Generated app-owned Node/npm/IM runtime
+src-tauri/runtime/

@@ -29,6 +29,53 @@ export function ModelConnections() {
   const [modelText, setModelText] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [discovered, setDiscovered] = useState<string[]>([]);
+  const [discovering, setDiscovering] = useState(false);
+  const [discoveryRetry, setDiscoveryRetry] = useState(0);
+  useEffect(() => {
+    if (
+      !draft?.baseUrl ||
+      (!key &&
+        !draft.hasKey &&
+        !/^http:\/\/(127\.0\.0\.1|localhost)/.test(draft.baseUrl))
+    )
+      return;
+    let active = true;
+    const timer = setTimeout(() => {
+      setDiscovering(true);
+      setStatus("");
+      void invoke<string[]>("local_ai_discover_models", {
+        connection: draft,
+        apiKey: key || (draft.hasKey ? null : ""),
+      })
+        .then((models) => {
+          if (active) {
+            setDiscovered(models);
+            setModelText((current) =>
+              current.trim() ? current : models.join("\n"),
+            );
+            if (!models.length)
+              setStatus(
+                "No models returned. You can enter model IDs manually.",
+              );
+          }
+        })
+        .catch(() => {
+          if (active)
+            setStatus(
+              "Could not fetch models. Check your key and endpoint, then retry.",
+            );
+        })
+        .finally(() => {
+          if (active) setDiscovering(false);
+        });
+    }, 800);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      setDiscovering(false);
+    };
+  }, [draft?.id, draft?.name, draft?.baseUrl, draft?.api, key, discoveryRetry]);
   const reload = async () => setItems((await loadLocalAIConfig()).connections);
   useEffect(() => {
     void reload().catch((e) => setStatus(String(e)));
@@ -36,6 +83,7 @@ export function ModelConnections() {
   const action = async (work: () => Promise<void>) => {
     setBusy(true);
     setStatus("");
+    setDiscovered([]);
     try {
       await work();
     } catch (e) {
@@ -45,6 +93,7 @@ export function ModelConnections() {
     }
   };
   const edit = (connection: ModelConnection) => {
+    setDiscovered([]);
     setDraft(connection);
     setModelText(connection.models.join("\n"));
     setKey("");
@@ -63,7 +112,7 @@ export function ModelConnections() {
       </div>
       <p className="mb-4 text-xs leading-relaxed text-content/55">
         {t(
-          "Connect your own API or local model through Pi. Install Pi below, then select its models in a new conversation. No Cindy account is required.",
+          "Connect your own API or local model through Pi. Install Pi in CLI agent tool providers, then select its models in a new conversation. No Cindy account is required.",
         )}
       </p>
       {items.map((item) => (
@@ -143,7 +192,10 @@ export function ModelConnections() {
               defaultValue=""
               onChange={(e) => {
                 const preset = CONNECTION_PRESETS[Number(e.target.value)];
-                setDraft({ ...draft, ...preset });
+                setDraft({ ...draft, ...preset, hasKey: false });
+                setKey("");
+                setModelText("");
+                setDiscovered([]);
               }}
             >
               <option value="" disabled>
@@ -174,7 +226,11 @@ export function ModelConnections() {
               type="url"
               className={inputClass}
               value={draft.baseUrl}
-              onChange={(e) => setDraft({ ...draft, baseUrl: e.target.value })}
+              onChange={(e) => {
+                setDraft({ ...draft, baseUrl: e.target.value, hasKey: false });
+                setKey("");
+                setDiscovered([]);
+              }}
             />
           </label>
           <label className="grid gap-1 text-xs">
@@ -210,9 +266,53 @@ export function ModelConnections() {
                   ? "Leave blank to keep the saved key"
                   : "Optional for local models",
               )}
-              onChange={(e) => setKey(e.target.value)}
+              onChange={(e) => {
+                setKey(e.target.value);
+                setModelText("");
+              }}
             />
           </label>
+          <div className="flex items-center justify-between text-xs">
+            <span>
+              {t(discovering ? "Fetching models…" : "Available models")}
+            </span>
+            <SecondaryButton
+              disabled={discovering || busy}
+              onClick={() => setDiscoveryRetry((n) => n + 1)}
+            >
+              {t("Refresh models")}
+            </SecondaryButton>
+          </div>
+          {discovered.length > 0 && (
+            <div className="grid max-h-48 grid-cols-2 gap-2 overflow-y-auto rounded-lg border border-content/10 p-3">
+              {discovered.map((id) => (
+                <label
+                  key={id}
+                  className="flex min-w-0 items-center gap-2 text-xs"
+                >
+                  <input
+                    type="checkbox"
+                    checked={modelText.split("\n").includes(id)}
+                    onChange={(e) =>
+                      setModelText((current) =>
+                        e.target.checked
+                          ? [...current.split("\n").filter(Boolean), id].join(
+                              "\n",
+                            )
+                          : current
+                              .split("\n")
+                              .filter((m) => m !== id)
+                              .join("\n"),
+                      )
+                    }
+                  />
+                  <span className="truncate" title={id}>
+                    {id}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
           <label className="grid gap-1 text-xs">
             {t("Model IDs, one per line")}
             <textarea

@@ -18,17 +18,24 @@
     ]
   },
   "bundle": {
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "createUpdaterArtifacts": false,
     "category": "DeveloperTool",
     "windows": {
       "nsis": {
-        "languages": ["English", "SimpChinese"],
+        "languages": [
+          "English",
+          "SimpChinese"
+        ],
         "displayLanguageSelector": true,
         "installMode": "currentUser",
         "installerIcon": "icons/icon.ico"
       }
     },
-    "resources": null
+    "resources": {
+      "runtime/": "runtime/"
+    }
   }
 }

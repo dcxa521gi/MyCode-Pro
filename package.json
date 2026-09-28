@@ -1,12 +1,12 @@
 {
   "name": "mycode-desktop",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:stable": "vite --mode stable",
-    "build": "tsc && vite build",
+    "build": "node scripts/build-runtime.mjs && tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -18,7 +18,9 @@
     "tauri:stable": "tauri dev --no-watch --config src-tauri/tauri.stable.conf.json",
     "setup:linux:deb": "bash scripts/install-linux-deps-debian.sh",
     "build:linux": "tauri build --bundles deb,appimage",
-    "build:windows": "set \"RUSTUP_TOOLCHAIN=stable-x86_64-pc-windows-msvc\" && tauri build --bundles nsis && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-windows-binary.ps1"
+    "build:windows": "set \"RUSTUP_TOOLCHAIN=stable-x86_64-pc-windows-msvc\" && tauri build --bundles nsis && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-windows-binary.ps1",
+    "build:runtime": "node scripts/build-runtime.mjs",
+    "predev": "node scripts/build-runtime.mjs"
   },
   "dependencies": {
     "@codemirror/lang-cpp": "^6.0.3",
@@ -40,6 +42,7 @@
     "@codemirror/search": "^6.5.11",
     "@hugeicons/core-free-icons": "^4.3.0",
     "@hugeicons/react": "^1.1.10",
+    "@larksuiteoapi/node-sdk": "^1.60.0",
     "@lezer/highlight": "^1.2.3",
     "@streamdown/code": "^1.1.1",
     "@streamdown/mermaid": "^1.0.2",
@@ -48,10 +51,13 @@
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-process": "^2.3.1",
     "@tauri-apps/plugin-updater": "^2.10.1",
+    "@wecom/aibot-node-sdk": "^1.0.7",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
     "codemirror": "^6.0.2",
     "cuelume": "^0.2.2",
+    "dingtalk-stream": "^2.1.5",
+    "discord.js": "^14.16.3",
     "prettier": "^3.9.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

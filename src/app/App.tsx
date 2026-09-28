@@ -6940,6 +6940,85 @@ export default function App({
     [appendTab, focusOpenSession, submitSession],
   );
 
+  const imSessions = useRef(new Map<string, string>());
+  useEffect(() => {
+    let disposed = false;
+    let unlisten: (() => void) | undefined;
+    type IncomingIM = {
+      receipt: string;
+      channel: string;
+      senderId: string;
+      text: string;
+      route: { cwd: string; harness: HarnessId; model: string };
+    };
+    void listen<IncomingIM>("mycode-im-message", (event) => {
+      const message = event.payload;
+      const reply = (text: string) =>
+        invoke("im_bridge_request", {
+          request: {
+            action: "reply",
+            channel: message.channel,
+            receipt: message.receipt,
+            text,
+          },
+        }).catch(() => undefined);
+      const lane = `${message.channel}:${message.senderId}:${message.route.cwd}:${message.route.harness}:${message.route.model}`;
+      let session = sessionsRef.current.find(
+        (s) => s.id === imSessions.current.get(lane),
+      );
+      if (session?.busy) {
+        void reply(
+          "MyCode: 当前任务仍在运行，请稍后再试。 / This task is still running.",
+        );
+        return;
+      }
+      if (!session) {
+        session = {
+          ...newSession(
+            message.route.harness,
+            message.route.cwd,
+            message.route.model,
+            "supervised",
+          ),
+          title: `${message.channel} · ${message.text.slice(0, 48)}`,
+        };
+        imSessions.current.set(lane, session.id);
+        sessionsRef.current = [...sessionsRef.current, session];
+        setSessions(sessionsRef.current);
+        appendTab(newTab(session.id), session.cwd);
+        setRecents(rememberProject(session.cwd));
+      }
+      const accepted = submitSession(session.id, message.text, [], {
+        onSettled: (outcome) => {
+          void reply(
+            outcome.status === "completed"
+              ? outcome.text || "MyCode: 已完成 / Completed"
+              : "MyCode: 任务未完成，请在桌面应用查看。 / Check the task in the desktop app.",
+          );
+        },
+      });
+      void Promise.resolve(accepted)
+        .then((ok) => {
+          if (!ok)
+            return reply(
+              "MyCode: 暂时无法启动任务，请检查桌面配置。 / Could not start this task.",
+            );
+        })
+        .catch(() =>
+          reply("MyCode: 无法启动任务 / Could not start this task."),
+        );
+    })
+      .then((fn) => {
+        if (disposed) fn();
+        else unlisten = fn;
+      })
+      .catch(() => undefined);
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, [appendTab, submitSession]);
+
   const launchQuickSession = useCallback(
     (launch: QuickLaunch, deliveryId: string) =>
       acceptQuickLaunch(launch, deliveryId, {

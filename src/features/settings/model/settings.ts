@@ -24,6 +24,10 @@ export type SettingsSectionId =
   | "keybindings"
   | "chat"
   | "providers"
+  | "providers-cli"
+  | "usage"
+  | "task-import"
+  | "im-bots"
   | "local-ai"
   | "skills"
   | "inbox"
@@ -91,6 +95,36 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
       "Provider accounts, agent CLIs MyCode can drive, and the model new sessions start with.",
     keywords:
       "account sign in login model harness claude codex gemini cli default hooks",
+  },
+  {
+    id: "providers-cli",
+    group: "agents",
+    label: "CLI agent tools",
+    description: "Install, update and configure agent tools for MyCode.",
+    keywords: "cli install update path 安装 更新 路径",
+  },
+  {
+    id: "im-bots",
+    group: "agents",
+    label: "IM bots",
+    description: "Connect your own messaging bots directly from this computer.",
+    keywords:
+      "telegram discord feishu dingtalk wecom wechat 机器人 飞书 钉钉 企业微信 微信",
+  },
+  {
+    id: "task-import",
+    group: "workspace",
+    label: "Task import",
+    description:
+      "Import local Claude and Codex conversations without changing their original files.",
+    keywords: "import history claude codex 导入 历史",
+  },
+  {
+    id: "usage",
+    group: "app",
+    label: "Usage history",
+    description: "Provider-reported token usage by agent and task.",
+    keywords: "tokens usage task agent 用量 任务",
   },
   {
     id: "local-ai",
@@ -354,20 +388,20 @@ export const SETTINGS_INDEX: SettingsEntry[] = [
   },
   {
     id: "agent-clis",
-    section: "providers",
+    section: "providers-cli",
     label: "Agent CLIs",
     keywords:
       "codex opencode cursor grok pi omp fx hermes antigravity binary path",
   },
   {
     id: "provider-accounts",
-    section: "providers",
+    section: "providers-cli",
     label: "Provider accounts",
     keywords: "account sign in login rename remove delete credentials profile",
   },
   {
     id: "claude-hooks",
-    section: "providers",
+    section: "providers-cli",
     label: "Claude Code hooks",
     keywords: "pretooluse settings.json block command notification",
   },

@@ -334,9 +334,7 @@ fn initialize_runtime_binary_paths(
     let mut runtime = runtime
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
-    if runtime.is_none() {
-        *runtime = Some(paths);
-    }
+    *runtime = Some(paths);
     runtime.clone().unwrap_or_default()
 }
 
@@ -1572,7 +1570,10 @@ fn configured_binary_fingerprint(path: &Path) -> Option<String> {
     }
 }
 
-fn resolve_harness_binary_override(provider: &str, binary_path: &str) -> Result<PathBuf, String> {
+pub(crate) fn resolve_harness_binary_override(
+    provider: &str,
+    binary_path: &str,
+) -> Result<PathBuf, String> {
     if provider == "antigravity" && cfg!(windows) {
         return Err("Antigravity ACP server overrides are not supported on Windows.".into());
     }
@@ -1675,14 +1676,14 @@ fn resolve_configured_harness_binary(
     provider: &str,
     names: &[&str],
 ) -> Result<PathBuf, String> {
-    let binary_path = binary_path.trim();
+    let binary_path = binary_path.trim().trim_matches('"');
     if binary_path.is_empty() {
         return Err(format!("Configured {provider} binary path is empty."));
     }
     if binary_path.contains('\0') {
         return Err(format!("Invalid configured {provider} binary path."));
     }
-    if !Path::new(binary_path).is_absolute() {
+    if !expand_home(binary_path).is_absolute() {
         return Err(format!(
             "Configured {provider} binary path must be absolute."
         ));
@@ -2425,6 +2426,7 @@ pub(crate) fn apply_gui_env(cmd: &mut Command) {
 
 fn prepare_child(cmd: &mut Command, command: &str) {
     apply_gui_env(cmd);
+    crate::managed_cli::apply_path(cmd);
     if command_basename(command) == "fx" {
         apply_fx_env(cmd);
     }
@@ -2884,13 +2886,13 @@ mod tests {
     }
 
     #[test]
-    fn runtime_binary_paths_stay_fixed_for_the_process() {
+    fn runtime_binary_paths_update_for_new_sessions() {
         let runtime = Mutex::new(None);
         let old = HashMap::from([("cursor".to_string(), "/old".to_string())]);
         let new = HashMap::from([("cursor".to_string(), "/new".to_string())]);
 
         assert_eq!(initialize_runtime_binary_paths(&runtime, old.clone()), old);
-        assert_eq!(initialize_runtime_binary_paths(&runtime, new), old);
+        assert_eq!(initialize_runtime_binary_paths(&runtime, new.clone()), new);
     }
 
     #[cfg(unix)]

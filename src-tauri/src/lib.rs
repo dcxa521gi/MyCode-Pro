@@ -12,6 +12,7 @@ mod external_editor;
 mod fs;
 mod gitlab;
 mod harness;
+mod im_bridge;
 mod inbox_media;
 mod jira;
 mod language;
@@ -22,6 +23,7 @@ mod local_ai;
 mod macos;
 #[cfg(target_os = "macos")]
 mod macos_background;
+mod managed_cli;
 mod menu;
 mod notes;
 mod notifications;
@@ -35,8 +37,10 @@ mod reminders;
 mod search;
 mod session_store;
 mod skills;
+mod task_import;
 #[cfg(target_os = "windows")]
 mod tray;
+mod usage_history;
 mod window;
 mod window_transfer;
 #[cfg(windows)]
@@ -221,9 +225,11 @@ pub fn run() {
                 .build(),
         )
         .manage(harness::HarnessHost::new())
+        .manage(im_bridge::ImBridge::default())
         .manage(pty::PtyHost::new())
         .manage(window_transfer::WindowTransferState::new())
         .setup(|app| {
+            managed_cli::init(app.handle());
             harness::reap_orphaned_harness_processes();
             session_store::init(app.handle())?;
             control::init(app.handle())?;
@@ -279,12 +285,22 @@ pub fn run() {
             reminders::reminder_open,
             automations::automations_list,
             local_ai::local_ai_config,
+            usage_history::usage_history,
+            task_import::task_import_scan,
+            task_import::task_import_read,
+            task_import::task_import_commit,
+            managed_cli::managed_cli_paths,
+            managed_cli::managed_cli_save_path,
+            managed_cli::managed_cli_latest,
+            managed_cli::managed_cli_install,
+            im_bridge::im_bridge_request,
             language::app_set_locale,
             local_ai::local_ai_save_connection,
             local_ai::local_ai_remove_connection,
             local_ai::local_ai_save_context,
             local_ai::local_ai_memory,
             local_ai::local_ai_test_connection,
+            local_ai::local_ai_discover_models,
             automations::automations_upsert,
             automations::automations_delete,
             automations::automation_runs_list,

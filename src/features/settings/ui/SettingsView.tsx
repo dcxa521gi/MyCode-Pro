@@ -5,6 +5,11 @@ import {
   type LanguagePreference,
 } from "../../../shared/i18n";
 import { ModelConnections } from "../../providers/ui/ModelConnections";
+import { UsageHistoryPage } from "./UsageHistoryPage";
+import { TaskImportPage } from "./TaskImportPage";
+import { IMBotsPage } from "./IMBotsPage";
+import { applyProviderBinaryPath } from "../../providers/model/providerBinaryPaths";
+import { ManagedCLIControls } from "../../providers/ui/ManagedCLIControls";
 import { LocalCapabilitiesPage } from "./LocalCapabilitiesPage";
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -160,7 +165,6 @@ import {
 import {
   loadProviderBinaryPath,
   providerBinaryPathChangePending,
-  saveProviderBinaryPath,
   type ConfigurableBinaryProvider,
 } from "../../providers/model/providerBinaryPaths";
 import {
@@ -544,9 +548,17 @@ export function SettingsView({
                 <LocalCapabilitiesPage key={cwd} cwd={cwd} />
               ) : null}
               {section === "keybindings" ? <KeybindingsPage /> : null}
-              {section === "providers" ? (
+              {section === "providers" ? <ModelConnections /> : null}
+              {section === "providers-cli" ? (
                 <ProvidersPage cwd={cwd} recents={recents} />
               ) : null}
+              {section === "usage" ? <UsageHistoryPage /> : null}
+              {section === "task-import" ? (
+                <TaskImportPage
+                  onOpenSession={(session) => onOpenSession?.(session.id)}
+                />
+              ) : null}
+              {section === "im-bots" ? <IMBotsPage cwd={cwd} /> : null}
               {section === "worktrees" ? (
                 <WorktreesPage
                   cwd={cwd}
@@ -2933,7 +2945,7 @@ function ProviderBinaryControl({
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (working) return;
-    const value = draft.trim();
+    const value = draft.trim().replace(/^"(.*)"$/, "$1");
     if (!value) {
       await useAuto();
       return;
@@ -2945,26 +2957,27 @@ function ProviderBinaryControl({
       setError(validationError);
       return;
     }
-    if (!saveProviderBinaryPath(provider, value)) {
+    if (!(await applyProviderBinaryPath(provider, value))) {
       setInspection(undefined);
       setError("Could not save the binary path.");
       return;
     }
     setOverridden(true);
+    void probeHarnessAvailability({ force: true });
     dismiss(true);
   };
 
   const useAuto = async () => {
     if (working) return;
-    const next = await inspect(null);
-    if (!next || binaryInspectionError(provider, next)) return;
-    if (!saveProviderBinaryPath(provider, null)) {
+    if (!(await applyProviderBinaryPath(provider, null))) {
       setInspection(undefined);
       setError("Could not save the binary path.");
       return;
     }
     setDraft("");
     setOverridden(false);
+    await inspect(null);
+    void probeHarnessAvailability({ force: true });
     dismiss(true);
   };
 
@@ -3220,7 +3233,7 @@ function ProvidersPage({
     const options: { value: string; label: string; icon?: ReactNode }[] = [
       {
         value: GLOBAL_PROVIDER_SCOPE,
-        label: t("Global"),
+        label: t("MyCode app"),
         icon: (
           <Globe
             className="size-3.5 shrink-0 text-content/60"
@@ -3309,7 +3322,6 @@ function ProvidersPage({
   return (
     <>
       <ProviderAccountsSettings />
-      <ModelConnections />
 
       <Group
         id="agent-clis"
@@ -3773,6 +3785,7 @@ function ProviderRow({
           <HarnessIcon harness={harness} className="size-4 shrink-0" />
           {HARNESS_TITLE[harness]}
           <ProviderBinaryControl provider={harness} />
+          <ManagedCLIControls provider={harness} />
           {isDefault ? (
             <span className="rounded-full bg-content/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-content/60">
               {t("Default")}

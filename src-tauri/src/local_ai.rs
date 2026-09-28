@@ -86,7 +86,7 @@ fn project_key(cwd: &str) -> String {
 }
 
 #[cfg(windows)]
-fn protect(value: &str, decrypt: bool) -> Result<String, String> {
+pub(crate) fn protect(value: &str, decrypt: bool) -> Result<String, String> {
     use base64::{engine::general_purpose::STANDARD, Engine};
     use windows_sys::Win32::{
         Foundation::LocalFree,
@@ -149,7 +149,7 @@ fn protect(value: &str, decrypt: bool) -> Result<String, String> {
 }
 
 #[cfg(not(windows))]
-fn protect(value: &str, _decrypt: bool) -> Result<String, String> {
+pub(crate) fn protect(value: &str, _decrypt: bool) -> Result<String, String> {
     Ok(value.to_owned())
 }
 
@@ -219,7 +219,11 @@ pub fn local_ai_save_connection(
         None => config
             .connections
             .iter()
-            .find(|c| c.id == connection.id)
+            .find(|c| {
+                c.id == connection.id
+                    && c.base_url == connection.base_url
+                    && c.api == connection.api
+            })
             .map(|c| c.secret.clone())
             .unwrap_or_default(),
     };
@@ -357,8 +361,39 @@ pub fn local_ai_test_connection(app: AppHandle, id: String) -> Result<usize, Str
             .find(|c| c.id == id)
             .ok_or("Connection not found")?
     };
+    Ok(fetch_models(&connection, None)?.len())
+}
+
+#[tauri::command(async)]
+pub fn local_ai_discover_models(
+    app: AppHandle,
+    mut connection: Connection,
+    api_key: Option<String>,
+) -> Result<Vec<String>, String> {
+    // Discovery precedes model selection. Validate the endpoint without requiring a model yet.
+    connection.models = vec!["discovery".into()];
     validate(&connection)?;
-    let key = if connection.secret.is_empty() {
+    if api_key.is_none() {
+        let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
+        connection.secret = load(&app)?
+            .connections
+            .iter()
+            .find(|c| {
+                c.id == connection.id
+                    && c.base_url == connection.base_url
+                    && c.api == connection.api
+            })
+            .map(|c| c.secret.clone())
+            .unwrap_or_default();
+    }
+    fetch_models(&connection, api_key)
+}
+
+fn fetch_models(connection: &Connection, api_key: Option<String>) -> Result<Vec<String>, String> {
+    validate(connection)?;
+    let key = if let Some(key) = api_key {
+        key
+    } else if connection.secret.is_empty() {
         String::new()
     } else {
         protect(&connection.secret, true)?
@@ -374,33 +409,92 @@ pub fn local_ai_test_connection(app: AppHandle, id: String) -> Result<usize, Str
         .timeout(Duration::from_secs(20))
         .redirects(0)
         .build();
-    let mut request = agent.get(&endpoint);
-    if connection.api == "anthropic-messages" {
-        request = request
-            .set("x-api-key", &key)
-            .set("anthropic-version", "2023-06-01");
-    } else if connection.api == "google-generative-ai" {
-        request = request.set("x-goog-api-key", &key);
-    } else if !key.is_empty() {
-        request = request.set("Authorization", &format!("Bearer {key}"));
-    }
-    let response = request.call().map_err(|e| match e {
-        ureq::Error::Status(code, _) => format!("HTTP {code}"),
-        _ => "Connection failed".into(),
-    })?;
-    let text = response
-        .into_string()
-        .map_err(|_| "Invalid model response")?;
-    let value: Value = serde_json::from_str(&text).map_err(|_| "Invalid model response")?;
-    value
-        .get(if connection.api == "google-generative-ai" {
-            "models"
+    let mut all = std::collections::BTreeSet::new();
+    let mut cursor = String::new();
+    for _ in 0..50 {
+        let mut request = agent.get(&endpoint);
+        if connection.api == "anthropic-messages" {
+            request = request
+                .set("x-api-key", &key)
+                .set("anthropic-version", "2023-06-01")
+                .query("limit", "1000");
+            if !cursor.is_empty() {
+                request = request.query("after_id", &cursor);
+            }
+        } else if connection.api == "google-generative-ai" {
+            request = request
+                .set("x-goog-api-key", &key)
+                .query("pageSize", "1000");
+            if !cursor.is_empty() {
+                request = request.query("pageToken", &cursor);
+            }
+        } else if !key.is_empty() {
+            request = request.set("Authorization", &format!("Bearer {key}"));
+        }
+        let response = request.call().map_err(|e| match e {
+            ureq::Error::Status(code, _) => format!("HTTP {code}"),
+            _ => "Connection failed".into(),
+        })?;
+        let text = response
+            .into_string()
+            .map_err(|_| "Invalid model response")?;
+        let value: Value = serde_json::from_str(&text).map_err(|_| "Invalid model response")?;
+        all.extend(parse_model_ids(&value)?);
+        let next = if connection.api == "google-generative-ai" {
+            value["nextPageToken"].as_str()
+        } else if connection.api == "anthropic-messages"
+            && value["has_more"].as_bool() == Some(true)
+        {
+            value["last_id"].as_str()
         } else {
-            "data"
-        })
-        .and_then(Value::as_array)
-        .map(Vec::len)
-        .ok_or("Invalid model list".into())
+            None
+        };
+        match next.filter(|v| !v.is_empty()) {
+            None => return Ok(all.into_iter().collect()),
+            Some(next) if next != cursor => cursor = next.to_string(),
+            _ => return Err("Invalid model pagination".into()),
+        }
+    }
+    Err("Model list exceeds pagination limit".into())
+}
+
+fn parse_model_ids(value: &Value) -> Result<Vec<String>, String> {
+    let list = value
+        .as_array()
+        .or_else(|| value.get("data").and_then(Value::as_array))
+        .or_else(|| value.get("models").and_then(Value::as_array))
+        .ok_or("Invalid model list")?;
+    let mut models = Vec::new();
+    for item in list {
+        if let Some(methods) = item
+            .get("supportedGenerationMethods")
+            .and_then(Value::as_array)
+        {
+            if !methods
+                .iter()
+                .any(|m| m.as_str() == Some("generateContent"))
+            {
+                continue;
+            }
+        }
+        let id = item
+            .as_str()
+            .or_else(|| item.get("id").and_then(Value::as_str))
+            .or_else(|| item.get("slug").and_then(Value::as_str))
+            .or_else(|| item.get("name").and_then(Value::as_str));
+        if let Some(id) = id {
+            let id = id.strip_prefix("models/").unwrap_or(id).trim();
+            if !id.is_empty()
+                && id.len() <= 200
+                && !id.chars().any(char::is_control)
+                && !models.iter().any(|m| m == id)
+            {
+                models.push(id.to_string());
+            }
+        }
+    }
+    models.sort();
+    Ok(models)
 }
 
 #[cfg(test)]
@@ -438,6 +532,15 @@ mod tests {
         value.id = "valid".into();
         value.api = "unknown".into();
         assert!(validate(&value).is_err());
+    }
+    #[test]
+    fn model_discovery_normalizes_deduplicates_and_filters_generation() {
+        assert_eq!(
+            parse_model_ids(&json!({"data":[{"id":"b"},{"id":"a"},{"id":"b"}]})).unwrap(),
+            vec!["a", "b"]
+        );
+        assert_eq!(parse_model_ids(&json!({"models":[{"name":"models/gemini","supportedGenerationMethods":["generateContent"]},{"name":"models/embed","supportedGenerationMethods":["embedContent"]}]})).unwrap(),vec!["gemini"]);
+        assert!(parse_model_ids(&json!({"error":"unauthorized"})).is_err());
     }
     #[cfg(windows)]
     #[test]

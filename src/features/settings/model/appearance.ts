@@ -77,7 +77,7 @@ export const NEW_THREAD_BACKGROUND_EFFECT_DESCRIPTIONS: Record<
 
 export const THEME_PREFERENCE_DEFAULT: ThemePreference = "dark";
 
-export const ACCENT_COLOR_DEFAULT = null;
+export const ACCENT_COLOR_DEFAULT = "#c78f64";
 
 /** Fired on `window` whenever the color scheme flips (detail: ColorScheme). */
 export const SCHEME_CHANGE_EVENT = "monocode:schemechange";
@@ -111,11 +111,11 @@ const DEFAULT_SIDEBAR_TAB_ORDER: SidebarTabId[] = [
 
 export const THEME_HUE_MIN = 0;
 export const THEME_HUE_MAX = 360;
-export const THEME_HUE_DEFAULT = 240;
+export const THEME_HUE_DEFAULT = 28;
 
 export const THEME_SATURATION_MIN = 0;
 export const THEME_SATURATION_MAX = 100;
-export const THEME_SATURATION_DEFAULT = 0;
+export const THEME_SATURATION_DEFAULT = 7;
 
 export const THEME_DARK_LIGHTNESS_MIN = 0;
 export const THEME_DARK_LIGHTNESS_MAX = 30;
@@ -196,7 +196,8 @@ export function loadAccentColor(): string | null {
 export function saveAccentColor(value: string | null) {
   try {
     const next = normalizeAccentColor(value);
-    if (next == null) localStorage.removeItem(ACCENT_COLOR_KEY);
+    if (next == null || next === ACCENT_COLOR_DEFAULT)
+      localStorage.removeItem(ACCENT_COLOR_KEY);
     else localStorage.setItem(ACCENT_COLOR_KEY, next);
   } catch {
     // private mode / quota
