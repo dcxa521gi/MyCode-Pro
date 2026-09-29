@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useSyncExternalStore, type SetStateAction } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "../../../shared/i18n";
 import type { SessionSummary } from "../../sessions/data/sessionStore";
@@ -10,18 +10,59 @@ type Candidate = {
   turns: number;
   existing: boolean;
 };
+// The scan belongs to this application session, not the settings page lifetime.
+// Keep paths in memory instead of persisting conversation metadata to web storage.
+type ImportState = {
+  items: Candidate[];
+  selected: Set<string>;
+  busy: boolean;
+  status: string;
+  filter: string;
+  imported: SessionSummary[];
+};
+let snapshot: ImportState = {
+  items: [],
+  selected: new Set(),
+  busy: false,
+  status: "",
+  filter: "",
+  imported: [],
+};
+const listeners = new Set<() => void>();
+const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
+function update<K extends keyof ImportState>(
+  key: K,
+  value: SetStateAction<ImportState[K]>,
+) {
+  const next =
+    typeof value === "function"
+      ? (value as (previous: ImportState[K]) => ImportState[K])(snapshot[key])
+      : value;
+  snapshot = { ...snapshot, [key]: next };
+  listeners.forEach((listener) => listener());
+}
 export function TaskImportPage({
   onOpenSession,
 }: {
   onOpenSession?: (session: SessionSummary) => void;
 }) {
   const { t } = useTranslation();
-  const [items, setItems] = useState<Candidate[]>([]);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState("");
-  const [filter, setFilter] = useState("");
-  const [imported, setImported] = useState<SessionSummary[]>([]);
+  const state = useSyncExternalStore(subscribe, () => snapshot);
+  const { items, selected, busy, status, filter, imported } = state;
+  const setItems = (value: SetStateAction<Candidate[]>) =>
+    update("items", value);
+  const setSelected = (value: SetStateAction<Set<string>>) =>
+    update("selected", value);
+  const setBusy = (value: boolean) => update("busy", value);
+  const setStatus = (value: string) => update("status", value);
+  const setFilter = (value: string) => update("filter", value);
+  const setImported = (value: SetStateAction<SessionSummary[]>) =>
+    update("imported", value);
   const scan = async () => {
     setBusy(true);
     setStatus("");
@@ -82,16 +123,27 @@ export function TaskImportPage({
         <button disabled={busy || !selected.size} onClick={() => void run()}>
           {t("Import selected")} ({selected.size})
         </button>
-        <select
+        <div
+          role="radiogroup"
           aria-label={t("Source")}
-          className="rounded-lg border border-content/15 bg-surface px-2"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+          className="flex flex-wrap gap-1 rounded-full bg-content/5 p-1"
         >
-          <option value="">{t("All agents")}</option>
-          <option>claude</option>
-          <option>codex</option>
-        </select>
+          {[
+            ["", t("All agents")],
+            ["claude", "Claude"],
+            ["codex", "Codex"],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              role="radio"
+              aria-checked={filter === value}
+              className={`rounded-full px-3 py-1 text-xs transition-colors ${filter === value ? "bg-accent text-black" : "text-content/70 hover:bg-content/10"}`}
+              onClick={() => setFilter(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       {status && <p role="status">{t(status)}</p>}
       <div className="space-y-2">

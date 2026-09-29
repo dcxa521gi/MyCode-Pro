@@ -1,3 +1,4 @@
+import { useWorkspaceSide, setWorkspaceSide } from "../model/workspaceSide";
 import { getLocale as uiLocale } from "../../../shared/i18n";
 import {
   useTranslation,
@@ -727,6 +728,7 @@ function GeneralPage({
   onOpenWhatsNew: (version: string) => void;
 }) {
   const { t, preference, setLanguage } = useTranslation();
+  const workspaceSide = useWorkspaceSide();
   const [soundsEnabled, setSoundsEnabled] = useState(loadSoundsEnabled);
   const [notificationsEnabled, setNotificationsEnabled] = useState(
     loadNotificationsEnabled,
@@ -884,6 +886,19 @@ function GeneralPage({
         title={t("Workspace")}
         description={t("How project navigation and workspace tabs behave.")}
       >
+        <Row label={t("Workspace position")}>
+          <Select
+            label={t("Workspace position")}
+            value={workspaceSide}
+            options={[
+              { value: "left", label: t("Left") },
+              { value: "right", label: t("Right") },
+            ]}
+            onChange={(value) =>
+              setWorkspaceSide(value === "right" ? "right" : "left")
+            }
+          />
+        </Row>
         <Row
           id="file-tabs"
           label={t("File tabs")}
@@ -3250,7 +3265,7 @@ function ProvidersPage({
       seen.add(key);
       options.push({
         value: path,
-        label: projectName(path),
+        label: `${t("Project")}: ${projectName(path)}`,
         icon: <ProjectScopeIcon path={path} />,
       });
     }
@@ -3338,7 +3353,7 @@ function ProvidersPage({
           project
             ? `These defaults apply to ${projectName(project)} only. A provider with Show in picker off is also kept out of new conversations started in this project. CLI paths remain global for MyCode.`
             : t(
-                "A provider is listed as installed once its CLI is found on your PATH. Uninstalled CLIs stay listed but are left out of the model picker, as are installed ones with Show in picker off. The model beside a provider is what its new conversations start with; Use by default picks the provider itself. CLI paths are global for MyCode and apply to every project.",
+                "Choose MyCode app or the globally installed CLI for each agent. Project overrides control model defaults separately.",
               )
         }
       >
@@ -3781,7 +3796,7 @@ function ProviderRow({
   return (
     <Row
       label={
-        <span className="flex items-center gap-2">
+        <span className="flex flex-wrap items-center gap-2">
           <HarnessIcon harness={harness} className="size-4 shrink-0" />
           {HARNESS_TITLE[harness]}
           <ProviderBinaryControl provider={harness} />

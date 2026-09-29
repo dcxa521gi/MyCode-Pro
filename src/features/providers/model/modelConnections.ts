@@ -1,3 +1,4 @@
+import { setConnectionModels } from "../../sessions/model/models";
 import { invoke } from "@tauri-apps/api/core";
 
 export type ModelConnection = {
@@ -8,6 +9,7 @@ export type ModelConnection = {
   models: string[];
   enabled: boolean;
   hasKey: boolean;
+  primaryModel?: string;
 };
 export type LocalAIConfig = {
   connections: ModelConnection[];
@@ -15,7 +17,11 @@ export type LocalAIConfig = {
   projectMemories: Record<string, string>;
   mcpServers: Record<string, unknown> | null;
 };
-export const loadLocalAIConfig = () => invoke<LocalAIConfig>("local_ai_config");
+export const loadLocalAIConfig = async () => {
+  const config = await invoke<LocalAIConfig>("local_ai_config");
+  setConnectionModels(config.connections);
+  return config;
+};
 
 /** Endpoint templates only; model IDs are supplied by the user's own account. */
 export const CONNECTION_PRESETS = [

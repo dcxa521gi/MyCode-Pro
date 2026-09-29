@@ -1,3 +1,5 @@
+import { ensureMimoRegistered } from "../providers/mimo/mimoAdapter";
+import { ensureZcodeRegistered } from "../providers/zcode/zcodeAdapter";
 import { ensureClaudeRegistered } from "../providers/claude/claudeAdapter";
 import { ensureCodexRegistered } from "../providers/codex/codexAdapter";
 import { ensureCursorRegistered } from "../providers/cursor/cursorAdapter";
@@ -11,6 +13,8 @@ import { ensureAntigravityRegistered } from "../providers/antigravity/antigravit
 
 /** Register all known live harness adapters. Idempotent. */
 export function registerBuiltinHarnesses(): void {
+  ensureMimoRegistered();
+  ensureZcodeRegistered();
   ensureClaudeRegistered();
   ensureCursorRegistered();
   ensureCodexRegistered();

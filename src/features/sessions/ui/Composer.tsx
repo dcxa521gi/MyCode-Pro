@@ -1,3 +1,4 @@
+import { runHarnessTextPrompt } from "../../../integrations/harness/core/registry";
 import { useTranslation } from "../../../shared/i18n";
 import {
   ArrowUp,
@@ -185,6 +186,7 @@ type Props = {
   harness: HarnessId;
   model: string;
   modelSettings?: Record<string, string>;
+  providerAccountId?: string;
   runtimeMode: RuntimeMode;
   cwd?: string;
   executionCwd: string;
@@ -475,6 +477,7 @@ export function Composer({
   model,
   allowedModelHarnesses,
   modelSettings = {},
+  providerAccountId,
   runtimeMode,
   cwd = "~",
   executionCwd,
@@ -557,6 +560,56 @@ export function Composer({
   const slashRef = useRef<SlashToken | null>(null);
   const mentionRef = useRef<MentionToken | null>(null);
   const [draft, setDraft] = useState(initialDraft ?? "");
+  const [enhancing, setEnhancing] = useState(false);
+  const [enhanceError, setEnhanceError] = useState("");
+  const enhancement = useRef<AbortController | null>(null);
+  useEffect(() => () => enhancement.current?.abort(), []);
+  const enhanceDraft = async () => {
+    const original = ref.current?.value ?? "";
+    if (!original.trim() || enhancing) return;
+    const revision = draftRevisionRef.current;
+    const controller = new AbortController();
+    enhancement.current = controller;
+    setEnhancing(true);
+    setEnhanceError("");
+    try {
+      const result = (
+        await runHarnessTextPrompt({
+          harness,
+          cwd: executionCwd ?? cwd,
+          model,
+          modelSettings,
+          providerAccountId,
+          signal: controller.signal,
+          timeoutMs: 90_000,
+          intent: "plan",
+          prompt:
+            "Rewrite the following draft as a clear, actionable request in the same language. Preserve its intent and facts. Do not invent requirements. Do not answer or execute the request, use tools, or inspect files. Return only the improved draft, without commentary.\n<draft>\n" +
+            original +
+            "\n</draft>",
+        })
+      ).trim();
+      if (controller.signal.aborted) return;
+      if (
+        result &&
+        ref.current?.value === original &&
+        draftRevisionRef.current === revision
+      ) {
+        ref.current.value = result;
+        setDraft(result);
+        draftRevisionRef.current += 1;
+        resizeComposer(ref.current);
+        syncHasValue(result, attachmentsRef.current);
+        ref.current.focus();
+      } else if (result)
+        setEnhanceError(t("Draft changed. Enhancement was not applied."));
+    } catch (error) {
+      if (!controller.signal.aborted)
+        setEnhanceError(t("Could not enhance draft.") + " " + String(error));
+    } finally {
+      if (!controller.signal.aborted) setEnhancing(false);
+    }
+  };
   const { branches: draftBranches } = useProjectBranchesState(
     executionCwd,
     draftWorkspace && enabled && !busy,
@@ -2298,6 +2351,27 @@ export function Composer({
               </button>
             ) : null}
             <div className="flex shrink-0 items-center gap-1">
+              {enhanceError && (
+                <span
+                  role="status"
+                  className="max-w-48 truncate text-xs text-content/70"
+                  title={enhanceError}
+                >
+                  {enhanceError}
+                </span>
+              )}
+              <button
+                type="button"
+                disabled={enhancing || busy || disabled || !draft.trim()}
+                aria-label={t("Enhance draft")}
+                title={t(enhancing ? "Enhancing…" : "Enhance draft")}
+                className="grid size-6.5 place-items-center rounded-md text-accent hover:bg-content/10 disabled:opacity-40"
+                onClick={() => void enhanceDraft()}
+              >
+                <AiIdea
+                  className={enhancing ? "size-4 animate-pulse" : "size-4"}
+                />
+              </button>
               <ComposerAction
                 busy={busy}
                 disabled={disabled}

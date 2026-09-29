@@ -2,6 +2,7 @@ import { formatMessage, translate } from "../../../shared/i18n";
 import type { HarnessId } from "../../../features/sessions/model/session";
 import { HARNESSES } from "../../../features/sessions/model/session";
 import {
+  resolveHarnessBinary,
   resolveAntigravityBinary,
   resolveClaudeBinary,
   resolveCodexBinary,
@@ -51,6 +52,8 @@ const CLI: Record<HarnessId, { name: string; install?: string }> = {
     install:
       "Install from hermes-agent.nousresearch.com, then run hermes model",
   },
+  mimo: { name: "MiMo Code CLI", install: "npm install -g @mimo-ai/cli" },
+  zcode: { name: "ZCode CLI" },
   antigravity: { name: "Antigravity ACP server (agy_acp_server.par)" },
 };
 
@@ -87,6 +90,14 @@ export function probeHarnessAvailability(options?: {
   }
   inflight = Promise.all(
     HARNESSES.map(async (id) => {
+      if (id === "mimo" || id === "zcode") {
+        try {
+          await resolveHarnessBinary(id);
+          return [id, true] as const;
+        } catch {
+          return [id, false] as const;
+        }
+      }
       if (!isLiveHarness(id)) return [id, false] as const;
       if (id === "cursor") {
         try {

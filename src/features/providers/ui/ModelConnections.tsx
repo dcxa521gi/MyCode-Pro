@@ -112,7 +112,7 @@ export function ModelConnections() {
       </div>
       <p className="mb-4 text-xs leading-relaxed text-content/55">
         {t(
-          "Connect your own API or local model through Pi. Install Pi in CLI agent tool providers, then select its models in a new conversation. No Cindy account is required.",
+          "Saved models appear under compatible agents in the composer and can be favorited. The primary model takes priority for new selections; agents with a closed model catalog use their own models.",
         )}
       </p>
       {items.map((item) => (
@@ -323,6 +323,28 @@ export function ModelConnections() {
               value={modelText}
               onChange={(e) => setModelText(e.target.value)}
             />
+          </label>
+          <label className="grid gap-1 text-xs">
+            {t("Primary model")}
+            <select
+              aria-label={t("Primary model")}
+              className={inputClass}
+              value={draft.primaryModel ?? ""}
+              onChange={(e) =>
+                setDraft({ ...draft, primaryModel: e.target.value })
+              }
+            >
+              <option value="">{t("No primary model")}</option>
+              {modelText
+                .split("\n")
+                .map((m) => m.trim())
+                .filter(Boolean)
+                .map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+            </select>
           </label>
           <label className="flex gap-2 text-xs">
             <input

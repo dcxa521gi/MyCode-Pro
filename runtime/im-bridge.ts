@@ -1,3 +1,4 @@
+import { createWechat } from "./wechat";
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
@@ -21,6 +22,7 @@ const handlers = new Map<string, (payload?: unknown) => unknown>();
 let secrets: Record<string, string> = {};
 let channels: Record<
   string,
+  | ReturnType<typeof createWechat>
   | ReturnType<typeof createTelegramIM>
   | ReturnType<typeof createFeishuIM>
   | ReturnType<typeof createDingTalkIM>
@@ -36,6 +38,7 @@ const pending = new Map<
 >();
 const save = () => emit({ kind: "secrets", value: secrets });
 const ownerKeys: Record<string, string> = {
+  wechat: "wechat-owner-id",
   feishu: "feishu_bot_owner_open_id",
   dingtalk: "dingtalk-bot-owner-user-id",
   wecom: "wecom-owner-user-id",
@@ -48,6 +51,9 @@ function publicState() {
     status: channels[channel].getStatus().kind,
     running: running.has(channel),
     route: routes[channel] ?? null,
+    ...(channel === "wechat"
+      ? (channels.wechat as ReturnType<typeof createWechat>).publicState()
+      : {}),
   }));
 }
 function init(data: { secrets: Record<string, string>; directory: string }) {
@@ -121,6 +127,7 @@ function init(data: { secrets: Record<string, string>; directory: string }) {
     },
   };
   channels = {
+    wechat: createWechat(host),
     feishu: createFeishuIM(host),
     dingtalk: createDingTalkIM(host),
     wecom: createWecomIM(host),
@@ -177,6 +184,16 @@ async function dispatch(input: any) {
   const channel = String(input.channel ?? "");
   const transport = channels[channel];
   if (!transport) throw Error("Unknown IM channel");
+  if (channel === "wechat" && input.action === "wechat-authorize") {
+    await (transport as ReturnType<typeof createWechat>).authorize();
+    return publicState();
+  }
+  if (channel === "wechat" && input.action === "wechat-verify") {
+    (transport as ReturnType<typeof createWechat>).verify(
+      String(input.credentials?.code ?? ""),
+    );
+    return publicState();
+  }
   if (input.action === "stop") {
     running.delete(channel);
     await transport.dispose();
@@ -189,7 +206,11 @@ async function dispatch(input: any) {
     return publicState();
   }
   if (input.action === "configure") {
-    const route = input.route as Route;
+    const route = { ...input.route } as Route;
+    if (channel === "wechat")
+      route.ownerId = (
+        transport as ReturnType<typeof createWechat>
+      ).publicState().ownerId;
     if (!route?.ownerId?.trim() || !route.cwd || !route.harness || !route.model)
       throw Error("Owner, directory and model are required");
     routes[channel] = {
@@ -201,6 +222,11 @@ async function dispatch(input: any) {
     secrets.mycode_routes = JSON.stringify(routes);
     secrets[ownerKeys[channel]] = route.ownerId.trim();
     save();
+    if (channel === "wechat") {
+      running.add(channel);
+      await transport.init();
+      return publicState();
+    }
     const commands: Record<string, string> = {
       feishu: "feishuBot:save",
       dingtalk: "dingtalkBot:save",

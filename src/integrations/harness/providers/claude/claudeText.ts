@@ -57,6 +57,7 @@ type InFlightTool = {
 type LiveText = {
   cwd: string;
   providerAccountId?: string;
+  modelConnection?: string;
   model: string;
   settingsKey: string;
   collecting: boolean;
@@ -129,6 +130,7 @@ export function warmupClaudeText(cwd: string): Promise<void> {
 export async function runClaudeTextPrompt(input: {
   cwd: string;
   providerAccountId?: string;
+  modelConnection?: string;
   model?: string;
   modelSettings?: Record<string, string>;
   intent?: TurnIntent;
@@ -148,6 +150,7 @@ export async function runClaudeTextPrompt(input: {
 async function promptOnLive(input: {
   cwd: string;
   providerAccountId?: string;
+  modelConnection?: string;
   model?: string;
   modelSettings?: Record<string, string>;
   intent?: TurnIntent;
@@ -163,6 +166,7 @@ async function promptOnLive(input: {
     input.providerAccountId,
     model,
     settings,
+    input.modelConnection,
   );
   session.output = "";
   session.collecting = true;
@@ -232,12 +236,14 @@ async function ensureLive(
   providerAccountId?: string,
   requestedModel?: string,
   requestedSettings?: TextSettings,
+  modelConnection?: string,
 ): Promise<LiveText> {
   const model = pickTextModel(requestedModel);
   const settings = requestedSettings ?? textSettings(model);
   if (
     live &&
     !live.closed &&
+    live.modelConnection === modelConnection &&
     live.cwd === cwd &&
     live.providerAccountId === providerAccountId &&
     live.model === model &&
@@ -246,7 +252,7 @@ async function ensureLive(
     return live;
   }
   await dropLive();
-  return startLive(cwd, providerAccountId, model, settings);
+  return startLive(cwd, providerAccountId, model, settings, modelConnection);
 }
 
 async function startLive(
@@ -254,11 +260,13 @@ async function startLive(
   providerAccountId?: string,
   model = pickTextModel(),
   settings = textSettings(model),
+  modelConnection?: string,
 ): Promise<LiveText> {
   const { path } = await resolveClaudeBinary();
   const session: LiveText = {
     cwd,
     providerAccountId,
+    modelConnection,
     model,
     settingsKey: settings.key,
     collecting: false,
@@ -301,6 +309,7 @@ async function startLive(
       cwd,
       { provider: "claude", id: providerAccountId ?? "default" },
       "claude",
+      modelConnection,
     );
     live = session;
     await waitForReady(session, INIT_TIMEOUT_MS);

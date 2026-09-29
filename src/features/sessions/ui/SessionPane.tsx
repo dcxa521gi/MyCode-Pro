@@ -513,6 +513,7 @@ export const SessionPane = memo(function SessionPane({
       harness={session.harness}
       model={session.model}
       modelSettings={session.modelSettings}
+      providerAccountId={session.providerAccountId}
       runtimeMode={session.runtimeMode}
       cwd={session.cwd}
       executionCwd={workCwd}

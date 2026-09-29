@@ -16,6 +16,7 @@ pub struct Connection {
     pub models: Vec<String>,
     pub enabled: bool,
     pub has_key: bool,
+    pub primary_model: String,
     #[serde(skip_serializing_if = "String::is_empty")]
     secret: String,
 }
@@ -227,6 +228,14 @@ pub fn local_ai_save_connection(
             .map(|c| c.secret.clone())
             .unwrap_or_default(),
     };
+    if !connection.primary_model.is_empty() {
+        if !connection.models.contains(&connection.primary_model) {
+            return Err("Primary model must be selected in the model list".into());
+        }
+        for c in &mut config.connections {
+            c.primary_model.clear();
+        }
+    }
     config.connections.retain(|c| c.id != connection.id);
     config.connections.push(connection);
     save(&app, &config)
@@ -300,14 +309,85 @@ pub fn configure_child(
     app: &AppHandle,
     cmd: &mut Command,
     provider: Option<&str>,
+    selected_connection: Option<&str>,
     isolated: bool,
 ) -> Result<(), String> {
-    if !matches!(provider, Some("pi" | "claude")) {
+    if !matches!(
+        provider,
+        Some("pi" | "claude" | "codex" | "opencode" | "mimo")
+    ) {
         return Ok(());
     }
     let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
     let config = load(app)?;
     let dir = directory(app)?;
+    if let Some(id) = selected_connection {
+        let connection = config
+            .connections
+            .iter()
+            .find(|c| c.id == id && c.enabled)
+            .ok_or("Model connection is missing or disabled")?;
+        let key = if connection.secret.is_empty() {
+            "local".to_string()
+        } else {
+            protect(&connection.secret, true)?
+        };
+        match provider {
+            Some("claude") if connection.api == "anthropic-messages" => {
+                cmd.env(
+                    "ANTHROPIC_BASE_URL",
+                    connection.base_url.trim_end_matches("/v1"),
+                )
+                .env("ANTHROPIC_API_KEY", key)
+                .env_remove("ANTHROPIC_AUTH_TOKEN");
+            }
+            Some("codex") if connection.api == "openai-responses" => {
+                cmd.env("MYCODE_MODEL_API_KEY", key);
+                for value in [
+                    "model_provider=\"mycode\"".to_string(),
+                    "model_providers.mycode.name=\"MyCode\"".into(),
+                    format!(
+                        "model_providers.mycode.base_url={}",
+                        serde_json::to_string(&connection.base_url).map_err(|e| e.to_string())?
+                    ),
+                    "model_providers.mycode.env_key=\"MYCODE_MODEL_API_KEY\"".into(),
+                    "model_providers.mycode.wire_api=\"responses\"".into(),
+                ] {
+                    cmd.arg("-c").arg(value);
+                }
+            }
+            _ => return Err("This agent does not support the selected model protocol".into()),
+        }
+    }
+    if matches!(provider, Some("opencode" | "mimo")) {
+        let mut providers = serde_json::Map::new();
+        for c in config.connections.iter().filter(|c| c.enabled) {
+            validate(c)?;
+            let key = if c.secret.is_empty() {
+                "local".to_owned()
+            } else {
+                protect(&c.secret, true)?
+            };
+            let npm = match c.api.as_str() {
+                "anthropic-messages" => "@ai-sdk/anthropic",
+                "google-generative-ai" => "@ai-sdk/google",
+                "openai-responses" => "@ai-sdk/openai",
+                _ => "@ai-sdk/openai-compatible",
+            };
+            let models: serde_json::Map<String, Value> = c
+                .models
+                .iter()
+                .map(|id| (id.clone(), json!({"name":id})))
+                .collect();
+            providers.insert(format!("mycode-{}", c.id), json!({"npm":npm,"name":c.name,"options":{"baseURL":c.base_url,"apiKey":key},"models":models}));
+        }
+        if !providers.is_empty() {
+            let value =
+                serde_json::to_string(&json!({"provider":providers})).map_err(|e| e.to_string())?;
+            cmd.env("OPENCODE_CONFIG_CONTENT", &value)
+                .env("MIMOCODE_CONFIG_CONTENT", value);
+        }
+    }
     if provider == Some("claude")
         && !isolated
         && config

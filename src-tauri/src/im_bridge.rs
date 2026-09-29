@@ -128,8 +128,16 @@ fn ensure(app: &AppHandle, bridge: &ImBridge) -> Result<(), String> {
 }
 #[tauri::command(async)]
 pub fn im_bridge_request(app: AppHandle, bridge: State<'_, ImBridge>, mut request: Value) -> Reply {
-    if !["status", "configure", "start", "stop", "reply"]
-        .contains(&request["action"].as_str().unwrap_or(""))
+    if ![
+        "status",
+        "configure",
+        "start",
+        "stop",
+        "reply",
+        "wechat-authorize",
+        "wechat-verify",
+    ]
+    .contains(&request["action"].as_str().unwrap_or(""))
     {
         return Err("Unsupported IM action".into());
     }

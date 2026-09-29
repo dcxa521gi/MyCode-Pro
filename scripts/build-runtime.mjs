@@ -17,9 +17,17 @@ const bundle = await build({
   external: ["bufferutil", "utf-8-validate", "zlib-sync"],
   logLevel: "warning",
 });
-const nodeTarget = path.join(out, process.platform === "win32" ? "node.exe" : "node");
-const digest = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
-if (!fs.existsSync(nodeTarget) || digest(process.execPath) !== digest(nodeTarget)) fs.copyFileSync(process.execPath, nodeTarget);
+const nodeTarget = path.join(
+  out,
+  process.platform === "win32" ? "node.exe" : "node",
+);
+const digest = (file) =>
+  createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+if (
+  !fs.existsSync(nodeTarget) ||
+  digest(process.execPath) !== digest(nodeTarget)
+)
+  fs.copyFileSync(process.execPath, nodeTarget);
 if (process.platform !== "win32") fs.chmodSync(path.join(out, "node"), 0o755);
 const candidates = [
   path.join(path.dirname(process.execPath), "node_modules/npm"),
@@ -49,6 +57,18 @@ else {
 }
 fs.copyFileSync("vendor/cindy-im/LICENSE", path.join(out, "CINDY-LICENSE"));
 fs.copyFileSync("vendor/cindy-im/NOTICE.md", path.join(out, "CINDY-NOTICE.md"));
+fs.copyFileSync(
+  "vendor/cindy-wechat-ilink/NOTICE.md",
+  path.join(out, "WECHAT-NOTICE.md"),
+);
+fs.copyFileSync(
+  "vendor/cindy-wechat-ilink/UPSTREAM.md",
+  path.join(out, "WECHAT-UPSTREAM.md"),
+);
+fs.copyFileSync(
+  "vendor/cindy-wechat-ilink/LICENSE.tencent-openclaw-weixin",
+  path.join(out, "WECHAT-TENCENT-LICENSE"),
+);
 console.log("MyCode runtime prepared (Node.js, npm and local IM transports).");
 
 const roots = new Set();

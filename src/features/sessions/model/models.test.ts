@@ -397,9 +397,9 @@ describe("live catalog overlays", () => {
       }),
     ).toEqual({ reasoningEffort: "high", serviceTier: "priority" });
     expect(resolveModel("codex")).toMatchObject({
-      id: "",
+      id: "codex:default",
       harness: "codex",
-      name: "Codex",
+      name: "CLI default",
     });
   });
 

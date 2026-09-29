@@ -25,7 +25,9 @@ export type HarnessId =
   | "omp"
   | "fx"
   | "hermes"
-  | "antigravity";
+  | "antigravity"
+  | "mimo"
+  | "zcode";
 
 export const HARNESSES: HarnessId[] = [
   "claude",
@@ -38,6 +40,8 @@ export const HARNESSES: HarnessId[] = [
   "fx",
   "hermes",
   "antigravity",
+  "mimo",
+  "zcode",
 ];
 
 export type BlockRole =
@@ -470,6 +474,8 @@ export const HARNESS_LABEL: Record<HarnessId, string> = {
   fx: "fx",
   hermes: "hermes",
   antigravity: "antigravity",
+  mimo: "mimo",
+  zcode: "zcode",
 };
 
 export const HARNESS_TITLE: Record<HarnessId, string> = {
@@ -483,11 +489,13 @@ export const HARNESS_TITLE: Record<HarnessId, string> = {
   fx: "fx",
   hermes: "Hermes Agent",
   antigravity: "Antigravity",
+  mimo: "MiMo Code",
+  zcode: "ZCode",
 };
 
 /** fx ACP rejects attachment prompt blocks. */
 export function harnessSupportsAttachments(id: HarnessId): boolean {
-  return id !== "fx";
+  return id !== "fx" && id !== "zcode";
 }
 
 export function newSession(

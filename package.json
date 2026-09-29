@@ -1,7 +1,7 @@
 {
   "name": "mycode-desktop",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -59,6 +59,7 @@
     "dingtalk-stream": "^2.1.5",
     "discord.js": "^14.16.3",
     "prettier": "^3.9.6",
+    "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-material-icon-theme": "^1.2.0",

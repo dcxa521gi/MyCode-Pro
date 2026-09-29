@@ -151,9 +151,7 @@ function teardownBridge() {
   sseBuffer.clear();
   livePid.clear();
   pendingExit.clear();
-  void pending
-    ?.then((fns) => fns.forEach((fn) => fn()))
-    .catch(() => undefined);
+  void pending?.then((fns) => fns.forEach((fn) => fn())).catch(() => undefined);
 }
 
 export function startHarnessBridge(): () => void {
@@ -244,6 +242,7 @@ export async function spawnChild(
   cwd: string,
   account?: { provider: "claude" | "codex"; id: string },
   binaryProvider?: ConfigurableBinaryProvider,
+  modelConnection?: string,
 ): Promise<void> {
   livePid.delete(sessionId);
   pendingExit.delete(sessionId);
@@ -252,6 +251,7 @@ export async function spawnChild(
     : undefined;
   const pid = await invoke<number>("harness_spawn", {
     sessionId,
+    modelConnection,
     command,
     args,
     cwd,
@@ -295,7 +295,7 @@ export function killAllChildren(): Promise<void> {
 
 type ResolvedHarnessBinary = { path: string; args?: string[] };
 
-async function resolveHarnessBinary(
+export async function resolveHarnessBinary(
   provider: ConfigurableBinaryProvider,
   binaryPath?: string | null,
 ): Promise<ResolvedHarnessBinary> {
@@ -320,6 +320,8 @@ async function resolveHarnessBinary(
     fx: "harness_resolve_fx",
     hermes: "harness_resolve_hermes",
     antigravity: "harness_resolve_antigravity",
+    mimo: "harness_resolve_mimo",
+    zcode: "harness_resolve_zcode",
   };
   return invoke(command[provider]);
 }

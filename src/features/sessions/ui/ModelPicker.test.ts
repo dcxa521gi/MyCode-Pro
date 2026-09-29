@@ -166,9 +166,9 @@ describe("model picker", () => {
     const modelFlyout = container.querySelector<HTMLElement>(
       '[role="dialog"][aria-label="Models"]',
     )!;
-    expect(modelFlyout.style.height).toBe("404px");
-    expect(modelFlyout.dataset.minHeight).toBe("406");
-    expect(modelFlyout.dataset.maxHeight).toBe("406");
+    expect(modelFlyout.style.height).toBe("476px");
+    expect(modelFlyout.dataset.minHeight).toBe("478");
+    expect(modelFlyout.dataset.maxHeight).toBe("478");
     expect(
       container.querySelector('[role="tablist"][aria-orientation="vertical"]'),
     ).not.toBeNull();
@@ -396,9 +396,9 @@ describe("model picker", () => {
     )!;
     act(() => favoritesTab.click());
 
-    const options = [
-      ...container.querySelectorAll('[role="option"]'),
-    ].map((option) => option.getAttribute("aria-label"));
+    const options = [...container.querySelectorAll('[role="option"]')].map(
+      (option) => option.getAttribute("aria-label"),
+    );
     expect(options).toEqual([
       "Auto, Cursor",
       "Muse Spark 1.3, Cursor",
@@ -506,9 +506,7 @@ describe("model picker", () => {
       'button[aria-haspopup="dialog"]',
     )!;
     act(() => modelTrigger.click());
-    expect(
-      container.querySelector('[role="menu"]'),
-    ).toBeNull();
+    expect(container.querySelector('[role="menu"]')).toBeNull();
     expect(
       container.querySelector('[role="dialog"][aria-label="Models"]'),
     ).not.toBeNull();

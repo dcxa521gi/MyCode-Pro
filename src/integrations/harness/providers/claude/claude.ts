@@ -1,3 +1,4 @@
+import { findModel } from "../../../../features/sessions/model/models";
 import { nativeModelId } from "../../../../features/sessions/model/models";
 import { sameProviderAccountId } from "../../../../features/providers/model/providerAccounts";
 import type { RuntimeMode } from "../../../../features/sessions/model/session";
@@ -486,6 +487,7 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
     input.cwd,
     { provider: "claude", id: input.providerAccountId ?? "default" },
     "claude",
+    findModel(input.model)?.connectionId,
   );
 
   liveByThread.set(input.sessionId, live);

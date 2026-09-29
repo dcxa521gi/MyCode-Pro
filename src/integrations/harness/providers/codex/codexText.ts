@@ -31,6 +31,7 @@ type LiveText = {
   rpc: JsonRpcClient;
   cwd: string;
   providerAccountId?: string;
+  modelConnection?: string;
   threadId: string;
   model: string;
   effort: string;
@@ -106,6 +107,7 @@ export function warmupCodexText(cwd: string): Promise<void> {
 export async function runCodexTextPrompt(input: {
   cwd: string;
   providerAccountId?: string;
+  modelConnection?: string;
   model?: string;
   modelSettings?: Record<string, string>;
   threadId?: string;
@@ -130,6 +132,7 @@ export async function runCodexTextPrompt(input: {
 async function promptOnLive(input: {
   cwd: string;
   providerAccountId?: string;
+  modelConnection?: string;
   model?: string;
   modelSettings?: Record<string, string>;
   threadId?: string;
@@ -211,6 +214,7 @@ async function promptOnLive(input: {
 async function ensureLive(input: {
   cwd: string;
   providerAccountId?: string;
+  modelConnection?: string;
   model?: string;
   modelSettings?: Record<string, string>;
   threadId?: string;
@@ -222,6 +226,7 @@ async function ensureLive(input: {
   const requestedThreadId = input.threadId?.trim() || undefined;
   if (live && !live.closed) {
     if (
+      live.modelConnection === input.modelConnection &&
       live.cwd === input.cwd &&
       live.model === model &&
       live.effort === effort &&
@@ -232,7 +237,10 @@ async function ensureLive(input: {
       input.onThreadId?.(live.threadId);
       return live;
     }
-    if (live.providerAccountId !== input.providerAccountId) {
+    if (
+      live.modelConnection !== input.modelConnection ||
+      live.providerAccountId !== input.providerAccountId
+    ) {
       await dropLive();
       const started = await startLive(
         input.cwd,
@@ -241,6 +249,7 @@ async function ensureLive(input: {
         effort,
         serviceTier,
         requestedThreadId,
+        input.modelConnection,
       );
       input.onThreadId?.(started.threadId);
       return started;
@@ -264,6 +273,7 @@ async function ensureLive(input: {
     effort,
     serviceTier,
     requestedThreadId,
+    input.modelConnection,
   );
   input.onThreadId?.(started.threadId);
   return started;
@@ -276,6 +286,7 @@ async function startLive(
   effort = pickTextEffort(model),
   serviceTier?: string,
   requestedThreadId?: string,
+  modelConnection?: string,
 ): Promise<LiveText> {
   await dropLive();
   const { path } = await resolveCodexBinary();
@@ -297,6 +308,7 @@ async function startLive(
     rpc,
     cwd,
     providerAccountId,
+    modelConnection,
     threadId: "",
     model,
     effort,
@@ -334,6 +346,7 @@ async function startLive(
         id: providerAccountId ?? "default",
       },
       "codex",
+      modelConnection,
     );
     await rpc.request(
       "initialize",

@@ -2619,6 +2619,9 @@ fn git_github_repo_for(root: &Path) -> Result<String, String> {
 }
 
 fn git_github_repositories_for(root: &Path) -> Result<Vec<String>, String> {
+    if !git_is_work_tree(root) {
+        return Ok(Vec::new());
+    }
     let json = gh_checked(root, &["repo", "view", "--json", "nameWithOwner,parent"])?;
     parse_github_repositories(&json)
 }
@@ -5502,6 +5505,12 @@ mod tests {
     use std::sync::atomic::{AtomicU64, Ordering};
 
     static TMP_SEQ: AtomicU64 = AtomicU64::new(0);
+
+    #[test]
+    fn inbox_skips_non_git_workspaces() {
+        let dir = tmp("inbox-not-git");
+        assert!(git_github_repositories_for(&dir.0).unwrap().is_empty());
+    }
 
     #[test]
     fn claude_shell_commands_match_only_requested_bash_tool_ids() {

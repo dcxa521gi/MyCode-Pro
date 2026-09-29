@@ -962,7 +962,7 @@ describe("providers scope inheritance", () => {
     );
     await render("providers-cli");
 
-    await selectScope("repo");
+    await selectScope("Project: repo");
 
     // A project with no overrides shows the inherited global default provider.
     const claudeRow = container

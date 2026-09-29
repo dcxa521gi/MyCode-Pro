@@ -8,6 +8,7 @@ import {
   getModelSnapshot,
 } from "../../sessions/model/models";
 const channels = [
+  ["wechat", "WeChat"],
   ["feishu", "Feishu / Lark"],
   ["dingtalk", "DingTalk"],
   ["wecom", "WeCom"],
@@ -17,6 +18,9 @@ const channels = [
 type Route = { ownerId: string; cwd: string; harness: string; model: string };
 type Bot = {
   channel: string;
+  qrImage?: string;
+  verificationRequired?: boolean;
+  ownerId?: string;
   status: string;
   running: boolean;
   route: Route | null;
@@ -94,22 +98,24 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
   }, []);
   const current = bots.find((b) => b.channel === channel);
   const fields =
-    channel === "feishu"
-      ? [
-          ["appId", "App ID"],
-          ["appSecret", "App secret"],
-        ]
-      : channel === "dingtalk"
+    channel === "wechat"
+      ? []
+      : channel === "feishu"
         ? [
-            ["appKey", "App key"],
+            ["appId", "App ID"],
             ["appSecret", "App secret"],
           ]
-        : channel === "wecom"
+        : channel === "dingtalk"
           ? [
-              ["botId", "Bot ID"],
-              ["secret", "Bot secret"],
+              ["appKey", "App key"],
+              ["appSecret", "App secret"],
             ]
-          : [["token", "Bot token"]];
+          : channel === "wecom"
+            ? [
+                ["botId", "Bot ID"],
+                ["secret", "Bot secret"],
+              ]
+            : [["token", "Bot token"]];
   return (
     <section className="space-y-5">
       <p className="text-sm leading-relaxed text-content/55">
@@ -152,6 +158,48 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
             {t(current?.status ?? "Disconnected")}
           </span>
         </div>
+        {channel === "wechat" && (
+          <div className="space-y-3">
+            <p className="text-sm text-content/65">
+              {t(
+                "Scan with WeChat to authorize a local connection. The authorized account is the only allowed sender.",
+              )}
+            </p>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void request("wechat-authorize")}
+              className="rounded-lg border border-content/20 px-3 py-2"
+            >
+              {t("Show WeChat QR code")}
+            </button>
+            {current?.qrImage && (
+              <img
+                src={current.qrImage}
+                alt={t("WeChat authorization QR code")}
+                width={256}
+                height={256}
+                className="rounded-xl"
+              />
+            )}
+            {current?.verificationRequired && (
+              <div className="flex gap-2">
+                <input
+                  aria-label={t("Verification code")}
+                  className={inputClass}
+                  value={credentials.code ?? ""}
+                  onChange={(e) => setCredentials({ code: e.target.value })}
+                />
+                <button
+                  type="button"
+                  onClick={() => void request("wechat-verify")}
+                >
+                  {t("Confirm")}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           {fields.map(([key, label]) => (
             <label key={`${channel}-${key}`} className="grid gap-1 text-xs">
@@ -174,7 +222,10 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
             <input
               required
               className={inputClass}
-              value={route.ownerId}
+              readOnly={channel === "wechat"}
+              value={
+                channel === "wechat" ? (current?.ownerId ?? "") : route.ownerId
+              }
               onChange={(e) => setRoute({ ...route, ownerId: e.target.value })}
             />
           </label>

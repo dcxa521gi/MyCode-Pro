@@ -192,8 +192,8 @@ function recentMenuModels(current: AgentModel): AgentModel[] {
   return models.slice(0, 6);
 }
 
-function modelGroups(tab: ModelPickerTab, models: AgentModel[]): ModelGroup[] {
-  if (tab !== "opencode") {
+function modelGroups(_tab: ModelPickerTab, models: AgentModel[]): ModelGroup[] {
+  if (!models.some((model) => model.provider)) {
     return [
       {
         id: "models",
@@ -204,7 +204,10 @@ function modelGroups(tab: ModelPickerTab, models: AgentModel[]): ModelGroup[] {
 
   const groups = new Map<string, ModelGroup>();
   models.forEach((item, index) => {
-    const provider = item.provider ?? { id: "opencode", name: "OpenCode" };
+    const provider = item.provider ?? {
+      id: item.harness,
+      name: HARNESS_TITLE[item.harness],
+    };
     let group = groups.get(provider.id);
     if (!group) {
       group = { id: provider.id, name: provider.name, models: [] };

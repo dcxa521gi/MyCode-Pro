@@ -22,6 +22,8 @@ export const HARNESS_ICONS: Record<HarnessId, string> = {
   fx,
   hermes,
   antigravity,
+  mimo: opencode,
+  zcode: opencode,
 };
 
 /** White marks that must follow `currentColor` so they stay visible in light mode. */

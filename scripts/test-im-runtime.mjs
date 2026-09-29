@@ -73,7 +73,7 @@ try {
       child.stdin.write(JSON.stringify({ ...data, id: key }) + "\n");
     });
   const result = await request({ action: "bootstrap", secrets: {}, directory });
-  assert.equal(result.value.length, 5);
+  assert.equal(result.value.length, 6);
   assert(result.value.every((bot) => !bot.running));
   assert(
     (await request({ action: "registration-begin", channel: "feishu" })).error,

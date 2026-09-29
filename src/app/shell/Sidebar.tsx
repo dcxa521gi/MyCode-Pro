@@ -1,3 +1,9 @@
+import { projectKey } from "../../shared/lib/paths";
+import { sessionTokenTotal } from "../../features/sessions/model/sessionUsage";
+import {
+  useWorkspaceSide,
+  setWorkspaceSide,
+} from "../../features/settings/model/workspaceSide";
 import { getLocale as uiLocale } from "../../shared/i18n";
 import { useTranslation } from "../../shared/i18n";
 import { NO_BRANCH_LABEL } from "../../features/source-control/model/worktrees";
@@ -390,7 +396,9 @@ function SidebarComponent({
 }: Props) {
   const { t } = useTranslation();
   const gitRoot = gitCwd || cwd;
+  const workspaceSide = useWorkspaceSide();
   const resize = useDragResize({
+    direction: workspaceSide === "right" ? "left" : "right",
     min: MIN_WIDTH,
     max: () => Math.min(MAX_WIDTH, Math.floor(window.innerWidth * 0.5)),
     defaultWidth: DEFAULT_WIDTH,
@@ -894,6 +902,9 @@ function SidebarComponent({
           { kind: "sep" as const },
         ]
       : []),
+    { kind: "item", id: "copy-project-id", label: t("Copy project ID") },
+    { kind: "item", id: "copy-session-id", label: t("Copy session ID") },
+    { kind: "sep" },
     ...(onPinSession || onPinSessions
       ? [
           {
@@ -1026,6 +1037,13 @@ function SidebarComponent({
     const archived = allMenuSessionsArchived;
     const pinned = allMenuSessionsPinned;
     closeSessionMenu();
+    if (id === "copy-project-id" || id === "copy-session-id") {
+      const selected = sessions.find((session) => session.id === sessionId);
+      void navigator.clipboard.writeText(
+        id === "copy-session-id" ? sessionId : projectKey(selected?.cwd ?? cwd),
+      );
+      return;
+    }
     if (id === "reminder:cancel") {
       onCancelReminders?.(sessionIds);
       return;
@@ -1390,6 +1408,7 @@ function SidebarComponent({
   const sidebarContent = (
     <aside
       ref={resize.setPaneRef}
+      style={{ order: workspaceSide === "right" ? 2 : undefined }}
       className="body-glass relative flex h-full min-h-0 shrink-0 flex-col border-r border-stroke"
     >
       {railVisible ? (
@@ -1401,6 +1420,25 @@ function SidebarComponent({
             <span className="min-w-0 flex-1 truncate text-sm font-medium leading-tight">
               {t("Workspace")}
             </span>
+            <button
+              type="button"
+              className="rounded p-1 text-content/60 hover:bg-content/10"
+              title={t(
+                workspaceSide === "left"
+                  ? "Move workspace right"
+                  : "Move workspace left",
+              )}
+              aria-label={t(
+                workspaceSide === "left"
+                  ? "Move workspace right"
+                  : "Move workspace left",
+              )}
+              onClick={() =>
+                setWorkspaceSide(workspaceSide === "left" ? "right" : "left")
+              }
+            >
+              <PanelLeft className="size-4" />
+            </button>
             <WorkspaceTitleActions onSearch={onGoToFile} onNew={onNew} />
           </div>
           <div
@@ -1908,7 +1946,7 @@ function SidebarComponent({
         aria-valuenow={resize.width}
         aria-valuemin={MIN_WIDTH}
         aria-valuemax={MAX_WIDTH}
-        className={`absolute inset-y-0 -right-px z-10 w-1.5 cursor-col-resize touch-none ${
+        className={`absolute inset-y-0 ${workspaceSide === "right" ? "-left-px" : "-right-px"} z-10 w-1.5 cursor-col-resize touch-none ${
           resize.dragging ? "bg-content/15" : "hover:bg-content/10"
         }`}
         onPointerDown={resize.onPointerDown}
@@ -1919,7 +1957,7 @@ function SidebarComponent({
 
   return (
     <div
-      className={`flex h-full shrink-0 ${
+      className={`${workspaceSide === "right" ? "contents" : "flex h-full shrink-0"} ${
         railVisible || compactRailVisible || sidebarVisible ? "" : "hidden"
       }`}
     >
@@ -1955,6 +1993,7 @@ function SidebarComponent({
       ) : null}
       {railVisible && onSelectProject && onOpenProject ? (
         <ProjectRail
+          onNewTask={onNew}
           cwd={cwd}
           recents={recents}
           inboxUnseen={inboxUnseen}
@@ -1995,6 +2034,7 @@ function SidebarComponent({
         // Pinned to the right edge, so the sidebar slides in as the width grows.
         <div
           ref={drawerRef}
+          style={{ order: workspaceSide === "right" ? 2 : undefined }}
           data-sidebar-drawer={drawerClosing ? "closing" : "open"}
           inert={drawerClosing || undefined}
           className={`flex shrink-0 justify-end overflow-hidden ${
@@ -2288,7 +2328,9 @@ function CompactProjectRail({
             <CompactRailAction
               key={itemId}
               tab
-              label={itemId === "changes" ? changesLabel : t(TAB_LABELS[itemId])}
+              label={
+                itemId === "changes" ? changesLabel : t(TAB_LABELS[itemId])
+              }
               icon={COMPACT_TAB_ICONS[itemId]}
               active={workspaceActive && tabShown && activeTab === itemId}
               dot={itemId === "changes" && hasChanges}
@@ -2774,6 +2816,7 @@ const SessionCard = memo(function SessionCard({
   onRename?: (sessionId: string) => void;
   onDelete?: (sessionId: string) => void;
 }) {
+  const { t: usageT, locale: usageLocale } = useTranslation();
   const skipClickUntil = useRef(0);
   const prefetchTimer = useRef<number | null>(null);
   const orchestrationTooltipRootRef = useRef<HTMLDivElement>(null);
@@ -2840,7 +2883,7 @@ const SessionCard = memo(function SessionCard({
   const linkedUpdateDot = linkedUpdate ? (
     <span
       title={`Linked ${linkedWorkItem?.kind === "pr" ? "PR" : "issue"} updated since this session`}
-      aria-label="Linked work item updated"
+      aria-label={usageT("Linked work item updated")}
       className="size-1.5 shrink-0 rounded-full bg-accent"
     />
   ) : null;
@@ -3014,7 +3057,11 @@ const SessionCard = memo(function SessionCard({
     [onPrefetch, session.id],
   );
 
+  const [tokenTotal, setTokenTotal] = useState<number | null>(null);
   const schedulePrefetch = () => {
+    void sessionTokenTotal(session.id)
+      .then(setTokenTotal)
+      .catch(() => {});
     if (!onPrefetch || prefetchTimer.current != null) return;
     prefetchTimer.current = window.setTimeout(() => {
       prefetchTimer.current = null;
@@ -3043,7 +3090,7 @@ const SessionCard = memo(function SessionCard({
   return (
     <div className="group relative">
       <div
-        title={title}
+        title={`${title}\n${usageT("Total tokens")}: ${tokenTotal == null ? usageT("Usage unavailable") : tokenTotal.toLocaleString(usageLocale)}`}
         data-session-card={session.id}
         data-orchestration-card={orchestration ? "true" : undefined}
         data-session-selected={isSelected ? "true" : undefined}
@@ -3178,8 +3225,8 @@ const SessionCard = memo(function SessionCard({
               <span
                 data-automation-icon
                 role="img"
-                title="Started by an automation"
-                aria-label="Started by an automation"
+                title={usageT("Started by an automation")}
+                aria-label={usageT("Started by an automation")}
                 className="grid size-5 -mr-1 shrink-0 place-items-center text-amber-400"
               >
                 <Zap className="size-3" strokeWidth={1.75} />

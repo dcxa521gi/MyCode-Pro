@@ -2119,10 +2119,9 @@ header[data-tauri-drag-region] button {
   }
 }
 
-/* Keep the original glass tint in dark mode. Light popovers use an opaque
-   surface so underlying content cannot show through. */
+/* Opaque surfaces preserve menu contrast over editors and overlapping panels. */
 .popover-backdrop {
-  background: color-mix(in srgb, var(--color-content) 2%, transparent);
+  background: var(--color-background-base);
 }
 
 html.theme-light .popover-backdrop {
@@ -2677,3 +2676,5 @@ html.theme-light .btw-burst {
     var(--color-background-base)
   );
 }
+
+select, select option, select optgroup { color: var(--color-content); background-color: var(--color-background-base); }

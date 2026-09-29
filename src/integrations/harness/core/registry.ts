@@ -1,3 +1,7 @@
+import {
+  findModel,
+  nativeModelId,
+} from "../../../features/sessions/model/models";
 import type {
   HarnessId,
   TurnIntent,
@@ -23,10 +27,12 @@ export type TitleInput = {
   cwd: string;
   message: string;
   providerAccountId?: string;
+  modelConnection?: string;
 };
 
 /** One-shot, isolated text generation shared by titles and side questions. */
 export type TextPromptInput = {
+  modelConnection?: string;
   cwd: string;
   providerAccountId?: string;
   model?: string;
@@ -206,12 +212,17 @@ export function listHarnesses(): HarnessAdapter[] {
   return [...adapters.values()];
 }
 
+const sessionConnections = new Map<string, string | undefined>();
 export function sendHarnessTurn(input: SendTurnInput & { harness: HarnessId }) {
   return queueSessionOperation(input.sessionId, async () => {
     const adapter = requireHarness(input.harness);
     if (!adapter.live) {
       throw new Error(`${input.harness} is not connected yet`);
     }
+    const connection = findModel(input.model)?.connectionId;
+    if (sessionConnections.get(input.sessionId) !== connection)
+      await adapter.stopSession(input.sessionId);
+    sessionConnections.set(input.sessionId, connection);
     cancelIdlePark(input.sessionId);
     const controlled = typeof isTauri === "function" && isTauri();
     if (controlled)
@@ -361,6 +372,7 @@ export async function forgetHarnessSession(
   harness: HarnessId,
   sessionId: string,
 ): Promise<void> {
+  sessionConnections.delete(sessionId);
   cancelIdlePark(sessionId);
   const adapter = getHarness(harness);
   if (!adapter) return;
@@ -506,7 +518,13 @@ export async function runHarnessTextPrompt(
   const owner = beginTextPrompt(adapter);
   let run: Promise<string>;
   try {
-    run = adapter.runTextPrompt(input);
+    run = adapter.runTextPrompt({
+      ...input,
+      modelConnection: input.model
+        ? findModel(input.model)?.connectionId
+        : undefined,
+      model: input.model ? nativeModelId(input.model) || undefined : undefined,
+    });
   } catch (error) {
     finishTextPrompt(adapter, owner, false);
     throw error;

@@ -1,3 +1,4 @@
+import type { ModelConnection } from "../../providers/model/modelConnections";
 import type { HarnessId } from "./session";
 import { HARNESSES } from "./session";
 import { loadProjectProviderSettings } from "./projectProviders";
@@ -25,6 +26,8 @@ export type AgentModel = {
   harness: HarnessId;
   name: string;
   nativeId?: string;
+  connectionId?: string;
+  primary?: boolean;
   /** Upstream provider inside a multi-provider harness such as OpenCode. */
   provider?: {
     id: string;
@@ -36,6 +39,9 @@ export type AgentModel = {
 };
 
 export const MODELS: AgentModel[] = [
+  { id: "codex:default", harness: "codex", name: "CLI default", nativeId: "" },
+  { id: "mimo:default", harness: "mimo", name: "CLI default", nativeId: "" },
+  { id: "zcode:default", harness: "zcode", name: "CLI default", nativeId: "" },
   {
     id: "claude:sonnet-5",
     harness: "claude",
@@ -202,7 +208,9 @@ export const MODELS: AgentModel[] = [
 
 export const DEFAULT_MODEL_ID: Record<HarnessId, string> = {
   claude: "claude:sonnet-5",
-  codex: "",
+  codex: "codex:default",
+  mimo: "mimo:default",
+  zcode: "zcode:default",
   cursor: "cursor:composer-2.5",
   grok: "grok:grok-4.6",
   opencode: "opencode:glm-5",
@@ -240,6 +248,8 @@ const HARNESS_ORDER: HarnessId[] = [
   "fx",
   "hermes",
   "antigravity",
+  "mimo",
+  "zcode",
 ];
 
 const EMPTY_MODELS: AgentModel[] = [];
@@ -250,6 +260,7 @@ let catalogVersion = 0;
 const listeners = new Set<() => void>();
 
 function emit() {
+  mergedModels = {};
   catalogVersion += 1;
   baseByHarness = null;
   indexById = null;
@@ -324,8 +335,43 @@ function baseModelsFor(harness: HarnessId): AgentModel[] {
   return baseByHarness[harness] ?? EMPTY_MODELS;
 }
 
+let connections: ModelConnection[] = [];
+let mergedModels: Partial<Record<HarnessId, AgentModel[]>> = {};
+export function supportsConnection(harness: HarnessId, api: string): boolean {
+  if (["pi", "opencode", "mimo"].includes(harness)) return true;
+  return (
+    (harness === "claude" && api === "anthropic-messages") ||
+    (harness === "codex" && api === "openai-responses")
+  );
+}
+export function setConnectionModels(next: ModelConnection[]) {
+  connections = next;
+  emit();
+}
 export function modelsFor(harness: HarnessId): AgentModel[] {
-  return overlays[harness] ?? baseModelsFor(harness);
+  if (mergedModels[harness]) return mergedModels[harness]!;
+  const external: AgentModel[] = connections
+    .filter((c) => c.enabled && supportsConnection(harness, c.api))
+    .flatMap((c) =>
+      c.models.map((model) => ({
+        id: `${harness}:mycode-${c.id}/${model}`,
+        harness,
+        name: model,
+        connectionId: c.id,
+        primary: c.primaryModel === model,
+        nativeId: ["pi", "opencode", "mimo"].includes(harness)
+          ? `mycode-${c.id}/${model}`
+          : model,
+        provider: { id: `mycode-${c.id}`, name: c.name },
+      })),
+    );
+  const ids = new Set(external.map((m) => m.id));
+  return (mergedModels[harness] = [
+    ...external,
+    ...(overlays[harness] ?? baseModelsFor(harness)).filter(
+      (m) => !ids.has(m.id),
+    ),
+  ]);
 }
 
 export function allModels(): AgentModel[] {
@@ -359,15 +405,21 @@ export function resolveModel(harness: HarnessId, id?: string): AgentModel {
       const native = model.nativeId ?? nativeIdFrom(model.id);
       const comparableNative = comparableNativeId(harness, native);
       return (
-        comparableNative.startsWith(comparableSlug) ||
-        comparableSlug.startsWith(comparableNative)
+        Boolean(comparableNative) &&
+        (comparableNative.startsWith(comparableSlug) ||
+          comparableSlug.startsWith(comparableNative))
       );
     });
     if (prefix) return prefix;
   }
   // Codex has no built-in catalog. During startup, retain the saved model
   // until discovery finishes instead of borrowing another provider's model.
-  if (available.length === 0) {
+  if (
+    available.length === 0 ||
+    (id &&
+      harness === "codex" &&
+      available.every((model) => model.id === "codex:default"))
+  ) {
     const requested = id?.trim() ?? "";
     const modelId =
       requested &&
@@ -420,7 +472,11 @@ export function mergeModelSettings(
   model: AgentModel,
   current?: Record<string, string>,
 ): Record<string, string> {
-  if (modelsFor(model.harness).length === 0) return { ...current };
+  if (
+    modelsFor(model.harness).length === 0 ||
+    (model.harness === "codex" && !hasLiveCatalog("codex"))
+  )
+    return { ...current };
   const next = defaultModelSettings(model);
   if (!current) return next;
   for (const setting of model.settings ?? []) {
@@ -629,7 +685,9 @@ export function showProviderInModelPicker(
   probed: boolean,
 ): boolean {
   if (!isPickerProviderVisible(id)) return false;
-  return !probed || installed;
+  return (
+    id === "codex" || id === "mimo" || id === "zcode" || !probed || installed
+  );
 }
 
 export function modelPickerTabs(
@@ -689,6 +747,8 @@ export function saveDefaultModel(harness: HarnessId, model: string) {
 
 /** User-picked model for a provider, else the catalog default. */
 export function preferredModelId(harness: HarnessId): string {
+  const primary = modelsFor(harness).find((model) => model.primary);
+  if (primary) return primary.id;
   const saved = loadDefaultModels()[harness];
   if (saved) return saved;
   const last = loadLastModelChoice();

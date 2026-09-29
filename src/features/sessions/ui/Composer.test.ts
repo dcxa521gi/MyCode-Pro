@@ -21,6 +21,12 @@ vi.mock("../../source-control/hooks/useProjectBranches", () => ({
   }),
 }));
 
+vi.mock("../../../integrations/harness/core/registry", async (original) => ({
+  ...(await original<object>()),
+  runHarnessTextPrompt: vi.fn(),
+}));
+import { runHarnessTextPrompt } from "../../../integrations/harness/core/registry";
+
 import { Composer, ComposerAction } from "./Composer";
 import type { ComposerTurnOptions, Attachment } from "../model/session";
 import type { UserQuestionPrompt } from "../model/userQuestion";
@@ -128,6 +134,51 @@ describe("Composer question focus", () => {
       ),
     );
   }
+
+  it("enhances using the selected model and replaces the draft", async () => {
+    vi.mocked(runHarnessTextPrompt).mockResolvedValueOnce("A clearer request");
+    await renderComposer(undefined, vi.fn(), false, 0, "Please help");
+    await act(async () =>
+      (
+        container.querySelector(
+          '[aria-label="Enhance draft"]',
+        ) as HTMLButtonElement
+      ).click(),
+    );
+    expect(runHarnessTextPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        harness: "claude",
+        model: "claude-sonnet",
+        intent: "plan",
+      }),
+    );
+    expect(container.querySelector("textarea")!.value).toBe(
+      "A clearer request",
+    );
+  });
+
+  it("preserves edits typed while enhancement is running", async () => {
+    let complete!: (text: string) => void;
+    vi.mocked(runHarnessTextPrompt).mockReturnValueOnce(
+      new Promise((resolve) => {
+        complete = resolve;
+      }),
+    );
+    await renderComposer(undefined, vi.fn(), false, 0, "Please help");
+    await act(async () =>
+      (
+        container.querySelector(
+          '[aria-label="Enhance draft"]',
+        ) as HTMLButtonElement
+      ).click(),
+    );
+    await typeInto(container.querySelector("textarea")!, "My newer draft");
+    await act(async () => complete("Old enhancement"));
+    expect(container.querySelector("textarea")!.value).toBe("My newer draft");
+    expect(container.textContent).toContain(
+      "Draft changed. Enhancement was not applied.",
+    );
+  });
 
   it.each([
     ["/btw", ""],

@@ -91,6 +91,7 @@ type Props = {
   onGoBack?: () => void;
   onGoForward?: () => void;
   onSearch?: () => void;
+  onNewTask?: () => void;
   searchActive?: boolean;
   onOpenInbox?: () => void;
   inboxActive?: boolean;
@@ -127,6 +128,7 @@ export function ProjectRail({
   onGoBack,
   onGoForward,
   onSearch,
+  onNewTask,
   searchActive = false,
   onOpenInbox,
   inboxActive = false,
@@ -358,13 +360,11 @@ export function ProjectRail({
       ) : (
         <>
           <div className="flex shrink-0 flex-col gap-px px-2 pb-2 pt-0.5">
-            <RailSearch
-              label={t("Search")}
-              icon={Search}
-              onClick={onSearch}
-              active={searchActive}
-              shortcut={`${MOD}K`}
-              ariaLabel={`Search (${MOD}K)`}
+            <RailAction
+              label={t("New task")}
+              icon={Plus}
+              onClick={onNewTask}
+              ariaLabel={t("New task")}
             />
             <div className="mt-0.5" />
             <RailAction
@@ -401,6 +401,16 @@ export function ProjectRail({
             />
           </div>
 
+          <div className="shrink-0 px-2 pb-2">
+            <RailSearch
+              label={t("Search")}
+              icon={Search}
+              onClick={onSearch}
+              active={searchActive}
+              shortcut={`${MOD}K`}
+              ariaLabel={`Search (${MOD}K)`}
+            />
+          </div>
           <div
             ref={(el) => {
               lockOverscroll(el);

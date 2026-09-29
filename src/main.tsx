@@ -1,3 +1,5 @@
+import { loadLocalAIConfig } from "./features/providers/model/modelConnections";
+void loadLocalAIConfig().catch(() => undefined);
 import React, { useLayoutEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { listen } from "@tauri-apps/api/event";

@@ -459,6 +459,7 @@ pub fn harness_spawn(
     account: Option<HarnessAccount>,
     binary_provider: Option<String>,
     binary_path: Option<String>,
+    model_connection: Option<String>,
 ) -> Result<u32, String> {
     let workdir = expand_home(&cwd);
     if !workdir.is_dir() {
@@ -489,6 +490,7 @@ pub fn harness_spawn(
         &app,
         &mut cmd,
         binary_provider.as_deref(),
+        model_connection.as_deref(),
         args.iter().any(|arg| arg == "--no-session-persistence"),
     )?;
 
@@ -979,7 +981,7 @@ fn exec_capture(command: &str, args: &[String], cwd: Option<&str>) -> Result<Str
         let _ = tx.send(child.wait_with_output());
     });
 
-    match rx.recv_timeout(Duration::from_secs(15)) {
+    match rx.recv_timeout(Duration::from_secs(45)) {
         Ok(Ok(output)) => {
             let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
             if output.status.success() || !stdout.trim().is_empty() {
@@ -1509,6 +1511,11 @@ fn resolve_cursor_agent() -> Option<PathBuf> {
     let home = dirs_home().map(PathBuf::from);
     let mut candidates: Vec<PathBuf> = Vec::new();
 
+    if let Some(local) = std::env::var_os("LOCALAPPDATA") {
+        let root = PathBuf::from(local).join("cursor-agent");
+        candidates.push(root.join("cursor-agent.exe"));
+        candidates.push(root.join("cursor-agent.cmd"));
+    }
     // Stable shims first. `command -v` often returns a versioned path
     // (`…/versions/<build>/cursor-agent`); macOS TCC then treats each
     // upgrade as a new binary.
@@ -1528,11 +1535,29 @@ fn resolve_cursor_agent() -> Option<PathBuf> {
     first_binary_matching(candidates, is_cursor_agent)
 }
 
+#[tauri::command(async)]
+pub fn harness_resolve_mimo() -> Result<CursorBinary, String> {
+    which_via_login_shell("mimo")
+        .map(|path| CursorBinary {
+            path: path.to_string_lossy().into_owned(),
+        })
+        .ok_or("MiMo Code CLI not installed".into())
+}
+#[tauri::command(async)]
+pub fn harness_resolve_zcode() -> Result<CursorBinary, String> {
+    which_via_login_shell("zcode")
+        .map(|path| CursorBinary {
+            path: path.to_string_lossy().into_owned(),
+        })
+        .ok_or("ZCode CLI not installed".into())
+}
 fn resolve_harness_binary_default(provider: &str) -> Option<PathBuf> {
     match provider {
         "claude" => resolve_claude(),
         "codex" => resolve_codex(),
         "cursor" => resolve_cursor_agent(),
+        "mimo" => which_via_login_shell("mimo"),
+        "zcode" => which_via_login_shell("zcode"),
         "grok" => resolve_grok(),
         "opencode" => resolve_opencode(),
         "pi" => resolve_pi(),
@@ -1581,6 +1606,8 @@ pub(crate) fn resolve_harness_binary_override(
         "claude" => &["claude"],
         "codex" => &["codex"],
         "cursor" => &["cursor-agent", "agent"],
+        "mimo" => &["mimo"],
+        "zcode" => &["zcode"],
         "grok" => &["grok"],
         "opencode" => &["opencode"],
         "pi" => &["pi", "pi-coding-agent"],
@@ -2384,6 +2411,17 @@ fn gui_search_path_from(
         parts.push(r"C:\Program Files\Git\cmd".into());
         parts.push(r"C:\Program Files\nodejs".into());
     }
+    // Windows cmd.exe drops oversized PATH values; the login and inherited
+    // environments commonly contain the same directories.
+    let mut seen = std::collections::HashSet::new();
+    parts.retain(|part| {
+        let key = part.to_string_lossy().replace('\\', "/");
+        seen.insert(if cfg!(windows) {
+            key.to_ascii_lowercase()
+        } else {
+            key
+        })
+    });
     std::env::join_paths(parts)
         .unwrap_or_default()
         .to_string_lossy()
@@ -2427,6 +2465,7 @@ pub(crate) fn apply_gui_env(cmd: &mut Command) {
 fn prepare_child(cmd: &mut Command, command: &str) {
     apply_gui_env(cmd);
     crate::managed_cli::apply_path(cmd);
+    crate::managed_cli::apply_network(cmd);
     if command_basename(command) == "fx" {
         apply_fx_env(cmd);
     }
@@ -3312,6 +3351,20 @@ mod exec_allowlist_tests {
 #[cfg(all(windows, test))]
 mod windows_binary_tests {
     use super::*;
+    #[test]
+    fn gui_path_does_not_duplicate_login_and_inherited_directories() {
+        let path = gui_search_path_from(
+            Some(r"C:\Tools;C:\Windows".into()),
+            None,
+            Some(r"c:\tools;C:\Windows".into()),
+        );
+        assert_eq!(
+            std::env::split_paths(&path)
+                .filter(|entry| entry.to_string_lossy().eq_ignore_ascii_case(r"C:\Tools"))
+                .count(),
+            1
+        );
+    }
 
     #[test]
     fn configured_binary_path_accepts_windows_shim_extension() {

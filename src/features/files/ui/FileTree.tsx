@@ -922,7 +922,7 @@ export const FileTree = memo(function FileTree({
           </HeaderIcon>
           {onSearch ? (
             <HeaderIcon
-              label={`Search in files (${MOD}Shift+F)`}
+              label={`${uiTranslate("Search in files")} (${MOD}Shift+F)`}
               onClick={onSearch}
             >
               <Search className="size-3.5" strokeWidth={1.75} />
@@ -1016,8 +1016,8 @@ function HeaderIcon({
   return (
     <button
       type="button"
-      title={label}
-      aria-label={label}
+      title={uiTranslate(label)}
+      aria-label={uiTranslate(label)}
       aria-pressed={active || undefined}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}

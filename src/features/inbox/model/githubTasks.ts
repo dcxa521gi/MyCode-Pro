@@ -290,9 +290,7 @@ export async function githubRepositories(cwd: string): Promise<string[]> {
   const repositories = await invoke<string[]>("git_github_repositories", {
     cwd,
   });
-  if (repositories.length === 0) {
-    throw new Error("GitHub did not return a repository");
-  }
+  if (repositories.length === 0) return [];
   repositoriesByPath.set(key, repositories);
   repoByPath.set(key, repositories[0]!);
   return repositories;

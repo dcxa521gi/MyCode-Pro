@@ -88,7 +88,7 @@ afterEach(() => {
 
 it("browses one provider at a time and selects a model without closing settings", () => {
   const tabs = container.querySelectorAll('[role="tab"]');
-  expect(tabs).toHaveLength(3); // Favorites and the two available providers.
+  expect(tabs).toHaveLength(6); // Favorites, installed agents and discoverable Codex/MiMo/ZCode.
   expect(container.querySelector('[role="listbox"]')?.textContent).toContain(
     "Test Claude",
   );

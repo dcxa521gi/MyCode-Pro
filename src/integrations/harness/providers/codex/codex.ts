@@ -1,3 +1,4 @@
+import { findModel } from "../../../../features/sessions/model/models";
 import { nativeModelId } from "../../../../features/sessions/model/models";
 import { sameProviderAccountId } from "../../../../features/providers/model/providerAccounts";
 import {
@@ -499,6 +500,7 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
       id: input.providerAccountId ?? "default",
     },
     "codex",
+    findModel(input.model)?.connectionId,
   );
 
   try {
