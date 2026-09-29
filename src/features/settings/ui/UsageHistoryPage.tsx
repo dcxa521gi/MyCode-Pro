@@ -12,6 +12,8 @@ export type UsageRow = {
   outputTokens: number;
   cacheReadTokens: number;
   cacheWriteTokens: number;
+  cacheEligibleTokens?: number;
+  cacheMeasuredReadTokens?: number;
   measuredTurns: number;
   turns: number;
 };
@@ -28,6 +30,19 @@ export function UsageHistoryPage() {
   const selected = rows.filter((r) => !filter || r.harness === filter);
   const total = (key: "inputTokens" | "outputTokens" | "cacheReadTokens") =>
     selected.reduce((n, r) => n + r[key], 0).toLocaleString(locale);
+  const hitRate = (items: UsageRow[]) => {
+    const denominator = items.reduce(
+      (n, r) => n + (r.cacheEligibleTokens ?? 0),
+      0,
+    );
+    const read = items.reduce(
+      (n, r) => n + (r.cacheMeasuredReadTokens ?? 0),
+      0,
+    );
+    return denominator > 0
+      ? `${Math.min(100, (read / denominator) * 100).toFixed(1)}%`
+      : t("Unavailable");
+  };
   return (
     <section className="space-y-5">
       <div className="flex gap-3">
@@ -44,7 +59,7 @@ export function UsageHistoryPage() {
         </select>
         <button onClick={refresh}>{t("Refresh")}</button>
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {(
           [
             ["Input tokens", "inputTokens"],
@@ -62,6 +77,12 @@ export function UsageHistoryPage() {
             </div>
           </div>
         ))}
+        <div className="rounded-xl border border-content/10 bg-content/[0.025] p-4">
+          <div className="text-xs text-content/50">{t("Cache hit rate")}</div>
+          <div className="mt-2 text-2xl font-semibold tabular-nums">
+            {hitRate(selected)}
+          </div>
+        </div>
       </div>
       <p className="text-xs text-content/50">
         {t(
@@ -78,6 +99,7 @@ export function UsageHistoryPage() {
                 "Agent",
                 "Input tokens",
                 "Output tokens",
+                "Cache hit rate",
                 "Updated",
               ].map((s) => (
                 <th key={s} className="p-3 text-content/50">
@@ -109,6 +131,7 @@ export function UsageHistoryPage() {
                     ? r.outputTokens.toLocaleString(locale)
                     : t("Unavailable")}
                 </td>
+                <td className="p-3 tabular-nums">{hitRate([r])}</td>
                 <td className="p-3 text-xs">
                   {new Date(r.updatedAt).toLocaleDateString(locale)}
                 </td>

@@ -1,3 +1,4 @@
+import { translate, formatMessage, getLocale } from "../../../shared/i18n";
 import { asRecord } from "../../../integrations/harness/providers/codex/codexProtocol";
 
 export type RateLimitProvider = "claude" | "codex" | "opencode";
@@ -110,7 +111,10 @@ export function fetchingRateLimits(
 ): ProviderRateLimits {
   if (
     previous &&
-    (previous.session || previous.weekly || previous.monthly || previous.resetCredits)
+    (previous.session ||
+      previous.weekly ||
+      previous.monthly ||
+      previous.resetCredits)
   ) {
     return { ...previous, status: "fetching" };
   }
@@ -149,7 +153,10 @@ export function errorRateLimits(
 ): ProviderRateLimits {
   if (
     previous &&
-    (previous.session || previous.weekly || previous.monthly || previous.resetCredits)
+    (previous.session ||
+      previous.weekly ||
+      previous.monthly ||
+      previous.resetCredits)
   ) {
     return {
       ...previous,
@@ -184,6 +191,14 @@ export function formatUsagePercent(usedPercent: number): string {
  * original status-bar copy.
  */
 export function formatWindowLabel(windowMinutes: number): string {
+  if (getLocale() === "zh-CN") {
+    if (windowMinutes === WEEKLY_WINDOW_MINUTES) return "周";
+    if (windowMinutes === MONTHLY_WINDOW_MINUTES) return "月";
+    if (windowMinutes % (60 * 24) === 0)
+      return `${windowMinutes / (60 * 24)}天`;
+    if (windowMinutes % 60 === 0) return `${windowMinutes / 60}小时`;
+    return `${windowMinutes}分钟`;
+  }
   if (windowMinutes === WEEKLY_WINDOW_MINUTES) return "wk";
   if (windowMinutes === MONTHLY_WINDOW_MINUTES) return "mo";
   if (windowMinutes === SESSION_WINDOW_MINUTES) return "5h";
@@ -204,7 +219,15 @@ export function formatWindowLabel(windowMinutes: number): string {
  * "6d 7h". Returns "now" once the window has already reset.
  */
 export function formatResetDuration(ms: number): string {
-  if (ms <= 0) return "now";
+  if (ms <= 0) return translate("now");
+  if (getLocale() === "zh-CN") {
+    const minutes = Math.floor(ms / 60_000);
+    if (minutes < 60) return `${minutes}分钟`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24)
+      return `${hours}小时${minutes % 60 ? ` ${minutes % 60}分钟` : ""}`;
+    return `${Math.floor(hours / 24)}天${hours % 24 ? ` ${hours % 24}小时` : ""}`;
+  }
   const totalMins = Math.floor(ms / 60_000);
   if (totalMins < 60) return `${totalMins}m`;
   const hours = Math.floor(totalMins / 60);
@@ -219,7 +242,9 @@ export function formatResetDuration(ms: number): string {
 
 export function formatResetCountdown(ms: number): string {
   const duration = formatResetDuration(ms);
-  return duration === "now" ? "Resets now" : `Resets in ${duration}`;
+  return ms <= 0
+    ? translate("Resets now")
+    : formatMessage("Resets in {duration}", { duration });
 }
 
 /**
@@ -240,7 +265,7 @@ export function rateLimitWindowTooltip(
   window: RateLimitWindow,
   now = Date.now(),
 ): string {
-  const used = `${formatUsagePercent(window.usedPercent)} used`;
+  const used = `${formatUsagePercent(window.usedPercent)} ${translate("used")}`;
   if (window.resetsAt == null) {
     return `${used} · ${formatWindowLabel(window.windowMinutes)} window`;
   }
@@ -253,7 +278,8 @@ export function exhaustedWindowResetAt(
 ): number | null {
   let latest: number | null = null;
   for (const window of [limits.session, limits.weekly, limits.monthly]) {
-    if (!window || window.usedPercent < 100 || window.resetsAt == null) continue;
+    if (!window || window.usedPercent < 100 || window.resetsAt == null)
+      continue;
     latest = Math.max(latest ?? 0, window.resetsAt);
   }
   return latest;

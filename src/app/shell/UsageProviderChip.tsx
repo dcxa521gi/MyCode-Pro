@@ -1,4 +1,8 @@
-import { getLocale as uiLocale } from "../../shared/i18n";
+import {
+  getLocale as uiLocale,
+  translate,
+  formatMessage,
+} from "../../shared/i18n";
 import { useTranslation } from "../../shared/i18n";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import {
@@ -290,7 +294,7 @@ export function UsageProviderChip({
             <>
               {canManageAccounts ? (
                 <AccountSwitchRow
-                  accountLabel={activeAccountLabel}
+                  accountLabel={t(activeAccountLabel)}
                   onClick={() => setAccountView("accounts")}
                 />
               ) : null}
@@ -322,7 +326,7 @@ export function UsageProviderChip({
                       onClick={() => setAccountView("accounts")}
                     >
                       <span className="max-w-[60%] shrink-0 truncate">
-                        {activeAccountLabel}
+                        {t(activeAccountLabel)}
                       </span>
                       {activeSubtitle ? (
                         <span className="truncate text-content/35">
@@ -416,7 +420,7 @@ function AccountSwitchRow({
         aria-label={`Switch account from ${accountLabel}`}
         onClick={onClick}
       >
-        <span className="min-w-0 flex-1 truncate">{accountLabel}</span>
+        <span className="min-w-0 flex-1 truncate">{t(accountLabel)}</span>
         <span className="text-[10px] text-content/40">{t("Switch")}</span>
         <ChevronRight
           className="size-3 shrink-0 text-content/35"
@@ -487,7 +491,7 @@ function ProviderAccountPicker({
             >
               <span className="min-w-0 flex-1 py-1.5">
                 <span className="flex min-w-0 items-center gap-1.5">
-                  <span className="truncate">{account.label}</span>
+                  <span className="truncate">{t(account.label)}</span>
                   {orgTag ? (
                     <span className="max-w-[8rem] shrink-0 truncate rounded bg-content/[0.07] px-1 text-[9px] leading-4 text-content/50">
                       {orgTag}
@@ -654,7 +658,7 @@ function UsageWindowCard({
   return (
     <section className="rounded-lg bg-content/[0.045] px-3 py-2.5 ring-1 ring-inset ring-content/[0.06]">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-[11px] font-medium text-content/65">{title}</h3>
+        <h3 className="text-[11px] font-medium text-content/65">{t(title)}</h3>
         <span className="shrink-0 text-[11px] font-medium tabular-nums">
           {formatUsagePercent(pct)} {t("used")}
         </span>
@@ -662,7 +666,7 @@ function UsageWindowCard({
       <div
         className="mt-2 h-1.5 overflow-hidden rounded-full bg-content/10"
         role="progressbar"
-        aria-label={`${title} used`}
+        aria-label={`${t(title)} ${t("used")}`}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(pct)}
@@ -878,11 +882,13 @@ function BankedResetRow({
   return (
     <article className="rounded-lg bg-content/[0.04] px-2.5 py-2 ring-1 ring-inset ring-content/[0.06]">
       <h4 className="text-[10px] font-medium leading-4 text-content/70">
-        {credit?.title ?? `Banked reset ${index + 1}`}
+        {credit?.title
+          ? t(credit.title)
+          : formatMessage("Banked reset {number}", { number: index + 1 })}
       </h4>
       {credit?.description ? (
         <p className="mt-0.5 text-[10px] leading-4 text-content/45">
-          {credit.description}
+          {t(credit.description)}
         </p>
       ) : null}
       <div className="mt-1.5 flex min-h-6 items-center justify-between gap-2">
@@ -898,7 +904,9 @@ function BankedResetRow({
             ? t("Expiry not provided")
             : credit.expiresAt <= now
               ? t("Expires now")
-              : `Expires in ${formatResetDuration(credit.expiresAt - now)}`}
+              : formatMessage("Expires in {duration}", {
+                  duration: formatResetDuration(credit.expiresAt - now),
+                })}
         </p>
         {action === "using" ? (
           <span className="inline-flex shrink-0 items-center gap-1.5 text-[10px] text-content/45">
@@ -998,14 +1006,17 @@ export function needsProviderLogin(limits: ProviderRateLimits): boolean {
 }
 
 function updatedLabel(limits: ProviderRateLimits, now: number): string {
-  if (limits.updatedAt <= 0) return "Rate-limit details";
+  if (limits.updatedAt <= 0) return translate("Rate-limit details");
   const elapsedMinutes = Math.max(
     0,
     Math.floor((now - limits.updatedAt) / 60_000),
   );
-  if (elapsedMinutes === 0) return "Updated just now";
-  if (elapsedMinutes < 60) return `Updated ${elapsedMinutes}m ago`;
-  return `Updated ${Math.floor(elapsedMinutes / 60)}h ago`;
+  if (elapsedMinutes === 0) return translate("Updated just now");
+  if (elapsedMinutes < 60)
+    return formatMessage("Updated {minutes}m ago", { minutes: elapsedMinutes });
+  return formatMessage("Updated {hours}h ago", {
+    hours: Math.floor(elapsedMinutes / 60),
+  });
 }
 
 function resetOutcomeLabel(outcome: CodexRateLimitResetOutcome): string {

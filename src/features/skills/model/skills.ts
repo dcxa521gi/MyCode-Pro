@@ -73,6 +73,9 @@ export type SkillSource =
   | "grok"
   | "hermes"
   | "antigravity"
+  | "mimo"
+  | "zcode"
+  | "workbuddy"
   | "monocode";
 
 type SkillCommon = {

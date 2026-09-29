@@ -16,6 +16,8 @@ pub struct UsageRow {
     output_tokens: u64,
     cache_read_tokens: u64,
     cache_write_tokens: u64,
+    cache_eligible_tokens: f64,
+    cache_measured_read_tokens: u64,
     measured_turns: usize,
     turns: usize,
 }
@@ -52,6 +54,8 @@ pub fn usage_history(store: State<'_, SessionStore>) -> Result<Vec<UsageRow>, St
             output_tokens: 0,
             cache_read_tokens: 0,
             cache_write_tokens: 0,
+            cache_eligible_tokens: 0.0,
+            cache_measured_read_tokens: 0,
             measured_turns: 0,
             turns: 0,
         };
@@ -84,6 +88,30 @@ fn group_usage(base: &UsageRow, blocks: &[Value]) -> Vec<UsageRow> {
             });
         usage.turns += 1;
         if let Some(metrics) = block.get("turnMetrics").and_then(Value::as_object) {
+            let read = metrics
+                .get("cacheReadTokens")
+                .and_then(Value::as_u64)
+                .unwrap_or(0);
+            let percent = metrics.get("cacheHitPercent").and_then(Value::as_f64);
+            if percent.is_some() || metrics.contains_key("cacheReadTokens") {
+                let input = metrics
+                    .get("inputTokens")
+                    .and_then(Value::as_u64)
+                    .unwrap_or(0);
+                let write = metrics
+                    .get("cacheWriteTokens")
+                    .and_then(Value::as_u64)
+                    .unwrap_or(0);
+                let denominator = match percent {
+                    Some(p) if p > 0.0 && p <= 100.0 && read > 0 => read as f64 * 100.0 / p,
+                    _ if usage.harness == "codex" => input as f64,
+                    _ => (input + read + write) as f64,
+                };
+                if denominator > 0.0 {
+                    usage.cache_eligible_tokens += denominator;
+                    usage.cache_measured_read_tokens += read;
+                }
+            }
             if [
                 "inputTokens",
                 "outputTokens",
@@ -133,6 +161,8 @@ mod tests {
             output_tokens: 0,
             cache_read_tokens: 0,
             cache_write_tokens: 0,
+            cache_eligible_tokens: 0.0,
+            cache_measured_read_tokens: 0,
             measured_turns: 0,
             turns: 0,
         };
@@ -158,5 +188,22 @@ mod tests {
             (unknown.input_tokens, unknown.measured_turns, unknown.turns),
             (0, 0, 1)
         );
+        let cache = group_usage(
+            &base,
+            &[
+                json!({"role":"user","turnMetrics":{"inputTokens":400,"cacheReadTokens":300,"cacheHitPercent":75}}),
+                json!({"role":"user","turnMetrics":{"inputTokens":600,"cacheHitPercent":0}}),
+                json!({"role":"user","turnMetrics":{"inputTokens":9000}}),
+            ],
+        );
+        assert_eq!(cache[0].cache_eligible_tokens, 1000.0);
+        assert_eq!(cache[0].cache_measured_read_tokens, 300);
+        let claude = group_usage(
+            &base,
+            &[
+                json!({"role":"user","turnModel":{"harness":"claude"},"turnMetrics":{"inputTokens":2,"cacheReadTokens":300,"cacheWriteTokens":98,"cacheHitPercent":75}}),
+            ],
+        );
+        assert_eq!(claude[0].cache_eligible_tokens, 400.0);
     }
 }

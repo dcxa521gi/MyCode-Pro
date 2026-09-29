@@ -166,7 +166,7 @@ export function buildTurnStartParams(input: {
     collaborationMode: {
       mode: input.intent === "plan" ? "plan" : "default",
       settings: {
-        model: input.model ?? null,
+        model: input.model || null,
         reasoning_effort: input.effort ?? null,
         developer_instructions: null,
       },

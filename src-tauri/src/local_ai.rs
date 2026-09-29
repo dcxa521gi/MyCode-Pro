@@ -319,7 +319,15 @@ pub fn configure_child(
         return Ok(());
     }
     let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
-    let config = load(app)?;
+    let mut config = load(app)?;
+    if !isolated {
+        if let Some(computer) = crate::computer::mcp(app)? {
+            if !config.mcp_servers.is_object() {
+                config.mcp_servers = json!({});
+            }
+            config.mcp_servers["mycode_computer"] = computer;
+        }
+    }
     let dir = directory(app)?;
     if let Some(id) = selected_connection {
         let connection = config
@@ -381,11 +389,68 @@ pub fn configure_child(
                 .collect();
             providers.insert(format!("mycode-{}", c.id), json!({"npm":npm,"name":c.name,"options":{"baseURL":c.base_url,"apiKey":key},"models":models}));
         }
-        if !providers.is_empty() {
-            let value =
-                serde_json::to_string(&json!({"provider":providers})).map_err(|e| e.to_string())?;
+        let mut mcp = serde_json::Map::new();
+        if !isolated {
+            if let Some(servers) = config.mcp_servers.as_object() {
+                for (name, server) in servers {
+                    if let Some(command) = server["command"].as_str() {
+                        let mut argv = vec![json!(command)];
+                        argv.extend(server["args"].as_array().cloned().unwrap_or_default());
+                        mcp.insert(name.clone(), json!({"type":"local","command":argv,"enabled":true,"timeout":30000,"environment":server["env"].as_object().cloned().unwrap_or_default()}));
+                    }
+                }
+            }
+        }
+        if !providers.is_empty() || !mcp.is_empty() {
+            let value = serde_json::to_string(&json!({"provider":providers,"mcp":mcp}))
+                .map_err(|e| e.to_string())?;
             cmd.env("OPENCODE_CONFIG_CONTENT", &value)
                 .env("MIMOCODE_CONFIG_CONTENT", value);
+        }
+    }
+    if provider == Some("codex") && !isolated {
+        if let Some(servers) = config.mcp_servers.as_object() {
+            for (name, server) in servers {
+                if let Some(command) = server["command"].as_str() {
+                    use sha2::Digest;
+                    let name = if name
+                        .chars()
+                        .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+                    {
+                        name.clone()
+                    } else {
+                        format!("mycode_{:x}", sha2::Sha256::digest(name.as_bytes()))
+                    };
+                    cmd.arg("-c").arg(format!(
+                        "mcp_servers.{name}.command={}",
+                        serde_json::to_string(command).map_err(|e| e.to_string())?
+                    ));
+                    if name == "mycode_computer" {
+                        cmd.arg("-c")
+                            .arg("mcp_servers.mycode_computer.startup_timeout_sec=30");
+                    }
+                    cmd.arg("-c").arg(format!(
+                        "mcp_servers.{name}.args={}",
+                        serde_json::to_string(
+                            &server["args"].as_array().cloned().unwrap_or_default()
+                        )
+                        .map_err(|e| e.to_string())?
+                    ));
+                    if let Some(env) = server["env"].as_object() {
+                        for (key, value) in env {
+                            if let Some(value) = value.as_str().filter(|_| {
+                                key.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+                            }) {
+                                cmd.arg("-c").arg(format!(
+                                    "mcp_servers.{name}.env.{}={}",
+                                    key,
+                                    serde_json::to_string(value).unwrap()
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     if provider == Some("claude")

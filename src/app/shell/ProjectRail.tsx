@@ -1,4 +1,5 @@
 import { UsageSummary } from "../../features/settings/ui/UsageHistoryPage";
+import { ComputerControlStop } from "../../features/settings/ui/ComputerSettings";
 import { useTranslation } from "../../shared/i18n";
 import {
   BellOff,
@@ -528,6 +529,7 @@ export function ProjectRail({
             groupCustomColors={groupCustomColors}
             groupMascots={groupMascots}
           />
+          <ComputerControlStop />
           <UsageSummary
             onOpen={() => {
               onOpenSettings?.();

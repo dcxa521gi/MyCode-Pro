@@ -33,8 +33,12 @@ export interface OmpAssistantText {
   concat: string;
 }
 
-export function ompActiveAssistantTexts(providerSessionId: string): Promise<OmpAssistantText[]> {
-  return invoke<OmpAssistantText[]>("omp_active_assistant_texts", { providerSessionId });
+export function ompActiveAssistantTexts(
+  providerSessionId: string,
+): Promise<OmpAssistantText[]> {
+  return invoke<OmpAssistantText[]>("omp_active_assistant_texts", {
+    providerSessionId,
+  });
 }
 
 export function claudeShellCommands(
@@ -114,6 +118,9 @@ export type DiscoveredSkill = {
     | "fx"
     | "grok"
     | "hermes"
+    | "workbuddy"
+    | "zcode"
+    | "mimo"
     | "antigravity"
     | "monocode";
 };
@@ -441,7 +448,9 @@ export function homeDir(): Promise<string> {
   return invoke<string>("home_dir");
 }
 
-export async function pickFolder(title = "Open project"): Promise<string | null> {
+export async function pickFolder(
+  title = "Open project",
+): Promise<string | null> {
   const selected = await open({
     directory: true,
     multiple: false,
@@ -450,7 +459,9 @@ export async function pickFolder(title = "Open project"): Promise<string | null>
   return typeof selected === "string" && selected ? slash(selected) : null;
 }
 
-export async function pickFiles(title = "Attach files"): Promise<string[] | null> {
+export async function pickFiles(
+  title = "Attach files",
+): Promise<string[] | null> {
   const selected = await open({
     multiple: true,
     directory: false,

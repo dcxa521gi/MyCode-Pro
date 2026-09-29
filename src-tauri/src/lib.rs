@@ -3,8 +3,10 @@ use tauri::Manager;
 mod account_identity;
 mod automations;
 mod azure_devops;
+mod cache_location;
 mod chat_background;
 mod checkpoint;
+mod computer;
 mod control;
 pub mod control_cli;
 mod cursor_store;
@@ -41,6 +43,7 @@ mod task_import;
 #[cfg(target_os = "windows")]
 mod tray;
 mod usage_history;
+mod voice;
 mod window;
 mod window_transfer;
 #[cfg(windows)]
@@ -67,6 +70,14 @@ fn home_dir() -> String {
     dirs_home()
         .map(|home| fs::path_to_js(std::path::Path::new(&home)))
         .unwrap_or_else(|| "~".into())
+}
+
+#[tauri::command]
+fn default_workspace() -> Result<String, String> {
+    let home = dirs_home().ok_or("Home directory is unavailable")?;
+    let path = std::path::PathBuf::from(home).join("MyCode");
+    std::fs::create_dir_all(&path).map_err(|e| e.to_string())?;
+    Ok(fs::path_to_js(&path))
 }
 
 pub(crate) struct PasswdIdentity {
@@ -229,6 +240,7 @@ pub fn run() {
         .manage(pty::PtyHost::new())
         .manage(window_transfer::WindowTransferState::new())
         .setup(|app| {
+            cache_location::initialize(app.handle());
             managed_cli::init(app.handle());
             harness::reap_orphaned_harness_processes();
             session_store::init(app.handle())?;
@@ -272,6 +284,15 @@ pub fn run() {
             control::app_cli_path,
             default_cwd,
             home_dir,
+            default_workspace,
+            cache_location::cache_location,
+            cache_location::cache_set_location,
+            voice::voice_config,
+            voice::voice_save,
+            voice::voice_transcribe,
+            computer::computer_config,
+            computer::computer_save,
+            computer::computer_install,
             notifications::notification_permission,
             notifications::request_notification_permission,
             notifications::show_notification,

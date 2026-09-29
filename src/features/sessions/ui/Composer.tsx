@@ -1,3 +1,5 @@
+import { VoiceInput } from "./VoiceInput";
+import type { TurnMetrics } from "../model/session";
 import { runHarnessTextPrompt } from "../../../integrations/harness/core/registry";
 import { useTranslation } from "../../../shared/i18n";
 import {
@@ -197,6 +199,7 @@ type Props = {
   hideBranchPicker?: boolean;
   hideTopBar?: boolean;
   context?: ContextUsage;
+  turnMetrics?: TurnMetrics;
   compactSupported?: boolean;
   quoteRequest?: QuoteRequest;
   initialDraft?: string;
@@ -488,6 +491,7 @@ export function Composer({
   hideBranchPicker = false,
   hideTopBar = false,
   context,
+  turnMetrics,
   compactSupported = false,
   quoteRequest,
   initialDraft,
@@ -1950,17 +1954,6 @@ export function Composer({
                   />
                 </>
               )}
-              <div className="ml-auto flex shrink-0 items-center">
-                <ContextMeter
-                  usage={context}
-                  onCompact={
-                    compactSupported && !worktreeRemoved
-                      ? onCompactContext
-                      : undefined
-                  }
-                  compactDisabled={busy}
-                />
-              </div>
             </div>
           )}
 
@@ -2351,6 +2344,23 @@ export function Composer({
               </button>
             ) : null}
             <div className="flex shrink-0 items-center gap-1">
+              <VoiceInput
+                enabled={enabled && !disabled}
+                shortcutEnabled={focused}
+                onText={(text) => {
+                  const next = [ref.current?.value ?? "", text]
+                    .filter(Boolean)
+                    .join(" ");
+                  if (ref.current) {
+                    ref.current.value = next;
+                    resizeComposer(ref.current);
+                    ref.current.focus();
+                  }
+                  setDraft(next);
+                  draftRevisionRef.current += 1;
+                  syncHasValue(next, attachmentsRef.current);
+                }}
+              />
               {enhanceError && (
                 <span
                   role="status"
@@ -2372,6 +2382,17 @@ export function Composer({
                   className={enhancing ? "size-4 animate-pulse" : "size-4"}
                 />
               </button>
+              <ContextMeter
+                usage={context}
+                metrics={turnMetrics}
+                sessionId={sessionId}
+                onCompact={
+                  compactSupported && !worktreeRemoved
+                    ? onCompactContext
+                    : undefined
+                }
+                compactDisabled={busy || !enabled || !focused || disabled}
+              />
               <ComposerAction
                 busy={busy}
                 disabled={disabled}

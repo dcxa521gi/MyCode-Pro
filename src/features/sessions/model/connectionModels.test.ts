@@ -5,6 +5,7 @@ import {
   nativeModelId,
   preferredModelId,
   findModel,
+  defaultSessionChoice,
 } from "./models";
 afterEach(() => setConnectionModels([]));
 it("exposes provider models only through compatible protocols and prioritizes the primary", () => {
@@ -24,6 +25,7 @@ it("exposes provider models only through compatible protocols and prioritizes th
   expect(model).toBeDefined();
   expect(nativeModelId(model.id)).toBe("test");
   expect(preferredModelId("codex")).toBe(model.id);
+  expect(findModel(defaultSessionChoice().model)?.primary).toBe(true);
   expect(
     modelsFor("mimo").some((model) => model.nativeId === "mycode-a/test"),
   ).toBe(true);

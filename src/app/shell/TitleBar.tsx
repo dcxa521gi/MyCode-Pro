@@ -1,5 +1,9 @@
 import { useTranslation } from "../../shared/i18n";
 import {
+  useWorkMode,
+  setWorkMode,
+} from "../../features/settings/model/workMode";
+import {
   CheckCircle,
   ChevronLeft,
   ChevronRight,
@@ -509,14 +513,17 @@ export function IconButton({
 
 export function DevModeLabel() {
   const { t } = useTranslation();
-  if (!import.meta.env.DEV) return null;
+  const mode = useWorkMode();
   return (
-    <span
-      title={t("Development build")}
+    <button
+      type="button"
+      title={t("Switch work mode")}
+      aria-label={t("Switch work mode")}
+      onClick={() => setWorkMode(mode === "office" ? "development" : "office")}
       className="mr-1 min-w-0 truncate rounded-md bg-skill/15 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-skill"
     >
-      {t("Development")}
-    </span>
+      {t(mode === "office" ? "Office" : "Development")}
+    </button>
   );
 }
 

@@ -1,3 +1,6 @@
+import { VoiceSettings } from "./VoiceSettings";
+import { StorageSettings } from "./StorageSettings";
+import { ComputerSettings } from "./ComputerSettings";
 import { useWorkspaceSide, setWorkspaceSide } from "../model/workspaceSide";
 import { getLocale as uiLocale } from "../../../shared/i18n";
 import {
@@ -531,7 +534,7 @@ export function SettingsView({
         <RevealedSetting.Provider value={revealed}>
           <div
             ref={lockOverscroll}
-            className="@container/settings min-h-0 flex-1 overflow-y-auto overscroll-none"
+            className={`@container/settings min-h-0 flex-1 overflow-y-auto overscroll-none ${section === "providers" || section === "providers-cli" ? "[&_section>div.border]:border-0 [&_section>div.border]:bg-transparent" : ""}`}
           >
             <div className="mx-auto w-full max-w-5xl px-5 py-6 pb-16 @min-[560px]/settings:px-8 @min-[560px]/settings:py-8">
               <PageHeader
@@ -539,7 +542,10 @@ export function SettingsView({
                 description={settingsSectionDescription(section)}
               />
               {section === "general" ? (
-                <GeneralPage onOpenWhatsNew={onOpenWhatsNew} />
+                <>
+                  <StorageSettings />
+                  <GeneralPage onOpenWhatsNew={onOpenWhatsNew} />
+                </>
               ) : null}
               {section === "appearance" ? (
                 <AppearancePage appearance={appearance} />
@@ -553,6 +559,8 @@ export function SettingsView({
               {section === "providers-cli" ? (
                 <ProvidersPage cwd={cwd} recents={recents} />
               ) : null}
+              {section === "voice" ? <VoiceSettings /> : null}
+              {section === "computer" ? <ComputerSettings /> : null}
               {section === "usage" ? <UsageHistoryPage /> : null}
               {section === "task-import" ? (
                 <TaskImportPage
@@ -2784,7 +2792,7 @@ function KeybindingShortcutEditor({
 }
 
 function KeybindingsPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [query, setQuery] = useState("");
   const [overrides, setOverrides] = useState(loadKeybindingOverrides);
   useEffect(
@@ -2792,8 +2800,15 @@ function KeybindingsPage() {
     [],
   );
   const rows = useMemo(
-    () => filterKeybindings(currentKeybindings(), query),
-    [query, overrides],
+    () =>
+      currentKeybindings().filter(
+        (row) =>
+          filterKeybindings([row], query).length ||
+          `${t(row.command)} ${t(row.when)}`
+            .toLowerCase()
+            .includes(query.trim().toLowerCase()),
+      ),
+    [query, overrides, t, locale],
   );
 
   const save = async (command: string, override: KeybindingOverride) => {
@@ -2842,26 +2857,26 @@ function KeybindingsPage() {
           const disabled = override?.disabled === true;
           return (
             <div
-              key={row.command}
+              key={t(row.command)}
               className="flex h-11 items-center border-b border-content/5 px-4 text-[12px] last:border-b-0"
             >
               <span
                 className={`min-w-0 flex-1 truncate ${disabled ? "text-content/45" : ""}`}
               >
-                {row.command}
+                {t(row.command)}
               </span>
               {row.command === "App: Quick Composer" ? (
                 <QuickComposerShortcutEditor />
               ) : (
                 <KeybindingShortcutEditor
-                  command={row.command}
+                  command={t(row.command)}
                   display={disabled ? null : row.keys}
                   modified={Boolean(override)}
                   onSave={save}
                 />
               )}
               <span className="w-28 shrink-0 font-mono text-[11px] text-content/40">
-                {row.when}
+                {t(row.when)}
               </span>
             </div>
           );

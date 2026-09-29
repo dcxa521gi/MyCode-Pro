@@ -391,6 +391,11 @@ export function findModel(id: string): AgentModel | undefined {
 }
 
 export function resolveModel(harness: HarnessId, id?: string): AgentModel {
+  const cliDefault = MODELS.find(
+    (model) =>
+      model.id === id && model.harness === harness && model.nativeId === "",
+  );
+  if (cliDefault) return cliDefault;
   const available = modelsFor(harness);
   if (id) {
     const exact = findModel(id);
@@ -452,6 +457,11 @@ export function modelContextWindow(id: string): number | undefined {
 }
 
 export function nativeModelId(model: AgentModel | string): string {
+  // Persisted CLI-default choices survive replacement of the initial catalog.
+  // They mean “let the CLI choose”, never a literal model named `default`.
+  const id = typeof model === "string" ? model : model.id;
+  if (["codex:default", "mimo:default", "zcode:default"].includes(id))
+    return "";
   if (typeof model !== "string") {
     return model.nativeId ?? nativeIdFrom(model.id);
   }
@@ -781,10 +791,23 @@ export function firstEnabledHarness(
 export function defaultSessionChoice(cwd?: string): LastModelChoice {
   const project = loadProjectProviderSettings(cwd);
   const last = loadLastModelChoice();
-  const harness = firstEnabledHarness(
+  let harness = firstEnabledHarness(
     cwd,
     project.defaultHarness ?? last?.harness ?? "cursor",
   );
+  // A configured primary connection wins for new tasks. If the last CLI
+  // cannot use that protocol, choose an available compatible CLI instead.
+  const primary =
+    modelsFor(harness).find((model) => model.primary) ??
+    HARNESSES.flatMap(modelsFor).find(
+      (model) =>
+        model.primary &&
+        firstEnabledHarness(cwd, model.harness) === model.harness,
+    );
+  if (primary) {
+    harness = primary.harness;
+    return { harness, model: primary.id };
+  }
   const model =
     project.models?.[harness] ??
     (project.defaultHarness === harness ? project.defaultModel : undefined) ??

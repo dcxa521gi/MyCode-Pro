@@ -3084,7 +3084,7 @@ function MyCodeCallRow({
   const [errorOpen, setErrorOpen] = useState(false);
   const hasError = state === "rejected" && !!output;
   const pendingApproval = needsApproval(block);
-  const command = `monocode app ${call.action}`;
+  const command = `MyCode app ${call.action}`;
   const verb = pendingApproval
     ? "Run"
     : state === "pending"

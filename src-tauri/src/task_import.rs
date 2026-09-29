@@ -26,6 +26,7 @@ fn sources() -> Vec<(String, PathBuf)> {
     let home = PathBuf::from(home);
     vec![
         ("claude".into(), home.join(".claude/projects")),
+        ("workbuddy".into(), home.join(".workbuddy/projects")),
         ("codex".into(), home.join(".codex/sessions")),
         ("codex".into(), home.join(".codex/archived_sessions")),
     ]
@@ -98,7 +99,9 @@ fn parse(source: &str, id: &str, content: &str) -> Option<SessionUpsert> {
                 native_id = Some(s.into())
             }
         }
-        let message = if source == "claude" {
+        let message = if source == "workbuddy" && v["type"] == "message" {
+            &v
+        } else if source == "claude" {
             &v["message"]
         } else if v["type"] == "response_item" && v["payload"]["type"] == "message" {
             &v["payload"]
@@ -129,7 +132,14 @@ fn parse(source: &str, id: &str, content: &str) -> Option<SessionUpsert> {
         .chars()
         .take(100)
         .collect::<String>();
-    serde_json::from_value(json!({"id":id,"cwd":cwd,"harness":source,"model":model,"modelSettings":{},"runtimeMode":"supervised","title":title,"providerSessionId":native_id,"blocks":blocks})).ok()
+    // WorkBuddy transcripts are portable history, not Claude resumable sessions.
+    let harness = if source == "workbuddy" {
+        model.clear();
+        "claude"
+    } else {
+        source
+    };
+    serde_json::from_value(json!({"id":id,"cwd":cwd,"harness":harness,"model":model,"modelSettings":{},"runtimeMode":"supervised","title":title,"providerSessionId":native_id,"blocks":blocks})).ok()
 }
 fn read(source: &str, path: &Path) -> Option<SessionUpsert> {
     if fs::symlink_metadata(path).ok()?.file_type().is_symlink()
@@ -142,6 +152,68 @@ fn read(source: &str, path: &Path) -> Option<SessionUpsert> {
         &id_for(source, path),
         &fs::read_to_string(path).ok()?,
     )
+}
+
+fn zcode_sessions(target: Option<&str>) -> Vec<SessionUpsert> {
+    let Some(home) = crate::dirs_home() else {
+        return vec![];
+    };
+    let path = PathBuf::from(home).join(".zcode/cli/db/db.sqlite");
+    let Ok(conn) =
+        rusqlite::Connection::open_with_flags(&path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+    else {
+        return vec![];
+    };
+    let Ok(mut sessions) = conn.prepare("SELECT id, directory, title FROM session WHERE parent_id IS NULL ORDER BY time_updated DESC LIMIT 3000") else { return vec![]; };
+    let Ok(rows) = sessions.query_map([], |r| {
+        Ok((
+            r.get::<_, String>(0)?,
+            r.get::<_, String>(1)?,
+            r.get::<_, String>(2)?,
+        ))
+    }) else {
+        return vec![];
+    };
+    let mut result = vec![];
+    for (native_id, cwd, title) in rows.flatten() {
+        let id = id_for("zcode", &path.join(&native_id));
+        if target.is_some_and(|target| target != id) {
+            continue;
+        }
+        let Ok(mut messages) = conn.prepare("SELECT m.data, p.data FROM message m JOIN part p ON p.message_id=m.id WHERE m.session_id=?1 ORDER BY m.time_created, m.sequence, p.sequence, p.time_created") else { continue; };
+        let Ok(parts) = messages.query_map([&native_id], |r| {
+            Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
+        }) else {
+            continue;
+        };
+        let mut blocks = vec![];
+        for (message, part) in parts.flatten() {
+            let (Ok(message), Ok(part)) = (
+                serde_json::from_str::<Value>(&message),
+                serde_json::from_str::<Value>(&part),
+            ) else {
+                continue;
+            };
+            let role = message["role"].as_str().unwrap_or("");
+            if !matches!(role, "user" | "assistant") || part["type"] != "text" {
+                continue;
+            }
+            let Some(text) = part["text"].as_str().filter(|t| !t.trim().is_empty()) else {
+                continue;
+            };
+            blocks.push(json!({"id":format!("{id}-{}", blocks.len()),"role":role,"text":text}));
+        }
+        if cwd.is_empty() || blocks.is_empty() {
+            continue;
+        }
+        // Import portable history without binding desktop-specific runtime state.
+        if let Ok(session) = serde_json::from_value(
+            json!({"id":id,"cwd":cwd,"harness":"zcode","model":"zcode:default","modelSettings":{},"runtimeMode":"supervised","title":title,"providerSessionId":null,"blocks":blocks}),
+        ) {
+            result.push(session);
+        }
+    }
+    result
 }
 #[tauri::command(async)]
 pub fn task_import_scan(store: State<'_, SessionStore>) -> Result<Vec<Candidate>, String> {
@@ -172,10 +244,21 @@ pub fn task_import_scan(store: State<'_, SessionStore>) -> Result<Vec<Candidate>
             }
         }
     }
+    result.extend(zcode_sessions(None).into_iter().map(|session| Candidate {
+        existing: existing.contains(&session.id),
+        turns: session.blocks.as_array().map(Vec::len).unwrap_or(0),
+        id: session.id,
+        source: "zcode".into(),
+        title: session.title,
+        cwd: session.cwd,
+    }));
     Ok(result)
 }
 #[tauri::command(async)]
 pub fn task_import_read(id: String) -> Result<SessionUpsert, String> {
+    if let Some(session) = zcode_sessions(Some(&id)).into_iter().next() {
+        return Ok(session);
+    }
     for (source, root) in sources() {
         let mut paths = vec![];
         files(&root, 6, &mut paths);
@@ -211,6 +294,16 @@ pub fn task_import_commit(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn workbuddy_imports_messages_without_resuming_foreign_sessions() {
+        let text = r#"{"cwd":"/office","sessionId":"foreign","type":"message","role":"user","content":[{"type":"text","text":"write report"}]}
+{"cwd":"/office","type":"reasoning","content":[{"text":"private thought"}]}
+{"cwd":"/office","type":"message","role":"assistant","content":[{"type":"text","text":"report"}]}"#;
+        let session = parse("workbuddy", "import-test", text).unwrap();
+        assert_eq!(session.blocks.as_array().unwrap().len(), 2);
+        assert_eq!(session.harness, "claude");
+        assert!(session.provider_session_id.is_none());
+    }
     #[test]
     fn codex_import_ignores_tool_and_system_instructions() {
         let text="{\"type\":\"session_meta\",\"payload\":{\"id\":\"abc\",\"cwd\":\"/repo\"}}\n{\"type\":\"response_item\",\"payload\":{\"type\":\"message\",\"role\":\"user\",\"content\":[{\"text\":\"hello\"}]}}\n{\"type\":\"response_item\",\"payload\":{\"type\":\"message\",\"role\":\"system\",\"content\":[{\"text\":\"secret\"}]}}";

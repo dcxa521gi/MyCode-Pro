@@ -99,7 +99,7 @@ describe("MyCode CLI disclosure", () => {
     );
     expect(row?.querySelector("button")).toBeNull();
     expect(row?.querySelector("pre")).toBeNull();
-    expect(row?.textContent).toContain("Ranmonocode app notes.list");
+    expect(row?.textContent).toContain("RanMyCode app notes.list");
     expect(row?.querySelector('img[src="/mycode-icon.png"]')).not.toBeNull();
     expect(row?.querySelector(".bg-content\\/6")).not.toBeNull();
     expect(container.textContent).not.toContain("Contents/MacOS/monocode");

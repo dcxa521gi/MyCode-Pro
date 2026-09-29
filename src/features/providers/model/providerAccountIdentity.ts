@@ -1,3 +1,4 @@
+import { translate } from "../../../shared/i18n";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import type {
@@ -31,7 +32,10 @@ export async function readProviderAccountIdentity(
 export function identitySubtitle(
   identity: ProviderAccountIdentity | null | undefined,
 ): string | null {
-  const parts = [identity?.plan, identity?.email].filter(Boolean);
+  const parts = [
+    identity?.plan ? translate(identity.plan) : null,
+    identity?.email,
+  ].filter(Boolean);
   return parts.length ? parts.join(" · ") : null;
 }
 

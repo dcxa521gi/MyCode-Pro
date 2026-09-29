@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { HarnessId } from "./session";
 import {
   coerceModelPickerTab,
+  nativeModelId,
   defaultModelId,
   defaultSessionChoice,
   firstEnabledHarness,
@@ -29,6 +30,25 @@ import {
   stepModelPickerTab,
   type AgentModel,
 } from "./models";
+
+it("keeps persisted CLI defaults empty after live model catalogs replace placeholders", () => {
+  setHarnessModels("codex", [
+    {
+      id: "codex:gpt-test",
+      harness: "codex",
+      name: "Test",
+      nativeId: "gpt-test",
+    },
+  ]);
+  expect(nativeModelId("codex:default")).toBe("");
+  expect(resolveModel("codex", "codex:default").name).toBe("CLI default");
+  expect(nativeModelId("mimo:default")).toBe("");
+  expect(nativeModelId("zcode:default")).toBe("");
+  expect(nativeModelId("codex:mycode-connection/default")).toBe(
+    "mycode-connection/default",
+  );
+  resetHarnessModelOverlays();
+});
 import {
   setProjectDefaultProvider,
   setProjectProviderHidden,

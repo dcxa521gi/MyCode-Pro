@@ -527,6 +527,7 @@ export const SessionPane = memo(function SessionPane({
       hideBranchPicker={!!session.inboxAsk || managed}
       hideTopBar={!!session.inboxAsk}
       context={session.context}
+      turnMetrics={latestTurnMetrics(session.blocks)}
       quoteRequest={quoteRequest}
       initialDraft={
         draftRef.current ??
@@ -931,3 +932,4 @@ export const SessionPane = memo(function SessionPane({
     </div>
   );
 });
+import { latestTurnMetrics } from "../model/cacheMetrics";

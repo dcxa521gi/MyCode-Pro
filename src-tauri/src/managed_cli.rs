@@ -122,7 +122,7 @@ pub fn apply_network(cmd: &mut Command) {
         cmd.env("HTTPS_PROXY", &proxy).env("HTTP_PROXY", proxy);
     }
 }
-fn system_proxy() -> Option<String> {
+pub(crate) fn system_proxy() -> Option<String> {
     for key in ["HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy"] {
         if let Ok(value) = std::env::var(key) {
             if !value.trim().is_empty() {
@@ -167,7 +167,7 @@ fn system_proxy() -> Option<String> {
 fn package(provider: &str) -> Result<(&'static str, &'static str), String> {
     match provider{"mimo"=>Ok(("@mimo-ai/cli","mimo")),"claude"=>Ok(("@anthropic-ai/claude-code","claude")),"codex"=>Ok(("@openai/codex","codex")),"pi"=>Ok(("@earendil-works/pi-coding-agent","pi")),"opencode"=>Ok(("opencode-ai","opencode")),_=>Err("This CLI requires its official platform installer. Configure its executable path after installation.".into())}
 }
-fn download_agent() -> ureq::Agent {
+pub(crate) fn download_agent() -> ureq::Agent {
     let mut builder = ureq::AgentBuilder::new().timeout(std::time::Duration::from_secs(300));
     if let Some(proxy) = system_proxy().and_then(|p| ureq::Proxy::new(p).ok()) {
         builder = builder.proxy(proxy);

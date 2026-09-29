@@ -149,7 +149,13 @@ function projectMenuExtraItems(
           },
           icon: Pin,
         },
-    { id: "reveal", label: REVEAL_LABEL, icon: FolderOpen },
+    {
+      id: "reveal",
+      get label() {
+        return uiTranslate(REVEAL_LABEL);
+      },
+      icon: FolderOpen,
+    },
     {
       id: "external-editor",
       get label() {

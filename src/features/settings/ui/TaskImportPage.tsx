@@ -19,6 +19,7 @@ type ImportState = {
   status: string;
   filter: string;
   imported: SessionSummary[];
+  page: number;
 };
 let snapshot: ImportState = {
   items: [],
@@ -27,6 +28,7 @@ let snapshot: ImportState = {
   status: "",
   filter: "",
   imported: [],
+  page: 0,
 };
 const listeners = new Set<() => void>();
 const subscribe = (listener: () => void) => {
@@ -54,13 +56,19 @@ export function TaskImportPage({
   const { t } = useTranslation();
   const state = useSyncExternalStore(subscribe, () => snapshot);
   const { items, selected, busy, status, filter, imported } = state;
+  const filtered = items.filter((c) => !filter || c.source === filter);
+  const pages = Math.max(1, Math.ceil(filtered.length / 20));
+  const page = Math.min(state.page, pages - 1);
   const setItems = (value: SetStateAction<Candidate[]>) =>
     update("items", value);
   const setSelected = (value: SetStateAction<Set<string>>) =>
     update("selected", value);
   const setBusy = (value: boolean) => update("busy", value);
   const setStatus = (value: string) => update("status", value);
-  const setFilter = (value: string) => update("filter", value);
+  const setFilter = (value: string) => {
+    update("filter", value);
+    update("page", 0);
+  };
   const setImported = (value: SetStateAction<SessionSummary[]>) =>
     update("imported", value);
   const scan = async () => {
@@ -69,6 +77,7 @@ export function TaskImportPage({
     try {
       setItems(await invoke<Candidate[]>("task_import_scan"));
       setSelected(new Set());
+      update("page", 0);
     } catch {
       setStatus("Could not scan local conversations.");
     } finally {
@@ -109,7 +118,7 @@ export function TaskImportPage({
     <section className="space-y-4">
       <p className="text-sm text-content/60">
         {t(
-          "Scan local Claude and Codex history, preview and select tasks to import. Original files are never modified.",
+          "Scan local agent history, preview and select tasks to import. Original files are never modified.",
         )}
       </p>
       <div className="flex gap-3">
@@ -132,6 +141,8 @@ export function TaskImportPage({
             ["", t("All agents")],
             ["claude", "Claude"],
             ["codex", "Codex"],
+            ["workbuddy", "WorkBuddy"],
+            ["zcode", "ZCode"],
           ].map(([value, label]) => (
             <button
               key={value}
@@ -146,37 +157,86 @@ export function TaskImportPage({
         </div>
       </div>
       {status && <p role="status">{t(status)}</p>}
+      <div className="flex items-center gap-4 text-sm">
+        <span>
+          {t("Tasks")}: {filtered.length}
+        </span>
+        <button
+          disabled={busy}
+          onClick={() =>
+            setSelected(
+              (current) =>
+                new Set([
+                  ...current,
+                  ...filtered.filter((c) => !c.existing).map((c) => c.id),
+                ]),
+            )
+          }
+        >
+          {t("Select all")}
+        </button>
+        <button
+          disabled={busy || !selected.size}
+          onClick={() => setSelected(new Set())}
+        >
+          {t("Deselect all")}
+        </button>
+        <button disabled={page === 0} onClick={() => update("page", page - 1)}>
+          {t("Previous page")}
+        </button>
+        <span>
+          {page + 1} / {pages}
+        </span>
+        <button
+          disabled={page + 1 >= pages}
+          onClick={() => update("page", page + 1)}
+        >
+          {t("Next page")}
+        </button>
+      </div>
       <div className="space-y-2">
-        {items
-          .filter((c) => !filter || c.source === filter)
-          .map((c) => (
-            <label
-              key={c.id}
-              className="flex items-start gap-3 rounded-xl border border-content/10 p-4"
-            >
-              <input
-                type="checkbox"
-                disabled={busy || c.existing}
-                checked={selected.has(c.id)}
-                onChange={(e) =>
-                  setSelected((current) => {
-                    const next = new Set(current);
-                    e.target.checked ? next.add(c.id) : next.delete(c.id);
-                    return next;
-                  })
-                }
-              />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm">{c.title}</div>
-                <div className="mt-1 truncate text-xs text-content/40">
-                  {c.source} · {c.cwd}
-                </div>
+        {filtered.slice(page * 20, (page + 1) * 20).map((c, index) => (
+          <label
+            key={c.id}
+            className="flex items-start gap-3 rounded-xl border border-content/10 p-4"
+          >
+            <input
+              type="checkbox"
+              disabled={busy || c.existing}
+              checked={selected.has(c.id)}
+              onChange={(e) =>
+                setSelected((current) => {
+                  const next = new Set(current);
+                  e.target.checked ? next.add(c.id) : next.delete(c.id);
+                  return next;
+                })
+              }
+            />
+            <span className="text-xs text-content/40" title={c.id}>
+              #{page * 20 + index + 1}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="rounded bg-content/10 px-2 py-0.5 text-xs">
+                  {c.source === "workbuddy"
+                    ? "WorkBuddy"
+                    : c.source === "zcode"
+                      ? "ZCode"
+                      : c.source === "codex"
+                        ? "Codex"
+                        : "Claude"}
+                </span>
+                <span className="truncate">{c.title}</span>
               </div>
-              <span className="text-xs text-content/50">
-                {c.existing ? t("Imported") : c.turns}
-              </span>
-            </label>
-          ))}
+              <div className="mt-1 truncate text-xs text-content/40">
+                {c.source} · {c.cwd}
+              </div>
+            </div>
+            <span className="text-xs text-content/50">
+              {c.existing ? t("Imported") : c.turns}
+            </span>
+          </label>
+        ))}
       </div>
       {imported.map((s) => (
         <button

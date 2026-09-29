@@ -26,6 +26,16 @@ export const loadLocalAIConfig = async () => {
 /** Endpoint templates only; model IDs are supplied by the user's own account. */
 export const CONNECTION_PRESETS = [
   {
+    name: "xiaomimimo API",
+    baseUrl: "https://api.xiaomimimo.com/v1",
+    api: "openai-completions",
+  },
+  {
+    name: "xiaomimimo token plan",
+    baseUrl: "https://token-plan-cn.xiaomimimo.com/v1",
+    api: "openai-completions",
+  },
+  {
     name: "DeepSeek",
     baseUrl: "https://api.deepseek.com/v1",
     api: "openai-completions",

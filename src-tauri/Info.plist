@@ -2,13 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>MyCode records speech only when you start voice input, then sends it to your configured transcription service.</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
 	<key>NSDesktopFolderUsageDescription</key>
-	<string>MonoCode opens project folders you choose, including Desktop.</string>
+	<string>MyCode opens project folders you choose, including Desktop.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
-	<string>MonoCode opens project folders you choose, including Documents.</string>
+	<string>MyCode opens project folders you choose, including Documents.</string>
 	<key>NSDownloadsFolderUsageDescription</key>
-	<string>MonoCode opens project folders you choose, including Downloads.</string>
+	<string>MyCode opens project folders you choose, including Downloads.</string>
 </dict>
 </plist>

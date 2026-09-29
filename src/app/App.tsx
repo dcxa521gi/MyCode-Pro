@@ -1,3 +1,5 @@
+import { NewTaskDialog } from "../features/sessions/ui/NewTaskDialog";
+import { importedContextPrompt } from "../features/sessions/model/importedContext";
 import { useTranslation } from "../shared/i18n";
 import { acceptQuickLaunch } from "./model/quickLaunchSession";
 import {
@@ -2130,26 +2132,32 @@ export default function App({
     setWhatsNewVersion(document.source.version);
   }, []);
 
+  const [newTaskOpen, setNewTaskOpen] = useState(false);
   const onNew = useCallback(() => {
-    setSearchViewOpen(false);
-    setInboxViewOpen(false);
-    setNotesViewOpen(false);
-    setAutomationsViewOpen(false);
-    const cwd = active?.cwd ?? sessionDefaults?.cwd ?? projectCwd;
-    const session = newDefaultSession(cwd, sessionDefaults?.runtimeMode);
-    const tab = newTab(session.id);
-    setSessions((prev) => [...prev, session]);
-    appendTab(tab, cwd);
-    setActiveTabId(tab.id);
-    setComposerFocused(true);
-    return session.id;
-  }, [
-    active?.cwd,
-    appendTab,
-    sessionDefaults?.cwd,
-    sessionDefaults?.runtimeMode,
-    projectCwd,
-  ]);
+    setNewTaskOpen(true);
+  }, []);
+  const createWorkspaceTask = useCallback(
+    (cwd: string, harness: HarnessId, model: string) => {
+      setSearchViewOpen(false);
+      setInboxViewOpen(false);
+      setNotesViewOpen(false);
+      setAutomationsViewOpen(false);
+      const session = newSession(
+        harness,
+        cwd,
+        model,
+        sessionDefaults?.runtimeMode,
+      );
+      setRecents(rememberProject(cwd));
+      const tab = newTab(session.id);
+      setSessions((prev) => [...prev, session]);
+      appendTab(tab, cwd);
+      setActiveTabId(tab.id);
+      setComposerFocused(true);
+      setNewTaskOpen(false);
+    },
+    [appendTab, sessionDefaults?.runtimeMode],
+  );
 
   const onStartInboxItem = useCallback(
     async (item: InboxItem, body?: string) => {
@@ -5814,7 +5822,12 @@ export default function App({
       const ciContext = options?.ciRepair?.prompt ?? options?.ciContext;
       const harnessText =
         options?.ciRepair?.prompt ??
-        (rawCommand ? submittedText : composeNoteMessage(noteCard, promptText));
+        (rawCommand
+          ? submittedText
+          : importedContextPrompt(
+              current,
+              composeNoteMessage(noteCard, promptText),
+            ));
 
       const pendingSwitch =
         current.pendingSwitch && current.pendingSwitch.from !== current.harness
@@ -9743,6 +9756,16 @@ export default function App({
     [onSelectProject],
   );
 
+  useEffect(() => {
+    const command = (event: Event) => {
+      const action = (event as CustomEvent<string>).detail;
+      if (action === "new-task") setNewTaskOpen(true);
+      if (action === "settings") openSettings();
+    };
+    window.addEventListener("mycode:voice-command", command);
+    return () => window.removeEventListener("mycode:voice-command", command);
+  }, [openSettings]);
+
   const actions = useRef({
     onNew,
     onArchiveFocusedSession,
@@ -10713,6 +10736,12 @@ export default function App({
             />
           ) : null}
 
+          {newTaskOpen && (
+            <NewTaskDialog
+              onClose={() => setNewTaskOpen(false)}
+              onCreate={createWorkspaceTask}
+            />
+          )}
           {sessionDeleteDialog && (
             <DeleteSessionDialog
               title={sessionDeleteDialog.title}

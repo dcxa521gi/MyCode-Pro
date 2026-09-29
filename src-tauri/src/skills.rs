@@ -142,6 +142,9 @@ pub(crate) fn list_skills_from(
         (".fx/skills", "fx"),
         (".grok/skills", "grok"),
         (".hermes/skills", "hermes"),
+        (".workbuddy/skills", "workbuddy"),
+        (".zcode/skills", "zcode"),
+        (".mimocode/skills", "mimo"),
     ] {
         add_root(project.join(dir), "project", source);
         if let Some(home) = home {

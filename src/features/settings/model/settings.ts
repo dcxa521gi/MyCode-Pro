@@ -27,6 +27,8 @@ export type SettingsSectionId =
   | "providers-cli"
   | "usage"
   | "task-import"
+  | "voice"
+  | "computer"
   | "im-bots"
   | "local-ai"
   | "skills"
@@ -104,6 +106,20 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     keywords: "cli install update path 安装 更新 路径",
   },
   {
+    id: "voice",
+    group: "app",
+    label: "Voice input",
+    description: "Configure speech recognition and voice commands.",
+    keywords: "voice speech microphone 语音 麦克风",
+  },
+  {
+    id: "computer",
+    group: "agents",
+    label: "Computer control",
+    description: "Use the local open-source Cua Driver through MCP.",
+    keywords: "computer desktop cua 电脑 控制",
+  },
+  {
     id: "im-bots",
     group: "agents",
     label: "IM bots",
@@ -116,8 +132,8 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     group: "workspace",
     label: "Task import",
     description:
-      "Import local Claude and Codex conversations without changing their original files.",
-    keywords: "import history claude codex 导入 历史",
+      "Import local Claude, Codex, WorkBuddy and ZCode conversations without changing their original files.",
+    keywords: "import history claude codex workbuddy zcode 导入 历史",
   },
   {
     id: "usage",
@@ -947,6 +963,11 @@ export type KeybindingRow = {
  * focused surface handlers such as the draft composer workspace toggle.
  */
 export const KEYBINDINGS: KeybindingRow[] = [
+  {
+    command: "Composer: Voice input",
+    keys: `${CTRL}${SHIFT}Space`,
+    when: "Draft session composer",
+  },
   { command: "App: Settings", keys: `${MOD},`, when: "Always" },
   { command: "App: Search", keys: `${MOD}K`, when: "Always" },
   { command: "App: Go to File", keys: `${MOD}P`, when: "Always" },

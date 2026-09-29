@@ -100,10 +100,7 @@ export function ModelConnections() {
     setStatus("");
   };
   return (
-    <section
-      className="mb-8 rounded-xl border border-content/10 bg-content/[0.02] p-5"
-      aria-label={t("Model connections")}
-    >
+    <section className="mb-8 space-y-4" aria-label={t("Model connections")}>
       <div className="mb-2 flex items-center justify-between">
         <h2 className="font-medium">{t("Model connections")}</h2>
         <SecondaryButton disabled={busy} onClick={() => edit(empty())}>
@@ -160,7 +157,7 @@ export function ModelConnections() {
       ))}
       {draft && (
         <form
-          className="mt-4 grid gap-3 rounded-lg border border-content/10 p-4"
+          className="mt-4 grid gap-3 rounded-lg bg-content/[0.025] p-4"
           onSubmit={(event) => {
             event.preventDefault();
             void action(async () => {
@@ -239,18 +236,44 @@ export function ModelConnections() {
               aria-label={t("API protocol")}
               className={inputClass}
               value={draft.api}
-              onChange={(e) => setDraft({ ...draft, api: e.target.value })}
+              onChange={(e) => {
+                const api = e.target.value;
+                const mimo =
+                  /^https:\/\/(api|token-plan-cn)\.xiaomimimo\.com\/(v1|anthropic)\/?$/.test(
+                    draft.baseUrl,
+                  );
+                setDraft({
+                  ...draft,
+                  api,
+                  hasKey: false,
+                  baseUrl: mimo
+                    ? draft.baseUrl.replace(
+                        /\/(v1|anthropic)\/?$/,
+                        api === "anthropic-messages" ? "/anthropic" : "/v1",
+                      )
+                    : draft.baseUrl,
+                });
+                setDiscovered([]);
+                if (draft.hasKey && !key)
+                  setStatus("Protocol changed. Enter your API key again.");
+              }}
             >
               <option value="openai-completions">
                 {t("OpenAI Chat Completions")}
               </option>
-              <option value="openai-responses">{t("OpenAI Responses")}</option>
+              {!/\.xiaomimimo\.com\//.test(draft.baseUrl) && (
+                <option value="openai-responses">
+                  {t("OpenAI Responses")}
+                </option>
+              )}
               <option value="anthropic-messages">
                 {t("Anthropic Messages")}
               </option>
-              <option value="google-generative-ai">
-                {t("Google Generative AI")}
-              </option>
+              {!/\.xiaomimimo\.com\//.test(draft.baseUrl) && (
+                <option value="google-generative-ai">
+                  {t("Google Generative AI")}
+                </option>
+              )}
             </select>
           </label>
           <label className="grid gap-1 text-xs">
@@ -284,7 +307,7 @@ export function ModelConnections() {
             </SecondaryButton>
           </div>
           {discovered.length > 0 && (
-            <div className="grid max-h-48 grid-cols-2 gap-2 overflow-y-auto rounded-lg border border-content/10 p-3">
+            <div className="grid max-h-48 grid-cols-2 gap-2 overflow-y-auto rounded-lg bg-content/5 p-3">
               {discovered.map((id) => (
                 <label
                   key={id}

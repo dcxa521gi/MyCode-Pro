@@ -6,6 +6,7 @@ import {
   allModels,
   subscribeModels,
   getModelSnapshot,
+  defaultSessionChoice,
 } from "../../sessions/model/models";
 const channels = [
   ["wechat", "WeChat"],
@@ -33,12 +34,11 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
   const models = allModels();
   const [bots, setBots] = useState<Bot[]>([]);
   const [channel, setChannel] = useState("feishu");
-  const [route, setRoute] = useState<Route>({
+  const [route, setRoute] = useState<Route>(() => ({
     ownerId: "",
     cwd: cwd ?? "",
-    harness: models[0]?.harness ?? "pi",
-    model: models[0]?.id ?? "",
-  });
+    ...defaultSessionChoice(cwd),
+  }));
   const [credentials, setCredentials] = useState<Record<string, string>>({
     service: "feishu",
   });
@@ -254,9 +254,19 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
                   });
               }}
             >
+              {!models.some((model) => model.id === route.model) && (
+                <option value={route.model}>
+                  {route.harness} ·{" "}
+                  {t(
+                    route.model.endsWith(":default")
+                      ? "CLI default"
+                      : "Saved model",
+                  )}
+                </option>
+              )}
               {models.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.harness} · {m.name}
+                  {m.harness} · {t(m.name)}
                 </option>
               ))}
             </select>

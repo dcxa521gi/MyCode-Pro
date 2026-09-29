@@ -20,6 +20,8 @@ import {
 
 const SECTION_ICONS: Record<SettingsSectionId, IconComponent> = {
   general: SlidersHorizontal,
+  voice: MessageSquare,
+  computer: Bot,
   appearance: Palette,
   keybindings: Keyboard,
   chat: MessageSquare,
@@ -62,10 +64,7 @@ export function SettingsNav({ section, onSelect, onClose }: Props) {
               .filter((item) => item.id !== "providers-cli")
               .map((item) =>
                 item.id === "providers" ? (
-                  <div
-                    key={item.id}
-                    className="my-1 rounded-xl border border-content/10 bg-content/[0.025] p-1"
-                  >
+                  <div key={item.id} className="my-1">
                     <div className="px-2 py-1 text-xs text-content/45">
                       {t("Providers")}
                     </div>

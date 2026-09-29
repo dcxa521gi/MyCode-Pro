@@ -15,18 +15,22 @@ MyCode 基于 [MonoCode](https://github.com/hardbeat920/monocode)，保留其简
 ## 主要能力
 
 - **双语界面**：简体中文 / English；默认按电脑时区选择，手动选择立即生效并保存。标签、操作提示、自动化模板与 Windows 托盘菜单随语言变化。
-- **模型连接**：DeepSeek、通义千问、Kimi、智谱、硅基流动、OpenAI、Anthropic、Gemini、OpenRouter、xAI、Groq、Ollama、LM Studio 和自定义端点模板。输入 Key 后自动获取模型，支持勾选模型、自定义模型 ID、协议、多个连接和连接测试。
+- **模型连接**：小米 MiMo / Token Plan、DeepSeek、通义千问、Kimi、智谱、硅基流动、OpenAI、Anthropic、Gemini、OpenRouter、xAI、Groq、Ollama、LM Studio 和自定义端点模板。输入 Key 后自动获取模型，支持勾选模型、自定义模型 ID、协议、多个连接和连接测试。
 - **IM 机器人**：本机扫码连接个人微信，并直连飞书/Lark、钉钉、企业微信、Telegram、Discord，指定允许用户、工作目录和模型；文本任务进入桌面会话并回传结果。
-- **任务导入**：扫描本机 Claude Code / Codex 历史，选择导入并继续任务，保留原始文件。
+- **任务导入**：扫描本机 Claude Code / Codex / WorkBuddy / ZCode 历史，显示来源、序号与数量，支持全选和每页 20 条分页，保留原始文件。
 - **用量统计**：左下角显示累计 Token，设置中按代理和任务查看服务商实际返回的用量。
 - **应用内 CLI 管理**：Claude Code、Codex、Pi、OpenCode、MiMo Code、Cursor、Grok、OMP 支持应用内安装/更新与版本检查，路径保存后新会话立即生效。
 - **本地记忆**：个人记忆与按项目区分的知识，可审阅、修改、清空；从下一轮请求开始加入所选模型的上下文。
-- **本地 MCP**：配置本机 stdio 服务，接入新建的 Claude Code 会话，保留既有 CLI 配置。
+- **本地 MCP**：配置本机 stdio 服务，接入新建的 Claude Code、Codex、OpenCode、MiMo Code 会话，保留既有 CLI 配置。
 - **技能**：保留项目和个人技能管理；新增 `/mycode-documents`、`/mycode-project-memory`、`/mycode-work-report`，用于文档整理、知识梳理和工作报告。
 - **自动化**：保留本地定时与事件触发、运行记录和重试机制，新增工作周报、文档索引和项目知识复核模板。
+- **语音输入**：本机录音，支持小米 MiMo-V2.5-ASR 或自选、本地 OpenAI 兼容语音识别服务；可配置模型、快捷键和中英文语音命令，文字先进入草稿。
+- **电脑控制**：使用本地开源 Cua Driver，支持 Windows 应用内安装，通过兼容代理的 MCP 观察和操作桌面；提供侧栏快速停止。
 - **开发工作区**：多代理会话、任务编排、工作树、代码差异、终端、文件检索、笔记及 GitHub 等收件箱集成。
 
-工作区支持左右切换，会话悬停显示 Token，用右键复制项目/会话 ID。输入框发送按钮旁可增强当前草稿，任务导入切换页面保留扫描结果。
+左上角可切换开发 / 办公模式；新建任务依次选择工作文件夹、代理和模型，各模式分别记住默认目录。工作区支持左右切换，会话悬停显示 Token，用右键复制项目/会话 ID。输入框发送按钮旁可增强当前草稿，任务导入切换页面保留扫描结果。
+
+常规设置可修改默认工作区和附件、截图缓存目录。发送按钮左侧的数据圆环显示实际上下文占用与缓存信息，支持代理提供的手动压缩和 85% 阈值自动压缩；用量历史按任务汇总缓存命中率。小米 API / Token Plan 分为两个服务商入口，OpenAI / Anthropic 协议在表单内选择。
 
 ZCode 需按官方文档安装并配置 CLI；Hermes 提供官方安装入口。FX / Antigravity 的原生 Windows CLI 受上游平台支持限制。个人微信通过腾讯 iLink 扫码绑定，默认仅绑定用户可使用。
 
@@ -59,3 +63,5 @@ npm run build:windows
 ## 来源与许可
 
 保留 MonoCode 原有 MIT 许可证及作者署名。Cindy 为 Apache-2.0 项目；本版本复用其开源 IM 传输包（见 `vendor/cindy-im/NOTICE.md` 和许可证），并在 Tauri 架构内实现模型连接与任务导入流程。没有接入 Cindy 云端、账号或私有后端。服务商名称及标识属于各自所有者。
+
+新版操作说明：[MyCode 0.8.0](docs/mycode-0.8.md)。

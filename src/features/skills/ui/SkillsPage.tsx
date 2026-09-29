@@ -355,7 +355,26 @@ export function SkillsPage({
                                 : t("Project")}
                           </span>
                           <span className="w-20 shrink-0 truncate text-right font-sans text-[11px] text-content/40">
-                            {skill.source}
+                            {skill.source === "agents"
+                              ? t("Shared skills")
+                              : ((
+                                  {
+                                    claude: "Claude",
+                                    codex: "Codex",
+                                    cursor: "Cursor",
+                                    opencode: "OpenCode",
+                                    pi: "Pi",
+                                    omp: "OMP",
+                                    fx: "FX",
+                                    grok: "Grok",
+                                    hermes: "Hermes",
+                                    antigravity: "Antigravity",
+                                    workbuddy: "WorkBuddy",
+                                    zcode: "ZCode",
+                                    mimo: "MiMo Code",
+                                    monocode: "MyCode",
+                                  } as Record<string, string>
+                                )[skill.source] ?? skill.source)}
                           </span>
                           <button
                             type="button"
