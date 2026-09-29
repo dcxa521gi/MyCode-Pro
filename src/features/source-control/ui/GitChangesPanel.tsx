@@ -19,6 +19,7 @@ import {
   RefreshCw,
   Undo2,
   WandSparkles,
+  X,
 } from "../../../shared/ui/icons";
 import {
   useCallback,
@@ -363,6 +364,7 @@ function ChangedFiles({
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const menuRef = useRef<HTMLDivElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
+  const generateAbortRef = useRef<AbortController | null>(null);
   const [message, setMessage] = useState("");
   const [amendTarget, setAmendTarget] = useState<AmendTarget | null>(null);
   const amend = amendTarget !== null;
@@ -425,6 +427,17 @@ function ChangedFiles({
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   }, [message, enabled]);
+
+  useEffect(
+    () => () => {
+      if (generateAbortRef.current) {
+        generateAbortRef.current.abort();
+        generateAbortRef.current = null;
+        setBusy(null);
+      }
+    },
+    [cwd, setBusy],
+  );
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -527,15 +540,31 @@ function ChangedFiles({
   };
 
   const generate = async () => {
-    if (!canGenerate) return;
+    if (!canGenerate || generateAbortRef.current) return;
+    const controller = new AbortController();
+    generateAbortRef.current = controller;
     setBusy("generate");
     try {
-      setMessage(await generateCommitMessage(cwd, textHarness));
+      const generated = await generateCommitMessage(
+        cwd,
+        textHarness,
+        controller.signal,
+      );
+      if (!controller.signal.aborted) setMessage(generated);
     } catch (error) {
-      fail(error);
+      if (!controller.signal.aborted) fail(error);
     } finally {
-      setBusy(null);
+      if (generateAbortRef.current === controller) {
+        generateAbortRef.current = null;
+        setBusy(null);
+      }
     }
+  };
+
+  const cancelGenerate = () => {
+    generateAbortRef.current?.abort();
+    generateAbortRef.current = null;
+    setBusy(null);
   };
 
   const toggleAmend = async () => {
@@ -676,14 +705,33 @@ function ChangedFiles({
           />
           <button
             type="button"
-            title={t("Generate commit message")}
-            aria-label={t("Generate commit message")}
-            disabled={!canGenerate}
-            onClick={() => void generate()}
-            className="absolute top-1 right-1 grid size-5 place-items-center rounded-md text-content bg-content/10 hover:bg-content/20 hover:text-content disabled:opacity-40"
+            title={
+              busy === "generate"
+                ? t("Cancel commit message generation")
+                : t("Generate commit message")
+            }
+            aria-label={
+              busy === "generate"
+                ? t("Cancel commit message generation")
+                : t("Generate commit message")
+            }
+            disabled={busy !== "generate" && !canGenerate}
+            onClick={() =>
+              busy === "generate" ? cancelGenerate() : void generate()
+            }
+            className="group absolute top-1 right-1 grid size-5 place-items-center rounded-md bg-content/10 text-content hover:bg-content/20 hover:text-content disabled:opacity-40"
           >
             {busy === "generate" ? (
-              <Loader className="size-3.5 animate-spin" strokeWidth={1.75} />
+              <>
+                <Loader
+                  className="size-3.5 animate-spin group-hover:hidden group-focus-visible:hidden"
+                  strokeWidth={1.75}
+                />
+                <X
+                  className="hidden size-3.5 group-hover:block group-focus-visible:block"
+                  strokeWidth={1.75}
+                />
+              </>
             ) : (
               <WandSparkles className="size-3" strokeWidth={1} />
             )}

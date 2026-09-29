@@ -44,6 +44,7 @@ vi.mock("../../inbox/model/inboxSelfActivity", () => ({
 
 import { GitChangesPanel } from "./GitChangesPanel";
 import { gitDiffIndex, gitPull } from "../../../platform/tauri/fs";
+import { generateCommitMessage } from "../../../integrations/harness";
 import type { GitDiffIndex } from "../../../platform/tauri/fs";
 
 function index(overrides: Partial<GitDiffIndex> = {}): GitDiffIndex {
@@ -78,10 +79,78 @@ beforeEach(() => {
   );
   vi.mocked(gitDiffIndex).mockReset();
   vi.mocked(gitPull).mockReset();
+  vi.mocked(generateCommitMessage).mockReset();
   invalidateWatchedFiles.mockReset();
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
+});
+
+describe("GitChangesPanel commit message generation", () => {
+  it("cancels promptly and ignores a late result after a retry", async () => {
+    vi.mocked(gitDiffIndex).mockResolvedValue(
+      index({
+        files: [
+          {
+            path: "/repo/change.ts",
+            relative: "change.ts",
+            status: "modified",
+            additions: 1,
+            deletions: 0,
+            staged: true,
+            unstaged: false,
+          },
+        ],
+      }),
+    );
+    let resolveFirst!: (message: string) => void;
+    vi.mocked(generateCommitMessage)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      )
+      .mockResolvedValueOnce("New message");
+    await renderPanel();
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>(
+          '[aria-label="Generate commit message"]',
+        )!
+        .click();
+    });
+    const signal = vi.mocked(generateCommitMessage).mock.calls[0]?.[2];
+    expect(signal?.aborted).toBe(false);
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>(
+          '[aria-label="Cancel commit message generation"]',
+        )!
+        .click();
+    });
+    expect(signal?.aborted).toBe(true);
+    expect(
+      container.querySelector<HTMLButtonElement>(
+        '[aria-label="Generate commit message"]',
+      )?.disabled,
+    ).toBe(false);
+    expect(container.querySelector("textarea")?.disabled).toBe(false);
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>(
+          '[aria-label="Generate commit message"]',
+        )!
+        .click();
+    });
+    expect(container.querySelector("textarea")?.value).toBe("New message");
+
+    await act(async () => resolveFirst("Old message"));
+    expect(container.querySelector("textarea")?.value).toBe("New message");
+  });
 });
 
 afterEach(() => {
@@ -114,9 +183,7 @@ async function openBranchMenu() {
   )!;
   await act(async () => toggle.click());
   await act(async () => {});
-  return document.querySelector<HTMLButtonElement>(
-    '[role="menuitem"]',
-  )!;
+  return document.querySelector<HTMLButtonElement>('[role="menuitem"]')!;
 }
 
 describe("GitChangesPanel pull action", () => {
