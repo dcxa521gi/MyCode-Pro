@@ -33,7 +33,8 @@ export function VoiceSettings() {
         event.preventDefault();
         setBusy(true);
         void invoke("voice_save", { config, apiKey: key || null })
-          .then(() => {
+          .then(async () => {
+            setConfig(await invoke<VoiceConfig>("voice_config"));
             setKey("");
             setStatus("Saved");
           })

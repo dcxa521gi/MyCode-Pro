@@ -1,7 +1,9 @@
 import {
   findModel,
+  getConnectionRevision,
   nativeModelId,
 } from "../../../features/sessions/model/models";
+import { modelFailureMessage } from "./modelFailure";
 import type {
   HarnessId,
   TurnIntent,
@@ -219,7 +221,14 @@ export function sendHarnessTurn(input: SendTurnInput & { harness: HarnessId }) {
     if (!adapter.live) {
       throw new Error(`${input.harness} is not connected yet`);
     }
-    const connection = findModel(input.model)?.connectionId;
+    const id = findModel(input.model)?.connectionId;
+    if (!id && input.model.includes(":mycode-"))
+      throw new Error(
+        modelFailureMessage("This model provider is unavailable. Check its API key and protocol in Settings > Providers.", true),
+      );
+    const connection = id
+      ? `${id}:${getConnectionRevision()}:${input.model}`
+      : undefined;
     if (sessionConnections.get(input.sessionId) !== connection)
       await adapter.stopSession(input.sessionId);
     sessionConnections.set(input.sessionId, connection);
@@ -236,13 +245,29 @@ export function sendHarnessTurn(input: SendTurnInput & { harness: HarnessId }) {
       const memory = controlled
         ? await invoke<string>("local_ai_memory", { cwd: input.cwd })
         : "";
+      const routed = {
+        ...input,
+        onEvent: (event: HarnessEvent) =>
+          input.onEvent(
+            event.type === "session.error"
+              ? { ...event, message: modelFailureMessage(event.message, !!id) }
+              : event,
+          ),
+      };
       await adapter.sendTurn(
         memory?.trim()
           ? {
-              ...input,
+              ...routed,
               text: `[MyCode local memory — user-maintained context]\n${memory}\n[End of local memory]\n\n${input.text}`,
             }
-          : input,
+          : routed,
+      );
+    } catch (error) {
+      throw new Error(
+        modelFailureMessage(
+          error instanceof Error ? error.message : String(error),
+          !!id,
+        ),
       );
     } finally {
       activeTurnSessions.delete(input.sessionId);

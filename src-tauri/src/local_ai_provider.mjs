@@ -5,7 +5,7 @@ export default function registerMyCodeProviders(pi) {
     pi.registerProvider(c.id, {
       baseUrl: c.baseUrl,
       api: c.api,
-      apiKey: `$${c.env}`,
+      apiKey: process.env[c.env],
       models: c.models.map((id) => ({
         id,
         name: `${c.name} / ${id}`,

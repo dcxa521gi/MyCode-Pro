@@ -243,6 +243,7 @@ export async function spawnChild(
   account?: { provider: "claude" | "codex"; id: string },
   binaryProvider?: ConfigurableBinaryProvider,
   modelConnection?: string,
+  selectedModel?: string,
 ): Promise<void> {
   livePid.delete(sessionId);
   pendingExit.delete(sessionId);
@@ -252,6 +253,7 @@ export async function spawnChild(
   const pid = await invoke<number>("harness_spawn", {
     sessionId,
     modelConnection,
+    selectedModel,
     command,
     args,
     cwd,

@@ -7,6 +7,8 @@ import grok from "../../../assets/providers/grok.svg";
 import hermes from "../../../assets/providers/hermes.svg";
 import omp from "../../../assets/providers/omp.svg";
 import opencode from "../../../assets/providers/opencode.svg";
+import mimo from "../../../assets/providers/mimo.png";
+import zcode from "../../../assets/providers/zcode.png";
 import pi from "../../../assets/providers/pi.svg";
 import antigravity from "../../../assets/providers/antigravity.svg";
 import type { HarnessId } from "../model/session";
@@ -22,8 +24,8 @@ export const HARNESS_ICONS: Record<HarnessId, string> = {
   fx,
   hermes,
   antigravity,
-  mimo: opencode,
-  zcode: opencode,
+  mimo,
+  zcode,
 };
 
 /** White marks that must follow `currentColor` so they stay visible in light mode. */

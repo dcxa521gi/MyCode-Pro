@@ -1,3 +1,4 @@
+import { newSessionLike } from "../features/sessions/model/session";
 import { NewTaskDialog } from "../features/sessions/ui/NewTaskDialog";
 import { importedContextPrompt } from "../features/sessions/model/importedContext";
 import { useTranslation } from "../shared/i18n";
@@ -2134,8 +2135,77 @@ export default function App({
 
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const onNew = useCallback(() => {
-    setNewTaskOpen(true);
+    const tab = tabsRef.current.find((t) => t.id === activeTabIdRef.current);
+    const seed =
+      sessionsRef.current.find((s) => s.id === tab?.focusedId) ??
+      sessionsRef.current.find((s) =>
+        sameProjectPath(s.cwd, projectCwdRef.current),
+      );
+    const cwd = seed?.cwd ?? projectCwdRef.current;
+    const session = seed ? newSessionLike(seed, cwd) : newDefaultSession(cwd);
+    if (seed?.providerAccountId)
+      session.providerAccountId = seed.providerAccountId;
+    const next = newTab(session.id);
+    setSearchViewOpen(false);
+    setInboxViewOpen(false);
+    setNotesViewOpen(false);
+    setAutomationsViewOpen(false);
+    setSessions((prev) => [...prev, session]);
+    appendTab(next, cwd);
+    setActiveTabId(next.id);
+    setComposerFocused(true);
+    return session.id;
+  }, [appendTab]);
+  const [homeOpen, setHomeOpen] = useState(false);
+  const logoCycle = useRef(false);
+  useEffect(() => {
+    const leave = (event: MouseEvent) => {
+      if (
+        event.target instanceof Element &&
+        !event.target.closest("[data-mycode-home]") &&
+        event.target.closest("button,a")
+      ) {
+        logoCycle.current = false;
+        setHomeOpen(false);
+      }
+    };
+    window.addEventListener("click", leave, true);
+    return () => window.removeEventListener("click", leave, true);
   }, []);
+  useEffect(() => {
+    setHomeOpen(false);
+  }, [activeTabId, projectCwd]);
+  const onHome = useCallback(() => {
+    setSettingsOpen(false);
+    setSearchViewOpen(false);
+    setInboxViewOpen(false);
+    setNotesViewOpen(false);
+    setAutomationsViewOpen(false);
+    const running = sessionsRef.current.filter(
+      (s) =>
+        s.busy &&
+        tabsRef.current.some((tab) => leafIds(tab.layout).includes(s.id)),
+    );
+    if (!logoCycle.current || !running.length) {
+      logoCycle.current = true;
+      setHomeOpen(true);
+      return;
+    }
+    const current = tabsRef.current.find(
+      (tab) => tab.id === activeTabIdRef.current,
+    )?.focusedId;
+    const next =
+      running[
+        (running.findIndex((s) => s.id === current) + 1) % running.length
+      ];
+    const tab = tabsRef.current.find((tab) =>
+      leafIds(tab.layout).includes(next.id),
+    );
+    if (tab) {
+      setHomeOpen(false);
+      activateTab(tab.id, next.id);
+    }
+  }, [activateTab]);
   const createWorkspaceTask = useCallback(
     (cwd: string, harness: HarnessId, model: string) => {
       setSearchViewOpen(false);
@@ -10345,6 +10415,7 @@ export default function App({
               onSelectAgent={onSelectLiveAgent}
               onSelectProject={onSelectProject}
               onOpenProject={pickProject}
+              onHome={onHome}
               onRemoveProject={onRemoveProject}
               onNew={onNew}
               openSessions={openProjectSessions}
@@ -10441,6 +10512,23 @@ export default function App({
                 {compactTitleBar ? null : workspaceTitleBar}
 
                 <main className="relative flex min-h-0 min-w-0 flex-1">
+                  {homeOpen && (
+                    <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-5 bg-surface p-8">
+                      <img src="/mycode-icon.png" alt="" className="size-16" />
+                      <h1 className="text-2xl font-semibold">MyCode</h1>
+                      <p className="text-content/55">
+                        {t(
+                          "Choose a project to get started, or click the logo again to cycle through running sessions.",
+                        )}
+                      </p>
+                      <button
+                        onClick={() => void pickProject()}
+                        className="rounded-xl bg-accent px-5 py-3 text-black"
+                      >
+                        {t("New task")}
+                      </button>
+                    </div>
+                  )}
                   <div
                     ref={dockGridRef}
                     className="grid h-full min-h-0 min-w-0 flex-1"

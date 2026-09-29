@@ -36,6 +36,15 @@ fn validate(config: &VoiceConfig) -> Result<(), String> {
     }
     let url = url::Url::parse(&config.endpoint).map_err(|_| "Invalid speech endpoint")?;
     let local = matches!(url.host_str(), Some("localhost" | "127.0.0.1" | "[::1]"));
+    if url
+        .host_str()
+        .is_some_and(|host| host.starts_with("token-plan") && host.ends_with(".xiaomimimo.com"))
+    {
+        return Err("MiMo speech requires the API endpoint and API key, not Token Plan. Select xiaomimimo API in Settings > Voice input and enter its API key.".into());
+    }
+    if matches!(url.path().trim_end_matches('/'), "" | "/v1") {
+        return Err("Enter the full speech endpoint: /v1/audio/transcriptions, or /v1/chat/completions for MiMo.".into());
+    }
     if (url.scheme() != "https" && !(local && url.scheme() == "http"))
         || !url.username().is_empty()
         || url.password().is_some()
@@ -52,9 +61,40 @@ fn validate(config: &VoiceConfig) -> Result<(), String> {
     }
     Ok(())
 }
+
+fn normalize(mut config: VoiceConfig) -> VoiceConfig {
+    if config.protocol.is_empty()
+        && config.model.starts_with("mimo-")
+        && config.model.contains("asr")
+    {
+        config.protocol = "mimo".into();
+    }
+    if let Ok(mut url) = url::Url::parse(&config.endpoint) {
+        if matches!(url.path().trim_end_matches('/'), "" | "/v1")
+            && url.host_str() == Some("api.xiaomimimo.com")
+            && config.protocol == "mimo"
+        {
+            url.set_path("/v1/chat/completions");
+            config.endpoint = url.to_string();
+        }
+    }
+    config
+}
+
+fn speech_error(code: u16) -> String {
+    let hint = match code {
+        401 | 403 => "Speech authentication failed. Check the API key and model permissions in Settings > Voice input.",
+        404 => "Speech endpoint or model was not found. Check the full endpoint and speech model ID.",
+        402 => "The speech account has insufficient credits. Check its balance or choose another speech service.",
+        429 => "The speech service is rate limited or its quota is exhausted. Retry later or check the account quota.",
+        400 | 422 => "The speech service rejected the audio request. Check the speech protocol and model in Settings > Voice input.",
+        _ => "The speech service is unavailable. Retry later or choose another speech service.",
+    };
+    format!("{hint} (HTTP {code})")
+}
 #[tauri::command]
 pub fn voice_config(app: AppHandle) -> Result<VoiceConfig, String> {
-    let mut config = load(&app)?;
+    let mut config = normalize(load(&app)?);
     config.has_key = !config.secret.is_empty();
     config.secret.clear();
     Ok(config)
@@ -65,8 +105,9 @@ pub fn voice_save(
     mut config: VoiceConfig,
     api_key: Option<String>,
 ) -> Result<(), String> {
+    config = normalize(config);
     validate(&config)?;
-    let old = load(&app)?;
+    let old = normalize(load(&app)?);
     config.secret = match api_key {
         Some(key) if !key.is_empty() => crate::local_ai::protect(&key, false)?,
         Some(_) => String::new(),
@@ -90,7 +131,7 @@ pub fn voice_save(
 }
 #[tauri::command(async)]
 pub fn voice_transcribe(app: AppHandle, audio: Vec<u8>) -> Result<String, String> {
-    transcribe(&load(&app)?, audio)
+    transcribe(&normalize(load(&app)?), audio)
 }
 fn transcribe(config: &VoiceConfig, audio: Vec<u8>) -> Result<String, String> {
     if audio.len() < 44
@@ -128,7 +169,7 @@ fn transcribe(config: &VoiceConfig, audio: Vec<u8>) -> Result<String, String> {
         );
     }
     let response = request.send_bytes(&body).map_err(|e| match e {
-        ureq::Error::Status(code, _) => format!("Speech service returned HTTP {code}"),
+        ureq::Error::Status(code, _) => speech_error(code),
         _ => "Could not connect to speech service".into(),
     })?;
     let mut bytes = Vec::new();
@@ -175,6 +216,26 @@ fn speech_request(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn old_mimo_settings_are_normalized_without_switching_accounts() {
+        let c = normalize(VoiceConfig {
+            endpoint: "https://api.xiaomimimo.com/v1".into(),
+            model: "mimo-v2.5-asr".into(),
+            ..Default::default()
+        });
+        assert_eq!(c.protocol, "mimo");
+        assert_eq!(c.endpoint, "https://api.xiaomimimo.com/v1/chat/completions");
+        assert!(validate(&c).is_ok());
+        let c = normalize(VoiceConfig {
+            endpoint: "https://token-plan-cn.xiaomimimo.com/v1".into(),
+            model: "mimo-v2.5-asr".into(),
+            ..Default::default()
+        });
+        assert!(validate(&c).unwrap_err().contains("not Token Plan"));
+        assert!(c.endpoint.contains("token-plan-cn"));
+        assert!(speech_error(401).contains("API key"));
+        assert!(speech_error(404).contains("endpoint"));
+    }
     #[test]
     fn mimo_uses_audio_chat_protocol() {
         let config = VoiceConfig {

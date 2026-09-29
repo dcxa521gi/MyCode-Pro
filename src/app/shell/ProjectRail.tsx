@@ -93,6 +93,7 @@ type Props = {
   onGoForward?: () => void;
   onSearch?: () => void;
   onNewTask?: () => void;
+  onHome?: () => void;
   searchActive?: boolean;
   onOpenInbox?: () => void;
   inboxActive?: boolean;
@@ -130,6 +131,7 @@ export function ProjectRail({
   onGoForward,
   onSearch,
   onNewTask,
+  onHome,
   searchActive = false,
   onOpenInbox,
   inboxActive = false,
@@ -343,7 +345,13 @@ export function ProjectRail({
         />
       </div>
 
-      <div className="mx-3 mb-3 flex items-center gap-2.5 rounded-xl border border-accent/15 bg-accent/[0.04] px-3 py-2.5">
+      <button
+        type="button"
+        data-mycode-home
+        onClick={onHome}
+        aria-label={t("Home and running sessions")}
+        className="mx-3 mb-3 flex items-center gap-2.5 rounded-xl border border-accent/15 bg-accent/[0.04] px-3 py-2.5 text-left hover:bg-accent/10"
+      >
         <img src="/mycode-icon.png" alt="" className="size-8 rounded-lg" />
         <div className="min-w-0">
           <div className="text-sm font-semibold tracking-wide">MyCode</div>
@@ -351,7 +359,7 @@ export function ProjectRail({
             {t("Create · Build · Automate")}
           </div>
         </div>
-      </div>
+      </button>
       {settingsOpen ? (
         <SettingsNav
           section={settingsSection}

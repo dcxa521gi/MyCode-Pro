@@ -136,6 +136,26 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+it("routes sidebar new task to projects, workspace plus to a session, and logo to home", () => {
+  props.onSelectProject = vi.fn();
+  props.onOpenProject = vi.fn();
+  props.onNew = vi.fn();
+  props.onHome = vi.fn();
+  props.projectRailOpen = true;
+  act(() => render());
+  const task = container.querySelector<HTMLButtonElement>('button[aria-label="New task"]')!;
+  expect(task).not.toBeNull();
+  act(() => task.click());
+  expect(props.onOpenProject).toHaveBeenCalledTimes(1);
+  expect(props.onNew).not.toHaveBeenCalled();
+  const plus = container.querySelector<HTMLButtonElement>('button[aria-label^="New session ("]')!;
+  expect(plus).not.toBeNull();
+  act(() => plus.click());
+  expect(props.onNew).toHaveBeenCalledTimes(1);
+  act(() => container.querySelector<HTMLButtonElement>('[data-mycode-home]')!.click());
+  expect(props.onHome).toHaveBeenCalledTimes(1);
+});
+
 describe("sidebar session multiselection", () => {
   it.each(["ctrlKey", "metaKey"] as const)(
     "resets the %s anchor after acting on another session's context menu",

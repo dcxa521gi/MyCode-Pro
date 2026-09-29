@@ -1,5 +1,6 @@
 import {
   modelContextWindow,
+  findModel,
   nativeModelId,
 } from "../../../../features/sessions/model/models";
 import type {
@@ -418,6 +419,8 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
     input.cwd,
     undefined,
     "opencode",
+    findModel(input.model)?.connectionId,
+    nativeModelId(input.model),
   );
 
   try {

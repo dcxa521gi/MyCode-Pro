@@ -1,3 +1,4 @@
+import { findModel } from "../../../../features/sessions/model/models";
 import { nativeModelId } from "../../../../features/sessions/model/models";
 import { taskListFromToolInput } from "../../../../features/sessions/model/taskList";
 import { normalizeProjectPath } from "../../../../features/projects/model/recents";
@@ -566,6 +567,8 @@ async function startLive(
     input.cwd,
     undefined,
     flavor.id,
+    findModel(input.model)?.connectionId,
+    nativeModelId(input.model),
   );
 
   liveByThread.set(input.sessionId, live);

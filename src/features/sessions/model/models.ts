@@ -344,14 +344,46 @@ export function supportsConnection(harness: HarnessId, api: string): boolean {
     (harness === "codex" && api === "openai-responses")
   );
 }
+let connectionRevision = 0;
+export function getConnectionRevision() {
+  return connectionRevision;
+}
+export function connectionReady(c: ModelConnection): boolean {
+  if (c.hasKey) return true;
+  try {
+    return ["localhost", "127.0.0.1", "[::1]"].includes(
+      new URL(c.baseUrl).hostname,
+    );
+  } catch {
+    return false;
+  }
+}
+export function connectionSupportsHarness(
+  harness: HarnessId,
+  c: ModelConnection,
+): boolean {
+  return (
+    supportsConnection(harness, c.api) ||
+    (harness === "claude" &&
+      /^https:\/\/(api|token-plan-cn)\.xiaomimimo\.com\/(v1|anthropic)\/?$/.test(
+        c.baseUrl,
+      ))
+  );
+}
 export function setConnectionModels(next: ModelConnection[]) {
+  connectionRevision++;
   connections = next;
   emit();
 }
 export function modelsFor(harness: HarnessId): AgentModel[] {
   if (mergedModels[harness]) return mergedModels[harness]!;
   const external: AgentModel[] = connections
-    .filter((c) => c.enabled && supportsConnection(harness, c.api))
+    .filter(
+      (c) =>
+        c.enabled &&
+        connectionReady(c) &&
+        connectionSupportsHarness(harness, c),
+    )
     .flatMap((c) =>
       c.models.map((model) => ({
         id: `${harness}:mycode-${c.id}/${model}`,
@@ -400,6 +432,11 @@ export function resolveModel(harness: HarnessId, id?: string): AgentModel {
   if (id) {
     const exact = findModel(id);
     if (exact && exact.harness === harness) return exact;
+    // Saved custom choices must never silently become a paid official model
+    // while connections are loading, disabled, or missing credentials.
+    if (id.startsWith(`${harness}:mycode-`)) {
+      return { id, harness, name: id.slice(id.indexOf("/") + 1), nativeId: nativeIdFrom(id) };
+    }
     const slug = nativeIdFrom(id);
     const byNative = available.find(
       (model) => (model.nativeId ?? nativeIdFrom(model.id)) === slug,

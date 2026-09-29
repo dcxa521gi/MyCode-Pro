@@ -8,6 +8,7 @@ import {
   unwatchChild,
 } from "../../core/child";
 import {
+  findModel,
   nativeModelId,
   setHarnessModels,
 } from "../../../../features/sessions/model/models";
@@ -106,6 +107,8 @@ async function send(input: SendTurnInput) {
         input.cwd,
         undefined,
         "mimo",
+        findModel(input.model)?.connectionId,
+        nativeModelId(input.model),
       );
       await acp.request(
         "initialize",
@@ -115,7 +118,7 @@ async function send(input: SendTurnInput) {
             fs: { readTextFile: false, writeTextFile: false },
             terminal: false,
           },
-          clientInfo: { name: "MyCode", version: "0.8.0" },
+          clientInfo: { name: "MyCode", version: "0.8.1" },
         },
         30_000,
       );

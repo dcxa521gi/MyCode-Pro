@@ -279,6 +279,7 @@ type Props = {
   onOpenProject?: () => void;
   onRemoveProject?: (path: string, options: { purgeData: boolean }) => void;
   onNew?: () => string | void;
+  onHome?: () => void;
   onNewTerminal?: () => void;
   onSearch?: () => void;
   onOpenInbox?: () => void;
@@ -366,6 +367,7 @@ function SidebarComponent({
   onOpenProject,
   onRemoveProject,
   onNew,
+  onHome,
   onSearch,
   onOpenInbox,
   onOpenInboxItem,
@@ -1993,7 +1995,8 @@ function SidebarComponent({
       ) : null}
       {railVisible && onSelectProject && onOpenProject ? (
         <ProjectRail
-          onNewTask={onNew}
+          onNewTask={onOpenProject}
+          onHome={onHome}
           cwd={cwd}
           recents={recents}
           inboxUnseen={inboxUnseen}

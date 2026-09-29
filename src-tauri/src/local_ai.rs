@@ -194,6 +194,40 @@ fn validate(connection: &Connection) -> Result<(), String> {
     Ok(())
 }
 
+fn local_endpoint(base: &str) -> bool {
+    url::Url::parse(base)
+        .ok()
+        .is_some_and(|url| matches!(url.host_str(), Some("localhost" | "127.0.0.1" | "[::1]")))
+}
+
+fn connection_key(connection: &Connection) -> Result<String, String> {
+    if !connection.secret.is_empty() {
+        protect(&connection.secret, true)
+    } else if local_endpoint(&connection.base_url) {
+        Ok("local".into())
+    } else {
+        Err(
+            "This model provider has no API key. Open Settings > Providers and save its API key."
+                .into(),
+        )
+    }
+}
+
+fn mimo_anthropic_base(connection: &Connection) -> Option<String> {
+    let mut url = url::Url::parse(&connection.base_url).ok()?;
+    if url.scheme() != "https"
+        || !matches!(
+            url.host_str(),
+            Some("api.xiaomimimo.com" | "token-plan-cn.xiaomimimo.com")
+        )
+        || !matches!(url.path().trim_end_matches('/'), "/v1" | "/anthropic")
+    {
+        return None;
+    }
+    url.set_path("/anthropic");
+    Some(url.to_string())
+}
+
 #[tauri::command(async)]
 pub fn local_ai_config(app: AppHandle) -> Result<LocalConfig, String> {
     let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
@@ -228,6 +262,9 @@ pub fn local_ai_save_connection(
             .map(|c| c.secret.clone())
             .unwrap_or_default(),
     };
+    if connection.enabled {
+        connection_key(&connection)?;
+    }
     if !connection.primary_model.is_empty() {
         if !connection.models.contains(&connection.primary_model) {
             return Err("Primary model must be selected in the model list".into());
@@ -310,6 +347,7 @@ pub fn configure_child(
     cmd: &mut Command,
     provider: Option<&str>,
     selected_connection: Option<&str>,
+    selected_model: Option<&str>,
     isolated: bool,
 ) -> Result<(), String> {
     if !matches!(
@@ -335,19 +373,36 @@ pub fn configure_child(
             .iter()
             .find(|c| c.id == id && c.enabled)
             .ok_or("Model connection is missing or disabled")?;
-        let key = if connection.secret.is_empty() {
-            "local".to_string()
-        } else {
-            protect(&connection.secret, true)?
-        };
+        let key = connection_key(connection)?;
         match provider {
-            Some("claude") if connection.api == "anthropic-messages" => {
-                cmd.env(
-                    "ANTHROPIC_BASE_URL",
-                    connection.base_url.trim_end_matches("/v1"),
-                )
-                .env("ANTHROPIC_API_KEY", key)
-                .env_remove("ANTHROPIC_AUTH_TOKEN");
+            Some("claude")
+                if connection.api == "anthropic-messages"
+                    || mimo_anthropic_base(connection).is_some() =>
+            {
+                let base = mimo_anthropic_base(connection).unwrap_or_else(|| {
+                    connection
+                        .base_url
+                        .trim_end_matches('/')
+                        .trim_end_matches("/v1")
+                        .to_owned()
+                });
+                cmd.env("ANTHROPIC_BASE_URL", base)
+                    .env("ANTHROPIC_API_KEY", key)
+                    .env_remove("ANTHROPIC_AUTH_TOKEN")
+                    .env_remove("CLAUDE_CODE_OAUTH_TOKEN")
+                    .env_remove("CLAUDE_CODE_USE_BEDROCK")
+                    .env_remove("CLAUDE_CODE_USE_VERTEX")
+                    .env_remove("CLAUDE_CODE_USE_FOUNDRY");
+                if let Some(model) = selected_model.filter(|m| !m.is_empty()) {
+                    for env in [
+                        "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+                        "ANTHROPIC_DEFAULT_SONNET_MODEL",
+                        "ANTHROPIC_DEFAULT_OPUS_MODEL",
+                        "ANTHROPIC_SMALL_FAST_MODEL",
+                    ] {
+                        cmd.env(env, model);
+                    }
+                }
             }
             Some("codex") if connection.api == "openai-responses" => {
                 cmd.env("MYCODE_MODEL_API_KEY", key);
@@ -364,18 +419,19 @@ pub fn configure_child(
                     cmd.arg("-c").arg(value);
                 }
             }
+            Some("pi" | "opencode" | "mimo") => {}
             _ => return Err("This agent does not support the selected model protocol".into()),
         }
     }
     if matches!(provider, Some("opencode" | "mimo")) {
         let mut providers = serde_json::Map::new();
-        for c in config.connections.iter().filter(|c| c.enabled) {
+        for c in config
+            .connections
+            .iter()
+            .filter(|c| c.enabled && (!c.secret.is_empty() || local_endpoint(&c.base_url)))
+        {
             validate(c)?;
-            let key = if c.secret.is_empty() {
-                "local".to_owned()
-            } else {
-                protect(&c.secret, true)?
-            };
+            let key = connection_key(c)?;
             let npm = match c.api.as_str() {
                 "anthropic-messages" => "@ai-sdk/anthropic",
                 "google-generative-ai" => "@ai-sdk/google",
@@ -402,8 +458,20 @@ pub fn configure_child(
             }
         }
         if !providers.is_empty() || !mcp.is_empty() {
-            let value = serde_json::to_string(&json!({"provider":providers,"mcp":mcp}))
-                .map_err(|e| e.to_string())?;
+            let mut value = json!({"provider":providers,"mcp":mcp});
+            if let Some(id) = selected_connection {
+                if let Some(c) = config.connections.iter().find(|c| c.id == id) {
+                    let model = selected_model
+                        .and_then(|m| m.strip_prefix(&format!("mycode-{id}/")))
+                        .or(c.models.first().map(String::as_str));
+                    if let Some(model) = model {
+                        let slug = format!("mycode-{id}/{model}");
+                        value["model"] = json!(slug);
+                        value["small_model"] = json!(slug);
+                    }
+                }
+            }
+            let value = serde_json::to_string(&value).map_err(|e| e.to_string())?;
             cmd.env("OPENCODE_CONFIG_CONTENT", &value)
                 .env("MIMOCODE_CONFIG_CONTENT", value);
         }
@@ -471,13 +539,13 @@ pub fn configure_child(
     }
     if provider == Some("pi") {
         let mut entries = Vec::new();
-        for c in config.connections.iter().filter(|c| c.enabled) {
+        for c in config
+            .connections
+            .iter()
+            .filter(|c| c.enabled && (!c.secret.is_empty() || local_endpoint(&c.base_url)))
+        {
             validate(c)?;
-            let key = if c.secret.is_empty() {
-                "local".to_owned()
-            } else {
-                protect(&c.secret, true)?
-            };
+            let key = connection_key(c)?;
             let env = format!("MYCODE_KEY_{}", c.id.replace('-', "_").to_uppercase());
             cmd.env(&env, key);
             entries.push(json!({"id": format!("mycode-{}", c.id), "name": c.name, "baseUrl": c.base_url, "api": c.api, "env": env, "models": c.models}));
@@ -679,6 +747,29 @@ mod tests {
         assert!(validate(&value).is_err());
     }
     #[test]
+    fn missing_remote_keys_never_become_placeholder_credentials() {
+        assert!(connection_key(&connection("https://api.deepseek.com/v1")).is_err());
+        assert_eq!(
+            connection_key(&connection("http://localhost:1234/v1")).unwrap(),
+            "local"
+        );
+        assert!(connection_key(&connection("https://localhost.evil.test/v1")).is_err());
+    }
+    #[test]
+    fn mimo_protocol_adaptation_keeps_the_same_host_and_account_plan() {
+        assert_eq!(
+            mimo_anthropic_base(&connection("https://token-plan-cn.xiaomimimo.com/v1")).as_deref(),
+            Some("https://token-plan-cn.xiaomimimo.com/anthropic")
+        );
+        assert_eq!(
+            mimo_anthropic_base(&connection("https://api.xiaomimimo.com/v1")).as_deref(),
+            Some("https://api.xiaomimimo.com/anthropic")
+        );
+        assert!(
+            mimo_anthropic_base(&connection("https://api.xiaomimimo.com.evil.test/v1")).is_none()
+        );
+    }
+    #[test]
     fn model_discovery_normalizes_deduplicates_and_filters_generation() {
         assert_eq!(
             parse_model_ids(&json!({"data":[{"id":"b"},{"id":"a"},{"id":"b"}]})).unwrap(),
@@ -700,7 +791,7 @@ mod tests {
     fn extension_reads_credentials_from_environment_not_generated_code() {
         let script = include_str!("local_ai_provider.mjs");
         assert!(script.contains("MYCODE_CONNECTIONS"));
-        assert!(script.contains("apiKey: `$${c.env}`"));
+        assert!(script.contains("apiKey: process.env[c.env]"));
         assert!(!script.contains("cindy"));
     }
 }

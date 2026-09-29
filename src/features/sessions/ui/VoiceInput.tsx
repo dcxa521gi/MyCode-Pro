@@ -159,6 +159,11 @@ export function VoiceInput({
       const config = await invoke<VoiceConfig>("voice_config");
       if (!config.endpoint || !config.model)
         throw new Error(t("Configure a speech model in Settings first."));
+      const endpoint = new URL(config.endpoint);
+      if (/^token-plan.*\.xiaomimimo\.com$/.test(endpoint.hostname))
+        throw new Error(t("MiMo speech requires the API endpoint and API key, not Token Plan. Select xiaomimimo API in Settings > Voice input and enter its API key."));
+      if (endpoint.hostname === "api.xiaomimimo.com" && !config.hasKey)
+        throw new Error(t("Speech authentication failed. Check the API key and model permissions in Settings > Voice input."));
       if (token !== generation.current) return;
       stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -248,14 +253,23 @@ export function VoiceInput({
           ? "Starting microphone…"
           : "Voice input";
   return (
-    <span className="inline-flex items-center gap-1">
+    <span className="relative inline-flex items-center gap-1">
       {error && (
         <span
           role="alert"
-          className="max-w-40 truncate text-xs text-red-400"
-          title={error}
+          className="absolute bottom-full right-0 z-50 mb-2 w-80 max-w-[80vw] rounded-lg border border-red-400/30 bg-surface p-3 text-xs text-red-400 shadow-xl whitespace-normal break-words"
         >
-          {error}
+          {error
+            .replace(/^Error: /, "")
+            .split(/(?= \(HTTP)/)
+            .map((part) => t(part))}
+          <button
+            type="button"
+            className="mt-2 block text-content/70 underline"
+            onClick={() => setError("")}
+          >
+            {t("Dismiss")}
+          </button>
         </span>
       )}
       <button

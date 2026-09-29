@@ -488,6 +488,7 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
     { provider: "claude", id: input.providerAccountId ?? "default" },
     "claude",
     findModel(input.model)?.connectionId,
+    nativeModelId(input.model),
   );
 
   liveByThread.set(input.sessionId, live);

@@ -310,6 +310,7 @@ async function startLive(
       { provider: "claude", id: providerAccountId ?? "default" },
       "claude",
       modelConnection,
+      settings.launchModel,
     );
     live = session;
     await waitForReady(session, INIT_TIMEOUT_MS);

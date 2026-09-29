@@ -460,6 +460,7 @@ pub fn harness_spawn(
     binary_provider: Option<String>,
     binary_path: Option<String>,
     model_connection: Option<String>,
+    selected_model: Option<String>,
 ) -> Result<u32, String> {
     let workdir = expand_home(&cwd);
     if !workdir.is_dir() {
@@ -491,6 +492,7 @@ pub fn harness_spawn(
         &mut cmd,
         binary_provider.as_deref(),
         model_connection.as_deref(),
+        selected_model.as_deref(),
         args.iter().any(|arg| arg == "--no-session-persistence"),
     )?;
 

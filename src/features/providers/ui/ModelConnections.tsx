@@ -112,6 +112,16 @@ export function ModelConnections() {
           "Saved models appear under compatible agents in the composer and can be favorited. The primary model takes priority for new selections; agents with a closed model catalog use their own models.",
         )}
       </p>
+      <p className="text-xs leading-relaxed text-content/55">
+        {t(
+          "Custom models work in Pi, OpenCode and MiMo Code. Claude requires Anthropic Messages (MiMo switches automatically); Codex requires OpenAI Responses. Other agents use their own model catalogs.",
+        )}
+      </p>
+      <p className="text-xs leading-relaxed text-content/55">
+        {t(
+          "Official models require this CLI’s own login or API credentials and quota. MyCode does not share a Codex subscription with other agents.",
+        )}
+      </p>
       {items.map((item) => (
         <div
           key={item.id}
@@ -119,6 +129,14 @@ export function ModelConnections() {
         >
           <span className="min-w-0 flex-1">
             <strong>{item.name}</strong>
+            {!item.hasKey &&
+              !/^http:\/\/(localhost|127\.0\.0\.1|\[::1\])[:/]/.test(
+                item.baseUrl,
+              ) && (
+                <span className="ml-2 text-xs text-amber-500">
+                  {t("API key missing")}
+                </span>
+              )}
             <span className="ml-2 text-xs text-content/50">
               {item.models.join(", ")}
             </span>
