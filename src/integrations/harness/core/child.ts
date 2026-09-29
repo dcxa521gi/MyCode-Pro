@@ -324,6 +324,7 @@ export async function resolveHarnessBinary(
     antigravity: "harness_resolve_antigravity",
     mimo: "harness_resolve_mimo",
     zcode: "harness_resolve_zcode",
+    freebuff: "harness_resolve_freebuff",
   };
   return invoke(command[provider]);
 }

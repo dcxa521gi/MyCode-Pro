@@ -36,12 +36,6 @@ fn validate(config: &VoiceConfig) -> Result<(), String> {
     }
     let url = url::Url::parse(&config.endpoint).map_err(|_| "Invalid speech endpoint")?;
     let local = matches!(url.host_str(), Some("localhost" | "127.0.0.1" | "[::1]"));
-    if url
-        .host_str()
-        .is_some_and(|host| host.starts_with("token-plan") && host.ends_with(".xiaomimimo.com"))
-    {
-        return Err("MiMo speech requires the API endpoint and API key, not Token Plan. Select xiaomimimo API in Settings > Voice input and enter its API key.".into());
-    }
     if matches!(url.path().trim_end_matches('/'), "" | "/v1") {
         return Err("Enter the full speech endpoint: /v1/audio/transcriptions, or /v1/chat/completions for MiMo.".into());
     }
@@ -71,7 +65,15 @@ fn normalize(mut config: VoiceConfig) -> VoiceConfig {
     }
     if let Ok(mut url) = url::Url::parse(&config.endpoint) {
         if matches!(url.path().trim_end_matches('/'), "" | "/v1")
-            && url.host_str() == Some("api.xiaomimimo.com")
+            && matches!(
+                url.host_str(),
+                Some(
+                    "api.xiaomimimo.com"
+                        | "token-plan-cn.xiaomimimo.com"
+                        | "token-plan-sgp.xiaomimimo.com"
+                        | "token-plan-ams.xiaomimimo.com"
+                )
+            )
             && config.protocol == "mimo"
         {
             url.set_path("/v1/chat/completions");
@@ -98,6 +100,19 @@ pub fn voice_config(app: AppHandle) -> Result<VoiceConfig, String> {
     config.has_key = !config.secret.is_empty();
     config.secret.clear();
     Ok(config)
+}
+#[tauri::command]
+pub fn voice_use_provider(app: AppHandle, connection_id: String) -> Result<VoiceConfig, String> {
+    let (endpoint, key) = crate::local_ai::mimo_speech_account(&app, &connection_id)?;
+    let config = VoiceConfig {
+        endpoint,
+        model: "mimo-v2.5-asr".into(),
+        protocol: "mimo".into(),
+        commands: load(&app)?.commands,
+        ..Default::default()
+    };
+    voice_save(app.clone(), config, Some(key))?;
+    voice_config(app)
 }
 #[tauri::command]
 pub fn voice_save(
@@ -231,7 +246,8 @@ mod tests {
             model: "mimo-v2.5-asr".into(),
             ..Default::default()
         });
-        assert!(validate(&c).unwrap_err().contains("not Token Plan"));
+        assert!(validate(&c).is_ok());
+        assert!(c.endpoint.ends_with("/v1/chat/completions"));
         assert!(c.endpoint.contains("token-plan-cn"));
         assert!(speech_error(401).contains("API key"));
         assert!(speech_error(404).contains("endpoint"));

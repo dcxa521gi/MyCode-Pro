@@ -1,5 +1,3 @@
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { IS_WIN } from "../../../platform/tauri/platform";
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "../../../shared/i18n";
@@ -55,33 +53,10 @@ export function ManagedCLIControls({ provider }: { provider: HarnessId }) {
       setBusy(false);
     }
   };
-  const official =
-    provider === "hermes"
-      ? "https://hermes-agent.nousresearch.com/docs/getting-started/installation/"
-      : provider === "zcode"
-        ? "https://github.com/zai-org/ZCode#readme"
-        : provider === "fx"
-          ? "https://fx.sh"
-          : provider === "antigravity"
-            ? "https://antigravity.google/download"
-            : null;
-  const unsupported =
-    IS_WIN && (provider === "fx" || provider === "antigravity");
   const run = async (install: boolean) => {
     setBusy(true);
     setStatus(t(install ? "Installing…" : "Checking installed version…"));
     try {
-      if (install && official) {
-        await openUrl(official);
-        setStatus(
-          t(
-            unsupported
-              ? "This agent has no supported native Windows CLI. See the official platform requirements."
-              : "Install the official CLI, then choose its executable path above.",
-          ),
-        );
-        return;
-      }
       if (install) {
         const path = await invoke<string>("managed_cli_install", { provider });
         if (!(await applyProviderBinaryPath(provider, path)))
@@ -137,13 +112,7 @@ export function ManagedCLIControls({ provider }: { provider: HarnessId }) {
         className="rounded-md bg-accent/10 px-2 py-1 text-accent disabled:opacity-40"
         onClick={() => void run(true)}
       >
-        {t(
-          busy
-            ? "Working…"
-            : official
-              ? "Official install / update"
-              : "Install / update in MyCode",
-        )}
+        {t(busy ? "Working…" : "Install / update in MyCode")}
       </button>
       {status && (
         <span role="status" className="max-w-80 text-content/50">

@@ -31,6 +31,7 @@
   --color-content: hsl(
     var(--theme-hue) var(--theme-saturation) var(--content-lightness)
   );
+  --color-surface: color-mix(in srgb, var(--color-background-base) 96%, var(--color-content) 4%);
   /* Structural separators: use border-stroke, divide-stroke, or bg-stroke. */
   --color-stroke: color-mix(in srgb, var(--color-content) 7%, transparent);
   /* Interactive fills keep their dark-theme contrast but use gentler ink in

@@ -124,6 +124,18 @@ impl Drop for PtyHost {
     }
 }
 
+fn terminal_search_path(app: &AppHandle) -> std::ffi::OsString {
+    let base = crate::harness::gui_search_path();
+    let mut paths = Vec::new();
+    if let Ok(node) = crate::managed_cli::node(app) {
+        if let Some(parent) = std::path::Path::new(&node).parent() {
+            paths.push(parent.to_path_buf());
+        }
+    }
+    paths.extend(std::env::split_paths(&base));
+    std::env::join_paths(paths).unwrap_or_else(|_| base.into())
+}
+
 #[tauri::command]
 pub fn pty_spawn(
     app: AppHandle,
@@ -268,7 +280,7 @@ fn spawn_unix(
         .env("COLORTERM", "truecolor")
         .env("COLORFGBG", "15;0")
         .env("TERM_PROGRAM", "MyCode")
-        .env("PATH", crate::harness::gui_search_path());
+        .env("PATH", terminal_search_path(&app));
     if let Some(home) = dirs_home() {
         cmd.env("HOME", &home);
     }
@@ -399,7 +411,7 @@ fn spawn_windows(
     cmd.env("COLORTERM", "truecolor");
     cmd.env("COLORFGBG", "15;0");
     cmd.env("TERM_PROGRAM", "MyCode");
-    cmd.env("PATH", crate::harness::gui_search_path());
+    cmd.env("PATH", terminal_search_path(&app));
     if let Some(home) = dirs_home() {
         cmd.env("HOME", &home);
         cmd.env("USERPROFILE", &home);

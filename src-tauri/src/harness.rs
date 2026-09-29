@@ -487,6 +487,17 @@ pub fn harness_spawn(
         .stderr(Stdio::piped());
     prepare_child(&mut cmd, &command);
     apply_provider_account(&app, &mut cmd, account.as_ref())?;
+    if binary_provider.as_deref() == Some("hermes") {
+        let managed = app
+            .path()
+            .app_data_dir()
+            .map_err(|e| e.to_string())?
+            .join("cli/hermes");
+        if std::path::Path::new(&command).starts_with(&managed) {
+            cmd.env("HERMES_HOME", managed.join("data"));
+        }
+    }
+
     crate::local_ai::configure_child(
         &app,
         &mut cmd,
@@ -1553,6 +1564,14 @@ pub fn harness_resolve_zcode() -> Result<CursorBinary, String> {
         })
         .ok_or("ZCode CLI not installed".into())
 }
+#[tauri::command(async)]
+pub fn harness_resolve_freebuff() -> Result<CursorBinary, String> {
+    which_via_login_shell("freebuff")
+        .map(|path| CursorBinary {
+            path: path.to_string_lossy().into_owned(),
+        })
+        .ok_or("Freebuff CLI not installed".into())
+}
 fn resolve_harness_binary_default(provider: &str) -> Option<PathBuf> {
     match provider {
         "claude" => resolve_claude(),
@@ -1560,6 +1579,7 @@ fn resolve_harness_binary_default(provider: &str) -> Option<PathBuf> {
         "cursor" => resolve_cursor_agent(),
         "mimo" => which_via_login_shell("mimo"),
         "zcode" => which_via_login_shell("zcode"),
+        "freebuff" => which_via_login_shell("freebuff"),
         "grok" => resolve_grok(),
         "opencode" => resolve_opencode(),
         "pi" => resolve_pi(),
@@ -1610,6 +1630,7 @@ pub(crate) fn resolve_harness_binary_override(
         "cursor" => &["cursor-agent", "agent"],
         "mimo" => &["mimo"],
         "zcode" => &["zcode"],
+        "freebuff" => &["freebuff"],
         "grok" => &["grok"],
         "opencode" => &["opencode"],
         "pi" => &["pi", "pi-coding-agent"],

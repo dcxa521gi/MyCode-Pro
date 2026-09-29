@@ -25,6 +25,7 @@ type OpenCodeModelJson = {
   id?: string;
   name?: string;
   variants?: Record<string, unknown>;
+  cost?: { input?: number; output?: number };
   limit?: { context?: number; input?: number; output?: number };
 };
 
@@ -210,6 +211,9 @@ export function flattenOpenCodeModels(
         harness: "opencode",
         name,
         nativeId,
+        ...(model.cost?.input === 0 && model.cost?.output === 0
+          ? { pricing: "free" as const }
+          : {}),
         provider: { id: provider.id, name: provider.name },
         settings: openCodeModelSettings(provider.id, model, primaryAgents),
         ...(contextWindow && contextWindow > 0 ? { contextWindow } : {}),

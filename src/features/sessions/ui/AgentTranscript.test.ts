@@ -61,12 +61,9 @@ describe("AgentTranscript collapsed work", () => {
       true,
     );
     expect(markup).toContain("Using MyCode");
-    expect(markup).toContain('data-monocode-tool-call="--help"');
-    expect(markup).toContain('data-monocode-tool-call="notes.list"');
-    expect(markup).toContain("MyCode app --help");
-    expect(markup).toContain("MyCode app notes.list");
-    expect(markup).toContain("Ran");
-    expect(markup).toContain("Running");
+    expect(markup).toContain('aria-expanded="false"');
+    expect(markup).toContain("Show the steps for Using MyCode");
+    expect(markup).not.toContain('data-monocode-tool-call="--help"');
     expect(markup).not.toContain("Contents/MacOS/monocode");
     expect(markup).not.toContain("Show error details for MyCode");
   });

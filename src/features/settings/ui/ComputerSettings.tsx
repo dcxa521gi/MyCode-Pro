@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { BrowserSettings } from "./BrowserSettings";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { listen } from "@tauri-apps/api/event";
@@ -85,6 +86,7 @@ export function ComputerSettings() {
   };
   return (
     <section className="space-y-5">
+      <BrowserSettings />
       <p className="text-sm text-content/60">
         {t(
           "Let compatible agents observe windows, click, type and operate local apps with the open-source Cua Driver. Runs locally with MyCode.",

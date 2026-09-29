@@ -334,6 +334,15 @@ export function ProjectRail({
         data-tauri-drag-region="deep"
       >
         {IS_MAC ? <div className="w-[78px] shrink-0" /> : null}
+        <button
+          type="button"
+          data-mycode-home
+          onClick={onHome}
+          aria-label="MyCode"
+          className="ml-3 mr-auto rounded-md p-1 hover:bg-content/10"
+        >
+          <img src="/mycode-icon.png" alt="MyCode" className="size-5 rounded" />
+        </button>
         <DevModeSlot />
         <TabVisitNav
           canGoBack={canGoBack}

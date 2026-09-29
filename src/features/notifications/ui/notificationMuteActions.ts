@@ -1,4 +1,4 @@
-import { getLocale as uiLocale } from "../../../shared/i18n";
+import { getLocale as uiLocale, translate as t } from "../../../shared/i18n";
 import {
   isProjectMuted,
   NOTIFICATION_MUTE_HOURS,
@@ -11,8 +11,8 @@ export function notificationMuteStatus(
 ): string | null {
   if (!preference || !isProjectMuted(preference)) return null;
   return preference.mutedUntil === null
-    ? "Muted until resumed"
-    : `Muted until ${new Date(preference.mutedUntil!).toLocaleString(uiLocale(), { dateStyle: "medium", timeStyle: "short" })}`;
+    ? t("Muted until resumed")
+    : `${t("Muted until")} ${new Date(preference.mutedUntil!).toLocaleString(uiLocale(), { dateStyle: "medium", timeStyle: "short" })}`;
 }
 
 /** The same preset IDs and durations are used by project and Inbox menus. */
@@ -34,11 +34,16 @@ const mutePresets = [
 
 export function notificationMuteActions(now = new Date(Date.now())) {
   return mutePresets.map((action) => {
-    if (action.milliseconds == null) return action;
+    if (action.milliseconds == null)
+      return { ...action, label: t(action.label) };
     const until = new Date(now.getTime() + action.milliseconds);
     const time = `${until.getHours()}:${String(until.getMinutes()).padStart(2, "0")}`;
-    const day = until.toDateString() === now.toDateString() ? "" : "Tomorrow, ";
-    return { ...action, label: `${action.label} (${day}${time})` };
+    const day =
+      until.toDateString() === now.toDateString() ? "" : `${t("Tomorrow")}, `;
+    return {
+      ...action,
+      label: `${action.milliseconds / 3_600_000} ${t(action.milliseconds === 3_600_000 ? "hour" : "hours")} (${day}${time})`,
+    };
   });
 }
 

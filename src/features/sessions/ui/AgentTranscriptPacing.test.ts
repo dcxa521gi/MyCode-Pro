@@ -59,21 +59,53 @@ it("paces a burst of tool calls so each enters after the one before it", () => {
   const head: Block[] = [
     { id: "user", role: "user", text: "Review the diff" },
     { id: "intro", role: "assistant", text: "Checking the repo first." },
+    tool("initial"),
     tool("first"),
   ];
   render(head);
+  act(() =>
+    container
+      .querySelector<HTMLButtonElement>(
+        'button[aria-label^="Show the steps for"]',
+      )!
+      .click(),
+  );
   render([...head, tool("second"), tool("third"), tool("fourth")]);
 
   // What was on screen when the group mounted is history; the burst queues.
-  expect(stages()).toEqual(["settled", "entering", "waiting", "waiting"]);
+  expect(stages()).toEqual([
+    "settled",
+    "settled",
+    "entering",
+    "waiting",
+    "waiting",
+  ]);
 
   // Later renders must not cut the queue short.
   render([...head, tool("second"), tool("third"), tool("fourth")]);
-  expect(stages()).toEqual(["settled", "entering", "waiting", "waiting"]);
+  expect(stages()).toEqual([
+    "settled",
+    "settled",
+    "entering",
+    "waiting",
+    "waiting",
+  ]);
 
   act(() => vi.advanceTimersByTime(480));
-  expect(stages()).toEqual(["settled", "entering", "entering", "waiting"]);
+  expect(stages()).toEqual([
+    "settled",
+    "settled",
+    "entering",
+    "entering",
+    "waiting",
+  ]);
 
   act(() => vi.advanceTimersByTime(480));
-  expect(stages()).toEqual(["settled", "entering", "entering", "entering"]);
+  expect(stages()).toEqual([
+    "settled",
+    "settled",
+    "entering",
+    "entering",
+    "entering",
+  ]);
 });

@@ -15,7 +15,10 @@ import {
   scanOscCwd,
   type TerminalMetaPatch,
 } from "../model/terminalTab";
-import { isLightScheme, SCHEME_CHANGE_EVENT } from "../../settings/model/appearance";
+import {
+  isLightScheme,
+  SCHEME_CHANGE_EVENT,
+} from "../../settings/model/appearance";
 import {
   applyTerminalChrome,
   fitTerminal,
@@ -29,6 +32,7 @@ type Props = {
   id: string;
   cwd: string;
   active: boolean;
+  initialCommand?: string;
   onMetaChange?: (patch: TerminalMetaPatch) => void;
 };
 
@@ -44,7 +48,10 @@ function cssColor(expr: string, fallback: string): string {
 function cssHexColor(expr: string, fallback: string): string {
   const color = cssColor(expr, fallback);
   if (/^#[\da-f]{6}$/i.test(color)) return color;
-  const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+  const channels = color
+    .match(/[\d.]+/g)
+    ?.slice(0, 3)
+    .map(Number);
   if (!channels || channels.length < 3 || channels.some(Number.isNaN)) {
     return fallback;
   }
@@ -120,22 +127,22 @@ function monoFont(): string {
 function oscColors() {
   const light = isLightScheme();
   return {
-    fg: cssHexColor(
-      "var(--color-content)",
-      light ? "#2e2e2e" : "#ebebeb",
-    ),
+    fg: cssHexColor("var(--color-content)", light ? "#2e2e2e" : "#ebebeb"),
     bg: cssHexColor(
       "var(--color-background-base)",
       light ? "#f7f7f7" : "#171717",
     ),
-    cursor: cssHexColor(
-      "var(--color-accent)",
-      light ? "#4078f2" : "#4da3f5",
-    ),
+    cursor: cssHexColor("var(--color-accent)", light ? "#4078f2" : "#4da3f5"),
   };
 }
 
-export function TerminalView({ id, cwd, active, onMetaChange }: Props) {
+export function TerminalView({
+  id,
+  cwd,
+  active,
+  onMetaChange,
+  initialCommand,
+}: Props) {
   const outerRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
@@ -234,7 +241,10 @@ export function TerminalView({ id, cwd, active, onMetaChange }: Props) {
 
     const starting = spawnPty(id, cwd, term.cols, term.rows)
       .then(() => {
-        if (!closed) spawned.current = true;
+        if (!closed) {
+          spawned.current = true;
+          if (initialCommand) void writePty(id, initialCommand + "\r");
+        }
       })
       .catch((error) => {
         spawned.current = false;

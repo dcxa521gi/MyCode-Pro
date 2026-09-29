@@ -1,3 +1,4 @@
+import { useShowThinking } from "../../settings/model/showThinking";
 import { getLocale as uiLocale } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import {
@@ -2005,7 +2006,15 @@ const ActivityPhases = memo(function ActivityPhases({
   onOpenFile,
   onOpenDiff,
 }: ActivityPhasesProps) {
-  const phases = useMemo(() => buildActivityPhases(blocks), [blocks]);
+  const showThinking = useShowThinking();
+  const visible = showThinking
+    ? blocks
+    : blocks.filter(
+        (block) =>
+          block.role !== "reasoning" &&
+          (block.role !== "tool" || needsApproval(block)),
+      );
+  const phases = useMemo(() => buildActivityPhases(visible), [visible]);
 
   return (
     <div className={`flex min-w-0 flex-col gap-1 ${padded ? "px-4" : ""}`}>
@@ -2122,7 +2131,7 @@ function ActivityPhaseGroup({
 }) {
   const [override, setOverride] = useState<boolean | null>(null);
   const waiting = phase.steps.some(needsApproval);
-  const open = waiting || (override ?? active);
+  const open = waiting || (override ?? false);
   const [liveScroller, setLiveScroller] = useState<HTMLDivElement | null>(null);
   useLivePhaseScroll(liveScroller, active && open, phase.steps);
   // Steps already here when the group mounted, or that landed while it was

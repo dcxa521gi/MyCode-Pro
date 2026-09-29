@@ -1,3 +1,4 @@
+import { translate as t } from "../../../shared/i18n";
 import type { ExplorerMenuItem } from "../../files/ui/ExplorerMenu";
 import { reminderTime } from "../model/sessionReminders";
 
@@ -8,11 +9,15 @@ export function sessionReminderPresets(now = new Date()) {
   };
 
   return [
-    { kind: "item", id: "reminder:1h", label: `In 1 hour (${timeInHours(1)})` },
+    {
+      kind: "item",
+      id: "reminder:1h",
+      label: `${t("In 1 hour")} (${timeInHours(1)})`,
+    },
     {
       kind: "item",
       id: "reminder:3h",
-      label: `In 3 hours (${timeInHours(3)})`,
+      label: `${t("In 3 hours")} (${timeInHours(3)})`,
     },
     {
       kind: "item",

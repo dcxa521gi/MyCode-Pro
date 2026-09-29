@@ -1,3 +1,5 @@
+import { FreebuffSettings } from "../../providers/ui/FreebuffSettings";
+import { useShowThinking, setShowThinking } from "../model/showThinking";
 import { VoiceSettings } from "./VoiceSettings";
 import { StorageSettings } from "./StorageSettings";
 import { ComputerSettings } from "./ComputerSettings";
@@ -1006,6 +1008,7 @@ function GeneralPage({
 }
 
 function ChatPage() {
+  const showThinking = useShowThinking();
   const { t } = useTranslation();
   const [transcriptLayout, setTranscriptLayout] =
     useState<TranscriptLayout>(loadTranscriptLayout);
@@ -1078,6 +1081,18 @@ function ChatPage() {
         title={t("Transcript")}
         description={t("How a conversation reads as it grows.")}
       >
+        <Row
+          label={t("Show thinking and commands")}
+          description={t(
+            "Show reasoning shared by the agent and command activity, collapsed by default.",
+          )}
+        >
+          <Toggle
+            label={t("Show thinking and commands")}
+            on={showThinking}
+            onChange={setShowThinking}
+          />
+        </Row>
         <Row
           id="transcript-layout"
           label={t("Transcript layout")}
@@ -3011,7 +3026,7 @@ function ProviderBinaryControl({
     dismiss(true);
   };
 
-  const title = HARNESS_TITLE[provider];
+  const title = provider === "freebuff" ? "Freebuff" : HARNESS_TITLE[provider];
   const restartRequired = providerBinaryPathChangePending(provider);
 
   return (
@@ -3352,6 +3367,7 @@ function ProvidersPage({
   return (
     <>
       <ProviderAccountsSettings />
+      <FreebuffSettings cwd={cwd} />
 
       <Group
         id="agent-clis"

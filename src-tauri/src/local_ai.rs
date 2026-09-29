@@ -51,6 +51,30 @@ fn load(app: &AppHandle) -> Result<LocalConfig, String> {
     }
 }
 
+pub(crate) fn mimo_speech_account(app: &AppHandle, id: &str) -> Result<(String, String), String> {
+    let config = load(app)?;
+    let connection = config
+        .connections
+        .iter()
+        .find(|c| c.id == id && c.enabled)
+        .ok_or("Model connection is missing or disabled")?;
+    let mut endpoint =
+        url::Url::parse(&connection.base_url).map_err(|_| "Invalid speech endpoint")?;
+    if !matches!(
+        endpoint.host_str(),
+        Some(
+            "api.xiaomimimo.com"
+                | "token-plan-cn.xiaomimimo.com"
+                | "token-plan-sgp.xiaomimimo.com"
+                | "token-plan-ams.xiaomimimo.com"
+        )
+    ) {
+        return Err("Choose a Xiaomi MiMo API or Token Plan account.".into());
+    }
+    endpoint.set_path("/v1/chat/completions");
+    Ok((endpoint.to_string(), connection_key(connection)?))
+}
+
 fn write_private(path: &std::path::Path, bytes: &[u8]) -> Result<(), String> {
     use std::io::Write;
     let mut options = fs::OpenOptions::new();
@@ -372,6 +396,12 @@ pub fn configure_child(
     let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
     let mut config = load(app)?;
     if !isolated {
+        if let Some(browser) = crate::browser::mcp(app)? {
+            if !config.mcp_servers.is_object() {
+                config.mcp_servers = json!({});
+            }
+            config.mcp_servers["mycode_browser"] = browser;
+        }
         if let Some(computer) = crate::computer::mcp(app)? {
             if !config.mcp_servers.is_object() {
                 config.mcp_servers = json!({});

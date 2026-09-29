@@ -309,10 +309,14 @@ describe("model picker", () => {
       [...container.querySelectorAll('[role="group"]')].map((group) =>
         group.getAttribute("aria-label"),
       ),
-    ).toEqual(["OpenCode Go", "OpenAI"]);
+    ).toEqual([
+      "Paid / account models · OpenCode Go",
+      "Paid / account models · OpenAI",
+    ]);
     expect(
-      container.querySelector('[role="group"][aria-label="OpenCode Go"]')
-        ?.textContent,
+      container.querySelector(
+        '[role="group"][aria-label="Paid / account models · OpenCode Go"]',
+      )?.textContent,
     ).toContain("GPT-5.6 Luna");
     expect(
       container.querySelector(
@@ -320,8 +324,9 @@ describe("model picker", () => {
       ),
     ).not.toBeNull();
     expect(
-      container.querySelector('[role="group"][aria-label="OpenAI"]')
-        ?.textContent,
+      container.querySelector(
+        '[role="group"][aria-label="Paid / account models · OpenAI"]',
+      )?.textContent,
     ).toContain("GPT-5.6 Luna Fast");
 
     inputText(
@@ -334,7 +339,7 @@ describe("model picker", () => {
       [...container.querySelectorAll('[role="group"]')].map((group) =>
         group.getAttribute("aria-label"),
       ),
-    ).toEqual(["OpenAI"]);
+    ).toEqual(["Paid / account models · OpenAI"]);
     expect(container.querySelectorAll('[role="option"]')).toHaveLength(2);
   });
 

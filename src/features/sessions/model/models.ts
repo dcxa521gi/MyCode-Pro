@@ -28,6 +28,7 @@ export type AgentModel = {
   nativeId?: string;
   connectionId?: string;
   primary?: boolean;
+  pricing?: "free" | "paid";
   /** Upstream provider inside a multi-provider harness such as OpenCode. */
   provider?: {
     id: string;
@@ -375,6 +376,18 @@ export function setConnectionModels(next: ModelConnection[]) {
   connections = next;
   emit();
 }
+export function modelPriceRank(model: AgentModel): number {
+  if (model.connectionId) return 0;
+  if (
+    model.pricing === "free" ||
+    /(?:^|[:/ -])free(?:$|[ -])/i.test(model.nativeId || model.id)
+  )
+    return 1;
+  return 2;
+}
+export function sortModels(models: AgentModel[]): AgentModel[] {
+  return [...models].sort((a, b) => modelPriceRank(a) - modelPriceRank(b));
+}
 export function modelsFor(harness: HarnessId): AgentModel[] {
   if (mergedModels[harness]) return mergedModels[harness]!;
   const external: AgentModel[] = connections
@@ -398,12 +411,12 @@ export function modelsFor(harness: HarnessId): AgentModel[] {
       })),
     );
   const ids = new Set(external.map((m) => m.id));
-  return (mergedModels[harness] = [
+  return (mergedModels[harness] = sortModels([
     ...external,
     ...(overlays[harness] ?? baseModelsFor(harness)).filter(
       (m) => !ids.has(m.id),
     ),
-  ]);
+  ]));
 }
 
 export function allModels(): AgentModel[] {
@@ -435,7 +448,12 @@ export function resolveModel(harness: HarnessId, id?: string): AgentModel {
     // Saved custom choices must never silently become a paid official model
     // while connections are loading, disabled, or missing credentials.
     if (id.startsWith(`${harness}:mycode-`)) {
-      return { id, harness, name: id.slice(id.indexOf("/") + 1), nativeId: nativeIdFrom(id) };
+      return {
+        id,
+        harness,
+        name: id.slice(id.indexOf("/") + 1),
+        nativeId: nativeIdFrom(id),
+      };
     }
     const slug = nativeIdFrom(id);
     const byNative = available.find(

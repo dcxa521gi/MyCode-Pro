@@ -1,3 +1,4 @@
+import { CliReadyDialog } from "../features/providers/ui/CliReadyDialog";
 import { newSessionLike } from "../features/sessions/model/session";
 import { NewTaskDialog } from "../features/sessions/ui/NewTaskDialog";
 import { importedContextPrompt } from "../features/sessions/model/importedContext";
@@ -2157,55 +2158,6 @@ export default function App({
     return session.id;
   }, [appendTab]);
   const [homeOpen, setHomeOpen] = useState(false);
-  const logoCycle = useRef(false);
-  useEffect(() => {
-    const leave = (event: MouseEvent) => {
-      if (
-        event.target instanceof Element &&
-        !event.target.closest("[data-mycode-home]") &&
-        event.target.closest("button,a")
-      ) {
-        logoCycle.current = false;
-        setHomeOpen(false);
-      }
-    };
-    window.addEventListener("click", leave, true);
-    return () => window.removeEventListener("click", leave, true);
-  }, []);
-  useEffect(() => {
-    setHomeOpen(false);
-  }, [activeTabId, projectCwd]);
-  const onHome = useCallback(() => {
-    setSettingsOpen(false);
-    setSearchViewOpen(false);
-    setInboxViewOpen(false);
-    setNotesViewOpen(false);
-    setAutomationsViewOpen(false);
-    const running = sessionsRef.current.filter(
-      (s) =>
-        s.busy &&
-        tabsRef.current.some((tab) => leafIds(tab.layout).includes(s.id)),
-    );
-    if (!logoCycle.current || !running.length) {
-      logoCycle.current = true;
-      setHomeOpen(true);
-      return;
-    }
-    const current = tabsRef.current.find(
-      (tab) => tab.id === activeTabIdRef.current,
-    )?.focusedId;
-    const next =
-      running[
-        (running.findIndex((s) => s.id === current) + 1) % running.length
-      ];
-    const tab = tabsRef.current.find((tab) =>
-      leafIds(tab.layout).includes(next.id),
-    );
-    if (tab) {
-      setHomeOpen(false);
-      activateTab(tab.id, next.id);
-    }
-  }, [activateTab]);
   const createWorkspaceTask = useCallback(
     (cwd: string, harness: HarnessId, model: string) => {
       setSearchViewOpen(false);
@@ -3983,6 +3935,34 @@ export default function App({
       revealLinkedSessionUpdate,
     ],
   );
+
+  const onHome = useCallback(() => {
+    setSettingsOpen(false);
+    setSearchViewOpen(false);
+    setInboxViewOpen(false);
+    setNotesViewOpen(false);
+    setAutomationsViewOpen(false);
+    setNewTaskOpen(false);
+    setHomeOpen(false);
+    const running = sessionsRef.current.filter(
+      (s) => s.busy && !s.inboxAsk && !s.orchestrationLeadId,
+    );
+    const current = tabsRef.current.find(
+      (tab) => tab.id === activeTabIdRef.current,
+    )?.focusedId;
+    const latest = [...history]
+      .filter((s) => !s.archived && !s.orchestrationLeadId)
+      .sort((a, b) => b.updatedAt - a.updatedAt)[0];
+    const target = running.length
+      ? running[
+          (running.findIndex((s) => s.id === current) + 1) % running.length
+        ]?.id
+      : (latest?.id ??
+        sessionsRef.current
+          .filter((s) => !s.inboxAsk && !s.orchestrationLeadId)
+          .slice(-1)[0]?.id);
+    if (target) void onSelectHistorySession(target);
+  }, [history, onSelectHistorySession]);
 
   const openReminderSession = useCallback(
     async (sessionId: string) => {
@@ -10824,6 +10804,7 @@ export default function App({
             />
           ) : null}
 
+          <CliReadyDialog sessions={sessions} />
           {newTaskOpen && (
             <NewTaskDialog
               onClose={() => setNewTaskOpen(false)}

@@ -950,7 +950,7 @@ function SidebarComponent({
     ...sessionFolders.map((folder) => ({
       kind: "item" as const,
       id: `folder-add:${folder.id}`,
-      label: `Add to ${folder.name}`,
+      label: `${t("Add to")} ${folder.name}`,
       checked:
         menuSessionIds.length > 0 &&
         menuSessionIds.every((sessionId) =>

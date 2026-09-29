@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { HarnessId } from "../../sessions/model/session";
 
-export type ConfigurableBinaryProvider = HarnessId;
+export type ConfigurableBinaryProvider = HarnessId | "freebuff";
 
 const STORAGE_KEY = "monocode.providerBinaryPaths.v1";
 

@@ -78,7 +78,7 @@ export function NotificationMuteDatePicker({
       />
       {error ? (
         <p role="alert" className="mt-3 px-1 text-xs text-red-400">
-          {error}
+          {t(error)}
         </p>
       ) : null}
       <div className="mt-3 flex items-center justify-between gap-2 border-t border-stroke pt-2.5">

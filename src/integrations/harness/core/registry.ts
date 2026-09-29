@@ -1,3 +1,4 @@
+import { ensureCliReady } from "../../../features/providers/model/cliReady";
 import {
   findModel,
   getConnectionRevision,
@@ -218,13 +219,18 @@ const sessionConnections = new Map<string, string | undefined>();
 export function sendHarnessTurn(input: SendTurnInput & { harness: HarnessId }) {
   return queueSessionOperation(input.sessionId, async () => {
     const adapter = requireHarness(input.harness);
+    if (!(await ensureCliReady(input.harness, input.sessionId)))
+      throw new Error("CLI preparation cancelled.");
     if (!adapter.live) {
       throw new Error(`${input.harness} is not connected yet`);
     }
     const id = findModel(input.model)?.connectionId;
     if (!id && input.model.includes(":mycode-"))
       throw new Error(
-        modelFailureMessage("This model provider is unavailable. Check its API key and protocol in Settings > Providers.", true),
+        modelFailureMessage(
+          "This model provider is unavailable. Check its API key and protocol in Settings > Providers.",
+          true,
+        ),
       );
     const connection = id
       ? `${id}:${getConnectionRevision()}:${input.model}`
@@ -245,6 +251,12 @@ export function sendHarnessTurn(input: SendTurnInput & { harness: HarnessId }) {
       const memory = controlled
         ? await invoke<string>("local_ai_memory", { cwd: input.cwd })
         : "";
+      const references = controlled
+        ? await invoke<string>("session_reference_context", {
+            text: input.text,
+            currentId: input.sessionId,
+          })
+        : "";
       const routed = {
         ...input,
         onEvent: (event: HarnessEvent) =>
@@ -255,10 +267,10 @@ export function sendHarnessTurn(input: SendTurnInput & { harness: HarnessId }) {
           ),
       };
       await adapter.sendTurn(
-        memory?.trim()
+        memory?.trim() || references?.trim()
           ? {
               ...routed,
-              text: `[MyCode local memory — user-maintained context]\n${memory}\n[End of local memory]\n\n${input.text}`,
+              text: `[MyCode local memory — user-maintained context]\n${memory}\n[End of local memory]\n${references}\n${input.text}`,
             }
           : routed,
       );

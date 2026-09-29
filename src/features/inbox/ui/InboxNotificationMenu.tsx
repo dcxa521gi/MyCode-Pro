@@ -120,11 +120,11 @@ export function InboxNotificationMenu({
         <div className="space-y-1 px-2 py-1.5">
           <p className="text-xs font-medium text-content">{t("Inbox")}</p>
           <p role="status" className="text-xs text-content/50">
-            {`${allIds.length} ${allIds.length === 1 ? "project" : "projects"} · ${mutedIds.length} muted`}
+            {`${allIds.length} ${t(allIds.length === 1 ? "project" : "projects")} · ${mutedIds.length} ${t("muted")}`}
           </p>
           {saveError ? (
             <p role="alert" className="text-xs text-red-400">
-              {saveError}
+              {t(saveError)}
             </p>
           ) : null}
         </div>

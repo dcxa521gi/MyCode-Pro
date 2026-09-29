@@ -118,7 +118,7 @@ async function send(input: SendTurnInput) {
             fs: { readTextFile: false, writeTextFile: false },
             terminal: false,
           },
-          clientInfo: { name: "MyCode", version: "0.8.1" },
+          clientInfo: { name: "MyCode", version: "0.9.0" },
         },
         30_000,
       );

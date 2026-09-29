@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "../../../shared/i18n";
+import type {
+  LocalAIConfig,
+  ModelConnection,
+} from "../../providers/model/modelConnections";
 export type VoiceConfig = {
   endpoint: string;
   model: string;
@@ -19,7 +23,23 @@ export function VoiceSettings() {
   const [key, setKey] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [accounts, setAccounts] = useState<ModelConnection[]>([]);
+  const [account, setAccount] = useState("");
   useEffect(() => {
+    void invoke<LocalAIConfig>("local_ai_config")
+      .then((value) =>
+        setAccounts(
+          (value?.connections ?? []).filter(
+            (c) =>
+              c.enabled &&
+              c.hasKey &&
+              /^https:\/\/(api|token-plan-(cn|sgp|ams))\.xiaomimimo\.com\//.test(
+                c.baseUrl,
+              ),
+          ),
+        ),
+      )
+      .catch(() => {});
     void invoke<VoiceConfig>("voice_config")
       .then((value) => {
         if (value.endpoint) setConfig(value);
@@ -47,27 +67,78 @@ export function VoiceSettings() {
           "Record locally and transcribe with Xiaomi MiMo or your own speech service.",
         )}
       </p>
+      {accounts.length > 0 && (
+        <div className="space-y-2 text-sm">
+          <label>
+            {t("Use a saved Xiaomi MiMo account")}
+            <select
+              className="mt-2 w-full rounded-lg bg-surface px-3 py-2"
+              value={account}
+              onChange={(e) => setAccount(e.target.value)}
+            >
+              <option value="">{t("Choose provider")}</option>
+              {accounts.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} · {new URL(c.baseUrl).hostname}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            disabled={busy || !account}
+            className="rounded-lg bg-content/10 px-3 py-2 disabled:opacity-40"
+            onClick={() => {
+              setBusy(true);
+              void invoke<VoiceConfig>("voice_use_provider", {
+                connectionId: account,
+              })
+                .then((value) => {
+                  setConfig(value);
+                  setKey("");
+                  setStatus("Saved");
+                })
+                .catch((e) => setStatus(String(e)))
+                .finally(() => setBusy(false));
+            }}
+          >
+            {t("Use this account for speech")}
+          </button>
+        </div>
+      )}
       <label className="block space-y-2 text-sm">
         <span>{t("Speech provider")}</span>
         <select
           className="w-full rounded-lg bg-surface px-3 py-2"
-          value={config.protocol === "mimo" ? "mimo" : "transcription"}
+          value={
+            config.protocol === "mimo"
+              ? config.endpoint.includes("token-plan-")
+                ? "mimo-plan"
+                : "mimo"
+              : "transcription"
+          }
           onChange={(event) => {
-            const protocol = event.target.value;
+            const preset = event.target.value;
+            const protocol = preset === "mimo-plan" ? "mimo" : preset;
             setConfig({
               ...config,
               protocol,
               hasKey: false,
               endpoint:
-                protocol === "mimo"
-                  ? "https://api.xiaomimimo.com/v1/chat/completions"
-                  : "http://127.0.0.1:8000/v1/audio/transcriptions",
+                preset === "mimo-plan"
+                  ? "https://token-plan-cn.xiaomimimo.com/v1/chat/completions"
+                  : protocol === "mimo"
+                    ? "https://api.xiaomimimo.com/v1/chat/completions"
+                    : "http://127.0.0.1:8000/v1/audio/transcriptions",
               model: protocol === "mimo" ? "mimo-v2.5-asr" : "whisper-1",
             });
             setKey("");
           }}
         >
           <option value="mimo">xiaomimimo API · MiMo-V2.5-ASR</option>
+          <option value="mimo-plan">
+            xiaomimimo Token Plan · MiMo-V2.5-ASR
+          </option>
           <option value="transcription">
             {t("Local / OpenAI-compatible speech service")}
           </option>
@@ -75,7 +146,7 @@ export function VoiceSettings() {
       </label>
       <p className="text-xs text-content/50">
         {t(
-          "MiMo speech uses an API key for the API endpoint, not a Token Plan endpoint. Local speech requires a running transcription service; model weights are not bundled.",
+          "Choose the endpoint matching your API or Token Plan key. Speech is transcribed into your draft while recording. Local speech requires a running transcription service.",
         )}
       </p>
       {[

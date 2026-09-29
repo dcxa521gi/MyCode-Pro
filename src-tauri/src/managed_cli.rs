@@ -98,6 +98,7 @@ pub fn managed_cli_save_path(
         "antigravity",
         "mimo",
         "zcode",
+        "freebuff",
     ]
     .contains(&provider.as_str())
     {
@@ -165,7 +166,7 @@ pub(crate) fn system_proxy() -> Option<String> {
     None
 }
 fn package(provider: &str) -> Result<(&'static str, &'static str), String> {
-    match provider{"mimo"=>Ok(("@mimo-ai/cli","mimo")),"claude"=>Ok(("@anthropic-ai/claude-code","claude")),"codex"=>Ok(("@openai/codex","codex")),"pi"=>Ok(("@earendil-works/pi-coding-agent","pi")),"opencode"=>Ok(("opencode-ai","opencode")),_=>Err("This CLI requires its official platform installer. Configure its executable path after installation.".into())}
+    match provider{"freebuff"=>Ok(("freebuff","freebuff")),"browser"=>Ok(("@playwright/mcp","playwright-mcp")),"mimo"=>Ok(("@mimo-ai/cli","mimo")),"claude"=>Ok(("@anthropic-ai/claude-code","claude")),"codex"=>Ok(("@openai/codex","codex")),"pi"=>Ok(("@earendil-works/pi-coding-agent","pi")),"opencode"=>Ok(("opencode-ai","opencode")),_=>Err("This CLI requires its official platform installer. Configure its executable path after installation.".into())}
 }
 pub(crate) fn download_agent() -> ureq::Agent {
     let mut builder = ureq::AgentBuilder::new().timeout(std::time::Duration::from_secs(300));
@@ -493,6 +494,10 @@ pub fn managed_cli_latest(app: AppHandle, provider: String) -> Result<CliRelease
 #[tauri::command(async)]
 pub fn managed_cli_install(app: AppHandle, provider: String) -> Result<String, String> {
     let _lock = INSTALL_LOCK.lock().map_err(|e| e.to_string())?;
+    #[cfg(windows)]
+    if provider == "hermes" {
+        return install_hermes(&app);
+    }
     if provider == "omp" {
         return install_omp(&app);
     }
@@ -562,7 +567,126 @@ pub fn managed_cli_install(app: AppHandle, provider: String) -> Result<String, S
     if !path.is_file() {
         return Err("Installed CLI executable was not found".into());
     }
+    if provider == "freebuff" {
+        // The npm package lazily downloads its native binary. Do that during
+        // installation so the first version probe/terminal launch is ready.
+        let log = fs::OpenOptions::new()
+            .append(true)
+            .open(&log_path)
+            .map_err(|e| e.to_string())?;
+        let mut cmd = Command::new(node(&app)?);
+        cmd.arg(prefix.join("node_modules/freebuff/index.js"))
+            .arg("--version")
+            .stdin(Stdio::null())
+            .stdout(Stdio::from(log.try_clone().map_err(|e| e.to_string())?))
+            .stderr(Stdio::from(log));
+        apply_network(&mut cmd);
+        apply_path(&mut cmd);
+        crate::hide_window_console(&mut cmd);
+        let mut child = cmd.spawn().map_err(|e| e.to_string())?;
+        let start = std::time::Instant::now();
+        loop {
+            if let Some(status) = child.try_wait().map_err(|e| e.to_string())? {
+                if !status.success() {
+                    return Err(format!(
+                        "Freebuff runtime download failed. Log: {}",
+                        log_path.display()
+                    ));
+                }
+                break;
+            }
+            if start.elapsed() > std::time::Duration::from_secs(600) {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err("CLI installation timed out".into());
+            }
+            std::thread::sleep(std::time::Duration::from_millis(200));
+        }
+    }
     Ok(path.to_string_lossy().into())
+}
+
+#[cfg(windows)]
+fn install_hermes(app: &AppHandle) -> Result<String, String> {
+    let root = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("cli/hermes");
+    fs::create_dir_all(&root).map_err(|e| e.to_string())?;
+    let source = download_agent()
+        .get("https://hermes-agent.nousresearch.com/install.ps1")
+        .call()
+        .map_err(|_| "Could not download the official Hermes installer")?
+        .into_string()
+        .map_err(|e| e.to_string())?;
+    // Keep the upstream launcher, but scope PATH to this installer process.
+    // Fail closed if upstream changes its entry point instead of modifying the
+    // user's global command lookup from an application-local installation.
+    let marker = "    Set-LauncherUserPath $binDir";
+    if source.matches(marker).count() != 1 {
+        return Err(
+            "The Hermes installer changed; application-local installation needs an adapter update."
+                .into(),
+        );
+    }
+    let source = source.replace(marker, "    $env:Path = \"$binDir;$env:Path\"");
+    let script = root.join("install-app.ps1");
+    fs::write(&script, source).map_err(|e| e.to_string())?;
+    let log_path = root.join("install.log");
+    let log = fs::File::create(&log_path).map_err(|e| e.to_string())?;
+    let mut command = Command::new("powershell.exe");
+    command
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+        ])
+        .arg(script)
+        .args([
+            "-NonInteractive",
+            "-SkipBrowser",
+            "-SkipComputerUse",
+            "-HermesHome",
+        ])
+        .arg(root.join("data"))
+        .arg("-InstallDir")
+        .arg(root.join("source"))
+        .env("HERMES_HOME", root.join("data"))
+        .stdin(Stdio::null())
+        .stdout(Stdio::from(log.try_clone().map_err(|e| e.to_string())?))
+        .stderr(Stdio::from(log));
+    apply_network(&mut command);
+    apply_path(&mut command);
+    crate::hide_window_console(&mut command);
+    let mut child = command.spawn().map_err(|e| e.to_string())?;
+    let start = std::time::Instant::now();
+    loop {
+        if let Some(status) = child.try_wait().map_err(|e| e.to_string())? {
+            if !status.success() {
+                return Err(format!(
+                    "Hermes installation failed. Log: {}",
+                    log_path.display()
+                ));
+            }
+            break;
+        }
+        if start.elapsed() > std::time::Duration::from_secs(1800) {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err("CLI installation timed out".into());
+        }
+        std::thread::sleep(std::time::Duration::from_millis(200));
+    }
+    for name in ["hermes.exe", "hermes.cmd"] {
+        let launcher = root.join("data/bin").join(name);
+        if launcher.is_file() {
+            return Ok(launcher.to_string_lossy().into());
+        }
+    }
+    Err("Installed CLI executable was not found".into())
 }
 #[cfg(all(test, windows))]
 mod runtime_path_tests {

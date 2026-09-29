@@ -80,9 +80,13 @@ export function VoiceInput({
     mute: GainNode;
     chunks: Float32Array[];
     timer: number;
+    flushTimer: number;
   } | null>(null);
   const generation = useRef(0);
   const operation = useRef(false);
+  const pending = useRef<Promise<void>>(Promise.resolve());
+  const commands = useRef(false);
+  const failed = useRef(false);
   const onTextRef = useRef(onText);
   onTextRef.current = onText;
   const cleanup = () => {
@@ -90,6 +94,7 @@ export function VoiceInput({
     capture.current = null;
     if (!current) return;
     window.clearTimeout(current.timer);
+    window.clearInterval(current.flushTimer);
     current.processor.onaudioprocess = null;
     current.source.disconnect();
     current.processor.disconnect();
@@ -112,35 +117,53 @@ export function VoiceInput({
       setState("idle");
     }
   }, [enabled]);
-  const stop = async () => {
+  const flush = () => {
     const current = capture.current;
-    if (!current) return;
+    if (!current || !current.chunks.length || failed.current) return;
     const token = generation.current;
-    const audio = encodeWave(current.chunks, current.context.sampleRate);
+    const chunks = current.chunks.splice(0);
+    // Avoid asking the recognizer to invent speech from a silent microphone.
+    if (
+      !chunks.some((chunk) => chunk.some((sample) => Math.abs(sample) > 0.008))
+    )
+      return;
+    const audio = encodeWave(chunks, current.context.sampleRate);
+    pending.current = pending.current.then(async () => {
+      if (token !== generation.current || failed.current) return;
+      try {
+        const text = await invoke<string>("voice_transcribe", {
+          audio: Array.from(audio),
+        });
+        if (token !== generation.current) return;
+        const command = commands.current ? voiceCommand(text) : undefined;
+        if (command === "office" || command === "development")
+          setWorkMode(command);
+        else if (command)
+          window.dispatchEvent(
+            new CustomEvent("mycode:voice-command", { detail: command }),
+          );
+        else if (text.trim()) onTextRef.current(text.trim());
+      } catch (cause) {
+        if (token === generation.current) {
+          failed.current = true;
+          setError(String(cause));
+          cleanup();
+          operation.current = false;
+          setState("idle");
+        }
+      }
+    });
+  };
+  const stop = async () => {
+    if (!capture.current) return;
+    const token = generation.current;
+    flush();
     cleanup();
     setState("transcribing");
-    try {
-      const text = await invoke<string>("voice_transcribe", {
-        audio: Array.from(audio),
-      });
-      if (token !== generation.current) return;
-      const config = await invoke<VoiceConfig>("voice_config");
-      if (token !== generation.current) return;
-      const command = config.commands ? voiceCommand(text) : undefined;
-      if (command === "office" || command === "development")
-        setWorkMode(command);
-      else if (command)
-        window.dispatchEvent(
-          new CustomEvent("mycode:voice-command", { detail: command }),
-        );
-      else if (text.trim()) onTextRef.current(text.trim());
-    } catch (cause) {
-      if (token === generation.current) setError(String(cause));
-    } finally {
-      if (token === generation.current) {
-        operation.current = false;
-        setState("idle");
-      }
+    await pending.current;
+    if (token === generation.current) {
+      operation.current = false;
+      setState("idle");
     }
   };
   const toggle = async () => {
@@ -160,10 +183,15 @@ export function VoiceInput({
       if (!config.endpoint || !config.model)
         throw new Error(t("Configure a speech model in Settings first."));
       const endpoint = new URL(config.endpoint);
-      if (/^token-plan.*\.xiaomimimo\.com$/.test(endpoint.hostname))
-        throw new Error(t("MiMo speech requires the API endpoint and API key, not Token Plan. Select xiaomimimo API in Settings > Voice input and enter its API key."));
-      if (endpoint.hostname === "api.xiaomimimo.com" && !config.hasKey)
-        throw new Error(t("Speech authentication failed. Check the API key and model permissions in Settings > Voice input."));
+      if (endpoint.hostname.endsWith(".xiaomimimo.com") && !config.hasKey)
+        throw new Error(
+          t(
+            "Speech authentication failed. Check the API key and model permissions in Settings > Voice input.",
+          ),
+        );
+      commands.current = config.commands;
+      failed.current = false;
+      pending.current = Promise.resolve();
       if (token !== generation.current) return;
       stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -201,6 +229,7 @@ export function VoiceInput({
         mute,
         chunks,
         timer: window.setTimeout(() => void stop(), 120000),
+        flushTimer: window.setInterval(flush, 4000),
       };
       setState("recording");
     } catch (cause) {

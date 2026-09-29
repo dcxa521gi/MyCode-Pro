@@ -28,6 +28,8 @@ import {
   loadFavoriteModels,
   loadRecentModelChoices,
   modelsFor,
+  modelPriceRank,
+  sortModels,
   resolveModel,
   saveFavoriteModels,
   showProviderInModelPicker,
@@ -189,7 +191,7 @@ function recentMenuModels(current: AgentModel): AgentModel[] {
     return item?.harness === choice.harness ? [item] : [];
   });
   if (!models.some((item) => item.id === current.id)) models.push(current);
-  return models.slice(0, 6);
+  return sortModels(models).slice(0, 6);
 }
 
 function modelGroups(_tab: ModelPickerTab, models: AgentModel[]): ModelGroup[] {
@@ -208,14 +210,20 @@ function modelGroups(_tab: ModelPickerTab, models: AgentModel[]): ModelGroup[] {
       id: item.harness,
       name: HARNESS_TITLE[item.harness],
     };
-    let group = groups.get(provider.id);
+    const category = modelPriceRank(item);
+    const groupId = `${category}:${provider.id}`;
+    let group = groups.get(groupId);
     if (!group) {
-      group = { id: provider.id, name: provider.name, models: [] };
-      groups.set(provider.id, group);
+      group = {
+        id: groupId,
+        name: `${translate(category === 0 ? "Custom models" : category === 1 ? "Free models" : "Paid / account models")} · ${provider.name}`,
+        models: [],
+      };
+      groups.set(groupId, group);
     }
     group.models.push({ item, index });
   });
-  return [...groups.values()];
+  return [...groups.values()].sort((a, b) => Number(a.id[0]) - Number(b.id[0]));
 }
 
 export function ModelPicker({

@@ -3,6 +3,7 @@ use tauri::Manager;
 mod account_identity;
 mod automations;
 mod azure_devops;
+mod browser;
 mod cache_location;
 mod chat_background;
 mod checkpoint;
@@ -288,9 +289,13 @@ pub fn run() {
             cache_location::cache_location,
             cache_location::cache_set_location,
             voice::voice_config,
+            voice::voice_use_provider,
             voice::voice_save,
             voice::voice_transcribe,
             computer::computer_config,
+            browser::browser_config,
+            browser::browser_install,
+            browser::browser_save,
             computer::computer_save,
             computer::computer_install,
             notifications::notification_permission,
@@ -457,6 +462,7 @@ pub fn run() {
             harness::harness_resolve_antigravity,
             harness::harness_resolve_mimo,
             harness::harness_resolve_zcode,
+            harness::harness_resolve_freebuff,
             harness::harness_free_port,
             harness::harness_spawn,
             harness::harness_write,
@@ -482,6 +488,7 @@ pub fn run() {
             session_store::session_list_linked,
             session_store::session_search,
             session_store::session_get,
+            session_store::session_reference_context,
             session_store::session_delete,
             session_store::session_set_archived,
             session_store::session_set_pinned,
