@@ -501,6 +501,8 @@ describe("OMP command lifecycle over the real RPC multiplexer", () => {
       "/repo",
       undefined,
       "omp",
+      undefined,
+      "",
     );
   });
 

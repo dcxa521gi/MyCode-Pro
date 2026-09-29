@@ -228,6 +228,19 @@ fn mimo_anthropic_base(connection: &Connection) -> Option<String> {
     Some(url.to_string())
 }
 
+fn anthropic_root(base: &str) -> &str {
+    base.trim_end_matches('/').trim_end_matches("/v1")
+}
+
+fn opencode_base(connection: &Connection) -> String {
+    if connection.api == "anthropic-messages" {
+        // The Vercel SDK appends /messages; Anthropic's own SDK appends /v1/messages.
+        format!("{}/v1", anthropic_root(&connection.base_url))
+    } else {
+        connection.base_url.trim_end_matches('/').to_owned()
+    }
+}
+
 #[tauri::command(async)]
 pub fn local_ai_config(app: AppHandle) -> Result<LocalConfig, String> {
     let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
@@ -379,13 +392,8 @@ pub fn configure_child(
                 if connection.api == "anthropic-messages"
                     || mimo_anthropic_base(connection).is_some() =>
             {
-                let base = mimo_anthropic_base(connection).unwrap_or_else(|| {
-                    connection
-                        .base_url
-                        .trim_end_matches('/')
-                        .trim_end_matches("/v1")
-                        .to_owned()
-                });
+                let base = mimo_anthropic_base(connection)
+                    .unwrap_or_else(|| anthropic_root(&connection.base_url).to_owned());
                 cmd.env("ANTHROPIC_BASE_URL", base)
                     .env("ANTHROPIC_API_KEY", key)
                     .env_remove("ANTHROPIC_AUTH_TOKEN")
@@ -443,7 +451,7 @@ pub fn configure_child(
                 .iter()
                 .map(|id| (id.clone(), json!({"name":id})))
                 .collect();
-            providers.insert(format!("mycode-{}", c.id), json!({"npm":npm,"name":c.name,"options":{"baseURL":c.base_url,"apiKey":key},"models":models}));
+            providers.insert(format!("mycode-{}", c.id), json!({"npm":npm,"name":c.name,"options":{"baseURL":opencode_base(c),"apiKey":key},"models":models}));
         }
         let mut mcp = serde_json::Map::new();
         if !isolated {
@@ -548,7 +556,12 @@ pub fn configure_child(
             let key = connection_key(c)?;
             let env = format!("MYCODE_KEY_{}", c.id.replace('-', "_").to_uppercase());
             cmd.env(&env, key);
-            entries.push(json!({"id": format!("mycode-{}", c.id), "name": c.name, "baseUrl": c.base_url, "api": c.api, "env": env, "models": c.models}));
+            let base = if c.api == "anthropic-messages" {
+                anthropic_root(&c.base_url)
+            } else {
+                &c.base_url
+            };
+            entries.push(json!({"id": format!("mycode-{}", c.id), "name": c.name, "baseUrl": base, "api": c.api, "env": env, "models": c.models}));
         }
         if !entries.is_empty() {
             let script = include_str!("local_ai_provider.mjs");
@@ -767,6 +780,22 @@ mod tests {
         );
         assert!(
             mimo_anthropic_base(&connection("https://api.xiaomimimo.com.evil.test/v1")).is_none()
+        );
+    }
+    #[test]
+    fn anthropic_sdks_receive_their_expected_versioned_base() {
+        for base in [
+            "https://api.example.com/anthropic",
+            "https://api.example.com/anthropic/v1/",
+        ] {
+            let mut c = connection(base);
+            c.api = "anthropic-messages".into();
+            assert_eq!(opencode_base(&c), "https://api.example.com/anthropic/v1");
+            assert_eq!(anthropic_root(base), "https://api.example.com/anthropic");
+        }
+        assert_eq!(
+            opencode_base(&connection("https://api.example.com/v1")),
+            "https://api.example.com/v1"
         );
     }
     #[test]
