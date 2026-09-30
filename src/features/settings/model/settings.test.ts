@@ -583,6 +583,7 @@ describe("settings navigation", () => {
       "Workspace",
     ]);
     expect(groups.flatMap((group) => group.sections.map((s) => s.id))).toEqual([
+      "storage",
       "general",
       "appearance",
       "keybindings",

@@ -33,7 +33,15 @@ import type {
   TurnMetrics,
 } from "../model/session";
 
-import { HARNESSES, RUNTIME_MODES } from "../model/session";
+import { HARNESSES as ACTIVE_HARNESSES, RUNTIME_MODES } from "../model/session";
+// Retired agents remain readable in saved transcripts but cannot be launched.
+const HARNESSES: HarnessId[] = [
+  ...ACTIVE_HARNESSES,
+  "omp",
+  "fx",
+  "antigravity",
+  "zcode",
+];
 
 import { restoreOrchestrationProposal } from "../../orchestration/model/orchestrationPlan";
 
@@ -734,7 +742,7 @@ function sanitizeBtwThreads(
     const harness =
       typeof record.harness === "string" &&
       record.harness.trim() &&
-      [...HARNESSES, "omp", "fx", "antigravity", "zcode"].includes(record.harness as HarnessId)
+      HARNESSES.includes(record.harness as HarnessId)
         ? (record.harness as HarnessId)
         : undefined;
     const modelSettings = sanitizeStringRecord(record.modelSettings);
@@ -810,7 +818,7 @@ function sanitizeTurnModel(value: unknown): TurnModel | undefined {
   const name = typeof record.name === "string" ? record.name.trim() : "";
   if (
     typeof harness !== "string" ||
-    ![...HARNESSES, "omp", "fx", "antigravity", "zcode"].includes(harness as HarnessId) ||
+    !HARNESSES.includes(harness as HarnessId) ||
     !id ||
     !name
   ) {

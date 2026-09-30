@@ -86,7 +86,7 @@ describe("harness registry", () => {
       grok: true,
       opencode: true,
       pi: true,
-      omp: true,
+      omp: false,
       fx: false,
       hermes: false,
       antigravity: false,
@@ -116,7 +116,7 @@ describe("harness registry", () => {
       grok: true,
       opencode: true,
       pi: true,
-      omp: true,
+      omp: false,
       fx: false,
       antigravity: false,
     });
@@ -217,22 +217,17 @@ describe("harness registry", () => {
       grok: false,
       opencode: true,
       pi: true,
-      omp: true,
+      omp: false,
       fx: false,
     });
   });
 
-  it("registers Antigravity as a live fx-tier harness", () => {
+  it("does not register removed CLI integrations", () => {
     registerBuiltinHarnesses();
-    expect(isLiveHarness("antigravity")).toBe(true);
-    const adapter = listHarnesses().find(
-      (adapter) => adapter.id === "antigravity",
-    )!;
-    expect(adapter.canSteer).toBe(false);
-    expect(adapter.bindSession).toBeTypeOf("function");
-    expect(adapter.refreshCatalog).toBeTypeOf("function");
-    expect(adapter.generateTitle).toBeUndefined();
-    expect(adapter.generateCommitMessage).toBeUndefined();
+    for (const id of ["omp", "fx", "antigravity", "zcode"] as const) {
+      expect(isLiveHarness(id)).toBe(false);
+      expect(listHarnesses().find(adapter => adapter.id === id)).toBeUndefined();
+    }
   });
 
   it("refreshes only the requested catalogs", async () => {

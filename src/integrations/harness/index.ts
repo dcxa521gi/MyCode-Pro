@@ -63,24 +63,6 @@ export {
   bindPiSession,
 } from "./providers/pi/pi";
 export {
-  sendOmpTurn,
-  compactOmpContext,
-  rewindOmpLastTurn,
-  cancelOmpTurn,
-  respondOmpApproval,
-  stopOmpSession,
-  forgetOmpSession,
-  bindOmpSession,
-} from "./providers/omp/omp";
-export {
-  sendFxTurn,
-  cancelFxTurn,
-  respondFxApproval,
-  stopFxSession,
-  forgetFxSession,
-  bindFxSession,
-} from "./providers/fx/fx";
-export {
   sendGrokTurn,
   compactGrokContext,
   cancelGrokTurn,
@@ -97,15 +79,6 @@ export {
   forgetHermesSession,
   bindHermesSession,
 } from "./providers/hermes/hermes";
-export {
-  sendAntigravityTurn,
-  steerAntigravityTurn,
-  cancelAntigravityTurn,
-  stopAntigravitySession,
-  forgetAntigravitySession,
-  respondAntigravityApproval,
-  bindAntigravitySession,
-} from "./providers/antigravity/antigravity";
 export { generateCursorSessionTitle } from "./providers/cursor/cursorTitle";
 export { generateCodexSessionTitle } from "./providers/codex/codexTitle";
 export { generateOpenCodeSessionTitle } from "./providers/opencode/opencodeTitle";
@@ -152,10 +125,8 @@ export { refreshCodexCatalog } from "./providers/codex/codexCatalog";
 export { refreshOpenCodeCatalog } from "./providers/opencode/opencodeCatalog";
 export { refreshClaudeCatalog } from "./providers/claude/claudeCatalog";
 export { refreshPiCatalog, refreshOmpCatalog } from "./providers/pi/piCatalog";
-export { refreshFxCatalog } from "./providers/fx/fxCatalog";
 export { refreshGrokCatalog } from "./providers/grok/grokCatalog";
 export { refreshHermesCatalog } from "./providers/hermes/hermesCatalog";
-export { refreshAntigravityCatalog } from "./providers/antigravity/antigravityCatalog";
 export { registerBuiltinHarnesses } from "./core/register";
 export {
   getHarnessAvailabilitySnapshot,

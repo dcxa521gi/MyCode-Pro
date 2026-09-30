@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { AcpSubagents } from "./acpSubagents";
-import { eventsFromAcpUpdate as fxEvents } from "../providers/fx/fxProtocol";
 import { eventsFromAcpUpdate as grokEvents } from "../providers/grok/grokProtocol";
 import { applyHarnessEvent } from "./apply";
 import { newSession } from "../../../features/sessions/model/session";
 import type { HarnessEvent } from "./types";
 
 describe.each([
-  ["fx", fxEvents],
   ["grok", grokEvents],
 ] as const)("%s subagents", (provider, parse) => {
   it("names delegated work and merges child tool updates without leaking prose", () => {

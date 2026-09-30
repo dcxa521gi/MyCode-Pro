@@ -39,6 +39,7 @@ pub fn gitcode_items(
     repo: String,
     kind: String,
     page: u32,
+    token_override: Option<String>,
 ) -> Result<Value, String> {
     let parts: Vec<_> = repo.split('/').collect();
     if parts.len() != 2
@@ -54,7 +55,9 @@ pub fn gitcode_items(
     if !["issues", "pulls"].contains(&kind.as_str()) {
         return Err("Invalid item type".into());
     }
-    let token = if cfg!(windows) {
+    let token = if let Some(token) = token_override.filter(|token| !token.trim().is_empty()) {
+        token
+    } else if cfg!(windows) {
         let secret = std::fs::read_to_string(path(&app)?)
             .map_err(|_| "Connect GitCode with a personal access token first")?;
         crate::local_ai::protect(&secret, true)?

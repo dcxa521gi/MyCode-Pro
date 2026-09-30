@@ -1,3 +1,4 @@
+import { protectedAttachmentPaths } from "../model/protectedAttachments";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
@@ -20,12 +21,20 @@ export function StorageManagementPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const [confirm, setConfirm] = useState<"logs" | "database" | null>(null);
+  const [confirm, setConfirm] = useState<"logs" | "database" | "media" | null>(
+    null,
+  );
+  const [media, setMedia] = useState<Array<{
+    path: string;
+    bytes: number;
+  }> | null>(null);
   const [threshold, setThreshold] = useState(
     () => Number(localStorage.getItem("mycode.storageWarningGB")) || 10,
   );
-  const refresh = async () =>
-    setEntries(await invoke<Entry[]>("storage_overview"));
+  const refresh = async () => {
+    const value = await invoke<Entry[]>("storage_overview");
+    setEntries(Array.isArray(value) ? value : []);
+  };
   const run = async (work: () => Promise<void>) => {
     if (busy) return;
     setBusy(true);
@@ -135,6 +144,61 @@ export function StorageManagementPage() {
           </button>
         </div>
       </div>
+      <div className="rounded-xl bg-content/[0.035] p-4 text-sm">
+        <h3>{t("Attachment cache")}</h3>
+        <p className="my-3 text-xs leading-relaxed text-content/55">
+          {t(
+            "Scan attachments and screenshots older than 7 days. Saved conversations, notes and active drafts are protected. Cleanup moves unused files to a recovery backup.",
+          )}
+        </p>
+        <div className="flex gap-3">
+          <button
+            disabled={busy}
+            onClick={() =>
+              void run(async () => {
+                const entries =
+                  await invoke<Array<{ path: string; bytes: number }>>(
+                    "storage_media_scan",
+                  );
+                const protectedPaths = protectedAttachmentPaths().map((path) =>
+                  path.replace(/\\/g, "/").toLowerCase(),
+                );
+                setMedia(
+                  entries.filter(
+                    (file) =>
+                      !protectedPaths.includes(
+                        file.path.replace(/\\/g, "/").toLowerCase(),
+                      ),
+                  ),
+                );
+              })
+            }
+          >
+            {t("Scan unused attachments")}
+          </button>
+          <button
+            disabled={busy || !media?.length}
+            onClick={() => setConfirm("media")}
+          >
+            {t("Move to recovery backup")}
+          </button>
+        </div>
+        {media && (
+          <div className="mt-3 text-xs">
+            <p>
+              {media.length} {t("Files")} ·{" "}
+              {size(media.reduce((total, file) => total + file.bytes, 0))}
+            </p>
+            <ul className="mt-2 max-h-40 overflow-auto text-content/55">
+              {media.map((file) => (
+                <li key={file.path} className="truncate" title={file.path}>
+                  {file.path} · {size(file.bytes)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
       {confirm && (
         <div
           role="alertdialog"
@@ -143,9 +207,11 @@ export function StorageManagementPage() {
         >
           <p>
             {t(
-              confirm === "logs"
-                ? "Delete the scanned diagnostic logs older than 7 days?"
-                : "Create a database backup, then compact it? Running database writes will wait until this completes.",
+              confirm === "media"
+                ? "Move the previewed unused attachments to a recovery backup?"
+                : confirm === "logs"
+                  ? "Delete the scanned diagnostic logs older than 7 days?"
+                  : "Create a database backup, then compact it? Running database writes will wait until this completes.",
             )}
           </p>
           <div className="mt-3 flex gap-3">
@@ -153,7 +219,14 @@ export function StorageManagementPage() {
               disabled={busy}
               onClick={() =>
                 void run(async () => {
-                  if (confirm === "logs") {
+                  if (confirm === "media") {
+                    const path = await invoke<string>("storage_media_clean", {
+                      paths: media?.map((file) => file.path) || [],
+                      protectedPaths: protectedAttachmentPaths(),
+                    });
+                    setMessage(`${t("Backup saved")}: ${path}`);
+                    setMedia(null);
+                  } else if (confirm === "logs") {
                     const freed = await invoke<number>("storage_clean_logs");
                     setMessage(`${t("Space reclaimed")}: ${size(freed)}`);
                   } else {

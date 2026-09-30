@@ -198,9 +198,9 @@ export function ModelConnections() {
                   setDraft(null);
                 }
               }}
-              className={`flex cursor-pointer flex-wrap items-center gap-3 rounded-xl p-4 text-sm ${selectedId === item.id ? "bg-accent/10" : "bg-content/[0.04] hover:bg-content/10"}`}
+              className={`cursor-pointer space-y-3 rounded-xl p-4 text-sm ${selectedId === item.id ? "bg-accent/10" : "bg-content/[0.04] hover:bg-content/10"}`}
             >
-              <span className="min-w-0 flex-1">
+              <span className="block min-w-0">
                 <strong>{item.name}</strong>
                 <span className="mt-2 block text-xs text-content/60">
                   {t("Total tokens")}: {(usage[item.id] || 0).toLocaleString()}
@@ -223,39 +223,43 @@ export function ModelConnections() {
                   )}
                 </span>
               </span>
-              <SecondaryButton
-                disabled={busy}
-                onClick={() =>
-                  void action(async () => {
-                    const count = await invoke<number>(
-                      "local_ai_test_connection",
-                      {
+              <div className="flex flex-wrap gap-2">
+                <SecondaryButton
+                  disabled={busy}
+                  onClick={() =>
+                    void action(async () => {
+                      const count = await invoke<number>(
+                        "local_ai_test_connection",
+                        {
+                          id: item.id,
+                        },
+                      );
+                      setStatus(
+                        `${t("Connection succeeded. Models returned:")} ${count}`,
+                      );
+                    })
+                  }
+                >
+                  {t("Test connection")}
+                </SecondaryButton>
+                <SecondaryButton disabled={busy} onClick={() => edit(item)}>
+                  {t("Edit")}
+                </SecondaryButton>
+                <SecondaryButton
+                  disabled={busy}
+                  onClick={() =>
+                    void action(async () => {
+                      await invoke("local_ai_remove_connection", {
                         id: item.id,
-                      },
-                    );
-                    setStatus(
-                      `${t("Connection succeeded. Models returned:")} ${count}`,
-                    );
-                  })
-                }
-              >
-                {t("Test connection")}
-              </SecondaryButton>
-              <SecondaryButton disabled={busy} onClick={() => edit(item)}>
-                {t("Edit")}
-              </SecondaryButton>
-              <SecondaryButton
-                disabled={busy}
-                onClick={() =>
-                  void action(async () => {
-                    await invoke("local_ai_remove_connection", { id: item.id });
-                    await reload();
-                    await refreshPiCatalog();
-                  })
-                }
-              >
-                {t("Remove")}
-              </SecondaryButton>
+                      });
+                      await reload();
+                      await refreshPiCatalog();
+                    })
+                  }
+                >
+                  {t("Remove")}
+                </SecondaryButton>
+              </div>
             </div>
           ))}
         </div>

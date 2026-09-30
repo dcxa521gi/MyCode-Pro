@@ -727,10 +727,22 @@ mod tests {
     fn removed_cli_skill_roots_are_not_discovered() {
         let project = tmp("removed-skills");
         let home = tmp("removed-home");
-        for folder in [".fx/skills", ".omp/skills", ".omp/agent/skills", ".zcode/skills", ".gemini/antigravity/skills"] {
-            write_skill(&home.0.join(folder), "removed", "---\nname: removed\ndescription: retired CLI\n---\n");
+        for folder in [
+            ".fx/skills",
+            ".omp/skills",
+            ".omp/agent/skills",
+            ".zcode/skills",
+            ".gemini/antigravity/skills",
+        ] {
+            write_skill(
+                &home.0.join(folder),
+                "removed",
+                "---\nname: removed\ndescription: retired CLI\n---\n",
+            );
         }
-        assert!(list_skills_from(&project.0, Some(&home.0), None).iter().all(|skill| skill.name != "removed"));
+        assert!(list_skills_from(&project.0, Some(&home.0), None)
+            .iter()
+            .all(|skill| skill.name != "removed"));
     }
 
     #[test]

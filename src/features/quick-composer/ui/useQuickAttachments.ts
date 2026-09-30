@@ -1,3 +1,4 @@
+import { useProtectedAttachments } from "../../settings/model/protectedAttachments";
 import {
   useCallback,
   useEffect,
@@ -32,6 +33,7 @@ export function useQuickAttachments(
   onError: (message: string | null) => void,
 ) {
   const [files, setFiles] = useState<Attachment[]>([]);
+  useProtectedAttachments(files);
   const [loading, setLoading] = useState(false);
   const [dragging, setDragging] = useState(false);
   const filesRef = useRef(files);

@@ -166,9 +166,9 @@ describe("model picker", () => {
     const modelFlyout = container.querySelector<HTMLElement>(
       '[role="dialog"][aria-label="Models"]',
     )!;
-    expect(modelFlyout.style.height).toBe("476px");
-    expect(modelFlyout.dataset.minHeight).toBe("478");
-    expect(modelFlyout.dataset.maxHeight).toBe("478");
+    expect(modelFlyout.style.height).toBe("332px");
+    expect(modelFlyout.dataset.minHeight).toBe("334");
+    expect(modelFlyout.dataset.maxHeight).toBe("334");
     expect(
       container.querySelector('[role="tablist"][aria-orientation="vertical"]'),
     ).not.toBeNull();
@@ -177,7 +177,7 @@ describe("model picker", () => {
     ).not.toBeNull();
     expect(
       container.querySelector('[role="tab"][aria-label="Antigravity"]'),
-    ).not.toBeNull();
+    ).toBeNull();
     const grokTab = container.querySelector<HTMLButtonElement>(
       '[role="tab"][aria-label="Grok Build"]',
     )!;

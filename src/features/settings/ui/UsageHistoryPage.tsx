@@ -97,6 +97,26 @@ export function UsageHistoryPage() {
   const breakdown = [...grouped.entries()].sort(
     (a, b) => b[1].input + b[1].output - a[1].input - a[1].output,
   );
+  const modelDaily = new Map<string, Map<string, number>>();
+  const modelNames = [
+    ...new Set(rows.map((row) => `${row.harness} · ${row.model}`)),
+  ].sort();
+  for (const row of base) {
+    if (row.updatedAt <= 0) continue;
+    const date = dayKey(row.updatedAt),
+      name = `${row.harness} · ${row.model}`;
+    const daily = modelDaily.get(date) || new Map<string, number>();
+    daily.set(name, (daily.get(name) || 0) + tokens(row));
+    modelDaily.set(date, daily);
+  }
+  let streak = 0;
+  for (const date of windowDays.slice().reverse()) {
+    if (!totals.get(date)) {
+      if (date === today) continue;
+      break;
+    }
+    streak++;
+  }
   const max = Math.max(1, ...totals.values());
   const total = selected.reduce((sum, r) => sum + tokens(r), 0);
   const card = "rounded-xl bg-content/[0.035] p-4";
@@ -181,7 +201,12 @@ export function UsageHistoryPage() {
         ))}
       </div>
       <div className={card}>
-        <h3 className="mb-3 text-sm">{t("Activity · last 20 weeks")}</h3>
+        <h3 className="mb-3 flex justify-between text-sm">
+          <span>{t("Activity · last 20 weeks")}</span>
+          <span className="text-xs text-content/55">
+            {t("Consecutive active days")}: {streak}
+          </span>
+        </h3>
         <div className="grid grid-flow-col grid-rows-7 gap-1 overflow-x-auto">
           {windowDays.map((date) => (
             <button
@@ -194,10 +219,14 @@ export function UsageHistoryPage() {
               }}
               className={`h-3 min-w-3 rounded-sm focus-visible:outline-2 focus-visible:outline-accent ${date === day ? "ring-1 ring-content" : ""}`}
               style={{
-                backgroundColor: `color-mix(in srgb, var(--color-accent, #b89166) ${totals.get(date) ? 20 + (80 * (totals.get(date) || 0)) / max : 0}%, var(--color-surface, #292724))`,
+                backgroundColor: `color-mix(in srgb, var(--color-accent, #b89166) ${totals.get(date) ? 20 + (80 * (totals.get(date) || 0)) / max : 8}%, var(--color-surface, #292724))`,
               }}
             />
           ))}
+        </div>
+        <div className="mt-2 flex justify-between text-xs text-content/55">
+          <span>{windowDays[0]}</span>
+          <span>{today}</span>
         </div>
       </div>
       <div className={card}>
@@ -212,12 +241,47 @@ export function UsageHistoryPage() {
                 setDay(date);
                 setPage(0);
               }}
-              className="min-h-1 flex-1 rounded-t-sm bg-accent/70 hover:bg-accent focus-visible:outline-2 focus-visible:outline-content"
+              className="flex min-h-1 flex-1 flex-col-reverse overflow-hidden rounded-t-sm bg-content/5 hover:opacity-80 focus-visible:outline-2 focus-visible:outline-content"
               style={{
                 height: `${Math.max(2, ((totals.get(date) || 0) / max) * 100)}%`,
               }}
-            />
+            >
+              {[...(modelDaily.get(date) || [])].map(([name, value]) => (
+                <span
+                  key={name}
+                  title={`${name}: ${value.toLocaleString(locale)}`}
+                  className="block w-full"
+                  style={{
+                    height: `${(value / (totals.get(date) || 1)) * 100}%`,
+                    backgroundColor: `oklch(65% 0.12 ${(modelNames.indexOf(name) * 137.5 + 65) % 360})`,
+                  }}
+                />
+              ))}
+            </button>
           ))}
+        </div>
+        <div className="mt-2 flex justify-between text-xs text-content/55">
+          <span>{windowDays[110]}</span>
+          <span>{today}</span>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-content/65">
+          {modelNames
+            .filter((name) =>
+              windowDays
+                .slice(-30)
+                .some((date) => modelDaily.get(date)?.has(name)),
+            )
+            .map((name) => (
+              <span key={name} className="inline-flex items-center gap-2">
+                <span
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{
+                    backgroundColor: `oklch(65% 0.12 ${(modelNames.indexOf(name) * 137.5 + 65) % 360})`,
+                  }}
+                />
+                {name}
+              </span>
+            ))}
         </div>
       </div>
       <div className={card}>

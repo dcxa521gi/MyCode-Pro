@@ -17,7 +17,15 @@ import {
   Settings,
   Zap,
 } from "../../shared/ui/icons";
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 import { useDragResize } from "../../shared/hooks/useDragResize";
 import { useLockOverscroll } from "../../shared/hooks/useLockOverscroll";
 import { useProjectDiffStats } from "../../features/source-control/hooks/useProjectDiffStats";
@@ -333,143 +341,230 @@ export function ProjectRail({
     "y",
   );
   return (
-    <RailVisible.Provider value={visible}><nav
-      ref={resize.setPaneRef}
-      aria-label={t("Projects")}
-      className={`sidebar-glass relative shrink-0 flex-col border-r border-stroke ${visible ? "flex" : "hidden"}`}
-    >
-      <div
-        className="flex h-10 shrink-0 select-none items-center pr-1.5"
-        data-tauri-drag-region="deep"
+    <RailVisible.Provider value={visible}>
+      <nav
+        ref={resize.setPaneRef}
+        aria-label={t("Projects")}
+        className={`sidebar-glass relative shrink-0 flex-col border-r border-stroke ${visible ? "flex" : "hidden"}`}
       >
-        {IS_MAC ? <div className="w-[78px] shrink-0" /> : null}
+        <div
+          className="flex h-10 shrink-0 select-none items-center pr-1.5"
+          data-tauri-drag-region="deep"
+        >
+          {IS_MAC ? <div className="w-[78px] shrink-0" /> : null}
+          <button
+            type="button"
+            data-mycode-home
+            onClick={onHome}
+            aria-label="MyCode"
+            className="ml-3 mr-auto rounded-md p-1 hover:bg-content/10"
+          >
+            <img
+              src="/mycode-icon.png"
+              alt="MyCode"
+              className="size-5 rounded"
+            />
+          </button>
+          <DevModeSlot />
+          <TabVisitNav
+            canGoBack={canGoBack}
+            canGoForward={canGoForward}
+            onGoBack={onGoBack}
+            onGoForward={onGoForward}
+            onTogglePanel={settingsOpen ? undefined : onTogglePanel}
+            panelActive
+          />
+        </div>
+
         <button
           type="button"
           data-mycode-home
           onClick={onHome}
-          aria-label="MyCode"
-          className="ml-3 mr-auto rounded-md p-1 hover:bg-content/10"
+          aria-label={t("Home and running sessions")}
+          className="mx-3 mb-3 flex items-center gap-2.5 rounded-xl border border-accent/15 bg-accent/[0.04] px-3 py-2.5 text-left hover:bg-accent/10"
         >
-          <img src="/mycode-icon.png" alt="MyCode" className="size-5 rounded" />
+          <img src="/mycode-icon.png" alt="" className="size-8 rounded-lg" />
+          <div className="min-w-0">
+            <div className="text-sm font-semibold tracking-wide">MyCode</div>
+            <div className="truncate text-[10px] text-content/45">
+              {t("Create · Build · Automate")}
+            </div>
+          </div>
         </button>
-        <DevModeSlot />
-        <TabVisitNav
-          canGoBack={canGoBack}
-          canGoForward={canGoForward}
-          onGoBack={onGoBack}
-          onGoForward={onGoForward}
-          onTogglePanel={settingsOpen ? undefined : onTogglePanel}
-          panelActive
-        />
-      </div>
-
-      <button
-        type="button"
-        data-mycode-home
-        onClick={onHome}
-        aria-label={t("Home and running sessions")}
-        className="mx-3 mb-3 flex items-center gap-2.5 rounded-xl border border-accent/15 bg-accent/[0.04] px-3 py-2.5 text-left hover:bg-accent/10"
-      >
-        <img src="/mycode-icon.png" alt="" className="size-8 rounded-lg" />
-        <div className="min-w-0">
-          <div className="text-sm font-semibold tracking-wide">MyCode</div>
-          <div className="truncate text-[10px] text-content/45">
-            {t("Create · Build · Automate")}
-          </div>
-        </div>
-      </button>
-      {settingsOpen ? (
-        <SettingsNav
-          section={settingsSection}
-          onSelect={(next) => onSelectSettingsSection?.(next)}
-          onClose={() => onCloseSettings?.()}
-        />
-      ) : (
-        <>
-          <div className="flex shrink-0 flex-col gap-px px-2 pb-2 pt-0.5">
-            <RailAction
-              label={t("New task")}
-              icon={Plus}
-              onClick={onNewTask}
-              ariaLabel={t("New task")}
-            />
-            <div className="mt-0.5" />
-            <RailAction
-              label={t("Inbox")}
-              icon={Inbox}
-              onClick={onOpenInbox}
-              onOpenContextMenu={(x, y) => {
-                menuTrigger.current =
-                  document.activeElement instanceof HTMLElement
-                    ? document.activeElement
-                    : null;
-                projectMenu.close();
-                setInboxMenu({ x, y });
-              }}
-              active={inboxActive}
-              dot={inboxUnseen}
-              ariaLabel={inboxUnseen ? "Inbox, new items" : "Inbox"}
-            />
-            <RailAction
-              label={t("IM bots")}
-              icon={Inbox}
-              ariaLabel={t("IM bots")}
-              onClick={() => {
-                window.dispatchEvent(new CustomEvent("mycode:open-tools", {detail:"im-bots"}));
-              }}
-            />
-            <RailAction
-              label={t("Skills")}
-              icon={Zap}
-              ariaLabel={t("Skills")}
-              onClick={() => {
-                window.dispatchEvent(new CustomEvent("mycode:open-tools", {detail:"skills"}));
-              }}
-            />
-            {notesEnabled ? (
+        {settingsOpen ? (
+          <SettingsNav
+            section={settingsSection}
+            onSelect={(next) => onSelectSettingsSection?.(next)}
+            onClose={() => onCloseSettings?.()}
+          />
+        ) : (
+          <>
+            <div className="flex shrink-0 flex-col gap-px px-2 pb-2 pt-0.5">
               <RailAction
-                label={t("Notes")}
-                icon={File}
-                onClick={onOpenNotes}
-                active={notesActive}
-                ariaLabel="Notes"
+                label={t("New task")}
+                icon={Plus}
+                onClick={onNewTask}
+                ariaLabel={t("New task")}
               />
-            ) : null}
-            <RailAction
-              label={t("Automations")}
-              icon={Zap}
-              onClick={onOpenAutomations}
-              active={automationsActive}
-              ariaLabel="Automations"
-            />
-          </div>
+              <div className="mt-0.5" />
+              <RailAction
+                label={t("Inbox")}
+                icon={Inbox}
+                onClick={onOpenInbox}
+                onOpenContextMenu={(x, y) => {
+                  menuTrigger.current =
+                    document.activeElement instanceof HTMLElement
+                      ? document.activeElement
+                      : null;
+                  projectMenu.close();
+                  setInboxMenu({ x, y });
+                }}
+                active={inboxActive}
+                dot={inboxUnseen}
+                ariaLabel={inboxUnseen ? "Inbox, new items" : "Inbox"}
+              />
+              <RailAction
+                label={t("IM bots")}
+                icon={Inbox}
+                ariaLabel={t("IM bots")}
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent("mycode:open-tools", { detail: "im-bots" }),
+                  );
+                }}
+              />
+              <RailAction
+                label={t("Skills")}
+                icon={Zap}
+                ariaLabel={t("Skills")}
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent("mycode:open-tools", { detail: "skills" }),
+                  );
+                }}
+              />
+              {notesEnabled ? (
+                <RailAction
+                  label={t("Notes")}
+                  icon={File}
+                  onClick={onOpenNotes}
+                  active={notesActive}
+                  ariaLabel="Notes"
+                />
+              ) : null}
+              <RailAction
+                label={t("Automations")}
+                icon={Zap}
+                onClick={onOpenAutomations}
+                active={automationsActive}
+                ariaLabel="Automations"
+              />
+            </div>
 
-          <div className="shrink-0 px-2 pb-2">
-            <RailSearch
-              label={t("Search")}
-              icon={Search}
-              onClick={onSearch}
-              active={searchActive}
-              shortcut={`${MOD}K`}
-              ariaLabel={`Search (${MOD}K)`}
-            />
-          </div>
-          <div
-            ref={(el) => {
-              lockOverscroll(el);
-              scrollRef.current = el;
-            }}
-            className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-none pb-2"
-          >
-            {sections.pinned.length > 0 ? (
+            <div className="shrink-0 px-2 pb-2">
+              <RailSearch
+                label={t("Search")}
+                icon={Search}
+                onClick={onSearch}
+                active={searchActive}
+                shortcut={`${MOD}K`}
+                ariaLabel={`Search (${MOD}K)`}
+              />
+            </div>
+            <div
+              ref={(el) => {
+                lockOverscroll(el);
+                scrollRef.current = el;
+              }}
+              className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-none pb-2"
+            >
+              {sections.pinned.length > 0 ? (
+                <ProjectSection
+                  label={t("Pinned")}
+                  items={sections.pinned}
+                  muteStatuses={muteStatuses}
+                  cwd={cwd}
+                  busy={busy}
+                  sortable={pinnedSortable}
+                  pinned
+                  searchActive={
+                    searchActive ||
+                    inboxActive ||
+                    notesActive ||
+                    automationsActive
+                  }
+                  onSelect={onSelectProject}
+                  onTogglePin={toggleProjectPin}
+                  onContextMenu={onProjectContextMenu}
+                  onOpenMenu={projectMenu.open}
+                  groupLabels={groupLabels}
+                  groupColors={groupColors}
+                  groupCustomColors={groupCustomColors}
+                  groupLogos={groupLogos}
+                  groupMascots={groupMascots}
+                />
+              ) : null}
+
+              {projectGroups.length > 0 ? (
+                <div className="mb-2 shrink-0">
+                  <ProjectSectionHeader
+                    label={t("Groups")}
+                    onAddGroup={(x, y) => projectMenu.createGroup(x, y)}
+                  />
+                  <div className="flex flex-col gap-px px-2">
+                    {groupedProjectSections.grouped.map(({ group, items }) => (
+                      <ProjectGroupSection
+                        key={group.id}
+                        group={group}
+                        items={items}
+                        muteStatuses={muteStatuses}
+                        cwd={cwd}
+                        busy={busy}
+                        searchActive={
+                          searchActive ||
+                          inboxActive ||
+                          notesActive ||
+                          automationsActive
+                        }
+                        onSelect={onSelectProject}
+                        onTogglePin={toggleProjectPin}
+                        onContextMenu={onProjectContextMenu}
+                        onOpenMenu={projectMenu.open}
+                        onReorder={onReorderProjects}
+                        onToggleCollapsed={() =>
+                          updateProjectGroup(group.id, (current) => ({
+                            ...current,
+                            collapsed: !current.collapsed,
+                          }))
+                        }
+                        onOpenGroupMenu={(x, y) =>
+                          projectMenu.openGroupMenu(group.id, x, y)
+                        }
+                        groupLabels={groupLabels}
+                        groupColors={groupColors}
+                        groupCustomColors={groupCustomColors}
+                        groupLogos={groupLogos}
+                        groupMascots={groupMascots}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               <ProjectSection
-                label={t("Pinned")}
-                items={sections.pinned}
+                label={t("Projects")}
+                items={groupedProjectSections.ungrouped}
                 muteStatuses={muteStatuses}
+                emptyLabel={
+                  sections.projects.length === 0 && projectGroups.length === 0
+                    ? "No projects yet"
+                    : undefined
+                }
+                onAdd={onOpenProject}
                 cwd={cwd}
                 busy={busy}
-                sortable={pinnedSortable}
-                pinned
+                sortable={projectSortable}
+                pinned={false}
                 searchActive={
                   searchActive ||
                   inboxActive ||
@@ -486,142 +581,68 @@ export function ProjectRail({
                 groupLogos={groupLogos}
                 groupMascots={groupMascots}
               />
-            ) : null}
-
-            {projectGroups.length > 0 ? (
-              <div className="mb-2 shrink-0">
-                <ProjectSectionHeader
-                  label={t("Groups")}
-                  onAddGroup={(x, y) => projectMenu.createGroup(x, y)}
-                />
-                <div className="flex flex-col gap-px px-2">
-                  {groupedProjectSections.grouped.map(({ group, items }) => (
-                    <ProjectGroupSection
-                      key={group.id}
-                      group={group}
-                      items={items}
-                      muteStatuses={muteStatuses}
-                      cwd={cwd}
-                      busy={busy}
-                      searchActive={
-                        searchActive ||
-                        inboxActive ||
-                        notesActive ||
-                        automationsActive
-                      }
-                      onSelect={onSelectProject}
-                      onTogglePin={toggleProjectPin}
-                      onContextMenu={onProjectContextMenu}
-                      onOpenMenu={projectMenu.open}
-                      onReorder={onReorderProjects}
-                      onToggleCollapsed={() =>
-                        updateProjectGroup(group.id, (current) => ({
-                          ...current,
-                          collapsed: !current.collapsed,
-                        }))
-                      }
-                      onOpenGroupMenu={(x, y) =>
-                        projectMenu.openGroupMenu(group.id, x, y)
-                      }
-                      groupLabels={groupLabels}
-                      groupColors={groupColors}
-                      groupCustomColors={groupCustomColors}
-                      groupLogos={groupLogos}
-                      groupMascots={groupMascots}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            <ProjectSection
-              label={t("Projects")}
-              items={groupedProjectSections.ungrouped}
-              muteStatuses={muteStatuses}
-              emptyLabel={
-                sections.projects.length === 0 && projectGroups.length === 0
-                  ? "No projects yet"
-                  : undefined
-              }
-              onAdd={onOpenProject}
-              cwd={cwd}
-              busy={busy}
-              sortable={projectSortable}
-              pinned={false}
-              searchActive={
-                searchActive || inboxActive || notesActive || automationsActive
-              }
-              onSelect={onSelectProject}
-              onTogglePin={toggleProjectPin}
-              onContextMenu={onProjectContextMenu}
-              onOpenMenu={projectMenu.open}
+            </div>
+            <LiveAgentsPreview
+              agents={liveAgents}
+              activeSessionId={activeSessionId}
+              onSelect={onSelectAgent}
               groupLabels={groupLabels}
               groupColors={groupColors}
               groupCustomColors={groupCustomColors}
-              groupLogos={groupLogos}
               groupMascots={groupMascots}
             />
-          </div>
-          <LiveAgentsPreview
-            agents={liveAgents}
-            activeSessionId={activeSessionId}
-            onSelect={onSelectAgent}
-            groupLabels={groupLabels}
-            groupColors={groupColors}
-            groupCustomColors={groupCustomColors}
-            groupMascots={groupMascots}
-          />
-          <ComputerControlStop />
-          <UsageSummary
-            onOpen={() => {
-              onOpenSettings?.();
-              onSelectSettingsSection?.("usage");
+            <ComputerControlStop />
+            <UsageSummary
+              onOpen={() => {
+                onOpenSettings?.();
+                onSelectSettingsSection?.("usage");
+              }}
+            />
+            <SidebarUpdateFooter
+              update={updateNotice}
+              onOpenWhatsNew={onOpenWhatsNew}
+              onDismissUpdate={onDismissUpdate}
+            />
+            <div className="flex shrink-0 flex-col gap-px p-2">
+              <GithubStarPrompt />
+              <RailAction
+                label={t("Settings")}
+                icon={Settings}
+                onClick={onOpenSettings}
+                shortcut={`${MOD},`}
+                ariaLabel={`${t("Settings")} (${MOD},)`}
+              />
+              <AccountCenter />
+            </div>
+          </>
+        )}
+        {visible ? projectMenu.element : null}
+        {visible && inboxMenu ? (
+          <InboxNotificationMenu
+            {...inboxMenu}
+            projectPaths={[...allProjects.keys()]}
+            onOpenSettings={onOpenNotificationSettings}
+            onClose={() => {
+              setInboxMenu(null);
+              menuTrigger.current?.focus();
             }}
           />
-          <SidebarUpdateFooter
-            update={updateNotice}
-            onOpenWhatsNew={onOpenWhatsNew}
-            onDismissUpdate={onDismissUpdate}
-          />
-          <div className="flex shrink-0 flex-col gap-px p-2">
-            <GithubStarPrompt />
-            <RailAction
-              label={t("Settings")}
-              icon={Settings}
-              onClick={onOpenSettings}
-              shortcut={`${MOD},`}
-              ariaLabel={`${t("Settings")} (${MOD},)`}
-            />
-            <AccountCenter />
-          </div>
-        </>
-      )}
-      {visible ? projectMenu.element : null}
-      {visible && inboxMenu ? (
-        <InboxNotificationMenu
-          {...inboxMenu}
-          projectPaths={[...allProjects.keys()]}
-          onOpenSettings={onOpenNotificationSettings}
-          onClose={() => {
-            setInboxMenu(null);
-            menuTrigger.current?.focus();
-          }}
+        ) : null}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={t("Resize project sidebar")}
+          aria-valuenow={resize.width}
+          aria-valuemin={PROJECT_RAIL_WIDTH_MIN}
+          aria-valuemax={PROJECT_RAIL_WIDTH_MAX}
+          className={`absolute inset-y-0 -right-px z-10 w-1.5 cursor-col-resize touch-none ${
+            resize.dragging ? "bg-content/15" : "hover:bg-content/10"
+          }`}
+          onPointerDown={resize.onPointerDown}
+          onDoubleClick={resize.onDoubleClick}
         />
-      ) : null}
-      <div
-        role="separator"
-        aria-orientation="vertical"
-        aria-label={t("Resize project sidebar")}
-        aria-valuenow={resize.width}
-        aria-valuemin={PROJECT_RAIL_WIDTH_MIN}
-        aria-valuemax={PROJECT_RAIL_WIDTH_MAX}
-        className={`absolute inset-y-0 -right-px z-10 w-1.5 cursor-col-resize touch-none ${
-          resize.dragging ? "bg-content/15" : "hover:bg-content/10"
-        }`}
-        onPointerDown={resize.onPointerDown}
-        onDoubleClick={resize.onDoubleClick}
-      />
-    </nav></RailVisible.Provider>
+      </nav>
+    </RailVisible.Provider>
   );
 }
 

@@ -440,6 +440,9 @@ export function InboxView({
   const [targetItem, setTargetItem] = useState<InboxItem | null>(null);
   const [filters, setFilters] = useState(loadInboxFilters);
   const [connections, setConnections] = useState(loadInboxConnections);
+  const [gitcodeDetail, setGitcodeDetail] = useState<HTMLDivElement | null>(
+    null,
+  );
   const [gitcodeActive, setGitcodeActive] = useState(false);
   const [gitcodeConnected, setGitcodeConnected] = useState(
     () => localStorage.getItem("mycode.gitcodeConnected") === "true",
@@ -963,152 +966,165 @@ export function InboxView({
           </button>
         ) : null}
       </div>
-      {noSourcesConnected ? null : (
-        <div className="flex h-9 shrink-0 items-center gap-1 border-b border-stroke px-2">
-          <div className="relative flex h-7 min-w-0 flex-1 items-center">
-            <Search className="pointer-events-none absolute left-2 size-3 shrink-0 opacity-50" />
-            <input
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              placeholder={t("Filter inbox")}
+      {gitcodeActive && <GitCodeInbox detailTarget={gitcodeDetail} />}
+      <div className={gitcodeActive ? "hidden" : "contents"}>
+        {noSourcesConnected ? null : (
+          <div className="flex h-9 shrink-0 items-center gap-1 border-b border-stroke px-2">
+            <div className="relative flex h-7 min-w-0 flex-1 items-center">
+              <Search className="pointer-events-none absolute left-2 size-3 shrink-0 opacity-50" />
+              <input
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder={t("Filter inbox")}
+                aria-label={t("Filter inbox")}
+                spellCheck={false}
+                autoComplete="off"
+                className="h-7 w-full rounded-md bg-transparent pl-7 pr-2 text-[12px] text-content outline-none placeholder:text-content/40"
+              />
+            </div>
+            <button
+              type="button"
+              title={t("Filter inbox")}
               aria-label={t("Filter inbox")}
-              spellCheck={false}
-              autoComplete="off"
-              className="h-7 w-full rounded-md bg-transparent pl-7 pr-2 text-[12px] text-content outline-none placeholder:text-content/40"
-            />
+              aria-expanded={!!filterMenu}
+              aria-haspopup="menu"
+              onClick={onFilterButtonClick}
+              className={`grid size-6 shrink-0 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content ${
+                filterMenu || filtersActive ? "bg-selection text-content" : ""
+              }`}
+            >
+              <ListFilter className="size-3" strokeWidth={1.75} />
+            </button>
+            <button
+              type="button"
+              title={t("Mark all as read")}
+              aria-label={t("Mark all as read")}
+              disabled={!sourceHasUnseen}
+              onClick={() =>
+                setReadStatusError(
+                  markInboxItemsSeen(sourceEntries)
+                    ? null
+                    : "Could not save read status. Please try again.",
+                )
+              }
+              className="grid size-6 shrink-0 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-content/45"
+            >
+              <CheckCheck className="size-3.5" strokeWidth={1.75} />
+            </button>
+            <button
+              type="button"
+              aria-label={t("Refresh")}
+              onClick={() => setRefresh((value) => value + 1)}
+              className="grid size-6 shrink-0 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content"
+            >
+              {loading || revalidating ? (
+                <LoaderCircle
+                  className="size-3.5 animate-spin"
+                  strokeWidth={1.75}
+                />
+              ) : (
+                <RefreshCw className="size-3.5" strokeWidth={1.75} />
+              )}
+            </button>
           </div>
-          <button
-            type="button"
-            title={t("Filter inbox")}
-            aria-label={t("Filter inbox")}
-            aria-expanded={!!filterMenu}
-            aria-haspopup="menu"
-            onClick={onFilterButtonClick}
-            className={`grid size-6 shrink-0 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content ${
-              filterMenu || filtersActive ? "bg-selection text-content" : ""
-            }`}
-          >
-            <ListFilter className="size-3" strokeWidth={1.75} />
-          </button>
-          <button
-            type="button"
-            title={t("Mark all as read")}
-            aria-label={t("Mark all as read")}
-            disabled={!sourceHasUnseen}
-            onClick={() =>
-              setReadStatusError(
-                markInboxItemsSeen(sourceEntries)
-                  ? null
-                  : "Could not save read status. Please try again.",
-              )
-            }
-            className="grid size-6 shrink-0 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-content/45"
-          >
-            <CheckCheck className="size-3.5" strokeWidth={1.75} />
-          </button>
-          <button
-            type="button"
-            aria-label={t("Refresh")}
-            onClick={() => setRefresh((value) => value + 1)}
-            className="grid size-6 shrink-0 place-items-center rounded-md text-content/45 hover:bg-content/10 hover:text-content"
-          >
-            {loading || revalidating ? (
+        )}
+        {readStatusError ? (
+          <p role="alert" className="px-3 py-2 text-xs text-red-400">
+            {readStatusError}
+          </p>
+        ) : null}
+        <div
+          ref={setListScrollRef}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-none"
+        >
+          {noSourcesConnected ? (
+            <p className="px-3 py-3 text-[12px] text-content/50">
+              {t("Add a connection to start using the Inbox.")}
+            </p>
+          ) : sourceError && visibleItems.length === 0 ? (
+            <p className="px-3 py-2 text-[12px] text-content/50">
+              {sourceError}
+            </p>
+          ) : loading && items.length === 0 ? (
+            <div className="flex justify-center py-10 text-content/40">
               <LoaderCircle
-                className="size-3.5 animate-spin"
+                className="size-4 animate-spin"
                 strokeWidth={1.75}
               />
-            ) : (
-              <RefreshCw className="size-3.5" strokeWidth={1.75} />
-            )}
-          </button>
-        </div>
-      )}
-      {readStatusError ? (
-        <p role="alert" className="px-3 py-2 text-xs text-red-400">
-          {readStatusError}
-        </p>
-      ) : null}
-      <div
-        ref={setListScrollRef}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-none"
-      >
-        {noSourcesConnected ? (
-          <p className="px-3 py-3 text-[12px] text-content/50">
-            {t("Add a connection to start using the Inbox.")}
-          </p>
-        ) : sourceError && visibleItems.length === 0 ? (
-          <p className="px-3 py-2 text-[12px] text-content/50">{sourceError}</p>
-        ) : loading && items.length === 0 ? (
-          <div className="flex justify-center py-10 text-content/40">
-            <LoaderCircle className="size-4 animate-spin" strokeWidth={1.75} />
-          </div>
-        ) : visibleItems.length === 0 ? (
-          <p className="px-3 py-2 text-[12px] text-content/50">
-            {narrowedByUser
-              ? searchNarrowed
-                ? isTrackerSource(source)
-                  ? `No matching ${INBOX_SOURCE_LABELS[source]} issues`
-                  : source === "gitlab"
-                    ? t("No matching issues or merge requests")
-                    : t("No matching issues or pull requests")
+            </div>
+          ) : visibleItems.length === 0 ? (
+            <p className="px-3 py-2 text-[12px] text-content/50">
+              {narrowedByUser
+                ? searchNarrowed
+                  ? isTrackerSource(source)
+                    ? `No matching ${INBOX_SOURCE_LABELS[source]} issues`
+                    : source === "gitlab"
+                      ? t("No matching issues or merge requests")
+                      : t("No matching issues or pull requests")
+                  : isTrackerSource(source)
+                    ? `No ${INBOX_SOURCE_LABELS[source]} issues match these filters`
+                    : source === "gitlab" || source === "azuredevops"
+                      ? activeFilters.assignedToMe
+                        ? t("Nothing needs your attention")
+                        : source === "gitlab"
+                          ? t("No GitLab items match these filters")
+                          : t("No ADO items match these filters")
+                      : t("No issues or pull requests match these filters")
                 : isTrackerSource(source)
-                  ? `No ${INBOX_SOURCE_LABELS[source]} issues match these filters`
-                  : source === "gitlab" || source === "azuredevops"
-                    ? activeFilters.assignedToMe
-                      ? t("Nothing needs your attention")
-                      : source === "gitlab"
-                        ? t("No GitLab items match these filters")
-                        : t("No ADO items match these filters")
-                    : t("No issues or pull requests match these filters")
-              : isTrackerSource(source)
-                ? `No ${INBOX_SOURCE_LABELS[source]} issues`
-                : source === "gitlab"
-                  ? projects.length === 0
-                    ? t("Open a project to fill the inbox")
-                    : t("No matching issues or merge requests")
-                  : projects.length === 0
-                    ? t("Open a project to fill the inbox")
-                    : t("No matching issues or pull requests")}
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-0.5 p-1.5">
-            {shownItems.map((item) => {
-              const key = inboxItemKey(item);
-              const projectId = projectKey(item.projectPath);
-              const relatedSessions = relatedSessionsForInboxItem(
-                item,
-                sessions,
-              );
-              return (
-                <li key={key}>
-                  <InboxCard
-                    item={item}
-                    active={selected != null && key === inboxItemKey(selected)}
-                    logoPath={resolveTabGroupLogo(projectId, logos)}
-                    mascotName={resolveTabGroupMascot(projectId, groupMascots)}
-                    mascotColor={resolveTabGroupColor(
-                      projectId,
-                      groupColors,
-                      groupCustomColors,
-                      projectName(item.projectPath),
-                    )}
-                    relatedSessionCount={relatedSessions.length}
-                    onSelect={() => {
-                      markInboxItemSeen({
-                        key,
-                        updatedAt: item.updatedAt,
-                      });
-                      setSelectedKey(key);
-                    }}
-                  />
-                </li>
-              );
-            })}
-            {hasMoreItems ? (
-              <li ref={loadMoreRef} aria-hidden className="h-px list-none" />
-            ) : null}
-          </ul>
-        )}
+                  ? `No ${INBOX_SOURCE_LABELS[source]} issues`
+                  : source === "gitlab"
+                    ? projects.length === 0
+                      ? t("Open a project to fill the inbox")
+                      : t("No matching issues or merge requests")
+                    : projects.length === 0
+                      ? t("Open a project to fill the inbox")
+                      : t("No matching issues or pull requests")}
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-0.5 p-1.5">
+              {shownItems.map((item) => {
+                const key = inboxItemKey(item);
+                const projectId = projectKey(item.projectPath);
+                const relatedSessions = relatedSessionsForInboxItem(
+                  item,
+                  sessions,
+                );
+                return (
+                  <li key={key}>
+                    <InboxCard
+                      item={item}
+                      active={
+                        selected != null && key === inboxItemKey(selected)
+                      }
+                      logoPath={resolveTabGroupLogo(projectId, logos)}
+                      mascotName={resolveTabGroupMascot(
+                        projectId,
+                        groupMascots,
+                      )}
+                      mascotColor={resolveTabGroupColor(
+                        projectId,
+                        groupColors,
+                        groupCustomColors,
+                        projectName(item.projectPath),
+                      )}
+                      relatedSessionCount={relatedSessions.length}
+                      onSelect={() => {
+                        markInboxItemSeen({
+                          key,
+                          updatedAt: item.updatedAt,
+                        });
+                        setSelectedKey(key);
+                      }}
+                    />
+                  </li>
+                );
+              })}
+              {hasMoreItems ? (
+                <li ref={loadMoreRef} aria-hidden className="h-px list-none" />
+              ) : null}
+            </ul>
+          )}
+        </div>
       </div>
       <div
         role="separator"
@@ -1183,7 +1199,7 @@ export function InboxView({
         <div className="relative flex min-h-0 min-w-0 flex-1">
           <div className="min-h-0 min-w-0 flex-1">
             {gitcodeActive ? (
-              <GitCodeInbox />
+              <div ref={setGitcodeDetail} className="h-full min-h-0" />
             ) : (
               <InboxDetailBody
                 item={selected}

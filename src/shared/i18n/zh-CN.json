@@ -1851,5 +1851,11 @@
   "Previous": "上一页",
   "Next": "下一页",
   "Import local Claude, Codex and WorkBuddy conversations without changing their original files.": "导入本机 Claude、Codex 和 WorkBuddy 的会话，不修改原始文件。",
-  "This CLI is no longer supported in MyCode": "MyCode 已移除此 CLI 的支持，请选择其他智能体。"
+  "This CLI is no longer supported in MyCode": "MyCode 已移除此 CLI 的支持，请选择其他智能体。",
+  "Attachment cache": "附件缓存",
+  "Scan attachments and screenshots older than 7 days. Saved conversations, notes and active drafts are protected. Cleanup moves unused files to a recovery backup.": "扫描超过 7 天的附件和截图缓存，保护已保存的会话、笔记和正在编辑的草稿。清理时将未使用的文件转移到恢复备份。",
+  "Scan unused attachments": "扫描未使用的附件",
+  "Move to recovery backup": "转移到恢复备份",
+  "Move the previewed unused attachments to a recovery backup?": "确认将预览列表中未使用的附件转移到恢复备份？",
+  "Consecutive active days": "连续活跃天数"
 }

@@ -63,13 +63,7 @@ it("paces a burst of tool calls so each enters after the one before it", () => {
     tool("first"),
   ];
   render(head);
-  act(() =>
-    container
-      .querySelector<HTMLButtonElement>(
-        'button[aria-label^="Show the steps for"]',
-      )!
-      .click(),
-  );
+  expect(container.querySelector('button[aria-label^="Hide the steps for"]')).not.toBeNull();
   render([...head, tool("second"), tool("third"), tool("fourth")]);
 
   // What was on screen when the group mounted is history; the burst queues.

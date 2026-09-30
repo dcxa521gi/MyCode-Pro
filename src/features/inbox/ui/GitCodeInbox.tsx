@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -10,7 +11,13 @@ type Item = {
   state: string;
   updatedAt: string;
 };
-export function GitCodeInbox({ settings = false }: { settings?: boolean }) {
+export function GitCodeInbox({
+  settings = false,
+  detailTarget,
+}: {
+  settings?: boolean;
+  detailTarget?: HTMLElement | null;
+}) {
   const { t } = useTranslation();
   const [connected, setConnected] = useState(false),
     [busy, setBusy] = useState(false);
@@ -25,7 +32,13 @@ export function GitCodeInbox({ settings = false }: { settings?: boolean }) {
     [selected, setSelected] = useState<Item | null>(null);
   useEffect(() => {
     void invoke<boolean>("gitcode_config", { token: null })
-      .then(setConnected)
+      .then((value) => {
+        setConnected(value);
+        if (!value) {
+          localStorage.removeItem("mycode.gitcodeConnected");
+          window.dispatchEvent(new Event("mycode:gitcode"));
+        }
+      })
       .catch((e) => setError(String(e)));
   }, []);
   const load = async (next = page) => {
@@ -52,8 +65,36 @@ export function GitCodeInbox({ settings = false }: { settings?: boolean }) {
   }, [settings, connected, kind]);
   const url = (item: Item) =>
     `https://gitcode.com/${repo}/${kind}/${encodeURIComponent(item.number)}`;
+  const detail = (
+    <div className="h-full overflow-auto p-6">
+      {selected && (
+        <>
+          <h3 className="font-medium">{selected.title}</h3>
+          <pre className="my-3 whitespace-pre-wrap font-sans text-sm text-content/70">
+            {selected.body || t("No description")}
+          </pre>
+          <div className="flex gap-3 text-xs">
+            <button onClick={() => void openUrl(url(selected))}>
+              {t("Open in browser")}
+            </button>
+            <button
+              onClick={() =>
+                void copyText(
+                  `${url(selected)}\n${selected.title}\n${selected.body || ""}`,
+                )
+              }
+            >
+              {t("Copy task context")}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
   return (
-    <section className="flex h-full min-h-0 w-full flex-col gap-4 p-5 text-content">
+    <section
+      className={`flex min-h-0 w-full flex-col gap-4 text-content ${settings ? "py-5" : "h-full p-3"}`}
+    >
       {settings && <h3 className="font-medium">GitCode</h3>}
       {settings && (
         <>
@@ -72,23 +113,31 @@ export function GitCodeInbox({ settings = false }: { settings?: boolean }) {
               onChange={(e) => setToken(e.target.value)}
             />
             <button
-              disabled={!token.trim() || !repo.trim()}
-              onClick={() =>
-                void invoke<boolean>("gitcode_config", { token })
-                  .then(async (v) => {
-                    await invoke("gitcode_items", {
-                      repo: repo.trim(),
-                      kind: "issues",
-                      page: 1,
-                    });
+              disabled={busy || (!token.trim() && !connected) || !repo.trim()}
+              onClick={() => {
+                setBusy(true);
+                setError("");
+                void invoke("gitcode_items", {
+                  repo: repo.trim(),
+                  kind: "issues",
+                  page: 1,
+                  tokenOverride: token.trim() || null,
+                })
+                  .then(() =>
+                    invoke<boolean>("gitcode_config", {
+                      token: token.trim() || null,
+                    }),
+                  )
+                  .then((value) => {
                     localStorage.setItem("mycode.gitcodeRepo", repo.trim());
                     localStorage.setItem("mycode.gitcodeConnected", "true");
                     window.dispatchEvent(new Event("mycode:gitcode"));
-                    setConnected(v);
+                    setConnected(value);
                     setToken("");
                   })
-                  .catch((e) => setError(String(e)))
-              }
+                  .catch((error) => setError(String(error)))
+                  .finally(() => setBusy(false));
+              }}
             >
               {t("Save")}
             </button>
@@ -148,6 +197,7 @@ export function GitCodeInbox({ settings = false }: { settings?: boolean }) {
           <strong className="flex-1 text-sm">GitCode · {repo}</strong>
           <select
             className="rounded-md bg-surface px-2 py-1 text-xs"
+            disabled={busy}
             value={kind}
             onChange={(event) => {
               setKind(event.target.value);
@@ -170,7 +220,13 @@ export function GitCodeInbox({ settings = false }: { settings?: boolean }) {
         </p>
       )}
       {!settings && (
-        <div className="grid min-h-0 flex-1 grid-cols-[minmax(220px,1fr)_2fr] gap-5 overflow-auto">
+        <div
+          className={
+            detailTarget
+              ? "min-h-0 flex-1 overflow-auto"
+              : "grid min-h-0 flex-1 grid-cols-[minmax(220px,1fr)_2fr] gap-5 overflow-auto"
+          }
+        >
           <div className="space-y-2">
             {items.map((item) => (
               <button
@@ -185,30 +241,7 @@ export function GitCodeInbox({ settings = false }: { settings?: boolean }) {
               </button>
             ))}
           </div>
-          <div>
-            {selected && (
-              <>
-                <h3 className="font-medium">{selected.title}</h3>
-                <pre className="my-3 whitespace-pre-wrap font-sans text-sm text-content/70">
-                  {selected.body || t("No description")}
-                </pre>
-                <div className="flex gap-3 text-xs">
-                  <button onClick={() => void openUrl(url(selected))}>
-                    {t("Open in browser")}
-                  </button>
-                  <button
-                    onClick={() =>
-                      void copyText(
-                        `${url(selected)}\n${selected.title}\n${selected.body || ""}`,
-                      )
-                    }
-                  >
-                    {t("Copy task context")}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          {detailTarget ? createPortal(detail, detailTarget) : detail}
         </div>
       )}
       {!settings && (

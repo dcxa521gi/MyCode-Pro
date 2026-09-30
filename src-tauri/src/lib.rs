@@ -319,6 +319,8 @@ pub fn run() {
             usage_history::usage_history,
             usage_history::usage_history_turns,
             storage_management::storage_overview,
+            storage_management::storage_media_scan,
+            storage_management::storage_media_clean,
             storage_management::storage_clean_logs,
             storage_management::storage_database_check,
             storage_management::storage_database_compact,

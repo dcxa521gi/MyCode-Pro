@@ -6,9 +6,11 @@ import { ComposerRunner } from "./ComposerRunner";
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 it("keeps animating through transcript changes without measuring layout each frame", () => {
+  vi.spyOn(performance, "now").mockReturnValue(1000);
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("matchMedia", () => ({ matches: false }));
   let frame: FrameRequestCallback | null = null;

@@ -463,7 +463,7 @@ export function modelsFor(harness: HarnessId): AgentModel[] {
                       value: String(n),
                       label:
                         n >= 1_000_000
-                          ? `${+(n / 1_000_000).toFixed(2)}M`
+                          ? `${+(n / (n % 1024 === 0 ? 1_048_576 : 1_000_000)).toFixed(2)}M`
                           : `${+(n / 1024).toFixed(1)}K`,
                     })),
                 },

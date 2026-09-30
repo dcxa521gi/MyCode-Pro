@@ -321,14 +321,14 @@ describe("provider defaults", () => {
     saveRecentModelChoice("grok", "grok:grok-4.6");
     saveRecentModelChoice("opencode", "opencode:glm-5");
     saveRecentModelChoice("pi", "pi:default");
-    saveRecentModelChoice("omp", "omp:default");
-    saveRecentModelChoice("fx", "fx:zai/glm-5.2-fast");
+    saveRecentModelChoice("mimo", "mimo:default");
+    saveRecentModelChoice("hermes", "hermes:default");
     saveRecentModelChoice("cursor", "cursor:composer-2.5");
 
     expect(loadRecentModelChoices()).toEqual([
       { harness: "cursor", model: "cursor:composer-2.5" },
-      { harness: "fx", model: "fx:zai/glm-5.2-fast" },
-      { harness: "omp", model: "omp:default" },
+      { harness: "hermes", model: "hermes:default" },
+      { harness: "mimo", model: "mimo:default" },
       { harness: "pi", model: "pi:default" },
       { harness: "opencode", model: "opencode:glm-5" },
       { harness: "grok", model: "grok:grok-4.6" },
@@ -338,22 +338,22 @@ describe("provider defaults", () => {
 
 describe("model picker tabs", () => {
   const available = (id: HarnessId) =>
-    id === "claude" || id === "fx" || id === "cursor";
+    id === "claude" || id === "hermes" || id === "cursor";
 
   it("starts with favorites then installed providers", () => {
     expect(modelPickerTabs(available)).toEqual([
       "favorites",
       "claude",
       "cursor",
-      "fx",
+      "hermes",
     ]);
   });
 
   it("wraps left and right across favorites and providers", () => {
     expect(stepModelPickerTab("favorites", 1, available)).toBe("claude");
     expect(stepModelPickerTab("claude", 1, available)).toBe("cursor");
-    expect(stepModelPickerTab("fx", 1, available)).toBe("favorites");
-    expect(stepModelPickerTab("favorites", -1, available)).toBe("fx");
+    expect(stepModelPickerTab("hermes", 1, available)).toBe("favorites");
+    expect(stepModelPickerTab("favorites", -1, available)).toBe("hermes");
   });
 
   it("treats an unavailable current tab as the start of the list", () => {
@@ -375,19 +375,19 @@ describe("picker provider visibility", () => {
     expect(loadHiddenPickerProviders()).toEqual([]);
     expect(isPickerProviderVisible("pi")).toBe(true);
     savePickerProviderVisible("pi", false);
-    savePickerProviderVisible("omp", false);
+    savePickerProviderVisible("mimo", false);
     expect(isPickerProviderVisible("pi")).toBe(false);
-    expect(isPickerProviderVisible("omp")).toBe(false);
+    expect(isPickerProviderVisible("mimo")).toBe(false);
     expect(isPickerProviderVisible("claude")).toBe(true);
-    expect(loadHiddenPickerProviders()).toEqual(["pi", "omp"]);
+    expect(loadHiddenPickerProviders()).toEqual(["pi", "mimo"]);
     savePickerProviderVisible("pi", true);
     expect(isPickerProviderVisible("pi")).toBe(true);
-    expect(loadHiddenPickerProviders()).toEqual(["omp"]);
+    expect(loadHiddenPickerProviders()).toEqual(["mimo"]);
   });
 
   it("omits hidden providers even before an install probe", () => {
-    savePickerProviderVisible("fx", false);
-    expect(showProviderInModelPicker("fx", true, false)).toBe(false);
+    savePickerProviderVisible("hermes", false);
+    expect(showProviderInModelPicker("hermes", true, false)).toBe(false);
     expect(showProviderInModelPicker("claude", true, false)).toBe(true);
   });
 
@@ -436,7 +436,7 @@ describe("live catalog overlays", () => {
       },
     ]);
     expect(hasLiveCatalog("pi")).toBe(true);
-    expect(hasLiveCatalog("omp")).toBe(false);
+    expect(hasLiveCatalog("mimo")).toBe(false);
   });
 
   it("keeps a Claude alias on the same model family across relaunch", () => {

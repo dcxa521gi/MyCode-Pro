@@ -17,9 +17,10 @@ MyCode 基于 [MonoCode](https://github.com/hardbeat920/monocode)，保留其简
 - **双语界面**：简体中文 / English；默认按电脑时区选择，手动选择立即生效并保存。标签、操作提示、自动化模板与 Windows 托盘菜单随语言变化。
 - **模型连接**：小米 MiMo / Token Plan、DeepSeek、通义千问、Kimi、智谱、硅基流动、OpenAI、Anthropic、Gemini、OpenRouter、xAI、Groq、Ollama、LM Studio 和自定义端点模板。输入 Key 后自动获取模型，支持勾选模型、自定义模型 ID、协议、多个连接和连接测试。
 - **IM 机器人**：本机扫码连接个人微信，并直连飞书/Lark、钉钉、企业微信、Telegram、Discord，指定允许用户、工作目录和模型；文本任务进入桌面会话并回传结果。
-- **任务导入**：扫描本机 Claude Code / Codex / WorkBuddy / ZCode 历史，显示来源、序号与数量，支持全选和每页 20 条分页，保留原始文件。
-- **用量统计**：左下角显示累计 Token，设置中按代理和任务查看服务商实际返回的用量。
-- **应用内 CLI 管理**：Claude Code、Codex、Pi、OpenCode、MiMo Code、Cursor、Grok、OMP 与 Windows Hermes 支持应用内安装/更新与版本检查，路径保存后新会话立即生效。
+- **任务导入**：扫描本机 Claude Code / Codex / WorkBuddy 历史，显示来源、序号与数量，支持全选和每页 20 条分页，保留原始文件。
+- **用量统计**：左下角显示累计 Token，设置中支持日期筛选、活跃热力图、每日趋势及模型、代理和任务排行；服务商卡片按连接统计 Token。
+- **应用内 CLI 管理**：Claude Code、Codex、Pi、OpenCode、MiMo Code、Cursor、Grok 与 Windows Hermes 支持应用内安装/更新与版本检查，路径保存后新会话立即生效。
+- **存储空间**：本机容量统计、旧日志清理、附件引用扫描与恢复备份、数据库检查和备份压缩；保护会话、笔记及草稿。
 - **本地记忆**：个人记忆与按项目区分的知识，可审阅、修改、清空；从下一轮请求开始加入所选模型的上下文。
 - **本地 MCP**：配置本机 stdio 服务，接入新建的 Claude Code、Codex、OpenCode、MiMo Code 会话，保留既有 CLI 配置。
 - **技能**：保留项目和个人技能管理；新增 `/mycode-documents`、`/mycode-project-memory`、`/mycode-work-report`，用于文档整理、知识梳理和工作报告。

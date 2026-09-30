@@ -1,3 +1,4 @@
+import { useProtectedAttachments } from "../../settings/model/protectedAttachments";
 import { VoiceInput } from "./VoiceInput";
 import type { TurnMetrics } from "../model/session";
 import { runHarnessTextPrompt } from "../../../integrations/harness/core/registry";
@@ -646,6 +647,7 @@ export function Composer({
       !!handoffCard,
   );
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  useProtectedAttachments(attachments);
   const [fileDrag, setFileDrag] = useState(false);
   const [plusOpen, setPlusOpen] = useState(false);
   const [planSelected, setPlanSelected] = useState(false);
