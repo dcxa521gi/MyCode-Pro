@@ -237,9 +237,9 @@ import { removeProviderAccountCredentials } from "../../providers/model/provider
 import {
   identityKey,
   identityOrganizationTag,
-  identitySubtitle,
   useProviderAccountIdentities,
 } from "../../providers/model/providerAccountIdentity";
+import { ProviderAccountSubtitle } from "../../providers/ui/ProviderAccountSubtitle";
 import {
   loadSessionSidebarFilters,
   saveSessionSidebarFilters,
@@ -3682,10 +3682,7 @@ function ProviderAccountsSettings() {
                         ) : null}
                       </div>
                       <div className="mt-0.5 truncate text-[10px] text-content/35">
-                        {identitySubtitle(identity) ??
-                          (account.isDefault
-                            ? "Provider CLI profile"
-                            : "Isolated profile")}
+                        <ProviderAccountSubtitle identity={identity} fallback={t(account.isDefault ? "Provider CLI profile" : "Isolated profile")} />
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
