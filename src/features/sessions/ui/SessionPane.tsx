@@ -506,6 +506,7 @@ export const SessionPane = memo(function SessionPane({
   const draftRef = useRef<string | undefined>(getComposerDraft(session.id));
   const composer = (
     <Composer
+      key={session.id}
       enabled={visible}
       focused={focused && composerFocused && !btw.open}
       focusToken={composerFocusToken}

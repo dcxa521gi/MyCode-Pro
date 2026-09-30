@@ -602,7 +602,6 @@ describe("settings navigation", () => {
       "Workspace",
     ]);
     expect(groups.flatMap((group) => group.sections.map((s) => s.id))).toEqual([
-      "storage",
       "general",
       "appearance",
       "keybindings",
@@ -614,11 +613,13 @@ describe("settings navigation", () => {
       "computer",
       "im-bots",
       "local-ai",
+      "mcp",
       "skills",
       "task-import",
       "inbox",
       "archive",
       "worktrees",
+      "storage",
     ]);
   });
 

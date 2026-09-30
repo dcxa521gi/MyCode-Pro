@@ -33,6 +33,7 @@ export type SettingsSectionId =
   | "computer"
   | "im-bots"
   | "local-ai"
+  | "mcp"
   | "skills"
   | "inbox"
   | "worktrees"
@@ -154,6 +155,13 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     keywords: "memory knowledge local mcp tools 记忆 知识 本地 工具",
   },
   {
+    id: "mcp",
+    group: "agents",
+    label: "MCP",
+    description: "Find MCP servers across providers and manage their connections.",
+    keywords: "tools servers connections oauth authenticate login claude codex cursor opencode",
+  },
+  {
     id: "skills",
     group: "agents",
     label: "Skills",
@@ -223,6 +231,12 @@ export const SETTINGS_INDEX: SettingsEntry[] = [
     label: "Language",
     keywords:
       "language locale timezone automatic english chinese 语言 中文 英文 时区 自动",
+  },
+  {
+    id: "mcp-servers",
+    section: "mcp",
+    label: "MCP servers",
+    keywords: "claude tools connections oauth authenticate login add remove",
   },
   {
     id: "project-worktrees",

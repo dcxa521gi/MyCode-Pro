@@ -35,6 +35,7 @@ import {
   type ReactNode,
 } from "react";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
+import { invoke } from "@tauri-apps/api/core";
 import {
   attachmentsFromFiles,
   attachmentsFromPaths,
@@ -117,6 +118,7 @@ import {
 import type { Worktree } from "../../source-control/model/worktrees";
 import { CwdPicker } from "../../projects/ui/CwdPicker";
 import { FileMentionPicker } from "./FileMentionPicker";
+import { McpServerPicker } from "./McpServerPicker";
 import { FileTypeIcon } from "../../files/ui/FileTypeIcon";
 import { InboxMiniCard } from "../../inbox/ui/InboxMiniCard";
 import { NoteMiniCard } from "../../notes/ui";
@@ -173,6 +175,19 @@ import {
   type SessionFolder,
 } from "../model/sessionFolders";
 import { SessionFolderPicker } from "./SessionFolderPicker";
+import { MCP_COMMAND, isMcpCommand } from "../model/mcpCommand";
+import {
+  mcpContextText,
+  mcpTagParts,
+  newMcpTag,
+  taggedMcpServers,
+  type McpTag,
+} from "../model/mcpPicker";
+import { getComposerMcpTags, setComposerMcpTags } from "../model/draftCache";
+import {
+  parseClaudeMcpList,
+  type McpConnection,
+} from "../../settings/model/mcp";
 import type { LastTurnRecall } from "../model/editLastTurn";
 
 type Props = {
@@ -660,6 +675,15 @@ export function Composer({
   const [sessionFolderOpen, setSessionFolderOpen] = useState(false);
   const [sessionFolders, setSessionFolders] = useState<SessionFolder[]>([]);
   const [sessionFolderSelected, setSessionFolderSelected] = useState(false);
+  const [mcpPickerOpen, setMcpPickerOpen] = useState(false);
+  const [mcpConnections, setMcpConnections] = useState<McpConnection[]>([]);
+  const [mcpStatus, setMcpStatus] = useState<Map<string, string>>(new Map());
+  const [mcpLoading, setMcpLoading] = useState(false);
+  const [mcpError, setMcpError] = useState("");
+  const [selectedMcp, setSelectedMcp] = useState<McpTag[]>(() =>
+    sessionId ? getComposerMcpTags(sessionId) : [],
+  );
+  const mcpInsertAt = useRef<number | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createBusy, setCreateBusy] = useState(false);
   const [files, setFiles] = useState<ProjectFile[]>(
@@ -701,7 +725,7 @@ export function Composer({
     !noteCard &&
     !handoffCard;
   const skillPickerOpen = creatingSkill || slash !== null;
-  const pickerOpen = skillPickerOpen || sessionFolderOpen;
+  const pickerOpen = skillPickerOpen || sessionFolderOpen || mcpPickerOpen;
   const skillCatalog = useComposerSkills({
     harness,
     executionCwd,
@@ -712,6 +736,7 @@ export function Composer({
   const slashItems = useMemo(
     () => [
       SESSION_FOLDER_COMMAND,
+      MCP_COMMAND,
       OPERATOR_COMMAND,
       PLAN_COMMAND,
       COMPACT_COMMAND,
@@ -723,6 +748,7 @@ export function Composer({
             (skill.name !== PLAN_COMMAND.name &&
               skill.name !== COMPACT_COMMAND.name &&
               skill.name !== SESSION_FOLDER_COMMAND.name &&
+              skill.name !== MCP_COMMAND.name &&
               skill.name !== BTW_COMMAND.name)),
       ),
     ],
@@ -775,6 +801,84 @@ export function Composer({
     },
     [inboxCard, noteCard, handoffCard],
   );
+
+  const openMcpPicker = useCallback(() => {
+    setMcpConnections([]);
+    setMcpStatus(new Map());
+    setMcpError("");
+    setMcpLoading(true);
+    setMcpPickerOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mcpPickerOpen) return;
+    let cancelled = false;
+    setMcpLoading(true);
+    setMcpError("");
+    void invoke<McpConnection[]>("mcp_discover", { cwd: executionCwd })
+      .then((connections) => {
+        if (!cancelled)
+          setMcpConnections((current) => [
+            ...connections,
+            ...current.filter(
+              (entry) =>
+                entry.provider === "claude" &&
+                !entry.configPath &&
+                !connections.some(
+                  (configured) =>
+                    configured.provider === "claude" &&
+                    configured.name === entry.name,
+                ),
+            ),
+          ]);
+      })
+      .catch((cause) => {
+        if (!cancelled) setMcpError(String(cause));
+      })
+      .finally(() => {
+        if (!cancelled) setMcpLoading(false);
+      });
+    void invoke<string>("claude_mcp_list", { cwd: executionCwd })
+      .then((output) => {
+        if (cancelled) return;
+        const statuses = parseClaudeMcpList(output);
+        setMcpStatus(
+          new Map(statuses.map((server) => [server.name, server.status])),
+        );
+        setMcpConnections((current) => {
+          const combined = [...current];
+          for (const server of statuses) {
+            if (
+              !combined.some(
+                (entry) =>
+                  entry.provider === "claude" && entry.name === server.name,
+              )
+            ) {
+              combined.push({
+                provider: "claude",
+                name: server.name,
+                scope: "local",
+                configPath: "",
+                transport: "",
+              });
+            }
+          }
+          return combined;
+        });
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [executionCwd, mcpPickerOpen]);
+
+  useEffect(() => {
+    setMcpPickerOpen(false);
+  }, [executionCwd, harness, sessionId]);
+
+  useEffect(() => {
+    if (sessionId) setComposerMcpTags(sessionId, selectedMcp);
+  }, [sessionId, selectedMcp]);
 
   useEffect(() => {
     syncHasValue(ref.current?.value ?? "", attachmentsRef.current);
@@ -958,6 +1062,8 @@ export function Composer({
     setOrchestrationSelected(false);
     setSessionFolderSelected(false);
     setSessionFolderOpen(false);
+    setMcpPickerOpen(false);
+    setSelectedMcp([]);
     setPlusOpen(false);
     setSlash(null);
     setMention(null);
@@ -1064,6 +1170,19 @@ export function Composer({
         setCreatingSkill(false);
         return;
       }
+      if (skill.kind === "builtin" && skill.name === MCP_COMMAND.name) {
+        const next = `${el.value.slice(0, token.start)}${el.value.slice(token.end).replace(/^\s/, "")}`;
+        el.value = next;
+        resizeComposer(el);
+        mcpInsertAt.current = token.start;
+        el.setSelectionRange(token.start, token.start);
+        setDraft(next);
+        onDraftChange?.(next);
+        syncHasValue(next, attachmentsRef.current);
+        setSlash(null);
+        openMcpPicker();
+        return;
+      }
       const planCommand =
         skill.kind === "builtin" && skill.name === PLAN_COMMAND.name;
       const sessionFolderCommand =
@@ -1116,7 +1235,9 @@ export function Composer({
     },
     [
       enterBtwFromPrefix,
+      onDraftChange,
       onPlaceInFolder,
+      openMcpPicker,
       openSessionFolderPicker,
       syncHasValue,
     ],
@@ -1163,7 +1284,7 @@ export function Composer({
 
     if (
       composer?.querySelector(
-        "[data-skill-picker], [data-session-folder-picker], [data-mention-picker], [data-composer-plus], [data-question-form]",
+        "[data-skill-picker], [data-session-folder-picker], [data-mention-picker], [data-mcp-picker], [data-composer-plus], [data-question-form]",
       )
     )
       return;
@@ -1360,6 +1481,8 @@ export function Composer({
     setPlusOpen(false);
     setSlash(null);
     setMention(null);
+    setMcpPickerOpen(false);
+    setSelectedMcp([]);
     syncHasValue("", []);
     ref.current?.focus();
   }, [onDraftChange, onEditingLastTurnChange, syncHasValue]);
@@ -1405,10 +1528,26 @@ export function Composer({
 
   const submit = (value: string) => {
     if (disabled || worktreeRemoved) return;
+    if (isMcpCommand(value)) {
+      mcpInsertAt.current = 0;
+      if (ref.current) {
+        ref.current.value = "";
+        ref.current.style.height = "auto";
+      }
+      setDraft("");
+      onDraftChange?.("");
+      setSlash(null);
+      syncHasValue("", attachments);
+      openMcpPicker();
+      return;
+    }
     if (draftSelected && onSaveDraft) {
       const files = attachments;
       if (!value.trim() && files.length === 0) return;
-      const accepted = onSaveDraft(value, files);
+      const accepted = onSaveDraft(
+        mcpContextText(taggedMcpServers(value, selectedMcp), value),
+        files,
+      );
       if (accepted === false || !ref.current) return;
       ref.current.value = "";
       ref.current.style.height = "auto";
@@ -1416,6 +1555,7 @@ export function Composer({
       onDraftChange?.("");
       setAttachments([]);
       setDraftSelected(false);
+      setSelectedMcp([]);
       setPlusOpen(false);
       setSlash(null);
       setMention(null);
@@ -1493,26 +1633,35 @@ export function Composer({
     const resendBorrowedAttachmentIds = new Set(
       borrowedAttachmentIdsRef.current,
     );
+    const resendSelectedMcp = selectedMcp;
     onDraftChange?.("");
-    const accepted = onSubmit(submittedText, files, {
-      intent:
-        planSelected || command.planning
-          ? "plan"
-          : orchestrationSelected
-            ? "orchestrate"
-            : "default",
-      ...(resendEdited
-        ? {
-            resendEdited: true,
-            onResendRejected: ({ providerRewound }) => {
-              if (draftRevisionRef.current !== resendDraftRevision) return;
-              restoreDraft(text, files, resendBorrowedAttachmentIds);
-              setResendEdited(!providerRewound);
-              onEditingLastTurnChange?.(!providerRewound);
-            },
-          }
-        : {}),
-    });
+    const accepted = onSubmit(
+      mcpContextText(
+        taggedMcpServers(submittedText, selectedMcp),
+        submittedText,
+      ),
+      files,
+      {
+        intent:
+          planSelected || command.planning
+            ? "plan"
+            : orchestrationSelected
+              ? "orchestrate"
+              : "default",
+        ...(resendEdited
+          ? {
+              resendEdited: true,
+              onResendRejected: ({ providerRewound }) => {
+                if (draftRevisionRef.current !== resendDraftRevision) return;
+                restoreDraft(text, files, resendBorrowedAttachmentIds);
+                setSelectedMcp(resendSelectedMcp);
+                setResendEdited(!providerRewound);
+                onEditingLastTurnChange?.(!providerRewound);
+              },
+            }
+          : {}),
+      },
+    );
     // The app can reject a turn before it is recorded (for example while an
     // orchestration is paused). Keep the user's text, files and selected mode
     // intact so resolving the blocker never destroys their work.
@@ -1529,6 +1678,7 @@ export function Composer({
     borrowedAttachmentIdsRef.current.clear();
     attachmentsRef.current = [];
     setAttachments([]);
+    setSelectedMcp([]);
     setResendEdited(false);
     onEditingLastTurnChange?.(false);
     setPlanSelected(false);
@@ -1614,6 +1764,7 @@ export function Composer({
       e.key === "Enter" &&
       !e.shiftKey &&
       (isCompactCommand(e.currentTarget.value) ||
+        isMcpCommand(e.currentTarget.value) ||
         isSessionFolderCommand(e.currentTarget.value))
     ) {
       e.preventDefault();
@@ -1768,7 +1919,65 @@ export function Composer({
         onResume={onResumeQueue}
       />
       <div className="relative overflow-visible">
-        {sessionFolderOpen ? (
+        {mcpPickerOpen ? (
+          <div className="absolute inset-x-0 bottom-full z-30 mb-1">
+            <McpServerPicker
+              connections={mcpConnections}
+              harness={harness}
+              claudeStatus={mcpStatus}
+              loading={mcpLoading}
+              error={mcpError}
+              onPick={(server) => {
+                const el = ref.current;
+                if (!el) return;
+                const previous = selectedMcp.find(
+                  (item) =>
+                    item.server.provider === server.provider &&
+                    item.server.name === server.name &&
+                    item.server.scope === server.scope &&
+                    item.server.configPath === server.configPath,
+                );
+                const tag = previous ?? newMcpTag(server, selectedMcp);
+                if (!previous) setSelectedMcp((current) => [...current, tag]);
+                if (!previous || !taggedMcpServers(el.value, [tag]).length) {
+                  const at = Math.min(
+                    mcpInsertAt.current ?? el.selectionStart,
+                    el.value.length,
+                  );
+                  const before = el.value.slice(0, at);
+                  const after = el.value.slice(at);
+                  const leading = before && !/\s$/.test(before) ? " " : "";
+                  const trailing = after && /^\s/.test(after) ? "" : " ";
+                  const insertion = `${leading}${tag.token}${trailing}`;
+                  const next = before + insertion + after;
+                  el.value = next;
+                  resizeComposer(el);
+                  el.setSelectionRange(
+                    at + insertion.length,
+                    at + insertion.length,
+                  );
+                  draftRevisionRef.current += 1;
+                  setDraft(next);
+                  syncHasValue(next, attachmentsRef.current);
+                  setMention(null);
+                }
+                mcpInsertAt.current = null;
+                setMcpPickerOpen(false);
+                el.focus();
+              }}
+              onManage={() => {
+                mcpInsertAt.current = null;
+                setMcpPickerOpen(false);
+                window.dispatchEvent(new Event("monocode:open-mcp-settings"));
+              }}
+              onDismiss={(reason) => {
+                mcpInsertAt.current = null;
+                setMcpPickerOpen(false);
+                if (reason === "escape") ref.current?.focus();
+              }}
+            />
+          </div>
+        ) : sessionFolderOpen ? (
           <div className="absolute inset-x-0 bottom-full z-30 mb-1">
             <SessionFolderPicker
               folders={sessionFolders}
@@ -1998,6 +2207,7 @@ export function Composer({
                 text={draft}
                 names={skillNames}
                 mentions={mentionIndex.labels}
+                mcpTags={selectedMcp}
               />
             </div>
             <textarea
@@ -2038,6 +2248,14 @@ export function Composer({
                 resizeComposer(el);
                 draftRevisionRef.current += 1;
                 setDraft(el.value);
+                setSelectedMcp((current) => {
+                  const retained = current.filter(
+                    (tag) => taggedMcpServers(el.value, [tag]).length > 0,
+                  );
+                  return retained.length === current.length
+                    ? current
+                    : retained;
+                });
                 if (
                   sessionFolderSelected &&
                   !consumeSessionFolderCommand(el.value).matched
@@ -2425,10 +2643,12 @@ function ComposerHighlight({
   text,
   names,
   mentions,
+  mcpTags,
 }: {
   text: string;
   names: ReadonlySet<string>;
   mentions: ReadonlyMap<string, ProjectFile>;
+  mcpTags: McpTag[];
 }) {
   const parts = skillTextParts(text, names);
   return (
@@ -2441,7 +2661,12 @@ function ComposerHighlight({
         ) : (
           // Skill tokens always end on whitespace, so each remaining run still
           // starts on a boundary `@mention` matching can rely on.
-          <MentionRuns key={index} text={part.text} mentions={mentions} />
+          <MentionRuns
+            key={index}
+            text={part.text}
+            mentions={mentions}
+            mcpTags={mcpTags}
+          />
         ),
       )}
       {text.endsWith("\n") ? "\n" : null}
@@ -2450,6 +2675,34 @@ function ComposerHighlight({
 }
 
 function MentionRuns({
+  text,
+  mentions,
+  mcpTags,
+}: {
+  text: string;
+  mentions: ReadonlyMap<string, ProjectFile>;
+  mcpTags: McpTag[];
+}) {
+  return (
+    <>
+      {mcpTagParts(text, mcpTags).map((part, index) =>
+        part.tag ? (
+          <span
+            key={index}
+            className="text-mention"
+            data-mcp-tag={part.tag.token}
+          >
+            {part.text}
+          </span>
+        ) : (
+          <FileMentionRuns key={index} text={part.text} mentions={mentions} />
+        ),
+      )}
+    </>
+  );
+}
+
+function FileMentionRuns({
   text,
   mentions,
 }: {

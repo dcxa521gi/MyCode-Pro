@@ -9760,6 +9760,12 @@ export default function App({
     return () => window.removeEventListener("mycode:open-tools", openTools);
   }, [openSettings]);
 
+  useEffect(() => {
+    const onOpenMcp = () => openSettings("mcp");
+    window.addEventListener("monocode:open-mcp-settings", onOpenMcp);
+    return () => window.removeEventListener("monocode:open-mcp-settings", onOpenMcp);
+  }, [openSettings]);
+
   const onOpenNotificationSettings = useCallback(
     (path?: string) => {
       openSettings("inbox", "project-notifications");
