@@ -1,3 +1,5 @@
+import { StorageManagementPage } from "./StorageManagementPage";
+import { GitCodeInbox } from "../../inbox/ui/GitCodeInbox";
 import { useShowThinking, setShowThinking } from "../model/showThinking";
 import { VoiceSettings } from "./VoiceSettings";
 import { StorageSettings } from "./StorageSettings";
@@ -564,6 +566,7 @@ export function SettingsView({
               {section === "voice" ? <VoiceSettings /> : null}
               {section === "computer" ? <ComputerSettings /> : null}
               {section === "usage" ? <UsageHistoryPage /> : null}
+              {section === "storage" ? <StorageManagementPage /> : null}
               {section === "task-import" ? (
                 <TaskImportPage
                   onOpenSession={(session) => onOpenSession?.(session.id)}
@@ -1287,6 +1290,7 @@ function InboxPage({
       >
         <GithubSettings />
       </Group>
+      <GitCodeInbox settings />
 
       <Group
         id="gitlab"

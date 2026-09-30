@@ -316,7 +316,7 @@ export function SkillsPage({
                 {t("Loading skills…")}
               </p>
             ) : (
-              <div className="overflow-hidden rounded-lg border border-content/10">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {filtered.length === 0 ? (
                   <p className="px-3 py-3 text-[12px] text-content/45">
                     {skills.length === 0
@@ -331,7 +331,10 @@ export function SkillsPage({
                     return (
                       <div
                         key={skill.path}
-                        className={`border-b border-content/5 px-3 py-2 last:border-b-0 ${previewSkill?.path === skill.path ? "bg-content/5" : ""} ${
+                        onClick={(event) => {
+                          if (!(event.target as HTMLElement).closest("button, input, a")) onPreview(skill, "name");
+                        }}
+                        className={`cursor-pointer rounded-xl bg-content/[0.03] p-4 transition-colors hover:bg-content/[0.07] ${previewSkill?.path === skill.path ? "bg-content/5" : ""} ${
                           disabled ? "opacity-50" : ""
                         }`}
                       >
@@ -364,13 +367,9 @@ export function SkillsPage({
                                     cursor: "Cursor",
                                     opencode: "OpenCode",
                                     pi: "Pi",
-                                    omp: "OMP",
-                                    fx: "FX",
                                     grok: "Grok",
                                     hermes: "Hermes",
-                                    antigravity: "Antigravity",
                                     workbuddy: "WorkBuddy",
-                                    zcode: "ZCode",
                                     mimo: "MiMo Code",
                                     monocode: "MyCode",
                                   } as Record<string, string>
@@ -391,7 +390,7 @@ export function SkillsPage({
                         </div>
                         {skill.description ? (
                           <p
-                            className="mt-0.5 truncate text-[12px] text-content/55"
+                            className="mt-2 line-clamp-2 min-h-9 text-[12px] leading-relaxed text-content/55"
                             title={skill.description}
                           >
                             {skill.description}

@@ -1,3 +1,5 @@
+import { listWorktrees, type Worktree } from "../model/worktrees";
+import { pathKey } from "../../../shared/lib/paths";
 import { useTranslation } from "../../../shared/i18n";
 import { Check, GitBranch, Plus, Search } from "../../../shared/ui/icons";
 import {
@@ -32,6 +34,7 @@ type Props = {
   initialOpen?: boolean;
   onDismiss?: () => void;
   onChange?: () => void;
+  onSelectWorktree?: (tree: Worktree) => Promise<void>;
   onClose?: () => void;
   onOpenChange?: (open: boolean) => void;
   popoverSide?: "top" | "bottom";
@@ -58,6 +61,7 @@ export function BranchPicker({
   initialOpen = false,
   onDismiss,
   onChange,
+  onSelectWorktree,
   onClose,
   onOpenChange,
   popoverSide = "top",
@@ -191,6 +195,25 @@ export function BranchPicker({
     setBusy(true);
     setError(null);
     try {
+      if (pending.kind === "checkout" && !pending.remote) {
+        const { worktrees } = await listWorktrees(cwd);
+        const occupied = worktrees.find(
+          (tree) =>
+            tree.branch === pending.name && pathKey(tree.path) !== pathKey(cwd),
+        );
+        if (occupied) {
+          if (!onSelectWorktree || occupied.missing) {
+            setError(
+              `${t("This branch is in another worktree. Open that working copy to continue.")} ${occupied.path}`,
+            );
+            setBusy(false);
+            return;
+          }
+          await onSelectWorktree(occupied);
+          finishSwitch();
+          return;
+        }
+      }
       await applySwitch(pending);
       finishSwitch();
     } catch (err) {

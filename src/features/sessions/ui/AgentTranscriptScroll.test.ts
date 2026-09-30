@@ -85,13 +85,7 @@ describe("subagent scrolling", () => {
     );
     expect(button).not.toBeNull();
     act(() => button!.click());
-    act(() =>
-      container
-        .querySelector<HTMLButtonElement>(
-          'button[aria-label^="Show the steps for"]',
-        )!
-        .click(),
-    );
+    expect(container.querySelector('button[aria-label^="Hide the steps for"]')).not.toBeNull();
     const scroller =
       container.querySelector<HTMLDivElement>(".zen-phase-live")!;
     expect(scroller).not.toBeNull();

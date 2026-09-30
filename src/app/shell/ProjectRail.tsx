@@ -402,6 +402,22 @@ export function ProjectRail({
               dot={inboxUnseen}
               ariaLabel={inboxUnseen ? "Inbox, new items" : "Inbox"}
             />
+            <RailAction
+              label={t("IM bots")}
+              icon={Inbox}
+              ariaLabel={t("IM bots")}
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("mycode:open-tools", {detail:"im-bots"}));
+              }}
+            />
+            <RailAction
+              label={t("Skills")}
+              icon={Zap}
+              ariaLabel={t("Skills")}
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("mycode:open-tools", {detail:"skills"}));
+              }}
+            />
             {notesEnabled ? (
               <RailAction
                 label={t("Notes")}

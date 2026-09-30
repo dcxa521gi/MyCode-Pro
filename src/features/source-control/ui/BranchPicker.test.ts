@@ -19,6 +19,8 @@ vi.mock("../../../platform/tauri/fs", () => ({
   notifyGitChanged: vi.fn(),
 }));
 
+vi.mock("../model/worktrees", () => ({listWorktrees: vi.fn(async () => ({worktrees: [], defaultRoot: "/trees"}))}));
+import { listWorktrees } from "../model/worktrees";
 import { BranchPicker } from "./BranchPicker";
 import {
   gitBranches,
@@ -222,3 +224,15 @@ it("checks out the highlighted matching branch when Enter is pressed", async () 
     "picker",
   );
 });
+
+ it("reuses an occupied worktree without trying to check out its branch", async () => {
+  vi.mocked(gitBranches).mockResolvedValueOnce({current:"main",detached:false,branches:[{name:"feature/occupied",current:false,remote:null}]});
+  const tree = {path:"/trees/occupied",branch:"feature/occupied",head:"abc",isMain:false,locked:false,prunable:false,missing:false,dirty:true,unpushed:0,sessionIds:[]};
+  vi.mocked(listWorktrees).mockResolvedValueOnce({worktrees:[tree],defaultRoot:"/trees"});
+  const select = vi.fn(async () => {});
+  await act(async () => root.render(createElement(BranchPicker,{cwd:"/repo-occupied",branch:"main",initialOpen:true,onSelectWorktree:select})));
+  const option = document.querySelector<HTMLButtonElement>('[data-branch-picker] [role="option"]');
+  await act(async () => option!.click());
+  expect(select).toHaveBeenCalledWith(tree);
+  expect(gitCheckout).not.toHaveBeenCalledWith("/repo-occupied", "feature/occupied", null);
+ });

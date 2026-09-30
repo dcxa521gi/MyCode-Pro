@@ -43,6 +43,7 @@ mod reminders;
 mod search;
 mod session_store;
 mod skills;
+mod storage_management;
 mod task_import;
 mod tokendance;
 #[cfg(target_os = "windows")]
@@ -316,6 +317,11 @@ pub fn run() {
             automations::automations_list,
             local_ai::local_ai_config,
             usage_history::usage_history,
+            usage_history::usage_history_turns,
+            storage_management::storage_overview,
+            storage_management::storage_clean_logs,
+            storage_management::storage_database_check,
+            storage_management::storage_database_compact,
             task_import::task_import_scan,
             task_import::task_import_read,
             task_import::task_import_commit,

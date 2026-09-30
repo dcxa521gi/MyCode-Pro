@@ -142,7 +142,6 @@ export function TaskImportPage({
             ["claude", "Claude"],
             ["codex", "Codex"],
             ["workbuddy", "WorkBuddy"],
-            ["zcode", "ZCode"],
           ].map(([value, label]) => (
             <button
               key={value}
@@ -220,8 +219,6 @@ export function TaskImportPage({
                 <span className="rounded bg-content/10 px-2 py-0.5 text-xs">
                   {c.source === "workbuddy"
                     ? "WorkBuddy"
-                    : c.source === "zcode"
-                      ? "ZCode"
                       : c.source === "codex"
                         ? "Codex"
                         : "Claude"}

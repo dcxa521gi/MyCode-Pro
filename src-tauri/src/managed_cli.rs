@@ -86,19 +86,7 @@ pub fn managed_cli_save_path(
 ) -> Result<(), String> {
     let _lock = INSTALL_LOCK.lock().map_err(|e| e.to_string())?;
     if ![
-        "claude",
-        "codex",
-        "cursor",
-        "grok",
-        "opencode",
-        "pi",
-        "omp",
-        "fx",
-        "hermes",
-        "antigravity",
-        "mimo",
-        "zcode",
-        "freebuff",
+        "claude", "codex", "cursor", "grok", "opencode", "pi", "hermes", "mimo", "freebuff",
     ]
     .contains(&provider.as_str())
     {
@@ -413,6 +401,9 @@ pub struct CliRelease {
 }
 #[tauri::command(async)]
 pub fn managed_cli_latest(app: AppHandle, provider: String) -> Result<CliRelease, String> {
+    if ["omp", "fx", "antigravity", "zcode"].contains(&provider.as_str()) {
+        return Err("This CLI is no longer supported in MyCode".into());
+    }
     if provider == "omp" || provider == "zcode" || provider == "hermes" {
         let repo = match provider.as_str() {
             "omp" => "can1357/oh-my-pi",
@@ -493,6 +484,9 @@ pub fn managed_cli_latest(app: AppHandle, provider: String) -> Result<CliRelease
 }
 #[tauri::command(async)]
 pub fn managed_cli_install(app: AppHandle, provider: String) -> Result<String, String> {
+    if ["omp", "fx", "antigravity", "zcode"].contains(&provider.as_str()) {
+        return Err("This CLI is no longer supported in MyCode".into());
+    }
     let _lock = INSTALL_LOCK.lock().map_err(|e| e.to_string())?;
     #[cfg(windows)]
     if provider == "hermes" {

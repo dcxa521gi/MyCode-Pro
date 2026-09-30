@@ -42,7 +42,6 @@ export type AgentModel = {
 export const MODELS: AgentModel[] = [
   { id: "codex:default", harness: "codex", name: "CLI default", nativeId: "" },
   { id: "mimo:default", harness: "mimo", name: "CLI default", nativeId: "" },
-  { id: "zcode:default", harness: "zcode", name: "CLI default", nativeId: "" },
   {
     id: "claude:sonnet-5",
     harness: "claude",
@@ -182,28 +181,10 @@ export const MODELS: AgentModel[] = [
     nativeId: "",
   },
   {
-    id: "omp:default",
-    harness: "omp",
-    name: "Default",
-    nativeId: "",
-  },
-  {
-    id: "fx:zai/glm-5.2-fast",
-    harness: "fx",
-    name: "GLM 5.2 Fast",
-    nativeId: "zai/glm-5.2-fast",
-  },
-  {
     id: "hermes:default",
     harness: "hermes",
     name: "Configured model",
     nativeId: "",
-  },
-  {
-    id: "antigravity:gemini-3.8-flash-high",
-    harness: "antigravity",
-    name: "Gemini 3.8 Flash (High)",
-    nativeId: "gemini-3.8-flash-high",
   },
 ];
 
@@ -245,12 +226,8 @@ const HARNESS_ORDER: HarnessId[] = [
   "grok",
   "opencode",
   "pi",
-  "omp",
-  "fx",
   "hermes",
-  "antigravity",
   "mimo",
-  "zcode",
 ];
 
 const EMPTY_MODELS: AgentModel[] = [];
@@ -465,7 +442,7 @@ export function modelsFor(harness: HarnessId): AgentModel[] {
             ? [
                 {
                   id: "contextWindow",
-                  label: "Context budget",
+                  label: "Context usage",
                   kind: "select" as const,
                   value: String(c.modelMetadata[model].contextWindow),
                   options: [
@@ -484,7 +461,10 @@ export function modelsFor(harness: HarnessId): AgentModel[] {
                     .sort((a, b) => a - b)
                     .map((n) => ({
                       value: String(n),
-                      label: n.toLocaleString(),
+                      label:
+                        n >= 1_000_000
+                          ? `${+(n / 1_000_000).toFixed(2)}M`
+                          : `${+(n / 1024).toFixed(1)}K`,
                     })),
                 },
               ]

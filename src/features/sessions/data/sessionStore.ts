@@ -734,7 +734,7 @@ function sanitizeBtwThreads(
     const harness =
       typeof record.harness === "string" &&
       record.harness.trim() &&
-      HARNESSES.includes(record.harness as HarnessId)
+      [...HARNESSES, "omp", "fx", "antigravity", "zcode"].includes(record.harness as HarnessId)
         ? (record.harness as HarnessId)
         : undefined;
     const modelSettings = sanitizeStringRecord(record.modelSettings);
@@ -810,7 +810,7 @@ function sanitizeTurnModel(value: unknown): TurnModel | undefined {
   const name = typeof record.name === "string" ? record.name.trim() : "";
   if (
     typeof harness !== "string" ||
-    !HARNESSES.includes(harness as HarnessId) ||
+    ![...HARNESSES, "omp", "fx", "antigravity", "zcode"].includes(harness as HarnessId) ||
     !id ||
     !name
   ) {

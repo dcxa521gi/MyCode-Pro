@@ -30,6 +30,7 @@ const SECTION_ICONS: Record<SettingsSectionId, IconComponent> = {
   "im-bots": MessageSquare,
   "task-import": FolderTree,
   usage: SlidersHorizontal,
+  storage: Archive,
   "local-ai": Sparkles,
   skills: Sparkles,
   inbox: Inbox,

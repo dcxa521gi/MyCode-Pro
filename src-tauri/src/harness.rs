@@ -321,6 +321,9 @@ pub fn harness_resolve_configured(
     provider: String,
     binary_path: String,
 ) -> Result<ConfiguredBinary, String> {
+    if ["omp", "fx", "antigravity", "zcode"].contains(&provider.as_str()) {
+        return Err("This CLI is no longer supported in MyCode".into());
+    }
     resolve_harness_binary_override(&provider, &binary_path).map(|path| ConfiguredBinary {
         path: path.to_string_lossy().into_owned(),
         args: (provider == "antigravity").then(antigravity_args),
@@ -473,6 +476,12 @@ pub fn harness_spawn(
         return Err("harness_spawn: not a resolved harness CLI".to_string());
     }
 
+    if binary_provider
+        .as_deref()
+        .is_some_and(|provider| ["omp", "fx", "antigravity", "zcode"].contains(&provider))
+    {
+        return Err("This CLI is no longer supported in MyCode".into());
+    }
     let _reservation = crate::worktree_lifecycle::reserve_spawn(&workdir)?;
     let (epoch, kill_all, prev) = host.begin_spawn(&session_id);
     if let Some(prev) = prev {
@@ -508,6 +517,24 @@ pub fn harness_spawn(
     )?;
 
     crate::control::configure_child(&app, &session_id, &mut cmd);
+    #[cfg(windows)]
+    {
+        let hook = app
+            .path()
+            .app_data_dir()
+            .map_err(|e| e.to_string())?
+            .join("windows-headless.cjs");
+        std::fs::write(&hook, include_str!("windows-headless.cjs")).map_err(|e| e.to_string())?;
+        let inherited = std::env::var("NODE_OPTIONS").unwrap_or_default();
+        cmd.env(
+            "NODE_OPTIONS",
+            format!(
+                "{} --require \"{}\"",
+                inherited,
+                hook.to_string_lossy().replace('\\', "/")
+            ),
+        );
+    }
 
     let mut child =
         spawn_managed(&mut cmd).map_err(|e| format!("Failed to start {command}: {e}"))?;

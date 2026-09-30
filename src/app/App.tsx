@@ -979,6 +979,7 @@ export default function App({
   const [collapsedProjectRailMode, setCollapsedProjectRailMode] =
     useState<CollapsedProjectRailMode>(loadCollapsedProjectRailMode);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [standaloneTools, setStandaloneTools] = useState(false);
   const [updateNotice, setUpdateNotice] = useState(installedUpdate);
   const [whatsNewVersion, setWhatsNewVersion] = useState<string | null>(null);
   const [providerSignInRequest, setProviderSignInRequest] = useState<{
@@ -9632,7 +9633,12 @@ export default function App({
     [],
   );
 
-  const onOpenSettings = useCallback(() => openSettings(), [openSettings]);
+  const onOpenSettings = useCallback(() => { setStandaloneTools(false); openSettings(); }, [openSettings]);
+  useEffect(() => {
+    const openTools = (event: Event) => { const section = (event as CustomEvent<string>).detail; if (section !== "skills" && section !== "im-bots") return; openSettings(); setSettingsSection(section); setStandaloneTools(true); };
+    window.addEventListener("mycode:open-tools", openTools);
+    return () => window.removeEventListener("mycode:open-tools", openTools);
+  }, [openSettings]);
 
   const onOpenNotificationSettings = useCallback(
     (path?: string) => {
@@ -10421,7 +10427,7 @@ export default function App({
               unseenFinishedIds={unseenFinishedIds}
               inboxUnseen={inboxUnseen}
               linkedSessionUpdateIds={linkedSessionUpdateIds}
-              settingsOpen={settingsOpen}
+              settingsOpen={settingsOpen && !standaloneTools}
               settingsSection={settingsSection}
               onOpenSettings={onOpenSettings}
               onOpenNotificationSettings={onOpenNotificationSettings}

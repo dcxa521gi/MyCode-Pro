@@ -2018,8 +2018,7 @@ const ActivityPhases = memo(function ActivityPhases({
     ? blocks
     : blocks.filter(
         (block) =>
-          block.role !== "reasoning" &&
-          (block.role !== "tool" || needsApproval(block)),
+          block.role !== "reasoning",
       );
   const phases = useMemo(() => buildActivityPhases(visible), [visible]);
 
@@ -2205,7 +2204,7 @@ function ActivityPhaseGroup({
 }) {
   const [override, setOverride] = useState<boolean | null>(null);
   const waiting = phase.steps.some(needsApproval);
-  const open = waiting || (override ?? false);
+  const open = waiting || (override ?? active);
   const [liveScroller, setLiveScroller] = useState<HTMLDivElement | null>(null);
   useLivePhaseScroll(liveScroller, active && open, phase.steps);
   // Steps already here when the group mounted, or that landed while it was

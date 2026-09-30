@@ -26,6 +26,7 @@ export type SettingsSectionId =
   | "chat"
   | "providers"
   | "providers-cli"
+  | "storage"
   | "usage"
   | "task-import"
   | "voice"
@@ -56,6 +57,14 @@ export type SettingsSection = {
 };
 
 export const SETTINGS_SECTIONS: SettingsSection[] = [
+  {
+    id: "storage",
+    group: "app",
+    label: "Storage space",
+    description:
+      "Inspect local data, clean old logs and maintain the conversation database.",
+    keywords: "storage disk cache backup 存储 空间 缓存 备份",
+  },
   {
     id: "general",
     group: "app",
@@ -133,8 +142,8 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     group: "workspace",
     label: "Task import",
     description:
-      "Import local Claude, Codex, WorkBuddy and ZCode conversations without changing their original files.",
-    keywords: "import history claude codex workbuddy zcode 导入 历史",
+      "Import local Claude, Codex and WorkBuddy conversations without changing their original files.",
+    keywords: "import history claude codex workbuddy 导入 历史",
   },
   {
     id: "usage",

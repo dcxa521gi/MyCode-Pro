@@ -154,67 +154,6 @@ fn read(source: &str, path: &Path) -> Option<SessionUpsert> {
     )
 }
 
-fn zcode_sessions(target: Option<&str>) -> Vec<SessionUpsert> {
-    let Some(home) = crate::dirs_home() else {
-        return vec![];
-    };
-    let path = PathBuf::from(home).join(".zcode/cli/db/db.sqlite");
-    let Ok(conn) =
-        rusqlite::Connection::open_with_flags(&path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
-    else {
-        return vec![];
-    };
-    let Ok(mut sessions) = conn.prepare("SELECT id, directory, title FROM session WHERE parent_id IS NULL ORDER BY time_updated DESC LIMIT 3000") else { return vec![]; };
-    let Ok(rows) = sessions.query_map([], |r| {
-        Ok((
-            r.get::<_, String>(0)?,
-            r.get::<_, String>(1)?,
-            r.get::<_, String>(2)?,
-        ))
-    }) else {
-        return vec![];
-    };
-    let mut result = vec![];
-    for (native_id, cwd, title) in rows.flatten() {
-        let id = id_for("zcode", &path.join(&native_id));
-        if target.is_some_and(|target| target != id) {
-            continue;
-        }
-        let Ok(mut messages) = conn.prepare("SELECT m.data, p.data FROM message m JOIN part p ON p.message_id=m.id WHERE m.session_id=?1 ORDER BY m.time_created, m.sequence, p.sequence, p.time_created") else { continue; };
-        let Ok(parts) = messages.query_map([&native_id], |r| {
-            Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
-        }) else {
-            continue;
-        };
-        let mut blocks = vec![];
-        for (message, part) in parts.flatten() {
-            let (Ok(message), Ok(part)) = (
-                serde_json::from_str::<Value>(&message),
-                serde_json::from_str::<Value>(&part),
-            ) else {
-                continue;
-            };
-            let role = message["role"].as_str().unwrap_or("");
-            if !matches!(role, "user" | "assistant") || part["type"] != "text" {
-                continue;
-            }
-            let Some(text) = part["text"].as_str().filter(|t| !t.trim().is_empty()) else {
-                continue;
-            };
-            blocks.push(json!({"id":format!("{id}-{}", blocks.len()),"role":role,"text":text}));
-        }
-        if cwd.is_empty() || blocks.is_empty() {
-            continue;
-        }
-        // Import portable history without binding desktop-specific runtime state.
-        if let Ok(session) = serde_json::from_value(
-            json!({"id":id,"cwd":cwd,"harness":"zcode","model":"zcode:default","modelSettings":{},"runtimeMode":"supervised","title":title,"providerSessionId":null,"blocks":blocks}),
-        ) {
-            result.push(session);
-        }
-    }
-    result
-}
 #[tauri::command(async)]
 pub fn task_import_scan(store: State<'_, SessionStore>) -> Result<Vec<Candidate>, String> {
     let existing: std::collections::HashSet<String> = {
@@ -244,21 +183,10 @@ pub fn task_import_scan(store: State<'_, SessionStore>) -> Result<Vec<Candidate>
             }
         }
     }
-    result.extend(zcode_sessions(None).into_iter().map(|session| Candidate {
-        existing: existing.contains(&session.id),
-        turns: session.blocks.as_array().map(Vec::len).unwrap_or(0),
-        id: session.id,
-        source: "zcode".into(),
-        title: session.title,
-        cwd: session.cwd,
-    }));
     Ok(result)
 }
 #[tauri::command(async)]
 pub fn task_import_read(id: String) -> Result<SessionUpsert, String> {
-    if let Some(session) = zcode_sessions(Some(&id)).into_iter().next() {
-        return Ok(session);
-    }
     for (source, root) in sources() {
         let mut paths = vec![];
         files(&root, 6, &mut paths);

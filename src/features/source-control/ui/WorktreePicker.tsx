@@ -121,6 +121,7 @@ export function WorktreePicker({
         initialOpen
         onDismiss={() => setBranchPicker(false)}
         onChange={onBranchChange}
+        onSelectWorktree={onSelect}
         onClose={() => {
           setBranchPicker(false);
           onClose?.();

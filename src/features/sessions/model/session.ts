@@ -36,12 +36,8 @@ export const HARNESSES: HarnessId[] = [
   "grok",
   "opencode",
   "pi",
-  "omp",
-  "fx",
   "hermes",
-  "antigravity",
   "mimo",
-  "zcode",
 ];
 
 export type BlockRole =

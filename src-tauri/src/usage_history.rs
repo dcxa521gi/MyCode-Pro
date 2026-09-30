@@ -10,6 +10,7 @@ pub struct UsageRow {
     title: String,
     harness: String,
     model: String,
+    connection_id: String,
     cwd: String,
     updated_at: i64,
     input_tokens: u64,
@@ -24,6 +25,15 @@ pub struct UsageRow {
 
 #[tauri::command(async)]
 pub fn usage_history(store: State<'_, SessionStore>) -> Result<Vec<UsageRow>, String> {
+    read_history(&store, false)
+}
+
+#[tauri::command(async)]
+pub fn usage_history_turns(store: State<'_, SessionStore>) -> Result<Vec<UsageRow>, String> {
+    read_history(&store, true)
+}
+
+fn read_history(store: &SessionStore, per_turn: bool) -> Result<Vec<UsageRow>, String> {
     let conn = store.lock_conn()?;
     let mut stmt = conn.prepare("SELECT id,title,harness,model,cwd,updated_at,blocks_json FROM sessions ORDER BY updated_at DESC").map_err(|e| e.to_string())?;
     let rows = stmt
@@ -48,6 +58,7 @@ pub fn usage_history(store: State<'_, SessionStore>) -> Result<Vec<UsageRow>, St
             title,
             harness,
             model,
+            connection_id: String::new(),
             cwd,
             updated_at,
             input_tokens: 0,
@@ -60,13 +71,21 @@ pub fn usage_history(store: State<'_, SessionStore>) -> Result<Vec<UsageRow>, St
             turns: 0,
         };
         let blocks: Vec<Value> = serde_json::from_str(&blocks).unwrap_or_default();
-        result.extend(group_usage(&base, &blocks));
+        if per_turn {
+            for block in &blocks {
+                let mut turn = base.clone();
+                turn.updated_at = block["startedAt"].as_i64().unwrap_or(0);
+                result.extend(group_usage(&turn, std::slice::from_ref(block)));
+            }
+        } else {
+            result.extend(group_usage(&base, &blocks));
+        }
     }
     Ok(result)
 }
 
 fn group_usage(base: &UsageRow, blocks: &[Value]) -> Vec<UsageRow> {
-    let mut grouped = std::collections::BTreeMap::<(String, String), UsageRow>::new();
+    let mut grouped = std::collections::BTreeMap::<(String, String, String), UsageRow>::new();
     for block in blocks.iter().filter(|b| {
         b.get("role").and_then(Value::as_str) == Some("user")
             && b.get("draft") != Some(&Value::Bool(true))
@@ -79,11 +98,18 @@ fn group_usage(base: &UsageRow, blocks: &[Value]) -> Vec<UsageRow> {
             .as_str()
             .unwrap_or(&base.model)
             .to_string();
+        let connection_id = block["turnModel"]["id"]
+            .as_str()
+            .and_then(|id| id.split_once(":mycode-").map(|(_, rest)| rest))
+            .and_then(|rest| rest.split_once('/').map(|(id, _)| id))
+            .unwrap_or("")
+            .to_string();
         let usage = grouped
-            .entry((harness.clone(), model.clone()))
+            .entry((harness.clone(), model.clone(), connection_id.clone()))
             .or_insert_with(|| UsageRow {
                 harness,
                 model,
+                connection_id,
                 ..base.clone()
             });
         usage.turns += 1;
@@ -155,6 +181,7 @@ mod tests {
             title: "task".into(),
             harness: "codex".into(),
             model: "fallback".into(),
+            connection_id: String::new(),
             cwd: "/repo".into(),
             updated_at: 0,
             input_tokens: 0,

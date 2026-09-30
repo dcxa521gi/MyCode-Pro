@@ -3,9 +3,9 @@ const key = "mycode.workspaceSide";
 const listeners = new Set<() => void>();
 function read(): "left" | "right" {
   try {
-    return localStorage.getItem(key) === "right" ? "right" : "left";
+    return localStorage.getItem(key) === "left" ? "left" : "right";
   } catch {
-    return "left";
+    return "right";
   }
 }
 export function setWorkspaceSide(side: "left" | "right") {

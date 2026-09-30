@@ -440,6 +440,20 @@ export function InboxView({
   const [targetItem, setTargetItem] = useState<InboxItem | null>(null);
   const [filters, setFilters] = useState(loadInboxFilters);
   const [connections, setConnections] = useState(loadInboxConnections);
+  const [gitcodeActive, setGitcodeActive] = useState(false);
+  const [gitcodeConnected, setGitcodeConnected] = useState(
+    () => localStorage.getItem("mycode.gitcodeConnected") === "true",
+  );
+  useEffect(() => {
+    const refresh = () => {
+      const connected =
+        localStorage.getItem("mycode.gitcodeConnected") === "true";
+      setGitcodeConnected(connected);
+      if (!connected) setGitcodeActive(false);
+    };
+    window.addEventListener("mycode:gitcode", refresh);
+    return () => window.removeEventListener("mycode:gitcode", refresh);
+  }, []);
   const [source, setSource] = useState(() =>
     resolveInboxSource(loadInboxSource(), connections),
   );
@@ -629,6 +643,7 @@ export function InboxView({
   useEffect(() => {
     const next = resolveInboxSource(source, connections);
     if (next === source) return;
+    setGitcodeActive(false);
     setSource(next);
     saveInboxSource(next);
   }, [connections, source]);
@@ -901,7 +916,16 @@ export function InboxView({
       className="relative flex h-full min-h-0 shrink-0 flex-col border-r border-stroke"
     >
       <div className="flex h-9 shrink-0 items-center gap-px border-b border-stroke px-2">
-        <GitCodeInbox />
+        {gitcodeConnected && (
+          <button
+            role="tab"
+            aria-selected={gitcodeActive}
+            className="rounded-md px-2 py-1 text-xs hover:bg-content/10"
+            onClick={() => setGitcodeActive(true)}
+          >
+            GitCode
+          </button>
+        )}
         {visibleSources.length > 0 ? (
           <div
             role="tablist"
@@ -1158,21 +1182,27 @@ export function InboxView({
         {list}
         <div className="relative flex min-h-0 min-w-0 flex-1">
           <div className="min-h-0 min-w-0 flex-1">
-            <InboxDetailBody
-              item={selected}
-              cwd={cwd}
-              projects={projectOptions}
-              revision={refresh}
-              relatedSessions={
-                selected ? relatedSessionsForInboxItem(selected, sessions) : []
-              }
-              onDiscuss={() => setDiscussionOpen(true)}
-              onStart={onStart}
-              repairSessions={repairSessions}
-              onRepairChecks={onRepairChecks}
-              onOpenSession={onOpenSession}
-              onItemChange={updateInboxItem}
-            />
+            {gitcodeActive ? (
+              <GitCodeInbox />
+            ) : (
+              <InboxDetailBody
+                item={selected}
+                cwd={cwd}
+                projects={projectOptions}
+                revision={refresh}
+                relatedSessions={
+                  selected
+                    ? relatedSessionsForInboxItem(selected, sessions)
+                    : []
+                }
+                onDiscuss={() => setDiscussionOpen(true)}
+                onStart={onStart}
+                repairSessions={repairSessions}
+                onRepairChecks={onRepairChecks}
+                onOpenSession={onOpenSession}
+                onItemChange={updateInboxItem}
+              />
+            )}
           </div>
           {discussionOpen && selected ? (
             <InboxDiscussionPanel
