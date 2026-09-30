@@ -1,3 +1,6 @@
+import { connectGroupRunner, loadGroups, startGroupScheduler } from "../features/groups/model/groups";
+import { GroupChats } from "../features/groups/ui/GroupChats";
+import { CLIUpdateNotice } from "../features/providers/ui/CLIUpdateNotice";
 import { findModel } from "../features/sessions/model/models";
 import { CliReadyDialog } from "../features/providers/ui/CliReadyDialog";
 import { newSessionLike } from "../features/sessions/model/session";
@@ -2231,6 +2234,9 @@ export default function App({
   const [homeOpen, setHomeOpen] = useState(false);
   const createWorkspaceTask = useCallback(
     (cwd: string, harness: HarnessId, model: string) => {
+      setSettingsOpen(false);
+      setStandaloneTools(false);
+      setHomeOpen(false);
       setSearchViewOpen(false);
       setInboxViewOpen(false);
       setNotesViewOpen(false);
@@ -6050,7 +6056,7 @@ export default function App({
         setSessions(nextSessions);
         void (async () => {
           try {
-            const prepared = await prepareAttachments(attachments);
+            const prepared = await prepareAttachments(attachments, current.cwd);
             const prompt = await preparePrompt(harnessText, {
               harness: current.harness,
               sessionId,
@@ -6622,7 +6628,7 @@ export default function App({
         if (turnGen.current.get(sessionId) !== gen) return;
         let buildSucceeded = false;
         try {
-          const prepared = await prepareAttachments(attachments);
+          const prepared = await prepareAttachments(attachments, workCwd);
           const prompt =
             intent === "build" && approvedPlan
               ? buildPlanPrompt(approvedPlan.text)
@@ -9711,6 +9717,42 @@ export default function App({
     [],
   );
 
+  const [groupsOpen, setGroupsOpen] = useState(false);
+  useEffect(() => {
+    const open = () => setGroupsOpen(true);
+    window.addEventListener("mycode:open-groups", open);
+    void loadGroups().catch(() => {});
+    const stop = startGroupScheduler();
+    return () => { window.removeEventListener("mycode:open-groups", open); stop(); };
+  }, []);
+  useEffect(() => {
+    connectGroupRunner(({ group, member, prompt, execute, signal }) => new Promise((resolve, reject) => {
+      if (signal.aborted) { reject(new Error("Cancelled")); return; }
+      const cwd = `${group.cwd.replace(/\\/g, "/")}/.mycode/groups/${group.id}/workspace`;
+      const session = newSession(member.harness, cwd, member.model, "supervised");
+      session.title = `${group.name} · ${member.name}`;
+      session.modelSettings = { ...session.modelSettings, mycodeGroup: "true" };
+      sessionsRef.current = [...sessionsRef.current, session];
+      setSessions(sessionsRef.current);
+      const abort = () => { onStop(session.id); reject(new Error("Cancelled")); };
+      signal.addEventListener("abort", abort, { once: true });
+      const accepted = submitSession(session.id, prompt, [], {
+        intent: execute ? "build" : "plan",
+        onSettled: outcome => {
+          signal.removeEventListener("abort", abort);
+          if (outcome.status !== "completed") { reject(new Error(outcome.error || outcome.status)); return; }
+          setTimeout(() => {
+            const blocks = sessionsRef.current.find(s => s.id === session.id)?.blocks || [];
+            const measured = blocks.filter(b => b.turnMetrics?.inputTokens != null || b.turnMetrics?.outputTokens != null);
+            resolve({ text: outcome.text || blocks.filter(b => b.role === "assistant").map(b => b.text).join("\n"), tokens: measured.length ? measured.reduce((n, b) => n + (b.turnMetrics?.inputTokens || 0) + (b.turnMetrics?.outputTokens || 0), 0) : undefined });
+          }, 0);
+        },
+      });
+      void Promise.resolve(accepted).then(ok => { if (!ok) { signal.removeEventListener("abort", abort); reject(new Error("Could not start this agent. Check CLI installation and model access.")); } }).catch(error => { signal.removeEventListener("abort", abort); reject(error); });
+    }));
+    return () => connectGroupRunner(undefined);
+  }, [submitSession, onStop]);
+
   const onOpenSettings = useCallback(() => { setStandaloneTools(false); openSettings(); }, [openSettings]);
   useEffect(() => {
     const openTools = (event: Event) => { const section = (event as CustomEvent<string>).detail; if (section !== "skills" && section !== "im-bots") return; openSettings(); setSettingsSection(section); setStandaloneTools(true); };
@@ -10495,7 +10537,7 @@ export default function App({
               liveAgents={liveAgents}
               onSelectAgent={onSelectLiveAgent}
               onSelectProject={onSelectProject}
-              onOpenProject={pickProject}
+              onOpenProject={() => setNewTaskOpen(true)}
               onHome={onHome}
               onRemoveProject={onRemoveProject}
               onNew={onNew}
@@ -10905,6 +10947,8 @@ export default function App({
             />
           ) : null}
 
+          <CLIUpdateNotice onOpen={() => { setStandaloneTools(false); openSettings("providers-cli"); }} />
+          {groupsOpen && <GroupChats onClose={() => setGroupsOpen(false)} />}
           <CliReadyDialog sessions={sessions} />
           {newTaskOpen && (
             <NewTaskDialog

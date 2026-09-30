@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
+import { BusyIndicator } from "../../../shared/ui/BusyIndicator";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "../../../shared/i18n";
 type Config = { enabled: boolean; installed: boolean };
@@ -8,6 +10,8 @@ export function BrowserSettings() {
     enabled: false,
     installed: false,
   });
+  const [phase, setPhase] = useState("");
+  const [success, setSuccess] = useState(false);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   useEffect(() => {
@@ -20,16 +24,25 @@ export function BrowserSettings() {
   const run = async (install: boolean, enabled = false) => {
     setBusy(true);
     setError("");
+    setSuccess(false);
+    setPhase(install ? "Installing browser tools…" : "Saving…");
+    let unlisten: (() => void) | undefined;
     try {
+      if (install)
+        unlisten = await listen<string>("mycode-browser-install", (event) =>
+          setPhase(event.payload),
+        );
       setConfig(
         await invoke<Config>(
           install ? "browser_install" : "browser_save",
           install ? {} : { enabled },
         ),
       );
+      setSuccess(install);
     } catch (e) {
       setError(String(e));
     } finally {
+      unlisten?.();
       setBusy(false);
     }
   };
@@ -46,9 +59,25 @@ export function BrowserSettings() {
         className="rounded-lg bg-content/10 px-4 py-2 text-sm"
         onClick={() => void run(true)}
       >
-        {t(config.installed ? "Update browser" : "Install headless browser")}
+        {busy ? (
+          <BusyIndicator label={t(phase)} />
+        ) : (
+          t(config.installed ? "Update browser" : "Install headless browser")
+        )}
       </button>
-      {busy && <progress className="w-full" aria-label={t("Installing…")} />}
+      {busy && (
+        <div className="rounded-xl bg-content/5 p-4">
+          <BusyIndicator label={t(phase)} />
+          <p className="mt-2 text-xs text-content/50">
+            {t("Keep MyCode open while the browser downloads and installs.")}
+          </p>
+        </div>
+      )}
+      {success && (
+        <p role="status" className="text-sm text-emerald-500">
+          {t("Browser installed successfully")}
+        </p>
+      )}
       <label className="flex gap-2 text-sm">
         <input
           type="checkbox"

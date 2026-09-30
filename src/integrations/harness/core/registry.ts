@@ -254,7 +254,7 @@ export function sendHarnessTurn(input: SendTurnInput & { harness: HarnessId }) {
       });
     activeTurnSessions.add(input.sessionId);
     try {
-      const memory = controlled
+      const memory = controlled && input.modelSettings?.mycodeGroup !== "true"
         ? await invoke<string>("local_ai_memory", { cwd: input.cwd })
         : "";
       const references = controlled

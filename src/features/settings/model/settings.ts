@@ -57,14 +57,7 @@ export type SettingsSection = {
 };
 
 export const SETTINGS_SECTIONS: SettingsSection[] = [
-  {
-    id: "storage",
-    group: "app",
-    label: "Storage space",
-    description:
-      "Inspect local data, clean old logs and maintain the conversation database.",
-    keywords: "storage disk cache backup 存储 空间 缓存 备份",
-  },
+
   {
     id: "general",
     group: "app",
@@ -190,6 +183,14 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     label: "Worktrees",
     description: "Manage additional worktrees for each project.",
     keywords: "git branch worktree working copy project create delete",
+  },
+  {
+    id: "storage",
+    group: "workspace",
+    label: "Storage space",
+    description:
+      "Inspect local data, clean old logs and maintain the conversation database.",
+    keywords: "storage disk cache backup 存储 空间 缓存 备份",
   },
 ];
 

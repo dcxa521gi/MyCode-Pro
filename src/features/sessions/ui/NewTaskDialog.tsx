@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Modal } from "../../../shared/ui/Modal";
+import { BusyIndicator } from "../../../shared/ui/BusyIndicator";
 import { useTranslation } from "../../../shared/i18n";
 import { pickFolder } from "../../../platform/tauri/fs";
 import { HARNESSES, HARNESS_TITLE, type HarnessId } from "../model/session";
@@ -11,7 +12,6 @@ import {
   subscribeModels,
   getModelSnapshot,
 } from "../model/models";
-import { useWorkMode } from "../../settings/model/workMode";
 
 export function NewTaskDialog({
   onClose,
@@ -21,151 +21,182 @@ export function NewTaskDialog({
   onCreate: (cwd: string, harness: HarnessId, model: string) => void;
 }) {
   const { t } = useTranslation();
-  const mode = useWorkMode();
   useSyncExternalStore(subscribeModels, getModelSnapshot);
-  const [cwd, setCwd] = useState(
-    () => localStorage.getItem(`mycode.defaultWorkspace.${mode}`) ?? "",
-  );
-  const [choice, setChoice] = useState(() => defaultSessionChoice());
-  const [step, setStep] = useState(0);
+  const [parent, setParent] = useState("");
+  const [source, setSource] = useState("");
+  const [name, setName] = useState("");
+  const [choice, setChoice] = useState(defaultSessionChoice);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
-    if (cwd) return;
     let live = true;
     void invoke<string>("default_workspace")
       .then((path) => {
-        if (live) setCwd(path);
+        if (live) setParent(path);
       })
-      .catch(() => {
-        if (live) setError("Choose a workspace folder to continue.");
+      .catch((e) => {
+        if (live) setError(String(e));
       });
     return () => {
       live = false;
     };
-  }, [cwd]);
+  }, []);
   const models = modelsFor(choice.harness);
-  const selectedModel = models.some((model) => model.id === choice.model)
+  const selectedModel = models.some((m) => m.id === choice.model)
     ? choice.model
     : preferredModelId(choice.harness);
   const field =
-    "w-full rounded-lg bg-content/5 px-3 py-3 text-sm outline-none focus:ring-1 focus:ring-accent";
+    "w-full rounded-xl bg-content/5 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-accent";
+  const create = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const cwd =
+        source ||
+        (await invoke<string>("create_project_folder", {
+          parent,
+          name: name.trim(),
+        }));
+      onCreate(cwd, choice.harness, selectedModel);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
-    <Modal title={t("New task")} onClose={onClose}>
-      <div className="space-y-5 p-5">
-        <div className="flex gap-2 text-xs">
-          {["Workspace folder", "Agent", "Model"].map((label, index) => (
-            <button
-              key={label}
-              className={`rounded-full px-3 py-1 ${step === index ? "bg-accent text-black" : "bg-content/5"}`}
-              disabled={index > step && !cwd}
-              onClick={() => setStep(index)}
-            >
-              {index + 1}. {t(label)}
-            </button>
-          ))}
-        </div>
-        {step === 0 && (
-          <div className="space-y-3">
-            <p className="text-sm text-content/60">
-              {t(
-                mode === "office"
-                  ? "Choose where to save documents and office tasks."
-                  : "Choose the working folder for this task.",
-              )}
+    <Modal
+      title={t("Create project")}
+      onClose={() => {
+        if (!busy) onClose();
+      }}
+    >
+      <form
+        className="space-y-5 p-5"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void create();
+        }}
+      >
+        <label className="block space-y-2 text-sm">
+          <span>{t("Project name")}</span>
+          <input
+            autoFocus
+            className={field}
+            value={name}
+            placeholder={t("Project name")}
+            onChange={(e) => setName(e.target.value)}
+            disabled={busy}
+          />
+        </label>
+        <div className="space-y-2 text-sm">
+          <span>{t("Source folder")}</span>
+          <div className="rounded-xl bg-content/5 p-5 text-center">
+            <p className="mb-3 break-all text-xs text-content/60">
+              {source || parent || t("Loading…")}
             </p>
-            <div className="break-all rounded-lg bg-content/5 p-3 text-sm">
-              {cwd || t("Choose workspace folder")}
-            </div>
             <button
-              className="rounded-lg bg-content/10 px-3 py-2 text-sm"
+              type="button"
+              disabled={busy}
+              className="rounded-lg bg-content/10 px-4 py-2 hover:bg-content/15"
               onClick={() =>
                 void pickFolder(t("Choose workspace folder"))
                   .then((path) => {
                     if (path) {
-                      setCwd(path);
-                      setError("");
+                      setSource(path);
+                      if (!name)
+                        setName(
+                          path.replace(/\\/g, "/").split("/").pop() || "",
+                        );
                     }
                   })
-                  .catch(() => setError("Could not open the folder picker."))
+                  .catch((e) => setError(String(e)))
               }
             >
-              {t("Change folder")}
+              {t("Add folder")}
             </button>
-            <p className="text-xs text-content/45">
-              {t(
-                "This folder becomes the default for new tasks in this work mode.",
-              )}
-            </p>
+            {source && (
+              <button
+                type="button"
+                className="ml-3 text-xs text-content/60 underline"
+                onClick={() => setSource("")}
+              >
+                {t("Create a folder in the default workspace")}
+              </button>
+            )}
           </div>
-        )}
-        {step === 1 && (
-          <label className="block space-y-2 text-sm">
+          <p className="break-all text-xs text-content/50">
+            {source
+              ? t("Use the selected folder")
+              : `${t("Create a folder in the default workspace")} · ${parent}/${name.trim()}`}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="space-y-2 text-sm">
             <span>{t("Agent")}</span>
             <select
               className={field}
               value={choice.harness}
-              onChange={(event) => {
-                const harness = event.target.value as HarnessId;
+              disabled={busy}
+              onChange={(e) => {
+                const harness = e.target.value as HarnessId;
                 setChoice({ harness, model: preferredModelId(harness) });
               }}
             >
-              {HARNESSES.map((harness) => (
-                <option key={harness} value={harness}>
-                  {HARNESS_TITLE[harness]}
+              {HARNESSES.map((h) => (
+                <option key={h} value={h}>
+                  {HARNESS_TITLE[h]}
                 </option>
               ))}
             </select>
           </label>
-        )}
-        {step === 2 && (
-          <label className="block space-y-2 text-sm">
+          <label className="space-y-2 text-sm">
             <span>{t("Model")}</span>
             <select
               className={field}
               value={selectedModel}
-              onChange={(event) =>
-                setChoice({ ...choice, model: event.target.value })
-              }
+              disabled={busy}
+              onChange={(e) => setChoice({ ...choice, model: e.target.value })}
             >
-              {models.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.primary ? "★ " : ""}
-                  {model.provider?.name ? `${model.provider.name} · ` : ""}
-                  {t(model.name)}
+              {models.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.primary ? "★ " : ""}
+                  {m.provider?.name ? `${m.provider.name} · ` : ""}
+                  {t(m.name)}
                 </option>
               ))}
             </select>
-            <p className="text-xs text-content/45">
-              {t(
-                "The primary provider model is preferred. Official models remain available for this agent.",
-              )}
-            </p>
           </label>
-        )}
+        </div>
         {error && (
-          <p role="alert" className="text-sm text-red-400">
+          <p role="alert" className="break-words text-sm text-red-400">
             {t(error)}
           </p>
         )}
-        <div className="flex justify-end gap-3">
-          <button onClick={step ? () => setStep(step - 1) : onClose}>
-            {t(step ? "Back" : "Cancel")}
+        <div className="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onClose}
+            className="rounded-lg px-4 py-2 text-sm hover:bg-content/5"
+          >
+            {t("Cancel")}
           </button>
           <button
-            className="rounded-lg bg-accent px-4 py-2 text-black disabled:opacity-40"
-            disabled={!cwd || (step === 2 && !models.length)}
-            onClick={() => {
-              if (step < 2) setStep(step + 1);
-              else {
-                localStorage.setItem(`mycode.defaultWorkspace.${mode}`, cwd);
-                onCreate(cwd, choice.harness, selectedModel);
-              }
-            }}
+            type="submit"
+            disabled={
+              busy || (!source && (!parent || !name.trim())) || !models.length
+            }
+            className="rounded-xl bg-accent px-4 py-2 text-sm text-black disabled:opacity-40"
           >
-            {t(step === 2 ? "Create task" : "Continue")}
+            {busy ? (
+              <BusyIndicator label={t("Creating…")} />
+            ) : (
+              t("Create project")
+            )}
           </button>
         </div>
-      </div>
+      </form>
     </Modal>
   );
 }

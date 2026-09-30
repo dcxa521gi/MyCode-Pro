@@ -4,6 +4,7 @@ import {
   type HugeiconsIconProps,
   type IconSvgElement,
 } from "@hugeicons/react";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
 import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import AddSquareIcon from "@hugeicons/core-free-icons/AddSquareIcon";
 import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
@@ -269,3 +270,5 @@ export const WholeWord = wrap(WholeWordIcon, "WholeWord");
 export const Wrench = wrap(Wrench01Icon, "Wrench");
 export const X = wrap(Cancel01Icon, "X");
 export const Zap = wrap(FlashIcon, "Zap");
+
+export const User = wrap(UserIcon, "User");

@@ -1,3 +1,5 @@
+import { formatTokenCount } from "../../../shared/lib/tokenCount";
+import { BusyIndicator } from "../../../shared/ui/BusyIndicator";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "../../../shared/i18n";
@@ -27,6 +29,7 @@ export function UsageHistoryPage() {
   const { t, locale } = useTranslation();
   const [rows, setRows] = useState<UsageRow[]>([]);
   const [error, setError] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState("");
   const [range, setRange] = useState("30");
   const [day, setDay] = useState("");
@@ -35,10 +38,12 @@ export function UsageHistoryPage() {
   );
   const [page, setPage] = useState(0);
   const refresh = () => {
+    setRefreshing(true);
     setError("");
     void invoke<UsageRow[]>("usage_history_turns")
       .then((value) => setRows(Array.isArray(value) ? value : []))
-      .catch(() => setError(t("Could not load usage history.")));
+      .catch(() => setError(t("Could not load usage history.")))
+      .finally(() => setRefreshing(false));
   };
   useEffect(refresh, []);
   const today = dayKey(Date.now());
@@ -175,7 +180,7 @@ export function UsageHistoryPage() {
           onClick={refresh}
           className="ml-auto rounded-lg bg-content/5 px-3 py-2"
         >
-          {t("Refresh")}
+          {refreshing ? <BusyIndicator label={t("Refreshing…")} /> : t("Refresh")}
         </button>
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -393,12 +398,12 @@ export function UsageSummary({ onOpen }: { onOpen: () => void }) {
     <button
       onClick={onOpen}
       className="mx-2 mb-2 flex items-center justify-between gap-3 rounded-lg border border-content/10 bg-content/[0.025] px-3 py-2 text-xs text-content/60"
-      title={t("Usage history")}
+      title={`${t("Usage history")} · ${total.toLocaleString(locale)} Token`}
     >
       <span>{t("Usage")}</span>
       <span className="font-medium tabular-nums text-content">
         {measured
-          ? `${total.toLocaleString(locale)} tokens`
+          ? `${formatTokenCount(total)} Token`
           : t("No usage yet")}
       </span>
     </button>

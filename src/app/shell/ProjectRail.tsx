@@ -406,6 +406,7 @@ export function ProjectRail({
                 onClick={onNewTask}
                 ariaLabel={t("New task")}
               />
+              <RailAction label={t("New group chat")} icon={Plus} onClick={() => window.dispatchEvent(new Event("mycode:open-groups"))} ariaLabel={t("New group chat")} />
               <div className="mt-0.5" />
               <RailAction
                 label={t("Inbox")}

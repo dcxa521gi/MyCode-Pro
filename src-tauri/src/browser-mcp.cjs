@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 const readline = require("node:readline");
-const [root, generation] = process.argv.slice(2);
+const [root, generation, cacheRoot] = process.argv.slice(2);
 function allowed() {
   try {
     const c = JSON.parse(
@@ -29,14 +29,14 @@ const child = spawn(
     "--browser",
     "chromium",
     "--output-dir",
-    path.join(root, "output"),
+    path.join(process.cwd(), ".mycode", "browser-output"),
   ],
   {
     windowsHide: true,
     stdio: ["pipe", "pipe", "pipe"],
     env: {
       ...process.env,
-      PLAYWRIGHT_BROWSERS_PATH: path.join(root, "browsers"),
+      PLAYWRIGHT_BROWSERS_PATH: path.join(cacheRoot || root, "browsers"),
     },
   },
 );

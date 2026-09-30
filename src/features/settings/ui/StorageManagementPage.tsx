@@ -1,3 +1,4 @@
+import { BusyIndicator } from "../../../shared/ui/BusyIndicator";
 import { protectedAttachmentPaths } from "../model/protectedAttachments";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
@@ -56,8 +57,8 @@ export function StorageManagementPage() {
     <section className="space-y-5">
       <div className="flex justify-between text-sm">
         <span>{t("Local storage")}</span>
-        <button disabled={busy} onClick={() => void run(refresh)}>
-          {t(busy ? "Loading…" : "Refresh")}
+        <button className="rounded-lg bg-content/10 px-3 py-2 hover:bg-content/15 disabled:opacity-50" disabled={busy} onClick={() => void run(refresh)}>
+          {busy ? <BusyIndicator label={t("Refreshing…")} /> : t("Refresh")}
         </button>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -153,6 +154,7 @@ export function StorageManagementPage() {
         </p>
         <div className="flex gap-3">
           <button
+            className="rounded-lg bg-content/10 px-3 py-2 hover:bg-content/15 disabled:opacity-40"
             disabled={busy}
             onClick={() =>
               void run(async () => {
@@ -177,6 +179,7 @@ export function StorageManagementPage() {
             {t("Scan unused attachments")}
           </button>
           <button
+            className="rounded-lg bg-accent/15 px-3 py-2 text-accent hover:bg-accent/25 disabled:opacity-40"
             disabled={busy || !media?.length}
             onClick={() => setConfirm("media")}
           >

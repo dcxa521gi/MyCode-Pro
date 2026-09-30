@@ -17,6 +17,7 @@ mod external_editor;
 mod fs;
 mod gitcode;
 mod gitlab;
+mod groups;
 mod harness;
 mod im_bridge;
 mod inbox_media;
@@ -79,11 +80,8 @@ fn home_dir() -> String {
 }
 
 #[tauri::command]
-fn default_workspace() -> Result<String, String> {
-    let home = dirs_home().ok_or("Home directory is unavailable")?;
-    let path = std::path::PathBuf::from(home).join("MyCode");
-    std::fs::create_dir_all(&path).map_err(|e| e.to_string())?;
-    Ok(fs::path_to_js(&path))
+fn default_workspace(app: tauri::AppHandle) -> Result<String, String> {
+    cache_location::workspace(&app)
 }
 
 pub(crate) struct PasswdIdentity {
@@ -291,8 +289,12 @@ pub fn run() {
             default_cwd,
             home_dir,
             default_workspace,
+            groups::groups_list,
+            groups::groups_save,
             cache_location::cache_location,
             cache_location::cache_set_location,
+            cache_location::workspace_set_location,
+            cache_location::create_project_folder,
             voice::voice_config,
             voice::voice_use_provider,
             voice::voice_save,
@@ -460,6 +462,7 @@ pub fn run() {
             fs::read_file_base64,
             fs::read_binary_file,
             fs::write_attachment,
+            fs::stage_attachment,
             fs::read_text_file,
             fs::omp_session_interjections,
             fs::omp_active_assistant_texts,

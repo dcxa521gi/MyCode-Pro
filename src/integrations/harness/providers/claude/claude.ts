@@ -1782,7 +1782,7 @@ function launchOptions(
   const native = nativeModelId(input.model);
   const effortRaw = input.modelSettings?.effort;
   const context = input.modelSettings?.context;
-  const settings: ClaudeCliSettings = {};
+  const settings: ClaudeCliSettings = { plansDirectory: ".mycode/plans" };
   if (input.modelSettings?.thinking != null) {
     settings.alwaysThinkingEnabled = input.modelSettings.thinking === "true";
   }

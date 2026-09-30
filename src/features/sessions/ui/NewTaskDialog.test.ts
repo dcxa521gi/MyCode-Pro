@@ -10,7 +10,7 @@ vi.mock("@tauri-apps/api/core", () => ({
 vi.mock("../../../platform/tauri/fs", () => ({
   pickFolder: vi.fn(async () => "D:/Office"),
 }));
-it("chooses a default folder before the agent and model, and remembers an explicit replacement", async () => {
+it("uses a chosen project folder without overwriting the default workspace", async () => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   localStorage.clear();
   setLanguage("en");
@@ -32,21 +32,17 @@ it("chooses a default folder before the agent and model, and remembers an explic
       ),
     );
     expect(document.body.textContent).toContain("C:/Users/test/MyCode");
-    expect(document.querySelector("select")).toBeNull();
-    await click("Change folder");
-    await click("Continue");
+    expect(document.querySelectorAll("select")).toHaveLength(2);
+    await click("Add folder");
     const agent = document.querySelector("select")!;
     await act(async () => {
       agent.value = "codex";
       agent.dispatchEvent(new Event("change", { bubbles: true }));
     });
-    await click("Continue");
-    expect(document.querySelector("select")!.value).toBe("codex:default");
-    await click("Create task");
+    expect(document.querySelectorAll("select")[1].value).toBe("codex:default");
+    await act(async () => document.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
     expect(create).toHaveBeenCalledWith("D:/Office", "codex", "codex:default");
-    expect(localStorage.getItem("mycode.defaultWorkspace.development")).toBe(
-      "D:/Office",
-    );
+    expect(localStorage.getItem("mycode.defaultWorkspace.development")).toBeNull();
   } finally {
     await act(async () => root.unmount());
     container.remove();

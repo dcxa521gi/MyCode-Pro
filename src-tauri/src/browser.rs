@@ -6,7 +6,7 @@ use std::{
     process::{Command, Stdio},
     time::{Duration, Instant},
 };
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 static BROWSER_INSTALL_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 #[derive(Default, Serialize, Deserialize)]
@@ -32,7 +32,10 @@ fn load(app: &AppHandle) -> Result<BrowserConfig, String> {
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => BrowserConfig::default(),
         Err(e) => return Err(e.to_string()),
     };
-    config.installed = root.join("ready").is_file()
+    config.installed = crate::cache_location::root()
+        .join("browser/browsers")
+        .is_dir()
+        && root.join("ready").is_file()
         && root
             .join(if cfg!(windows) {
                 "node_modules/@playwright/mcp/cli.js"
@@ -66,20 +69,24 @@ pub fn browser_save(app: AppHandle, enabled: bool) -> Result<BrowserConfig, Stri
 }
 #[tauri::command(async)]
 pub fn browser_install(app: AppHandle) -> Result<BrowserConfig, String> {
-    let _lock = BROWSER_INSTALL_LOCK.lock().map_err(|e| e.to_string())?;
+    let _lock = BROWSER_INSTALL_LOCK
+        .try_lock()
+        .map_err(|_| "Browser installation is already running".to_string())?;
     let root = root(&app)?;
     browser_save(app.clone(), false)?;
     if root.join("ready").exists() {
         fs::remove_file(root.join("ready")).map_err(|e| e.to_string())?;
     }
+    let _ = app.emit("mycode-browser-install", "Installing browser tools…");
     crate::managed_cli::managed_cli_install(app.clone(), "browser".into())?;
+    let _ = app.emit("mycode-browser-install", "Downloading Chromium…");
     let log = fs::File::create(root.join("chromium-install.log")).map_err(|e| e.to_string())?;
     let mut cmd = Command::new(crate::managed_cli::node(&app)?);
     // npm may nest Playwright under @playwright/mcp instead of hoisting it.
     // Resolve from the package that owns the dependency, on every platform.
     cmd.args(["-e", "const {createRequire}=require('node:module');const r=createRequire(process.argv[1]);const cli=require('node:path').join(require('node:path').dirname(r.resolve('playwright/package.json')),'cli.js');process.argv=['node',cli,'install','chromium'];require(cli);"])
         .arg(root.join(if cfg!(windows) { "node_modules/@playwright/mcp/package.json" } else { "lib/node_modules/@playwright/mcp/package.json" }))
-        .env("PLAYWRIGHT_BROWSERS_PATH", root.join("browsers"))
+        .env("PLAYWRIGHT_BROWSERS_PATH", crate::cache_location::root().join("browser/browsers"))
         .stdin(Stdio::null())
         .stdout(Stdio::from(log.try_clone().map_err(|e| e.to_string())?))
         .stderr(Stdio::from(log));
@@ -88,7 +95,12 @@ pub fn browser_install(app: AppHandle) -> Result<BrowserConfig, String> {
     crate::hide_window_console(&mut cmd);
     let mut child = cmd.spawn().map_err(|e| e.to_string())?;
     let start = Instant::now();
+    let mut last_report = Instant::now();
     loop {
+        if last_report.elapsed() >= Duration::from_secs(2) {
+            let _ = app.emit("mycode-browser-install", "Downloading Chromium…");
+            last_report = Instant::now();
+        }
         if let Some(status) = child.try_wait().map_err(|e| e.to_string())? {
             if !status.success() {
                 return Err(format!(
@@ -117,6 +129,6 @@ pub fn mcp(app: &AppHandle) -> Result<Option<Value>, String> {
     let bridge = root.join("browser-mcp.cjs");
     fs::write(&bridge, include_str!("browser-mcp.cjs")).map_err(|e| e.to_string())?;
     Ok(Some(
-        json!({"command":crate::managed_cli::node(app)?,"args":[bridge,root,config.generation]}),
+        json!({"command":crate::managed_cli::node(app)?,"args":[bridge,root,config.generation,crate::cache_location::root().join("browser")]}),
     ))
 }

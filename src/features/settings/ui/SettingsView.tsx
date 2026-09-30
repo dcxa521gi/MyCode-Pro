@@ -2,7 +2,6 @@ import { StorageManagementPage } from "./StorageManagementPage";
 import { GitCodeInbox } from "../../inbox/ui/GitCodeInbox";
 import { useShowThinking, setShowThinking } from "../model/showThinking";
 import { VoiceSettings } from "./VoiceSettings";
-import { StorageSettings } from "./StorageSettings";
 import { ComputerSettings } from "./ComputerSettings";
 import { useWorkspaceSide, setWorkspaceSide } from "../model/workspaceSide";
 import { getLocale as uiLocale } from "../../../shared/i18n";
@@ -546,7 +545,6 @@ export function SettingsView({
               />
               {section === "general" ? (
                 <>
-                  <StorageSettings />
                   <GeneralPage onOpenWhatsNew={onOpenWhatsNew} />
                 </>
               ) : null}

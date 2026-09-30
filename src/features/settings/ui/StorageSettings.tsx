@@ -12,8 +12,7 @@ export function StorageSettings() {
   const [error, setError] = useState("");
   useEffect(() => {
     let active = true;
-    const saved = localStorage.getItem(`mycode.defaultWorkspace.${mode}`);
-    void (saved ? Promise.resolve(saved) : invoke<string>("default_workspace"))
+    void invoke<string>("default_workspace")
       .then((p) => {
         if (active) setWorkspace(p);
       })
@@ -32,8 +31,9 @@ export function StorageSettings() {
       const folder = await pickFolder(t("Choose folder"));
       if (!folder) return;
       if (kind === "workspace") {
-        localStorage.setItem(`mycode.defaultWorkspace.${mode}`, folder);
-        setWorkspace(folder);
+        const saved = await invoke<string>("workspace_set_location", { folder });
+        localStorage.setItem(`mycode.defaultWorkspace.${mode}`, saved);
+        setWorkspace(saved);
       } else setCache(await invoke<string>("cache_set_location", { folder }));
       setError("");
     } catch (e) {

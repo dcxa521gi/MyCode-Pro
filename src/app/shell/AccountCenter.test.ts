@@ -35,11 +35,11 @@ async function click(text: string) {
   expect(button).toBeTruthy();
   await act(async () => button.click());
 }
-it("opens an experimental dialog for an unsigned-in startup without opening a browser", async () => {
+it("opens a sign-in dialog for an unsigned-in startup without opening a browser", async () => {
   invoke.mockResolvedValue(null);
   await render();
   expect(document.querySelector('[role="dialog"]')).not.toBeNull();
-  expect(document.body.textContent).toContain("not final quality");
+  expect(document.body.textContent).not.toContain("not final quality");
   expect(invoke).toHaveBeenCalledWith("account_center_status");
   expect(invoke).not.toHaveBeenCalledWith("account_center_login");
   await click("Later");

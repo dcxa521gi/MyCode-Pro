@@ -252,9 +252,16 @@ export async function attachmentsFromFiles(
 
 export async function prepareAttachments(
   files: Attachment[],
+  cwd?: string,
 ): Promise<Attachment[]> {
   return Promise.all(
-    files.map(async (file) => {
+    files.map(async (original) => {
+      let file = original;
+      if (cwd && file.data && !file.path) {
+        file = { ...file, path: await invoke<string>("write_attachment", { name: file.name, data: file.data, cwd }) };
+      } else if (cwd && file.path) {
+        file = { ...file, path: await invoke<string>("stage_attachment", { path: file.path, cwd }) };
+      }
       if (file.data || !file.path) return file;
       if (!isVisionImage(file.mimeType) || file.size > MAX_EMBED_BYTES) {
         return file;

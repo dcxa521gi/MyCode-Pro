@@ -5068,13 +5068,22 @@ fn read_binary_file_sync(path: &str) -> Result<Vec<u8>, String> {
 
 /// Persist a pasted blob so non-image attachments have a real path.
 #[tauri::command]
-pub async fn write_attachment(name: String, data: String) -> Result<String, String> {
-    tauri::async_runtime::spawn_blocking(move || write_attachment_sync(&name, &data))
+pub async fn write_attachment(
+    name: String,
+    data: String,
+    cwd: Option<String>,
+) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || write_attachment_at(&name, &data, cwd.as_deref()))
         .await
         .map_err(|e| e.to_string())?
 }
 
+#[cfg(test)]
 fn write_attachment_sync(name: &str, data: &str) -> Result<String, String> {
+    write_attachment_at(name, data, None)
+}
+
+fn write_attachment_at(name: &str, data: &str, cwd: Option<&str>) -> Result<String, String> {
     let bytes = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, data)
         .map_err(|_| "Attachment data is not valid base64.".to_string())?;
     if bytes.len() as u64 > MAX_ATTACHMENT_EMBED_BYTES {
@@ -5083,7 +5092,15 @@ fn write_attachment_sync(name: &str, data: &str) -> Result<String, String> {
             MAX_ATTACHMENT_EMBED_BYTES / 1024 / 1024
         ));
     }
-    let dir = crate::cache_location::root().join("attachments");
+    let dir = if let Some(cwd) = cwd {
+        let path = PathBuf::from(cwd);
+        if !path.is_absolute() || !path.is_dir() {
+            return Err("Choose an existing workspace folder".into());
+        }
+        path.join(".mycode/attachments")
+    } else {
+        crate::cache_location::root().join("attachments")
+    };
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let stamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -8118,4 +8135,36 @@ mod tests {
         );
         assert_eq!(git_head_branch(&repo.0).as_deref(), Some("feature"));
     }
+}
+
+#[tauri::command(async)]
+pub fn stage_attachment(path: String, cwd: String) -> Result<String, String> {
+    let source = PathBuf::from(&path)
+        .canonicalize()
+        .map_err(|e| e.to_string())?;
+    let cache = crate::cache_location::root().join("attachments");
+    let Ok(cache) = cache.canonicalize() else {
+        return Ok(path);
+    };
+    if !source.starts_with(cache) {
+        return Ok(path);
+    }
+    let cwd = PathBuf::from(cwd);
+    if !cwd.is_absolute() || !cwd.is_dir() {
+        return Err("Choose an existing workspace folder".into());
+    }
+    let target = cwd.join(".mycode/attachments");
+    std::fs::create_dir_all(&target).map_err(|e| e.to_string())?;
+    let target = target.join(format!(
+        "{}-{}",
+        uuid::Uuid::new_v4(),
+        safe_attachment_name(
+            source
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("attachment")
+        )
+    ));
+    std::fs::copy(source, &target).map_err(|e| e.to_string())?;
+    Ok(path_to_js(&target))
 }

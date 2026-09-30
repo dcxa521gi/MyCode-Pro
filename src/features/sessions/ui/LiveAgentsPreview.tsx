@@ -166,11 +166,12 @@ function LiveAgentCard({
     : agent.startedAt != null
       ? formatLiveElapsed(agent.startedAt, now)
       : "";
+  const { t } = useTranslation();
   const activity = agent.needsApproval
-    ? "Need approval"
+    ? t("Need approval")
     : agent.done
-      ? "Done"
-      : agent.activity;
+      ? t("Done")
+      : t(agent.activity);
   const live = !agent.needsApproval && !agent.done;
   const title = [agent.title, project, activity, elapsed]
     .filter(Boolean)

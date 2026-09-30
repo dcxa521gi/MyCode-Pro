@@ -495,6 +495,7 @@ pub fn harness_spawn(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
     prepare_child(&mut cmd, &command);
+    crate::cache_location::configure_task(&mut cmd, &workdir)?;
     apply_provider_account(&app, &mut cmd, account.as_ref())?;
     if binary_provider.as_deref() == Some("hermes") {
         let managed = app

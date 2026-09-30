@@ -521,6 +521,10 @@ pub fn managed_cli_install(app: AppHandle, provider: String) -> Result<String, S
             .env("npm_config_proxy", &proxy)
             .env("npm_config_https_proxy", proxy);
     }
+    cmd.env(
+        "npm_config_cache",
+        crate::cache_location::root().join("npm"),
+    );
     cmd.arg(runtime.join("npm/bin/npm-cli.js"))
         .args(["install", "--global", "--no-audit", "--no-fund", "--prefix"])
         .arg(&prefix)

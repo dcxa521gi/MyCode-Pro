@@ -66,6 +66,7 @@ export type ClaudeMappedLine = {
 };
 
 export type ClaudeCliSettings = {
+  plansDirectory?: string;
   alwaysThinkingEnabled?: boolean;
   fastMode?: boolean;
   ultracode?: boolean;

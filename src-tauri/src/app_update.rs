@@ -6,10 +6,10 @@ use std::{
     path::PathBuf,
     sync::Mutex,
 };
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter};
 
 static LOCK: Mutex<()> = Mutex::new(());
-fn installer(app: &AppHandle, version: &str) -> Result<PathBuf, String> {
+fn installer(_app: &AppHandle, version: &str) -> Result<PathBuf, String> {
     if version.split('.').count() != 3
         || !version
             .split('.')
@@ -17,11 +17,7 @@ fn installer(app: &AppHandle, version: &str) -> Result<PathBuf, String> {
     {
         return Err("Invalid release version".into());
     }
-    let dir = app
-        .path()
-        .app_cache_dir()
-        .map_err(|e| e.to_string())?
-        .join("updates");
+    let dir = crate::cache_location::root().join("updates");
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     Ok(dir.join(format!("MyCode_{version}_x64-setup.exe")))
 }
