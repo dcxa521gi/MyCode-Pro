@@ -655,7 +655,7 @@ function UsageWindowCard({
 }) {
   const { t } = useTranslation();
   const pct = clampUsedPercent(window.usedPercent);
-  const remaining = Math.max(0, Math.round(100 - pct));
+  const remaining = 100 - pct;
   const title =
     kind === "session"
       ? "5-hour limit"
@@ -675,19 +675,19 @@ function UsageWindowCard({
       <div
         className="mt-2 h-1.5 overflow-hidden rounded-full bg-content/10"
         role="progressbar"
-        aria-label={`${t(title)} ${t("used")}`}
+        aria-label={`${t(title)} ${t("remaining")}`}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={Math.round(pct)}
+        aria-valuenow={Math.round(remaining)}
       >
         <span
           className={`block h-full rounded-full ${barClass(pct)}`}
-          style={{ width: `${pct}%` }}
+          style={{ width: `${100 - pct}%` }}
         />
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-3 text-[10px] leading-4 text-content/40">
         <span className="tabular-nums">
-          {remaining}
+          {Math.round(remaining)}
           {t("% remaining")}
         </span>
         <span
@@ -1062,7 +1062,7 @@ function MiniBar({ usedPct }: { usedPct: number }) {
     >
       <span
         className={`block h-full rounded-full ${barClass(pct)}`}
-        style={{ width: `${pct}%` }}
+        style={{ width: `${100 - pct}%` }}
       />
     </span>
   );

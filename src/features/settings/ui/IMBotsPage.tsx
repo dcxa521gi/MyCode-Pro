@@ -116,6 +116,169 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
                 ["secret", "Bot secret"],
               ]
             : [["token", "Bot token"]];
+  const channelForm = (
+    <form
+      className="space-y-4 px-5 pb-5 pt-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void request("configure");
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <h2 className="font-medium">
+          {t(channels.find((c) => c[0] === channel)?.[1] ?? channel)}
+        </h2>
+        <span className="rounded-full bg-content/5 px-3 py-1 text-xs">
+          {t(current?.status ?? "Disconnected")}
+        </span>
+      </div>
+      {channel === "wechat" && (
+        <div className="space-y-3">
+          <p className="text-sm text-content/65">
+            {t(
+              "Scan with WeChat to authorize a local connection. The authorized account is the only allowed sender.",
+            )}
+          </p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void request("wechat-authorize")}
+            className="rounded-lg border border-content/20 px-3 py-2"
+          >
+            {t("Show WeChat QR code")}
+          </button>
+          {current?.qrImage && (
+            <img
+              src={current.qrImage}
+              alt={t("WeChat authorization QR code")}
+              width={256}
+              height={256}
+              className="rounded-xl"
+            />
+          )}
+          {current?.verificationRequired && (
+            <div className="flex gap-2">
+              <input
+                aria-label={t("Verification code")}
+                className={inputClass}
+                value={credentials.code ?? ""}
+                onChange={(e) => setCredentials({ code: e.target.value })}
+              />
+              <button
+                type="button"
+                onClick={() => void request("wechat-verify")}
+              >
+                {t("Confirm")}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {fields.map(([key, label]) => (
+          <label key={`${channel}-${key}`} className="grid gap-1 text-xs">
+            {t(label)}
+            <input
+              aria-label={t(label)}
+              className={inputClass}
+              required
+              type={/secret|token/i.test(key) ? "password" : "text"}
+              autoComplete="off"
+              value={credentials[key] ?? ""}
+              onChange={(e) =>
+                setCredentials({ ...credentials, [key]: e.target.value })
+              }
+            />
+          </label>
+        ))}
+        <label className="grid gap-1 text-xs">
+          {t("Allowed user ID")}
+          <input
+            required
+            className={inputClass}
+            readOnly={channel === "wechat"}
+            value={
+              channel === "wechat" ? (current?.ownerId ?? "") : route.ownerId
+            }
+            onChange={(e) => setRoute({ ...route, ownerId: e.target.value })}
+          />
+        </label>
+        <label className="grid gap-1 text-xs">
+          {t("Working directory")}
+          <input
+            required
+            className={inputClass}
+            value={route.cwd}
+            onChange={(e) => setRoute({ ...route, cwd: e.target.value })}
+          />
+        </label>
+        <label className="grid gap-1 text-xs">
+          {t("Agent and model")}
+          <select
+            required
+            className={inputClass}
+            value={route.model}
+            onChange={(e) => {
+              const model = models.find((m) => m.id === e.target.value);
+              if (model)
+                setRoute({
+                  ...route,
+                  model: model.id,
+                  harness: model.harness,
+                });
+            }}
+          >
+            {!models.some((model) => model.id === route.model) && (
+              <option value={route.model}>
+                {route.harness} ·{" "}
+                {t(
+                  route.model.endsWith(":default")
+                    ? "CLI default"
+                    : "Saved model",
+                )}
+              </option>
+            )}
+            {models.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.harness} · {t(m.name)}
+              </option>
+            ))}
+          </select>
+        </label>
+        {channel === "feishu" && (
+          <label className="grid gap-1 text-xs">
+            {t("Service region")}
+            <select
+              className={inputClass}
+              value={credentials.service ?? "feishu"}
+              onChange={(e) =>
+                setCredentials({ ...credentials, service: e.target.value })
+              }
+            >
+              <option value="feishu">飞书</option>
+              <option value="lark">Lark</option>
+            </select>
+          </label>
+        )}
+      </div>
+      <div className="flex gap-3">
+        <button
+          disabled={busy}
+          type="submit"
+          className="rounded-lg bg-accent px-4 py-2 text-sm text-black disabled:opacity-40"
+        >
+          {t(busy ? "Working…" : "Save and connect")}
+        </button>
+        <button
+          disabled={busy || !current?.route}
+          type="button"
+          onClick={() => void request(current?.running ? "stop" : "start")}
+        >
+          {t(current?.running ? "Disconnect" : "Connect saved bot")}
+        </button>
+      </div>
+    </form>
+  );
   return (
     <section className="space-y-5">
       <p className="text-sm leading-relaxed text-content/55">
@@ -123,13 +286,16 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
           "Bots connect directly from MyCode. Only your allowed user can start tasks. Tool approvals remain in the desktop app; keep MyCode running.",
         )}
       </p>
-      <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <nav className="space-y-2" aria-label={t("IM bots")}>
-          {channels.map(([id, label]) => {
-            const bot = bots.find((b) => b.channel === id);
-            return (
+      <div className="space-y-3" aria-label={t("IM bots")}>
+        {channels.map(([id, label]) => {
+          const bot = bots.find((b) => b.channel === id);
+          return (
+            <section
+              key={id}
+              className="overflow-hidden rounded-2xl bg-content/[0.035]"
+            >
               <button
-                key={id}
+                aria-expanded={channel === id}
                 disabled={busy}
                 className={`flex w-full items-center gap-3 rounded-xl p-4 text-left text-sm ${channel === id ? "bg-accent/10 text-accent" : "bg-content/5 hover:bg-content/10"}`}
                 onClick={() => {
@@ -156,174 +322,10 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
                   </span>
                 </span>
               </button>
-            );
-          })}
-        </nav>
-        <form
-          className="space-y-4 rounded-2xl border border-content/10 bg-content/[0.02] p-5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void request("configure");
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="font-medium">
-              {t(channels.find((c) => c[0] === channel)?.[1] ?? channel)}
-            </h2>
-            <span className="rounded-full bg-content/5 px-3 py-1 text-xs">
-              {t(current?.status ?? "Disconnected")}
-            </span>
-          </div>
-          {channel === "wechat" && (
-            <div className="space-y-3">
-              <p className="text-sm text-content/65">
-                {t(
-                  "Scan with WeChat to authorize a local connection. The authorized account is the only allowed sender.",
-                )}
-              </p>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => void request("wechat-authorize")}
-                className="rounded-lg border border-content/20 px-3 py-2"
-              >
-                {t("Show WeChat QR code")}
-              </button>
-              {current?.qrImage && (
-                <img
-                  src={current.qrImage}
-                  alt={t("WeChat authorization QR code")}
-                  width={256}
-                  height={256}
-                  className="rounded-xl"
-                />
-              )}
-              {current?.verificationRequired && (
-                <div className="flex gap-2">
-                  <input
-                    aria-label={t("Verification code")}
-                    className={inputClass}
-                    value={credentials.code ?? ""}
-                    onChange={(e) => setCredentials({ code: e.target.value })}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => void request("wechat-verify")}
-                  >
-                    {t("Confirm")}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-          <div className="grid gap-4 sm:grid-cols-2">
-            {fields.map(([key, label]) => (
-              <label key={`${channel}-${key}`} className="grid gap-1 text-xs">
-                {t(label)}
-                <input
-                  aria-label={t(label)}
-                  className={inputClass}
-                  required
-                  type={/secret|token/i.test(key) ? "password" : "text"}
-                  autoComplete="off"
-                  value={credentials[key] ?? ""}
-                  onChange={(e) =>
-                    setCredentials({ ...credentials, [key]: e.target.value })
-                  }
-                />
-              </label>
-            ))}
-            <label className="grid gap-1 text-xs">
-              {t("Allowed user ID")}
-              <input
-                required
-                className={inputClass}
-                readOnly={channel === "wechat"}
-                value={
-                  channel === "wechat"
-                    ? (current?.ownerId ?? "")
-                    : route.ownerId
-                }
-                onChange={(e) =>
-                  setRoute({ ...route, ownerId: e.target.value })
-                }
-              />
-            </label>
-            <label className="grid gap-1 text-xs">
-              {t("Working directory")}
-              <input
-                required
-                className={inputClass}
-                value={route.cwd}
-                onChange={(e) => setRoute({ ...route, cwd: e.target.value })}
-              />
-            </label>
-            <label className="grid gap-1 text-xs">
-              {t("Agent and model")}
-              <select
-                required
-                className={inputClass}
-                value={route.model}
-                onChange={(e) => {
-                  const model = models.find((m) => m.id === e.target.value);
-                  if (model)
-                    setRoute({
-                      ...route,
-                      model: model.id,
-                      harness: model.harness,
-                    });
-                }}
-              >
-                {!models.some((model) => model.id === route.model) && (
-                  <option value={route.model}>
-                    {route.harness} ·{" "}
-                    {t(
-                      route.model.endsWith(":default")
-                        ? "CLI default"
-                        : "Saved model",
-                    )}
-                  </option>
-                )}
-                {models.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.harness} · {t(m.name)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {channel === "feishu" && (
-              <label className="grid gap-1 text-xs">
-                {t("Service region")}
-                <select
-                  className={inputClass}
-                  value={credentials.service ?? "feishu"}
-                  onChange={(e) =>
-                    setCredentials({ ...credentials, service: e.target.value })
-                  }
-                >
-                  <option value="feishu">飞书</option>
-                  <option value="lark">Lark</option>
-                </select>
-              </label>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <button
-              disabled={busy}
-              type="submit"
-              className="rounded-lg bg-accent px-4 py-2 text-sm text-black disabled:opacity-40"
-            >
-              {t(busy ? "Working…" : "Save and connect")}
-            </button>
-            <button
-              disabled={busy || !current?.route}
-              type="button"
-              onClick={() => void request(current?.running ? "stop" : "start")}
-            >
-              {t(current?.running ? "Disconnect" : "Connect saved bot")}
-            </button>
-          </div>
-        </form>
+              {channel === id ? channelForm : null}
+            </section>
+          );
+        })}
       </div>
       {error && (
         <p role="alert" className="text-sm text-red-400">

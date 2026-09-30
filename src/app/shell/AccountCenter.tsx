@@ -55,10 +55,10 @@ export function AccountCenter() {
   return (
     <>
       <button
-        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-content/60 hover:bg-content/5"
+        className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-sm text-content/50 hover:bg-content/10 hover:text-content"
         onClick={() => setOpen(true)}
       >
-        <User size={16} className="shrink-0" />
+        <User size={16} strokeWidth={1.75} className="shrink-0 opacity-70" />
         <span className="truncate">{user?.name || t("Account sign-in")}</span>
       </button>
       {open && (

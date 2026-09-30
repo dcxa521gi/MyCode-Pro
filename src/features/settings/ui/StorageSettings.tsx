@@ -1,18 +1,17 @@
+import { defaultWorkspace } from "../../../platform/tauri/workspace";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { pickFolder } from "../../../platform/tauri/fs";
 import { useTranslation } from "../../../shared/i18n";
-import { useWorkMode } from "../model/workMode";
 
 export function StorageSettings() {
   const { t } = useTranslation();
-  const mode = useWorkMode();
   const [workspace, setWorkspace] = useState("");
   const [cache, setCache] = useState("");
   const [error, setError] = useState("");
   useEffect(() => {
     let active = true;
-    void invoke<string>("default_workspace")
+    void defaultWorkspace()
       .then((p) => {
         if (active) setWorkspace(p);
       })
@@ -25,14 +24,15 @@ export function StorageSettings() {
     return () => {
       active = false;
     };
-  }, [mode]);
+  }, []);
   const choose = async (kind: "workspace" | "cache") => {
     try {
       const folder = await pickFolder(t("Choose folder"));
       if (!folder) return;
       if (kind === "workspace") {
-        const saved = await invoke<string>("workspace_set_location", { folder });
-        localStorage.setItem(`mycode.defaultWorkspace.${mode}`, saved);
+        const saved = await invoke<string>("workspace_set_location", {
+          folder,
+        });
         setWorkspace(saved);
       } else setCache(await invoke<string>("cache_set_location", { folder }));
       setError("");
@@ -51,12 +51,7 @@ export function StorageSettings() {
       ).map(([kind, label, value]) => (
         <div key={kind} className="flex items-center gap-3 text-sm">
           <div className="min-w-0 flex-1">
-            <div>
-              {t(label)}
-              {kind === "workspace"
-                ? ` · ${t(mode === "office" ? "Office" : "Development")}`
-                : ""}
-            </div>
+            <div>{t(label)}</div>
             <div className="mt-1 break-all text-xs text-content/50">
               {value || t("Loading…")}
             </div>

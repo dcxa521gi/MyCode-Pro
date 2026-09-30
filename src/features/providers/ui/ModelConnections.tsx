@@ -311,7 +311,7 @@ export function ModelConnections() {
                             aria-label={`${t("Enabled")} ${id}`}
                             checked={item.models.includes(id)}
                             disabled={busy}
-                            className="h-5 w-9 accent-accent"
+                            className="relative h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-content/20 transition-colors before:absolute before:left-0.5 before:top-0.5 before:size-4 before:rounded-full before:bg-white before:transition-transform checked:bg-accent checked:before:translate-x-4 focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-40"
                             onChange={(event) => {
                               const enabled = event.target.checked;
                               void action(async () => {

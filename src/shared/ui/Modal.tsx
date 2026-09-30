@@ -7,14 +7,16 @@ import { useLockOverscroll } from "../hooks/useLockOverscroll";
 import { LAYER } from "../lib/layers";
 import { GlassBackdrop } from "../../app/shell/GlassBackdrop";
 
-export type ModalSize = "sm" | "md";
+export type ModalSize = "sm" | "md" | "lg";
 
 const WIDTH: Record<ModalSize, string> = {
+  lg: "w-[min(1080px,calc(100vw-32px))]",
   sm: "w-[min(420px,calc(100vw-24px))]",
   md: "w-[min(560px,calc(100vw-24px))]",
 };
 
 const TOP: Record<ModalSize, string> = {
+  lg: "top-[8%]",
   sm: "top-[22%]",
   md: "top-[10%]",
 };

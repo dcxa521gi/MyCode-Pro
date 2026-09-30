@@ -114,11 +114,29 @@ pub fn create_project_folder(parent: String, name: String) -> Result<String, Str
     Ok(crate::fs::path_to_js(&path))
 }
 
+pub fn project_storage(cwd: &std::path::Path) -> Result<PathBuf, String> {
+    let root = cwd.join(".mycode");
+    fs::create_dir_all(&root).map_err(|e| e.to_string())?;
+    match fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(root.join(".gitignore"))
+    {
+        Ok(mut file) => {
+            use std::io::Write;
+            file.write_all(b"*\n").map_err(|e| e.to_string())?;
+        }
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
+        Err(e) => return Err(e.to_string()),
+    }
+    Ok(root)
+}
+
 pub fn configure_task(
     cmd: &mut std::process::Command,
     cwd: &std::path::Path,
 ) -> Result<(), String> {
-    let root = cwd.join(".mycode");
+    let root = project_storage(cwd)?;
     for (key, child) in [
         ("TEMP", "tmp"),
         ("TMP", "tmp"),
@@ -132,6 +150,21 @@ pub fn configure_task(
         let path = root.join(child);
         fs::create_dir_all(&path).map_err(|e| format!("Cannot prepare project storage: {e}"))?;
         cmd.env(key, path);
+    }
+    Ok(())
+}
+
+pub fn migrate_workspace(app: &AppHandle, legacy: Option<&str>) -> Result<(), String> {
+    if !config_path(app)?
+        .with_file_name("workspace-location.json")
+        .exists()
+    {
+        if let Some(folder) = legacy {
+            let path = PathBuf::from(folder);
+            if path.is_absolute() && path.is_dir() {
+                workspace_set_location(app.clone(), folder.to_owned())?;
+            }
+        }
     }
     Ok(())
 }

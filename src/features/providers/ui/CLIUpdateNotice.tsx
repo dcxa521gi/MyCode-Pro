@@ -1,3 +1,6 @@
+import { listen } from "@tauri-apps/api/event";
+import { probeHarnessAvailability } from "../../../integrations/harness/core/availability";
+import { refreshHarnessCatalogs } from "../../../integrations/harness/core/registry";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import {
@@ -14,6 +17,24 @@ let startupCheck: Promise<HarnessId[]> | undefined;
 export function CLIUpdateNotice({ onOpen }: { onOpen: () => void }) {
   const { t } = useTranslation();
   const [updates, setUpdates] = useState<HarnessId[]>([]);
+  useEffect(() => {
+    let disposed = false;
+    let stop: (() => void) | undefined;
+    void listen<string>("mycode-cli-updated", (event) => {
+      setUpdates((current) => current.filter((id) => id !== event.payload));
+      void probeHarnessAvailability({ force: true }).catch(() => {});
+      void refreshHarnessCatalogs(HARNESSES).catch(() => {});
+    })
+      .then((unlisten) => {
+        if (disposed) unlisten();
+        else stop = unlisten;
+      })
+      .catch(() => {});
+    return () => {
+      disposed = true;
+      stop?.();
+    };
+  }, []);
   useEffect(() => {
     if (!("__TAURI_INTERNALS__" in window)) return;
     let active = true;

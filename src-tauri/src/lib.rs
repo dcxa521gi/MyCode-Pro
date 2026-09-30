@@ -64,13 +64,8 @@ mod worktrees;
 
 /// Project directory for new sessions — prefer cwd, else home.
 #[tauri::command]
-fn default_cwd() -> String {
-    if let Ok(cwd) = std::env::current_dir() {
-        return fs::path_to_js(&cwd);
-    }
-    dirs_home()
-        .map(|home| fs::path_to_js(std::path::Path::new(&home)))
-        .unwrap_or_else(|| "~".into())
+fn default_cwd(app: tauri::AppHandle) -> Result<String, String> {
+    cache_location::workspace(&app)
 }
 
 #[tauri::command]
@@ -81,7 +76,8 @@ fn home_dir() -> String {
 }
 
 #[tauri::command]
-fn default_workspace(app: tauri::AppHandle) -> Result<String, String> {
+fn default_workspace(app: tauri::AppHandle, legacy: Option<String>) -> Result<String, String> {
+    cache_location::migrate_workspace(&app, legacy.as_deref())?;
     cache_location::workspace(&app)
 }
 

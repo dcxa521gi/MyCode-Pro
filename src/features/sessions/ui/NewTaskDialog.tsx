@@ -1,3 +1,4 @@
+import { defaultWorkspace } from "../../../platform/tauri/workspace";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Modal } from "../../../shared/ui/Modal";
@@ -30,7 +31,7 @@ export function NewTaskDialog({
   const [error, setError] = useState("");
   useEffect(() => {
     let live = true;
-    void invoke<string>("default_workspace")
+    void defaultWorkspace()
       .then((path) => {
         if (live) setParent(path);
       })

@@ -7,7 +7,7 @@ use std::{
     process::{Command, Stdio},
     sync::Mutex,
 };
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 static INSTALL_LOCK: Mutex<()> = Mutex::new(());
 static RUNTIME_PATH: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
 pub fn init(app: &AppHandle) {
@@ -484,6 +484,16 @@ pub fn managed_cli_latest(app: AppHandle, provider: String) -> Result<CliRelease
 }
 #[tauri::command(async)]
 pub fn managed_cli_install(app: AppHandle, provider: String) -> Result<String, String> {
+    let result = install_cli(&app, &provider);
+    if result.is_ok() {
+        let _ = app.emit("mycode-cli-updated", &provider);
+    }
+    result
+}
+
+fn install_cli(app: &AppHandle, provider: &str) -> Result<String, String> {
+    let app = app.clone();
+    let provider = provider.to_owned();
     if ["omp", "fx", "antigravity", "zcode"].contains(&provider.as_str()) {
         return Err("This CLI is no longer supported in MyCode".into());
     }

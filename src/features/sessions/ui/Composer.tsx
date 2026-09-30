@@ -1623,7 +1623,7 @@ export function Composer({
         : value,
     );
     const orchestratorCommand =
-      !remote && !hideTopBar && !command.planning
+      !hideTopBar && !command.planning
         ? consumeOrchestratorCommand(command.text)
         : { text: command.text, matched: false };
     const text = isNativeCommandPrompt(orchestratorCommand.text, harness)

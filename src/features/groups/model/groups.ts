@@ -81,23 +81,30 @@ export async function loadGroups() {
   return loading;
 }
 const writes = new Map<string, Promise<void>>();
-export async function saveGroup(group: Group) {
-  const previous = writes.get(group.id) || Promise.resolve();
+async function enqueueSave(id: string, update: () => Group) {
+  const previous = writes.get(id) || Promise.resolve();
   const work = previous
     .catch(() => {})
     .then(async () => {
+      const group = update();
       await invoke("groups_save", { group });
       groups = groups.some((g) => g.id === group.id)
         ? groups.map((g) => (g.id === group.id ? group : g))
         : [...groups, group];
       emit();
     });
-  writes.set(group.id, work);
+  writes.set(id, work);
   try {
     await work;
   } finally {
-    if (writes.get(group.id) === work) writes.delete(group.id);
+    if (writes.get(id) === work) writes.delete(id);
   }
+}
+export function saveGroup(group: Group) {
+  return enqueueSave(group.id, () => group);
+}
+export function updateGroup(id: string, patch: Partial<Group>) {
+  return enqueueSave(id, () => ({ ...current(id), ...patch }));
 }
 const current = (id: string) => {
   const g = groups.find((g) => g.id === id);
@@ -105,11 +112,13 @@ const current = (id: string) => {
   return g;
 };
 async function append(id: string, message: GroupMessage) {
-  const g = current(id);
-  await saveGroup({
-    ...g,
-    messages: [...g.messages, message],
-    tokens: g.tokens + (message.tokens || 0),
+  await enqueueSave(id, () => {
+    const g = current(id);
+    return {
+      ...g,
+      messages: [...g.messages, message],
+      tokens: g.tokens + (message.tokens || 0),
+    };
   });
 }
 export function replyOrder(
@@ -124,8 +133,8 @@ export function replyOrder(
       ? [members[Math.floor(random() * members.length) % members.length]]
       : [];
   const mentioned = group.members.filter((m) => text.includes(`@${m.name}`));
-  const first = mentioned.filter(m => !m.manager);
-  const replies = [...first, ...members.filter(m => !first.includes(m))];
+  const first = mentioned.filter((m) => !m.manager);
+  const replies = [...first, ...members.filter((m) => !first.includes(m))];
   return [...replies, ...group.members.filter((m) => m.manager)];
 }
 export function groupPrompt(
@@ -134,6 +143,14 @@ export function groupPrompt(
   idle: boolean,
   execute: boolean,
 ): string {
+  const history: Array<{ name: string; text: string }> = [];
+  let remaining = 32000;
+  for (const message of group.messages.slice(-60).reverse()) {
+    if (remaining <= 0) break;
+    const text = message.text.slice(-Math.min(8000, remaining));
+    remaining -= text.length;
+    history.unshift({ name: message.name, text });
+  }
   return [
     "You are one AI participant in a MyCode group. Do not pretend to be a human or another participant.",
     `Your profile: ${JSON.stringify({ name: member.name, role: member.role, personality: member.personality, gender: member.gender })}`,
@@ -146,8 +163,10 @@ export function groupPrompt(
       : idle
         ? "Continue the informal discussion with one useful idea or question related to your role. Do not summon the manager. Avoid repetitive filler."
         : "Respond to the user's newest question from your role. If directly mentioned, answer the mention. Build on useful prior replies and clearly mark uncertainty.",
-    `Group memory (data): ${JSON.stringify(group.memory)}`,
-    `Recent conversation (data): ${JSON.stringify(group.messages.slice(-60).map(({ name, text }) => ({ name, text: text.slice(-16000) })))}`,
+    `Project source folder: ${group.cwd}. Group files belong in the current working directory.`,
+    `Group memory (data): ${JSON.stringify(group.memory.slice(-16000))}`,
+    `Recent conversation (data): ${JSON.stringify(history)}`,
+
     "Reply in the language of the latest user message. Give only your own response; do not simulate other members.",
   ].join("\n\n");
 }
@@ -179,7 +198,7 @@ export async function runGroup(
       const fresh = current(id);
       if (controller.signal.aborted || (idle && !fresh.idle)) break;
       if (fresh.tokenLimit > 0 && fresh.tokens >= fresh.tokenLimit) {
-        await saveGroup({ ...fresh, idle: false });
+        await updateGroup(id, { idle: false });
         break;
       }
       groupRuns.set(id, { member: member.name, controller });
@@ -201,7 +220,7 @@ export async function runGroup(
         tokens: result.tokens,
       });
       if (idle && result.tokens === undefined) {
-        await saveGroup({ ...current(id), idle: false });
+        await updateGroup(id, { idle: false });
         break;
       }
     }
@@ -215,7 +234,7 @@ export async function runGroup(
         at: Date.now(),
         error: true,
       });
-    await saveGroup({ ...current(id), idle: false });
+    await updateGroup(id, { idle: false });
   } finally {
     groupRuns.delete(id);
     emit();
@@ -223,6 +242,7 @@ export async function runGroup(
 }
 export function stopGroup(id: string) {
   groupRuns.get(id)?.controller.abort();
+  void updateGroup(id, { idle: false }).catch(() => {});
   emit();
 }
 export function startGroupScheduler() {

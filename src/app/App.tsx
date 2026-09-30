@@ -1,4 +1,9 @@
-import { connectGroupRunner, loadGroups, startGroupScheduler } from "../features/groups/model/groups";
+import { defaultWorkspace } from "../platform/tauri/workspace";
+import {
+  connectGroupRunner,
+  loadGroups,
+  startGroupScheduler,
+} from "../features/groups/model/groups";
 import { GroupChats } from "../features/groups/ui/GroupChats";
 import { CLIUpdateNotice } from "../features/providers/ui/CLIUpdateNotice";
 import { findModel } from "../features/sessions/model/models";
@@ -1965,7 +1970,7 @@ export default function App({
 
   useEffect(() => {
     if (lastProjectPath()) return;
-    void invoke<string>("default_cwd")
+    void defaultWorkspace()
       .then((cwd) => {
         if (!looksLikeProject(cwd)) return;
         setProjectCwd(cwd);
@@ -2210,6 +2215,8 @@ export default function App({
 
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const onNew = useCallback(() => {
+    setSettingsOpen(false);
+    setStandaloneTools(false);
     const tab = tabsRef.current.find((t) => t.id === activeTabIdRef.current);
     const seed =
       sessionsRef.current.find((s) => s.id === tab?.focusedId) ??
@@ -3875,7 +3882,7 @@ export default function App({
           const cwd =
             candidate && candidate !== "~"
               ? candidate
-              : await invoke<string>("default_cwd");
+              : await defaultWorkspace();
           const description =
             item.provider === "linear" || item.provider === "jira"
               ? await inboxTrackerDescription(item)
@@ -9723,39 +9730,109 @@ export default function App({
     window.addEventListener("mycode:open-groups", open);
     void loadGroups().catch(() => {});
     const stop = startGroupScheduler();
-    return () => { window.removeEventListener("mycode:open-groups", open); stop(); };
+    return () => {
+      window.removeEventListener("mycode:open-groups", open);
+      stop();
+    };
   }, []);
   useEffect(() => {
-    connectGroupRunner(({ group, member, prompt, execute, signal }) => new Promise((resolve, reject) => {
-      if (signal.aborted) { reject(new Error("Cancelled")); return; }
-      const cwd = `${group.cwd.replace(/\\/g, "/")}/.mycode/groups/${group.id}/workspace`;
-      const session = newSession(member.harness, cwd, member.model, "supervised");
-      session.title = `${group.name} · ${member.name}`;
-      session.modelSettings = { ...session.modelSettings, mycodeGroup: "true" };
-      sessionsRef.current = [...sessionsRef.current, session];
-      setSessions(sessionsRef.current);
-      const abort = () => { onStop(session.id); reject(new Error("Cancelled")); };
-      signal.addEventListener("abort", abort, { once: true });
-      const accepted = submitSession(session.id, prompt, [], {
-        intent: execute ? "build" : "plan",
-        onSettled: outcome => {
-          signal.removeEventListener("abort", abort);
-          if (outcome.status !== "completed") { reject(new Error(outcome.error || outcome.status)); return; }
-          setTimeout(() => {
-            const blocks = sessionsRef.current.find(s => s.id === session.id)?.blocks || [];
-            const measured = blocks.filter(b => b.turnMetrics?.inputTokens != null || b.turnMetrics?.outputTokens != null);
-            resolve({ text: outcome.text || blocks.filter(b => b.role === "assistant").map(b => b.text).join("\n"), tokens: measured.length ? measured.reduce((n, b) => n + (b.turnMetrics?.inputTokens || 0) + (b.turnMetrics?.outputTokens || 0), 0) : undefined });
-          }, 0);
-        },
-      });
-      void Promise.resolve(accepted).then(ok => { if (!ok) { signal.removeEventListener("abort", abort); reject(new Error("Could not start this agent. Check CLI installation and model access.")); } }).catch(error => { signal.removeEventListener("abort", abort); reject(error); });
-    }));
+    connectGroupRunner(
+      ({ group, member, prompt, execute, signal }) =>
+        new Promise((resolve, reject) => {
+          if (signal.aborted) {
+            reject(new Error("Cancelled"));
+            return;
+          }
+          const cwd = `${group.cwd.replace(/\\/g, "/")}/.mycode/groups/${group.id}/workspace`;
+          const session = newSession(
+            member.harness,
+            cwd,
+            member.model,
+            "supervised",
+          );
+          session.title = `${group.name} · ${member.name}`;
+          session.modelSettings = {
+            ...session.modelSettings,
+            mycodeGroup: "true",
+          };
+          sessionsRef.current = [...sessionsRef.current, session];
+          setSessions(sessionsRef.current);
+          const abort = () => {
+            onStop(session.id);
+            reject(new Error("Cancelled"));
+          };
+          signal.addEventListener("abort", abort, { once: true });
+          const accepted = submitSession(session.id, prompt, [], {
+            intent: execute ? "build" : "plan",
+            onSettled: (outcome) => {
+              signal.removeEventListener("abort", abort);
+              if (outcome.status !== "completed") {
+                reject(new Error(outcome.error || outcome.status));
+                return;
+              }
+              setTimeout(() => {
+                const blocks =
+                  sessionsRef.current.find((s) => s.id === session.id)
+                    ?.blocks || [];
+                const measured = blocks.filter(
+                  (b) =>
+                    b.turnMetrics?.inputTokens != null ||
+                    b.turnMetrics?.outputTokens != null,
+                );
+                resolve({
+                  text:
+                    outcome.text ||
+                    blocks
+                      .filter(
+                        (b) => b.role === "assistant" || b.role === "plan",
+                      )
+                      .map((b) => b.text)
+                      .join("\n"),
+                  tokens: measured.length
+                    ? measured.reduce(
+                        (n, b) =>
+                          n +
+                          (b.turnMetrics?.inputTokens || 0) +
+                          (b.turnMetrics?.outputTokens || 0),
+                        0,
+                      )
+                    : undefined,
+                });
+              }, 0);
+            },
+          });
+          void Promise.resolve(accepted)
+            .then((ok) => {
+              if (!ok) {
+                signal.removeEventListener("abort", abort);
+                reject(
+                  new Error(
+                    "Could not start this agent. Check CLI installation and model access.",
+                  ),
+                );
+              }
+            })
+            .catch((error) => {
+              signal.removeEventListener("abort", abort);
+              reject(error);
+            });
+        }),
+    );
     return () => connectGroupRunner(undefined);
   }, [submitSession, onStop]);
 
-  const onOpenSettings = useCallback(() => { setStandaloneTools(false); openSettings(); }, [openSettings]);
+  const onOpenSettings = useCallback(() => {
+    setStandaloneTools(false);
+    openSettings();
+  }, [openSettings]);
   useEffect(() => {
-    const openTools = (event: Event) => { const section = (event as CustomEvent<string>).detail; if (section !== "skills" && section !== "im-bots") return; openSettings(); setSettingsSection(section); setStandaloneTools(true); };
+    const openTools = (event: Event) => {
+      const section = (event as CustomEvent<string>).detail;
+      if (section !== "skills" && section !== "im-bots") return;
+      openSettings();
+      setSettingsSection(section);
+      setStandaloneTools(true);
+    };
     window.addEventListener("mycode:open-tools", openTools);
     return () => window.removeEventListener("mycode:open-tools", openTools);
   }, [openSettings]);
@@ -9763,7 +9840,8 @@ export default function App({
   useEffect(() => {
     const onOpenMcp = () => openSettings("mcp");
     window.addEventListener("monocode:open-mcp-settings", onOpenMcp);
-    return () => window.removeEventListener("monocode:open-mcp-settings", onOpenMcp);
+    return () =>
+      window.removeEventListener("monocode:open-mcp-settings", onOpenMcp);
   }, [openSettings]);
 
   const onOpenNotificationSettings = useCallback(
@@ -10953,7 +11031,12 @@ export default function App({
             />
           ) : null}
 
-          <CLIUpdateNotice onOpen={() => { setStandaloneTools(false); openSettings("providers-cli"); }} />
+          <CLIUpdateNotice
+            onOpen={() => {
+              setStandaloneTools(false);
+              openSettings("providers-cli");
+            }}
+          />
           {groupsOpen && <GroupChats onClose={() => setGroupsOpen(false)} />}
           <CliReadyDialog sessions={sessions} />
           {newTaskOpen && (

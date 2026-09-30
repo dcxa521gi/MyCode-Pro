@@ -1,5 +1,8 @@
+import { open } from "@tauri-apps/plugin-dialog";
+import { listSkills, type DiscoveredSkill } from "../../../platform/tauri/fs";
+import { loadDisabledSkillPaths } from "../../skills/model/skills";
+import { defaultWorkspace } from "../../../platform/tauri/workspace";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { Modal } from "../../../shared/ui/Modal";
 import { BusyIndicator } from "../../../shared/ui/BusyIndicator";
 import { useTranslation } from "../../../shared/i18n";
@@ -23,6 +26,7 @@ import {
   subscribeGroups,
   loadGroups,
   saveGroup,
+  updateGroup,
   runGroup,
   stopGroup,
   groupRuns,
@@ -52,13 +56,14 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [skills, setSkills] = useState<DiscoveredSkill[]>([]);
   const [execute, setExecute] = useState(false);
   const group = groups.find((g) => g.id === selected);
   const running = group ? groupRuns.get(group.id) : undefined;
   const create = async () => {
     setError("");
     try {
-      const cwd = await invoke<string>("default_workspace");
+      const cwd = await defaultWorkspace();
       setDraft({
         id: crypto.randomUUID(),
         name: "",
@@ -118,10 +123,11 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
     <Modal
       title={t("Group chats")}
       onClose={onClose}
-      className="!w-[min(1080px,calc(100vw-32px))] h-[min(800px,85vh)]"
+      size="lg"
+      className="h-[min(800px,85vh)]"
       fitViewport
     >
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="flex h-full min-h-0 flex-1 overflow-hidden">
         <aside className="w-48 shrink-0 space-y-2 overflow-y-auto border-r border-content/10 p-3">
           <button
             className={`${button} w-full text-accent`}
@@ -301,6 +307,7 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
                 {t("Group memory")}
                 <textarea
                   className={`${field} min-h-24`}
+                  maxLength={16000}
                   value={draft.memory}
                   onChange={(e) =>
                     setDraft({ ...draft, memory: e.target.value })
@@ -374,8 +381,8 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
                 <button
                   className={button}
                   onClick={() =>
-                    void saveGroup({ ...group, idle: !group.idle }).catch((e) =>
-                      setError(String(e)),
+                    void updateGroup(group.id, { idle: !group.idle }).catch(
+                      (e) => setError(String(e)),
                     )
                   }
                 >
@@ -413,6 +420,21 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
                     >
                       {m.text}
                     </p>
+                    {!m.error && (
+                      <button
+                        className="mt-2 text-xs text-content/45 hover:text-accent"
+                        onClick={() =>
+                          void updateGroup(group.id, {
+                            memory:
+                              `${group.memory}\n${m.name}: ${m.text}`.slice(
+                                -16000,
+                              ),
+                          }).catch((e) => setError(String(e)))
+                        }
+                      >
+                        {t("Add to group memory")}
+                      </button>
+                    )}
                   </article>
                 ))}
               </div>
@@ -442,6 +464,57 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
                       @{m.name}
                     </button>
                   ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    className={button}
+                    onClick={() =>
+                      void open({ multiple: true, directory: false })
+                        .then((paths) => {
+                          if (paths)
+                            setText(
+                              (value) =>
+                                `${value}\n${t("Referenced files")}:\n${(Array.isArray(paths) ? paths : [paths]).join("\n")}`,
+                            );
+                        })
+                        .catch((e) => setError(String(e)))
+                    }
+                  >
+                    {t("Reference files")}
+                  </button>
+                  <button
+                    type="button"
+                    className={button}
+                    onClick={() =>
+                      void listSkills(group.cwd, loadDisabledSkillPaths())
+                        .then(setSkills)
+                        .catch((e) => setError(String(e)))
+                    }
+                  >
+                    {t("Reference skills")}
+                  </button>
+                  {skills.length > 0 && (
+                    <select
+                      aria-label={t("Reference skills")}
+                      className={`${field} !w-48`}
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value)
+                          setText(
+                            (value) =>
+                              `${value}\n${t("Use this skill")}: ${e.target.value}`,
+                          );
+                      }}
+                    >
+                      <option value="">{t("Choose a skill")}</option>
+                      {skills.map((skill) => (
+                        <option key={skill.path} value={skill.path}>
+                          {skill.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <textarea
                   className={`${field} min-h-24 resize-y`}

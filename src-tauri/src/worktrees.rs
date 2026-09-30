@@ -121,8 +121,7 @@ fn session_ids(conn: &rusqlite::Connection, path: &Path) -> Result<Vec<String>, 
 }
 
 fn default_root(main: &Path) -> PathBuf {
-    let name = main.file_name().unwrap_or_default().to_string_lossy();
-    main.with_file_name(format!("{name}-worktrees"))
+    main.join(".mycode").join("worktrees")
 }
 
 #[tauri::command(async)]
@@ -202,6 +201,7 @@ fn create(root: &Path, branch: &str, base: &str, existing: bool) -> Result<Workt
             &format!("{source}^{{commit}}"),
         ],
     )?;
+    crate::cache_location::project_storage(Path::new(&main.path))?;
     std::fs::create_dir_all(&parent).map_err(|e| e.to_string())?;
     let path_str = path_to_js(&path);
     if existing {
