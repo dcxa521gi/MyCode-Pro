@@ -1,3 +1,4 @@
+import { findModel } from "../features/sessions/model/models";
 import { CliReadyDialog } from "../features/providers/ui/CliReadyDialog";
 import { newSessionLike } from "../features/sessions/model/session";
 import { NewTaskDialog } from "../features/sessions/ui/NewTaskDialog";
@@ -6254,6 +6255,8 @@ export default function App({
           sessionId,
           cwd: workCwd,
           message: titleMessage,
+          model: nativeModelId(current.model),
+          modelConnection: findModel(current.model)?.connectionId,
           providerAccountId,
         })
           .then(async (generated) => {

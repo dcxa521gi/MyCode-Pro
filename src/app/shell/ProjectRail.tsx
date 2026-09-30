@@ -1,3 +1,4 @@
+import { AccountCenter } from "./AccountCenter";
 import { UsageSummary } from "../../features/settings/ui/UsageHistoryPage";
 import { ComputerControlStop } from "../../features/settings/ui/ComputerSettings";
 import { useTranslation } from "../../shared/i18n";
@@ -565,8 +566,9 @@ export function ProjectRail({
               icon={Settings}
               onClick={onOpenSettings}
               shortcut={`${MOD},`}
-              ariaLabel={`Settings (${MOD},)`}
+              ariaLabel={`${t("Settings")} (${MOD},)`}
             />
+            <AccountCenter />
           </div>
         </>
       )}

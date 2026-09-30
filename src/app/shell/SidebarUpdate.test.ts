@@ -42,7 +42,11 @@ function installButtonClick() {
       },
       onSnapshot: vi.fn(),
     }) as ReactElement<{ onClick: () => void }>;
-    onClick = tree.props.onClick;
+    onClick = (
+      tree.props as unknown as {
+        children: ReactElement<{ onClick: () => void }>[];
+      }
+    ).children[0].props.onClick;
     return tree;
   }
   renderToStaticMarkup(createElement(Capture));
@@ -63,7 +67,7 @@ describe("isSidebarUpdateActionable", () => {
     const actionable = phases.filter((phase) =>
       isSidebarUpdateActionable({ phase, currentVersion: "0.1.37" }),
     );
-    expect(actionable).toEqual(["available", "downloading"]);
+    expect(actionable).toEqual(["available", "downloading", "error"]);
   });
 });
 

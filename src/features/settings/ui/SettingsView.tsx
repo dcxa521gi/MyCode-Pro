@@ -1,4 +1,3 @@
-import { FreebuffSettings } from "../../providers/ui/FreebuffSettings";
 import { useShowThinking, setShowThinking } from "../model/showThinking";
 import { VoiceSettings } from "./VoiceSettings";
 import { StorageSettings } from "./StorageSettings";
@@ -355,6 +354,7 @@ import {
 } from "../../notifications/model/notifications";
 import {
   installPendingUpdate,
+  launchPendingInstaller,
   readAppVersion,
   runUpdateFlow,
   type UpdaterSnapshot,
@@ -1850,6 +1850,13 @@ function UpdateRow({
   });
 
   useEffect(() => {
+    const update = (event: Event) =>
+      setSnapshot((event as CustomEvent<UpdaterSnapshot>).detail);
+    window.addEventListener("mycode-update", update);
+    return () => window.removeEventListener("mycode-update", update);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     void readAppVersion().then((currentVersion) => {
       if (cancelled) return;
@@ -1862,10 +1869,19 @@ function UpdateRow({
 
   const busy =
     snapshot.phase === "checking" || snapshot.phase === "downloading";
-  const hasUpdate = snapshot.phase === "available";
+  const hasUpdate =
+    snapshot.phase === "available" || snapshot.phase === "downloaded";
 
   const onClick = async () => {
     if (busy) return;
+    if (snapshot.phase === "downloaded") {
+      try {
+        await launchPendingInstaller();
+      } catch (e) {
+        setSnapshot({ ...snapshot, error: String(e) });
+      }
+      return;
+    }
     if (hasUpdate) {
       await installPendingUpdate(setSnapshot);
       return;
@@ -1874,19 +1890,21 @@ function UpdateRow({
   };
 
   const status =
-    snapshot.phase === "available"
-      ? formatMessage("Version {version} is available.", {
-          version: snapshot.availableVersion ?? "",
-        })
-      : snapshot.phase === "downloading"
-        ? `Downloading${snapshot.progress != null ? ` ${snapshot.progress}%` : "…"}`
-        : snapshot.phase === "checking"
-          ? "Checking for updates…"
-          : snapshot.phase === "current"
-            ? "You're on the latest version."
-            : snapshot.phase === "error"
-              ? (snapshot.error ?? "Update check failed.")
-              : "Download updates from this fork's GitHub Releases page.";
+    snapshot.phase === "downloaded"
+      ? "Update downloaded — click to install"
+      : snapshot.phase === "available"
+        ? formatMessage("Version {version} is available.", {
+            version: snapshot.availableVersion ?? "",
+          })
+        : snapshot.phase === "downloading"
+          ? `Downloading${snapshot.progress != null ? ` ${snapshot.progress}%` : "…"}`
+          : snapshot.phase === "checking"
+            ? "Checking for updates…"
+            : snapshot.phase === "current"
+              ? "You're on the latest version."
+              : snapshot.phase === "error"
+                ? (snapshot.error ?? "Update check failed.")
+                : "Updates are downloaded and verified inside MyCode.";
 
   return (
     <Row
@@ -1916,7 +1934,11 @@ function UpdateRow({
           ) : (
             <RefreshCw className="size-3.5" strokeWidth={1.75} aria-hidden />
           )}
-          {hasUpdate ? t("Download") : t("Check for updates")}
+          {snapshot.phase === "downloaded"
+            ? t("Install new version")
+            : hasUpdate
+              ? t("Download")
+              : t("Check for updates")}
         </SecondaryButton>
       </div>
     </Row>
@@ -2687,11 +2709,15 @@ function ShortcutEditor({
         <input
           type="text"
           readOnly
-          aria-label={`Change ${name} shortcut`}
+          aria-label={formatMessage("Change {name} shortcut", {
+            name: t(name),
+          })}
           data-shortcut-recorder-active={recording ? "true" : undefined}
           aria-busy={busy || undefined}
           value={
-            recording || busy ? preview || "Record…" : (display ?? "Disabled")
+            recording || busy
+              ? preview || t("Record…")
+              : (display ?? t("Disabled"))
           }
           onFocus={beginRecording}
           onClick={beginRecording}
@@ -2707,7 +2733,9 @@ function ShortcutEditor({
         {resetVisible ? (
           <button
             type="button"
-            aria-label={`Reset ${name} shortcut`}
+            aria-label={formatMessage("Reset {name} shortcut", {
+              name: t(name),
+            })}
             disabled={busy}
             onClick={() => void run(onReset)}
             className="rounded-md px-1 py-1 text-content/35 hover:bg-content/10 hover:text-content disabled:opacity-50"
@@ -2870,21 +2898,39 @@ function KeybindingsPage() {
         rows.map((row) => {
           const override = overrides[row.command];
           const disabled = override?.disabled === true;
+          const conflicts = disabled
+            ? []
+            : currentKeybindings().filter(
+                (other) =>
+                  other.command !== row.command &&
+                  other.keys === row.keys &&
+                  other.when === row.when &&
+                  !overrides[other.command]?.disabled,
+              );
           return (
             <div
               key={t(row.command)}
-              className="flex h-11 items-center border-b border-content/5 px-4 text-[12px] last:border-b-0"
+              className="flex min-h-11 items-center border-b border-content/5 px-4 py-2 text-[12px] last:border-b-0"
             >
               <span
                 className={`min-w-0 flex-1 truncate ${disabled ? "text-content/45" : ""}`}
               >
                 {t(row.command)}
+                {conflicts.length > 0 && (
+                  <span
+                    className="block text-[10px] text-amber-500"
+                    role="status"
+                  >
+                    {t("Shortcut conflict")}:{" "}
+                    {conflicts.map((other) => t(other.command)).join(" / ")}
+                  </span>
+                )}
               </span>
               {row.command === "App: Quick Composer" ? (
                 <QuickComposerShortcutEditor />
               ) : (
                 <KeybindingShortcutEditor
-                  command={t(row.command)}
+                  command={row.command}
                   display={disabled ? null : row.keys}
                   modified={Boolean(override)}
                   onSave={save}
@@ -2974,7 +3020,14 @@ function ProviderBinaryControl({
   );
 
   useEffect(() => {
-    void inspect(loadProviderBinaryPath(provider));
+    const refresh = () => {
+      setDraft(loadProviderBinaryPath(provider) ?? "");
+      void inspect(loadProviderBinaryPath(provider));
+    };
+    refresh();
+    window.addEventListener("mycode-cli-paths-changed", refresh);
+    return () =>
+      window.removeEventListener("mycode-cli-paths-changed", refresh);
   }, [inspect, provider]);
 
   useEffect(() => {
@@ -3169,12 +3222,14 @@ function ProviderBinaryControl({
                 <span className="block max-h-12 overflow-y-auto whitespace-pre-wrap break-all font-mono text-[10px] text-content/65">
                   {inspection?.path ??
                     (error
-                      ? "CLI could not be resolved"
-                      : "Checking the selected CLI…")}
+                      ? t("CLI could not be resolved")
+                      : t("Checking the selected CLI…"))}
                 </span>
                 <span className="mt-1 block max-h-10 overflow-y-auto whitespace-pre-wrap break-words text-[10px] text-content/40">
                   {inspection?.version ??
-                    (error ? "Retry to check this CLI" : "Checking version…")}
+                    (error
+                      ? t("Retry to check this CLI")
+                      : t("Checking version…"))}
                 </span>
               </div>
               {error ? (
@@ -3367,7 +3422,6 @@ function ProvidersPage({
   return (
     <>
       <ProviderAccountsSettings />
-      <FreebuffSettings cwd={cwd} />
 
       <Group
         id="agent-clis"

@@ -459,9 +459,11 @@ export function SkillsPage({
         </div>
         {previewSkill ? (
           <aside
+            role="dialog"
+            aria-modal="true"
             id={previewId}
             aria-label={t("Skill preview")}
-            className="flex min-h-0 min-w-0 flex-1 flex-col border-t border-stroke @3xl/skills:max-w-[720px] @3xl/skills:border-t-0 @3xl/skills:border-l"
+            className="fixed inset-x-[10%] top-[10%] bottom-[10%] z-[200] flex min-h-0 flex-col rounded-2xl border border-stroke bg-surface shadow-[0_0_0_100vmax_#0008]"
           >
             <header className="flex shrink-0 items-start gap-2 px-4 pt-4 pb-2">
               <h2 className="min-w-0 flex-1 break-words text-[16px] font-semibold text-content">

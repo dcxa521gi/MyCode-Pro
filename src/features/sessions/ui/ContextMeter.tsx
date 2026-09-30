@@ -60,8 +60,7 @@ export function ContextMeter({
       return;
     const reading = `${usage?.used}:${usage?.window}`;
     if (autoAttempts.get(sessionId) === reading) return;
-    autoAttempts.set(sessionId, reading);
-    onCompact();
+    if (onCompact() !== false) autoAttempts.set(sessionId, reading);
   }, [
     auto,
     compactDisabled,
@@ -171,7 +170,7 @@ export function ContextMeter({
                 </label>
                 <button
                   type="button"
-                  disabled={compactDisabled || !usage?.used}
+                  disabled={compactDisabled}
                   onClick={() => {
                     setOpen(false);
                     onCompact();

@@ -1,3 +1,4 @@
+import { GitCodeInbox } from "./GitCodeInbox";
 import { getLocale as uiLocale } from "../../../shared/i18n";
 import { translate as uiTranslate } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
@@ -900,6 +901,7 @@ export function InboxView({
       className="relative flex h-full min-h-0 shrink-0 flex-col border-r border-stroke"
     >
       <div className="flex h-9 shrink-0 items-center gap-px border-b border-stroke px-2">
+        <GitCodeInbox />
         {visibleSources.length > 0 ? (
           <div
             role="tablist"

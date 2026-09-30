@@ -995,7 +995,15 @@ function recordToSession(record: SessionRecord): Session {
         ? record.modelSettings
         : {},
     runtimeMode: asRuntimeMode(record.runtimeMode),
-    title: record.title,
+    title:
+      /not logged in|please run \/login|authentication fail|invalid api.?key/i.test(
+        record.title,
+      )
+        ? record.blocks
+            .find((block) => block.role === "user")
+            ?.text.trim()
+            .slice(0, 50) || "MyCode"
+        : record.title,
     blocks,
     busy: false,
     orchestrationLeadId:

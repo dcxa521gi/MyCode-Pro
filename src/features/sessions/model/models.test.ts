@@ -26,6 +26,8 @@ import {
   savePickerProviderVisible,
   saveRecentModelChoice,
   setHarnessModels,
+  setConnectionModels,
+  modelsFor,
   showProviderInModelPicker,
   stepModelPickerTab,
   type AgentModel,
@@ -481,4 +483,35 @@ describe("live catalog overlays", () => {
     expect(resolveModel("claude", "claude:opus-5").id).toBe("claude:opus-5");
     expect(resolveModel("claude", "claude:opus").id).toBe("claude:opus-5");
   });
+});
+
+it("routes custom reasoning effort to the Codex setting and preserves official capacity", () => {
+  setConnectionModels([
+    {
+      id: "qa",
+      name: "Test",
+      baseUrl: "https://example.com/v1",
+      api: "openai-responses",
+      models: ["test-model"],
+      modelMetadata: {
+        "test-model": {
+          contextWindow: 1048576,
+          reasoningEfforts: ["low", "high"],
+        },
+      },
+      enabled: true,
+      hasKey: true,
+    },
+  ]);
+  try {
+    const custom = modelsFor("codex").find((m) => m.connectionId === "qa")!;
+    expect(custom.contextWindow).toBe(1048576);
+    expect(
+      custom.settings
+        ?.find((s) => s.id === "reasoningEffort")
+        ?.options.map((o) => o.value),
+    ).toEqual(["low", "high"]);
+  } finally {
+    setConnectionModels([]);
+  }
 });

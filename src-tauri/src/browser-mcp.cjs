@@ -18,7 +18,12 @@ if (!allowed()) process.exit(0);
 const child = spawn(
   process.execPath,
   [
-    path.join(root, "node_modules/@playwright/mcp/cli.js"),
+    path.join(
+      root,
+      process.platform === "win32"
+        ? "node_modules/@playwright/mcp/cli.js"
+        : "lib/node_modules/@playwright/mcp/cli.js",
+    ),
     "--headless",
     "--isolated",
     "--browser",

@@ -14,6 +14,7 @@ pub struct Connection {
     pub base_url: String,
     pub api: String,
     pub models: Vec<String>,
+    pub model_metadata: std::collections::BTreeMap<String, Value>,
     pub enabled: bool,
     pub has_key: bool,
     pub primary_model: String,
@@ -207,7 +208,7 @@ fn validate(connection: &Connection) -> Result<(), String> {
         return Err("Unsupported API protocol".into());
     }
     if connection.name.trim().is_empty()
-        || connection.models.is_empty()
+        || (connection.enabled && connection.models.is_empty())
         || connection
             .models
             .iter()
@@ -424,6 +425,12 @@ pub fn configure_child(
             {
                 let base = mimo_anthropic_base(connection)
                     .unwrap_or_else(|| anthropic_root(&connection.base_url).to_owned());
+                if crate::tokendance::is_endpoint(&connection.base_url) {
+                    cmd.env(
+                        "ANTHROPIC_CUSTOM_HEADERS",
+                        format!("X-App-URL: {}", crate::tokendance::APP_URL),
+                    );
+                }
                 cmd.env("ANTHROPIC_BASE_URL", base)
                     .env("ANTHROPIC_API_KEY", key)
                     .env_remove("ANTHROPIC_AUTH_TOKEN")
@@ -444,6 +451,12 @@ pub fn configure_child(
             }
             Some("codex") if connection.api == "openai-responses" => {
                 cmd.env("MYCODE_MODEL_API_KEY", key);
+                if crate::tokendance::is_endpoint(&connection.base_url) {
+                    cmd.arg("-c").arg(format!(
+                        "model_providers.mycode.http_headers={{\"X-App-URL\"=\"{}\"}}",
+                        crate::tokendance::APP_URL
+                    ));
+                }
                 for value in [
                     "model_provider=\"mycode\"".to_string(),
                     "model_providers.mycode.name=\"MyCode\"".into(),
@@ -479,9 +492,33 @@ pub fn configure_child(
             let models: serde_json::Map<String, Value> = c
                 .models
                 .iter()
-                .map(|id| (id.clone(), json!({"name":id})))
+                .map(|id| {
+                    let metadata = c.model_metadata.get(id).cloned().unwrap_or(Value::Null);
+                    let mut variants = serde_json::Map::new();
+                    if let Some(efforts) = metadata["reasoningEfforts"].as_array() {
+                        for effort in efforts.iter().filter_map(Value::as_str) {
+                            variants.insert(
+                                effort.to_owned(),
+                                if c.api == "anthropic-messages" {
+                                    json!({"thinking":{"type":"adaptive"},"effort":effort})
+                                } else {
+                                    json!({"reasoningEffort":effort})
+                                },
+                            );
+                        }
+                    } else if metadata["thinking"].as_bool() == Some(true) {
+                        variants.insert("thinking".into(), json!({"thinking":{"type":"enabled"}}));
+                        variants.insert("normal".into(), json!({"thinking":{"type":"disabled"}}));
+                    }
+                    (
+                        id.clone(),
+                        json!({"name":id,"variants":variants,"limit":{
+                        "context":metadata["contextWindow"].as_u64().unwrap_or(32768),
+                        "output":metadata["maxOutput"].as_u64().unwrap_or(4096)}}),
+                    )
+                })
                 .collect();
-            providers.insert(format!("mycode-{}", c.id), json!({"npm":npm,"name":c.name,"options":{"baseURL":opencode_base(c),"apiKey":key},"models":models}));
+            providers.insert(format!("mycode-{}", c.id), json!({"npm":npm,"name":c.name,"options":{"baseURL":opencode_base(c),"apiKey":key,"headers":if crate::tokendance::is_endpoint(&c.base_url) {json!({"X-App-URL":crate::tokendance::APP_URL})} else {json!({})}},"models":models}));
         }
         let mut mcp = serde_json::Map::new();
         if !isolated {
@@ -591,7 +628,7 @@ pub fn configure_child(
             } else {
                 &c.base_url
             };
-            entries.push(json!({"id": format!("mycode-{}", c.id), "name": c.name, "baseUrl": base, "api": c.api, "env": env, "models": c.models}));
+            entries.push(json!({"id": format!("mycode-{}", c.id), "name": c.name, "baseUrl": base, "api": c.api, "env": env, "models": c.models, "metadata": c.model_metadata, "headers":if crate::tokendance::is_endpoint(&c.base_url) {json!({"X-App-URL":crate::tokendance::APP_URL})} else {json!({})}}));
         }
         if !entries.is_empty() {
             let script = include_str!("local_ai_provider.mjs");
@@ -625,7 +662,7 @@ pub fn local_ai_discover_models(
     app: AppHandle,
     mut connection: Connection,
     api_key: Option<String>,
-) -> Result<Vec<String>, String> {
+) -> Result<std::collections::BTreeMap<String, Value>, String> {
     // Discovery precedes model selection. Validate the endpoint without requiring a model yet.
     connection.models = vec!["discovery".into()];
     validate(&connection)?;
@@ -645,7 +682,10 @@ pub fn local_ai_discover_models(
     fetch_models(&connection, api_key)
 }
 
-fn fetch_models(connection: &Connection, api_key: Option<String>) -> Result<Vec<String>, String> {
+fn fetch_models(
+    connection: &Connection,
+    api_key: Option<String>,
+) -> Result<std::collections::BTreeMap<String, Value>, String> {
     validate(connection)?;
     let key = if let Some(key) = api_key {
         key
@@ -665,10 +705,13 @@ fn fetch_models(connection: &Connection, api_key: Option<String>) -> Result<Vec<
         .timeout(Duration::from_secs(20))
         .redirects(0)
         .build();
-    let mut all = std::collections::BTreeSet::new();
+    let mut all = std::collections::BTreeMap::new();
     let mut cursor = String::new();
     for _ in 0..50 {
         let mut request = agent.get(&endpoint);
+        if crate::tokendance::is_endpoint(&connection.base_url) {
+            request = request.set("X-App-URL", crate::tokendance::APP_URL);
+        }
         if connection.api == "anthropic-messages" {
             request = request
                 .set("x-api-key", &key)
@@ -688,6 +731,11 @@ fn fetch_models(connection: &Connection, api_key: Option<String>) -> Result<Vec<
             request = request.set("Authorization", &format!("Bearer {key}"));
         }
         let response = request.call().map_err(|e| match e {
+            ureq::Error::Status(_, response)
+                if crate::tokendance::is_endpoint(&connection.base_url) =>
+            {
+                crate::tokendance::recovery(&response)
+            }
             ureq::Error::Status(code, _) => format!("HTTP {code}"),
             _ => "Connection failed".into(),
         })?;
@@ -695,7 +743,38 @@ fn fetch_models(connection: &Connection, api_key: Option<String>) -> Result<Vec<
             .into_string()
             .map_err(|_| "Invalid model response")?;
         let value: Value = serde_json::from_str(&text).map_err(|_| "Invalid model response")?;
-        all.extend(parse_model_ids(&value)?);
+        for id in parse_model_ids(&value)? {
+            let list = value
+                .as_array()
+                .or_else(|| value["data"].as_array())
+                .or_else(|| value["models"].as_array())
+                .unwrap();
+            let item = list
+                .iter()
+                .find(|m| {
+                    m.as_str() == Some(&id)
+                        || ["id", "slug", "name"].iter().any(|k| {
+                            m[*k].as_str().map(|s| s.trim_start_matches("models/"))
+                                == Some(id.as_str())
+                        })
+                })
+                .unwrap_or(&Value::Null);
+            let metadata = model_metadata(item, &endpoint);
+            let protocol = match connection.api.as_str() {
+                "anthropic-messages" => "anthropic:messages",
+                "openai-responses" => "openai:responses",
+                "google-generative-ai" => "google:generateContent",
+                _ => "openai:chat-completions",
+            };
+            if crate::tokendance::is_endpoint(&connection.base_url)
+                && metadata["supportedProtocols"]
+                    .as_array()
+                    .is_some_and(|a| !a.iter().any(|v| v.as_str() == Some(protocol)))
+            {
+                continue;
+            }
+            all.insert(id, metadata);
+        }
         let next = if connection.api == "google-generative-ai" {
             value["nextPageToken"].as_str()
         } else if connection.api == "anthropic-messages"
@@ -706,12 +785,114 @@ fn fetch_models(connection: &Connection, api_key: Option<String>) -> Result<Vec<
             None
         };
         match next.filter(|v| !v.is_empty()) {
-            None => return Ok(all.into_iter().collect()),
+            None => {
+                enrich_mimo_metadata(connection, &mut all);
+                return Ok(all);
+            }
             Some(next) if next != cursor => cursor = next.to_string(),
             _ => return Err("Invalid model pagination".into()),
         }
     }
     Err("Model list exceeds pagination limit".into())
+}
+
+// MiMo's /models returns IDs only. Supplement from its official model table,
+// never from names or a third-party estimate. Unknown fields remain null.
+fn enrich_mimo_metadata(
+    connection: &Connection,
+    all: &mut std::collections::BTreeMap<String, Value>,
+) {
+    if !url::Url::parse(&connection.base_url).is_ok_and(|u| {
+        u.host_str().is_some_and(|h| {
+            h == "api.xiaomimimo.com"
+                || h.starts_with("token-plan-") && h.ends_with(".xiaomimimo.com")
+        })
+    }) {
+        return;
+    }
+    const SOURCE: &str = "https://mimo.mi.com/static/docs/quick-start/summary/model.md";
+    let Ok(response) = ureq::AgentBuilder::new()
+        .timeout(Duration::from_secs(15))
+        .build()
+        .get(SOURCE)
+        .call()
+    else {
+        return;
+    };
+    let Ok(doc) = response.into_string() else {
+        return;
+    };
+    for row in doc.split("<tr>") {
+        let row = row.split("</tr>").next().unwrap_or_default();
+        let parse_limit = |marker: &str| -> Option<u64> {
+            let value = row.split_once(marker)?.1.trim_start();
+            let digits: String = value.chars().take_while(|c| c.is_ascii_digit()).collect();
+            let n: u64 = digits.parse().ok()?;
+            let multiplier = match value[digits.len()..].chars().next()?.to_ascii_lowercase() {
+                'm' => 1048576,
+                'k' => 1024,
+                _ => 1,
+            };
+            Some(n * multiplier)
+        };
+        let Some(context) = parse_limit("Context Window:") else {
+            continue;
+        };
+        let Some(output) = parse_limit("Maximum Output:") else {
+            continue;
+        };
+        for (id, metadata) in all.iter_mut() {
+            if !row.contains(&format!("`{id}`")) {
+                continue;
+            }
+            metadata["contextWindow"] = json!(context);
+            metadata["maxOutput"] = json!(output);
+            metadata["source"] = json!(SOURCE);
+            // The official full-modal guide lists text/image/audio/video input;
+            // PDF is deliberately not inferred from the full-modal label.
+            if row.contains("Full-modal")
+                || matches!(
+                    id.as_str(),
+                    "mimo-v2.6-pro" | "mimo-v2.6-flash" | "mimo-v2.5"
+                )
+            {
+                metadata["modalities"] = json!(["text", "image", "audio", "video"]);
+                metadata["thinking"] = json!(true);
+            } else if row.contains("Speech Recognition") {
+                metadata["modalities"] = json!(["audio"]);
+            }
+        }
+    }
+}
+
+fn model_metadata(item: &Value, source: &str) -> Value {
+    let number = |paths: &[&str]| {
+        paths
+            .iter()
+            .find_map(|p| item.pointer(p).and_then(Value::as_u64).filter(|v| *v > 0))
+    };
+    let modalities = item
+        .pointer("/architecture/input_modalities")
+        .or_else(|| item.get("input_modalities"))
+        .or_else(|| item.get("modalities"))
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(Value::as_str)
+                .filter(|s| matches!(*s, "text" | "image" | "audio" | "video" | "pdf"))
+                .map(str::to_owned)
+                .collect::<Vec<_>>()
+        });
+    json!({
+        "name":item.get("display_name").or_else(|| item.get("displayName")).or_else(|| item.get("name")),
+        "contextWindow":number(&["/context_length","/context_window","/inputTokenLimit","/limit/context","/max_input_tokens"]),
+        "maxOutput":number(&["/max_output_tokens","/outputTokenLimit","/top_provider/max_completion_tokens","/limit/output"]),
+        "modalities":modalities,
+        "reasoningEfforts":item.get("reasoning_efforts").and_then(Value::as_array).map(|a| a.iter().filter_map(Value::as_str).collect::<Vec<_>>()),
+        "supportedProtocols":item.get("supported_protocols"),
+        "source":source
+    })
 }
 
 fn parse_model_ids(value: &Value) -> Result<Vec<String>, String> {
@@ -756,6 +937,25 @@ fn parse_model_ids(value: &Value) -> Result<Vec<String>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn model_metadata_never_invents_missing_capabilities() {
+        let missing = model_metadata(
+            &json!({"id":"example", "modalities":{"input":["image"]}}),
+            "https://example.com/v1/models",
+        );
+        assert!(missing["contextWindow"].is_null());
+        assert!(missing["maxOutput"].is_null());
+        assert!(missing["modalities"].is_null());
+        let exact = model_metadata(
+            &json!({"context_length":1048576, "max_output_tokens":131072,
+            "input_modalities":["text","image","pdf",42], "reasoning_efforts":["low","high",true]}),
+            "official",
+        );
+        assert_eq!(exact["contextWindow"], 1048576);
+        assert_eq!(exact["maxOutput"], 131072);
+        assert_eq!(exact["modalities"], json!(["text", "image", "pdf"]));
+        assert_eq!(exact["reasoningEfforts"], json!(["low", "high"]));
+    }
     fn connection(url: &str) -> Connection {
         Connection {
             id: "test-connection".into(),

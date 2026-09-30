@@ -32,8 +32,14 @@ fn load(app: &AppHandle) -> Result<BrowserConfig, String> {
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => BrowserConfig::default(),
         Err(e) => return Err(e.to_string()),
     };
-    config.installed =
-        root.join("ready").is_file() && root.join("node_modules/@playwright/mcp/cli.js").is_file();
+    config.installed = root.join("ready").is_file()
+        && root
+            .join(if cfg!(windows) {
+                "node_modules/@playwright/mcp/cli.js"
+            } else {
+                "lib/node_modules/@playwright/mcp/cli.js"
+            })
+            .is_file();
     Ok(config)
 }
 #[tauri::command]
@@ -69,8 +75,10 @@ pub fn browser_install(app: AppHandle) -> Result<BrowserConfig, String> {
     crate::managed_cli::managed_cli_install(app.clone(), "browser".into())?;
     let log = fs::File::create(root.join("chromium-install.log")).map_err(|e| e.to_string())?;
     let mut cmd = Command::new(crate::managed_cli::node(&app)?);
-    cmd.arg(root.join("node_modules/playwright/cli.js"))
-        .args(["install", "chromium"])
+    // npm may nest Playwright under @playwright/mcp instead of hoisting it.
+    // Resolve from the package that owns the dependency, on every platform.
+    cmd.args(["-e", "const {createRequire}=require('node:module');const r=createRequire(process.argv[1]);const cli=require('node:path').join(require('node:path').dirname(r.resolve('playwright/package.json')),'cli.js');process.argv=['node',cli,'install','chromium'];require(cli);"])
+        .arg(root.join(if cfg!(windows) { "node_modules/@playwright/mcp/package.json" } else { "lib/node_modules/@playwright/mcp/package.json" }))
         .env("PLAYWRIGHT_BROWSERS_PATH", root.join("browsers"))
         .stdin(Stdio::null())
         .stdout(Stdio::from(log.try_clone().map_err(|e| e.to_string())?))

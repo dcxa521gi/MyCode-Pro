@@ -58,7 +58,13 @@ export function sanitizeThreadTitle(raw: string): string {
     .trim()
     .replace(/\s+/g, " ");
 
-  if (!normalized) return "";
+  if (
+    !normalized ||
+    /not logged in|please run \/login|authentication fail|invalid api.?key|insufficient credits|unauthorized|HTTP 40[13]/i.test(
+      normalized,
+    )
+  )
+    return "";
   if (normalized.length <= TITLE_LIMIT) return normalized;
   return `${normalized.slice(0, TITLE_LIMIT - 3).trimEnd()}...`;
 }

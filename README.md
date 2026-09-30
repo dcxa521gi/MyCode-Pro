@@ -10,7 +10,7 @@ MyCode 基于 [MonoCode](https://github.com/hardbeat920/monocode)，保留其简
 
 [Windows x64 安装包与更新说明](https://github.com/dcxa521gi/MyCode-Pro/releases/latest)
 
-设置 → 常规 → 关于中的版本检查与更新内容均来自本仓库的 GitHub Releases。检查到新版本后，点击下载打开该版本发布页；下载完成不代表已经安装，不使用上游更新服务器。
+设置 → 常规 → 关于中的版本检查与更新内容均来自本仓库的 GitHub Releases。Windows 检查到新版本后在应用内下载并校验 SHA-256，左下角显示进度；下载完成后查看更新内容，选择安装或跳过。安装需要单独点击确认。
 
 ## 主要能力
 
@@ -19,7 +19,7 @@ MyCode 基于 [MonoCode](https://github.com/hardbeat920/monocode)，保留其简
 - **IM 机器人**：本机扫码连接个人微信，并直连飞书/Lark、钉钉、企业微信、Telegram、Discord，指定允许用户、工作目录和模型；文本任务进入桌面会话并回传结果。
 - **任务导入**：扫描本机 Claude Code / Codex / WorkBuddy / ZCode 历史，显示来源、序号与数量，支持全选和每页 20 条分页，保留原始文件。
 - **用量统计**：左下角显示累计 Token，设置中按代理和任务查看服务商实际返回的用量。
-- **应用内 CLI 管理**：Claude Code、Codex、Pi、OpenCode、MiMo Code、Cursor、Grok、OMP、Freebuff 与 Windows Hermes 支持应用内安装/更新与版本检查，路径保存后新会话立即生效。
+- **应用内 CLI 管理**：Claude Code、Codex、Pi、OpenCode、MiMo Code、Cursor、Grok、OMP 与 Windows Hermes 支持应用内安装/更新与版本检查，路径保存后新会话立即生效。
 - **本地记忆**：个人记忆与按项目区分的知识，可审阅、修改、清空；从下一轮请求开始加入所选模型的上下文。
 - **本地 MCP**：配置本机 stdio 服务，接入新建的 Claude Code、Codex、OpenCode、MiMo Code 会话，保留既有 CLI 配置。
 - **技能**：保留项目和个人技能管理；新增 `/mycode-documents`、`/mycode-project-memory`、`/mycode-work-report`，用于文档整理、知识梳理和工作报告。
@@ -67,4 +67,6 @@ npm run build:windows
 
 新版操作说明：[MyCode 0.8.0](docs/mycode-0.8.md)。
 
-最新语音、CLI、浏览器功能和收件箱使用说明见 [0.9.0 更新说明](docs/mycode-0.9.0.md)。
+最新账号登录、模型元数据、更新与接入边界见 [0.10.0 更新说明](docs/mycode-0.10.0.md)。
+
+账号登录是测试功能，不代表最终品质：设置下方可登录，未登录启动时显示对话框，允许稍后再登录。使用系统浏览器、PKCE 和 Windows DPAPI，登录不授予电脑控制权限，也不影响本地功能使用。

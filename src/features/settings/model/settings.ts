@@ -1,3 +1,4 @@
+import { translate as t } from "../../../shared/i18n";
 import {
   ALT,
   IS_MAC,
@@ -1149,23 +1150,24 @@ function defaultShortcutsFor(command: string): string[] {
 /** Chord to owning command, covering defaults, live overrides and Quick Composer. */
 function shortcutOwners(): Map<string, string> {
   const owners = new Map<string, string>();
+  const overrides = loadKeybindingOverrides();
   for (const row of KEYBINDINGS) {
-    // The Quick Composer chord is stored separately from the table.
-    const chords =
-      row.command === QUICK_COMPOSER_COMMAND
+    const override = overrides[row.command];
+    if (override?.disabled) continue;
+    const chords = override?.shortcut
+      ? [override.shortcut]
+      : row.command === QUICK_COMPOSER_COMMAND
         ? [loadQuickComposerShortcut()]
         : defaultShortcutsFor(row.command);
     for (const chord of chords) owners.set(chord, row.command);
-  }
-  for (const [command, override] of Object.entries(loadKeybindingOverrides())) {
-    if (override.shortcut) owners.set(override.shortcut, command);
   }
   return owners;
 }
 
 function validateShortcut(command: string, shortcut: string): string {
   const canonical = canonicalShortcut(shortcut);
-  if (!canonical) throw new Error("That combination is not a valid shortcut");
+  if (!canonical)
+    throw new Error(t("That combination is not a valid shortcut"));
   if (command === ACTIVATE_RANGE_COMMAND && !/Digit[1-8]$/.test(canonical)) {
     throw new Error("Tab: Activate 1–8 needs a number key from 1 to 8");
   }
@@ -1180,7 +1182,7 @@ export function validateKeybindingShortcut(
   const canonical = validateShortcut(command, shortcut);
   const owner = shortcutOwners().get(canonical);
   if (owner && owner !== command) {
-    throw new Error(`Already used by ${owner}`);
+    throw new Error(`${t("Already used by")} ${t(owner)} (${canonical})`);
   }
   return canonical;
 }

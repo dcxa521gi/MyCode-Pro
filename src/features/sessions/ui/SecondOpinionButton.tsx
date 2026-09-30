@@ -146,6 +146,7 @@ export function SecondOpinionButton({
   disabled: disabledByCaller = false,
   triggerClassName,
 }: Props) {
+  const { t } = useTranslation();
   const availabilityVersion = useSyncExternalStore(
     subscribeHarnessAvailability,
     getHarnessAvailabilitySnapshot,
@@ -390,8 +391,8 @@ export function SecondOpinionButton({
       <button
         ref={button}
         type="button"
-        title={label}
-        aria-label={label}
+        title={t(label)}
+        aria-label={t(label)}
         aria-haspopup="menu"
         aria-expanded={open}
         disabled={disabled}
@@ -422,7 +423,7 @@ export function SecondOpinionButton({
             onDismiss={(reason) => dismiss(reason === "escape")}
             role="menu"
             tabIndex={-1}
-            aria-label={menuLabel}
+            aria-label={t(menuLabel)}
             onKeyDown={onMenuKey}
             data-provider-target
             className="p-1 font-sans"

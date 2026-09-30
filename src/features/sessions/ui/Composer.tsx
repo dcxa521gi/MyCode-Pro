@@ -2391,7 +2391,7 @@ export function Composer({
                     ? onCompactContext
                     : undefined
                 }
-                compactDisabled={busy || !enabled || !focused || disabled}
+                compactDisabled={busy || !enabled || disabled}
               />
               <ComposerAction
                 busy={busy}

@@ -1272,8 +1272,8 @@ function CopyTurnButton({
       <button
         type="button"
         disabled={pending}
-        title={copied ? t("Copied") : label}
-        aria-label={copied ? t("Copied") : label}
+        title={copied ? t("Copied") : t(label)}
+        aria-label={copied ? t("Copied") : t(label)}
         className="-ml-1 rounded-md p-1 text-content/40 hover:bg-content/8 hover:text-content/70"
         onClick={(event) => {
           event.stopPropagation();
@@ -1336,8 +1336,8 @@ function SaveNoteButton({
       <button
         type="button"
         disabled={pending}
-        title={saved ? "Saved to Notes" : "Save as note"}
-        aria-label={saved ? "Saved to Notes" : "Save as note"}
+        title={t(saved ? "Saved to Notes" : "Save as note")}
+        aria-label={t(saved ? "Saved to Notes" : "Save as note")}
         className="rounded-md p-1 text-content/40 hover:bg-content/8 hover:text-content/70"
         onClick={async () => {
           setError(null);

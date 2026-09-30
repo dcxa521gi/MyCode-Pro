@@ -158,7 +158,7 @@ export function WorktreePicker({
               : settled
                 ? inWorktree
                   ? "Worktree unavailable"
-                  : "No repo"
+                  : t("No repo")
                 : t("Loading…")
         }
         worktree={!worktreeRemoved && inWorktree}

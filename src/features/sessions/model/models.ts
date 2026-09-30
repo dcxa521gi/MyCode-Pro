@@ -401,7 +401,95 @@ export function modelsFor(harness: HarnessId): AgentModel[] {
       c.models.map((model) => ({
         id: `${harness}:mycode-${c.id}/${model}`,
         harness,
-        name: model,
+        name: c.modelMetadata?.[model]?.name || model,
+        contextWindow: c.modelMetadata?.[model]?.contextWindow || undefined,
+        settings: [
+          ...(c.modelMetadata?.[model]?.reasoningEfforts?.length
+            ? [
+                {
+                  id:
+                    harness === "pi"
+                      ? "thinking"
+                      : ["opencode", "mimo"].includes(harness)
+                        ? "variant"
+                        : harness === "codex"
+                          ? "reasoningEffort"
+                          : "effort",
+                  label: "Reasoning",
+                  kind: "select" as const,
+                  value: c.modelMetadata[model].reasoningEfforts![0],
+                  options: c.modelMetadata[model].reasoningEfforts!.map(
+                    (value) => ({ value, label: value }),
+                  ),
+                },
+              ]
+            : []),
+          ...(c.modelMetadata?.[model]?.thinking
+            ? [
+                {
+                  id: ["opencode", "mimo"].includes(harness)
+                    ? "variant"
+                    : "thinking",
+                  label: "Thinking",
+                  kind: "select" as const,
+                  value:
+                    harness === "pi"
+                      ? "high"
+                      : ["opencode", "mimo"].includes(harness)
+                        ? "thinking"
+                        : "true",
+                  options: [
+                    {
+                      value:
+                        harness === "pi"
+                          ? "high"
+                          : ["opencode", "mimo"].includes(harness)
+                            ? "thinking"
+                            : "true",
+                      label: "On",
+                    },
+                    {
+                      value:
+                        harness === "pi"
+                          ? "off"
+                          : ["opencode", "mimo"].includes(harness)
+                            ? "normal"
+                            : "false",
+                      label: "Off",
+                    },
+                  ],
+                },
+              ]
+            : []),
+          ...(c.modelMetadata?.[model]?.contextWindow
+            ? [
+                {
+                  id: "contextWindow",
+                  label: "Context budget",
+                  kind: "select" as const,
+                  value: String(c.modelMetadata[model].contextWindow),
+                  options: [
+                    ...new Set(
+                      [
+                        32768,
+                        65536,
+                        131072,
+                        262144,
+                        c.modelMetadata[model].contextWindow!,
+                      ].filter(
+                        (n) => n <= c.modelMetadata![model].contextWindow!,
+                      ),
+                    ),
+                  ]
+                    .sort((a, b) => a - b)
+                    .map((n) => ({
+                      value: String(n),
+                      label: n.toLocaleString(),
+                    })),
+                },
+              ]
+            : []),
+        ],
         connectionId: c.id,
         primary: c.primaryModel === model,
         nativeId: ["pi", "opencode", "mimo"].includes(harness)

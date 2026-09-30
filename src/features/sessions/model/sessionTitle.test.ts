@@ -45,3 +45,18 @@ describe("session title metadata", () => {
     expect(shouldGenerateSessionTitle(true, true)).toBe(true);
   });
 });
+
+it("rejects CLI authentication diagnostics as generated titles", () => {
+  expect(
+    parseGeneratedSessionTitle(
+      "Not logged in · Please run /login",
+      "Fix the sidebar",
+    ),
+  ).toBeNull();
+  expect(
+    parseGeneratedSessionTitle(
+      '{"title":"Authentication failed","workItem":null}',
+      "Fix the sidebar",
+    ),
+  ).toBeNull();
+});

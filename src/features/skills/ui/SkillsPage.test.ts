@@ -307,7 +307,7 @@ describe("Settings skill preview", () => {
     await click("Preview skill Project guide");
     const panel = container.querySelector('[aria-label="Skill preview"]');
     expect(panel).not.toBeNull();
-    expect(document.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.querySelector('[role="dialog"]')).not.toBeNull();
     expect(opener.getAttribute("aria-expanded")).toBe("true");
     await click("Other guide");
     expect(container.querySelector('[aria-label="Skill preview"]')).toBe(panel);

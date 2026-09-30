@@ -1685,8 +1685,8 @@ function launchOptions(
   const effortRaw = input.modelSettings?.effort;
   const context = input.modelSettings?.context;
   const settings: ClaudeCliSettings = {};
-  if (input.modelSettings?.thinking === "true") {
-    settings.alwaysThinkingEnabled = true;
+  if (input.modelSettings?.thinking != null) {
+    settings.alwaysThinkingEnabled = input.modelSettings.thinking === "true";
   }
   if (input.modelSettings?.fast === "true") {
     settings.fastMode = true;

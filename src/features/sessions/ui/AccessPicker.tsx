@@ -90,8 +90,8 @@ export function AccessPicker({
       <button
         type="button"
         data-access-picker-trigger
-        title={`${RUNTIME_MODE_HINT[value]}${busy ? " Changes apply to the next turn." : ""}`}
-        aria-label={RUNTIME_MODE_LABEL[value]}
+        title={`${t(RUNTIME_MODE_HINT[value])}${busy ? t(" Changes apply to the next turn.") : ""}`}
+        aria-label={t(RUNTIME_MODE_LABEL[value])}
         aria-expanded={open}
         aria-haspopup="listbox"
         onMouseDown={(e) => e.preventDefault()}
@@ -113,7 +113,7 @@ export function AccessPicker({
           strokeWidth={1.75}
         />
         <span className="min-w-0 truncate text-[11px]">
-          {RUNTIME_MODE_LABEL[value]}
+          {t(RUNTIME_MODE_LABEL[value])}
         </span>
         <ChevronDown
           className={`size-3 shrink-0 text-content/50 ${open ? "rotate-180" : ""}`}
@@ -159,10 +159,10 @@ export function AccessPicker({
                 />
                 <span className="min-w-0">
                   <span className="block text-[13px] font-medium leading-5">
-                    {RUNTIME_MODE_LABEL[mode]}
+                    {t(RUNTIME_MODE_LABEL[mode])}
                   </span>
                   <span className="mt-0.5 block text-[11px] leading-4 text-content/50">
-                    {RUNTIME_MODE_HINT[mode]}
+                    {t(RUNTIME_MODE_HINT[mode])}
                   </span>
                 </span>
               </button>

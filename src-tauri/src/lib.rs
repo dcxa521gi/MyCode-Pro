@@ -1,6 +1,8 @@
 use tauri::Manager;
 
+mod account_center;
 mod account_identity;
+mod app_update;
 mod automations;
 mod azure_devops;
 mod browser;
@@ -13,6 +15,7 @@ pub mod control_cli;
 mod cursor_store;
 mod external_editor;
 mod fs;
+mod gitcode;
 mod gitlab;
 mod harness;
 mod im_bridge;
@@ -41,6 +44,7 @@ mod search;
 mod session_store;
 mod skills;
 mod task_import;
+mod tokendance;
 #[cfg(target_os = "windows")]
 mod tray;
 mod usage_history;
@@ -327,6 +331,15 @@ pub fn run() {
             local_ai::local_ai_memory,
             local_ai::local_ai_test_connection,
             local_ai::local_ai_discover_models,
+            gitcode::gitcode_config,
+            gitcode::gitcode_items,
+            account_center::account_center_status,
+            account_center::account_center_login,
+            account_center::account_center_logout,
+            tokendance::tokendance_authorize,
+            tokendance::tokendance_exchange,
+            app_update::app_update_download,
+            app_update::app_update_install,
             automations::automations_upsert,
             automations::automations_delete,
             automations::automation_runs_list,

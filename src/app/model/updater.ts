@@ -1,6 +1,7 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { message } from "@tauri-apps/plugin-dialog";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { translate as t } from "../../shared/i18n";
 import { announceUpdateAvailable } from "../../features/settings/model/sounds";
 import {
@@ -10,13 +11,20 @@ import {
 } from "./githubReleases";
 
 export type UpdaterPhase =
-  "idle" | "checking" | "current" | "available" | "downloading" | "error";
+  | "idle"
+  | "checking"
+  | "current"
+  | "available"
+  | "downloading"
+  | "downloaded"
+  | "error";
 export type UpdaterSnapshot = {
   phase: UpdaterPhase;
   currentVersion: string;
   availableVersion?: string;
   progress?: number;
   error?: string;
+  notes?: string;
 };
 let pendingUpdate: GitHubRelease | null = null;
 export async function readAppVersion(): Promise<string> {
@@ -62,23 +70,81 @@ export async function runUpdateFlow(
     return snapshot;
   }
 }
-/** Opening a release page is not a successful installation. */
-export async function installPendingUpdate(
+export function skipPendingUpdate() {
+  if (pendingUpdate)
+    localStorage.setItem("mycode.skippedUpdate", pendingUpdate.version);
+  window.dispatchEvent(
+    new CustomEvent("mycode-update", {
+      detail: { phase: "idle", currentVersion: "…" },
+    }),
+  );
+}
+export function isUpdateSkipped(version: string) {
+  return localStorage.getItem("mycode.skippedUpdate") === version;
+}
+let download: Promise<UpdaterSnapshot> | null = null;
+let downloadedVersion = "";
+export async function launchPendingInstaller() {
+  if (!pendingUpdate || downloadedVersion !== pendingUpdate.version)
+    throw new Error(t("Download the update first"));
+  await invoke("app_update_install", { version: pendingUpdate.version });
+}
+/** Download and verify only. Installation always requires a separate click. */
+export function installPendingUpdate(
   onProgress?: (snapshot: UpdaterSnapshot) => void,
 ): Promise<UpdaterSnapshot> {
-  const currentVersion = await readAppVersion();
-  if (!pendingUpdate) return { phase: "idle", currentVersion };
-  const snapshot: UpdaterSnapshot = {
-    phase: "available",
-    currentVersion,
-    availableVersion: pendingUpdate.version,
-  };
-  try {
-    await openUrl(pendingUpdate.url);
-  } catch (error) {
-    snapshot.phase = "error";
-    snapshot.error = `${t("Couldn't open the download page.")} ${String(error)}`;
-  }
-  onProgress?.(snapshot);
-  return snapshot;
+  if (download)
+    return download.then((next) => {
+      onProgress?.(next);
+      return next;
+    });
+  download = (async () => {
+    const currentVersion = await readAppVersion();
+    if (!pendingUpdate) return { phase: "idle" as const, currentVersion };
+    const version = pendingUpdate.version;
+    const notes = pendingUpdate.body;
+    const emit = (
+      phase: UpdaterPhase,
+      progress?: number,
+      error?: string,
+    ): UpdaterSnapshot => {
+      const next = {
+        phase,
+        currentVersion,
+        availableVersion: version,
+        notes,
+        progress,
+        error,
+      };
+      onProgress?.(next);
+      window.dispatchEvent(new CustomEvent("mycode-update", { detail: next }));
+      return next;
+    };
+    if (downloadedVersion === version) return emit("downloaded", 100);
+    let unlisten: (() => void) | undefined;
+    try {
+      emit("downloading", 0);
+      unlisten = await listen<{ version: string; progress: number }>(
+        "mycode-update-progress",
+        (event) => {
+          if (event.payload.version === version)
+            emit("downloading", event.payload.progress);
+        },
+      );
+      await invoke("app_update_download", { version });
+      downloadedVersion = version;
+      return emit("downloaded", 100);
+    } catch (error) {
+      return emit(
+        "error",
+        undefined,
+        t("Update download failed.") + " " + String(error),
+      );
+    } finally {
+      unlisten?.();
+    }
+  })().finally(() => {
+    download = null;
+  });
+  return download;
 }

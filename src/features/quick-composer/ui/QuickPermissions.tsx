@@ -105,10 +105,10 @@ export function QuickPermissions({
           <QuickPermissionIcon mode={mode} className="size-4 shrink-0" />
           <span className="min-w-0 flex-1">
             <span className="block text-[13px] font-medium">
-              {RUNTIME_MODE_LABEL[mode]}
+              {t(RUNTIME_MODE_LABEL[mode])}
             </span>
             <span className="mt-0.5 block text-[11px] text-content/45">
-              {RUNTIME_MODE_HINT[mode]}
+              {t(RUNTIME_MODE_HINT[mode])}
             </span>
           </span>
           {value === mode ? (

@@ -92,6 +92,7 @@ type Live = {
   turnFailed: ((error: Error) => void) | null;
   /** turn/completed arrived before runTurn registered turnDone. */
   turnEndPending: boolean;
+  manualCompaction?: boolean;
   /** Completed snapshots describe one item, not all text in the turn. */
   emittedAssistantByItem: Map<string, string>;
   emittedReasoningByItem: Map<string, string>;
@@ -674,6 +675,7 @@ async function runTurn(live: Live, input: SendTurnInput): Promise<void> {
 }
 
 async function runCompaction(live: Live): Promise<void> {
+  live.manualCompaction = true;
   live.emittedAssistantByItem.clear();
   live.emittedReasoningByItem.clear();
   const turnPromise = new Promise<void>((resolve, reject) => {
@@ -687,8 +689,20 @@ async function runCompaction(live: Live): Promise<void> {
       threadId: live.threadId,
     });
     settlePendingTurn(live);
-    await turnPromise;
+    await Promise.race([
+      turnPromise,
+      new Promise<never>((_, reject) => {
+        const timer = setTimeout(
+          () => reject(new Error("Context compaction timed out")),
+          180_000,
+        );
+        void turnPromise
+          .finally(() => clearTimeout(timer))
+          .catch(() => undefined);
+      }),
+    ]);
   } finally {
+    live.manualCompaction = false;
     live.turnDone = null;
     live.turnFailed = null;
   }
@@ -696,6 +710,18 @@ async function runCompaction(live: Live): Promise<void> {
 
 function handleNotification(live: Live, method: string, params: unknown): void {
   const rec = asRecord(params);
+  if (
+    live.manualCompaction &&
+    (method === "thread/compacted" ||
+      (method === "item/completed" &&
+        asRecord(rec?.item)?.type === "contextCompaction")) &&
+    (!stringField(rec, "threadId") ||
+      stringField(rec, "threadId") === live.threadId)
+  ) {
+    live.onEvent({ type: "status", text: "Compacted context" });
+    finishActiveTurn(live);
+    return;
+  }
   if (method === "serverRequest/resolved") {
     for (const pending of live.approvals.values()) {
       if (

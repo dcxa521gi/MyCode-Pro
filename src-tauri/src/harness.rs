@@ -1675,6 +1675,7 @@ pub(crate) fn resolve_harness_binary_override(
 
 fn is_supported_harness_version(version: &str) -> bool {
     version.split_whitespace().any(|token| {
+        let token = token.strip_prefix("omp/").unwrap_or(token);
         let token = token
             .strip_prefix('v')
             .or_else(|| token.strip_prefix('V'))
@@ -3545,5 +3546,14 @@ mod reap_logic_tests {
         assert!(!is_legacy_orphaned_cursor_acp(
             "node /usr/local/bin/typescript-language-server --stdio"
         ));
+    }
+}
+
+#[cfg(test)]
+mod managed_version_regressions {
+    #[test]
+    fn accepts_official_omp_version_prefix() {
+        assert!(super::is_supported_harness_version("omp/18.4.4"));
+        assert!(!super::is_supported_harness_version("omp/not-installed"));
     }
 }

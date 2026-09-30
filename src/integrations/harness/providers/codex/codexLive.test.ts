@@ -30,7 +30,11 @@ const {
   __codexTestReset,
 } = await import("./codex");
 import type { HarnessEvent } from "../../core/types";
-import { newSession, type RuntimeMode, type TurnIntent } from "../../../../features/sessions/model/session";
+import {
+  newSession,
+  type RuntimeMode,
+  type TurnIntent,
+} from "../../../../features/sessions/model/session";
 import { applyHarnessEvent } from "../../core/apply";
 
 function parse() {
@@ -158,10 +162,12 @@ describe("codex live turn sequence", () => {
       controlsAgents: true,
       expectResume: true,
     });
-    expect(parse().find((message) => message.method === "thread/resume")?.params)
-      .toMatchObject({ sandboxPolicy: { networkAccess: true } });
-    expect(parse().find((message) => message.method === "turn/start")?.params)
-      .toMatchObject({ sandboxPolicy: { networkAccess: true } });
+    expect(
+      parse().find((message) => message.method === "thread/resume")?.params,
+    ).toMatchObject({ sandboxPolicy: { networkAccess: true } });
+    expect(
+      parse().find((message) => message.method === "turn/start")?.params,
+    ).toMatchObject({ sandboxPolicy: { networkAccess: true } });
     notify("turn/completed", { turn: { id: "turn_1", status: "completed" } });
     await appTurn.turn;
 
@@ -170,12 +176,16 @@ describe("codex live turn sequence", () => {
       runtimeMode: "auto",
       expectResume: true,
     });
-    expect(parse().find((message) => message.method === "thread/resume")?.params)
-      .toMatchObject({ sandboxPolicy: { type: "workspaceWrite" } });
     expect(
-      (parse().find((message) => message.method === "thread/resume")?.params as {
-        sandboxPolicy: Record<string, unknown>;
-      }).sandboxPolicy,
+      parse().find((message) => message.method === "thread/resume")?.params,
+    ).toMatchObject({ sandboxPolicy: { type: "workspaceWrite" } });
+    expect(
+      (
+        parse().find((message) => message.method === "thread/resume")
+          ?.params as {
+          sandboxPolicy: Record<string, unknown>;
+        }
+      ).sandboxPolicy,
     ).not.toHaveProperty("networkAccess");
     notify("turn/completed", { turn: { id: "turn_1", status: "completed" } });
     await ordinaryTurn.turn;
@@ -1541,6 +1551,35 @@ describe("codex live turn sequence", () => {
     await compact;
     expect(settled).toBe(true);
   });
+
+  it.each(["thread/compacted", "item/completed"])(
+    "resolves manual compaction on %s without turn/completed",
+    async (method) => {
+      const { turn } = await startTurn("codex-live");
+      notify("turn/completed", { turn: { id: "turn_1", status: "completed" } });
+      await turn;
+      sent.length = 0;
+      const compact = compactCodexContext({
+        sessionId: "codex-live",
+        cwd: "/repo",
+        model: "codex:gpt-5.4",
+        runtimeMode: "supervised",
+        onEvent: () => undefined,
+      });
+      await waitFor(
+        () => parse().some((m) => m.method === "thread/compact/start"),
+        "compact start",
+      );
+      const request = parse().find((m) => m.method === "thread/compact/start")!;
+      reply(request.id as number, {});
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      notify(method, {
+        threadId: "thr_1",
+        item: { type: "contextCompaction", id: "compact_item" },
+      });
+      await compact;
+    },
+  );
 
   it("reverts before the latest user turn after compaction", async () => {
     const { turn } = await startTurn("codex-live");

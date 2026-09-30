@@ -28,6 +28,42 @@ struct EditorDefinition {
 
 const EDITORS: &[EditorDefinition] = &[
     EditorDefinition {
+        id: "zcode",
+        name: "ZCode",
+        commands: &["zcode"],
+        #[cfg(target_os = "macos")]
+        mac_apps: &["ZCode.app"],
+        #[cfg(windows)]
+        windows_paths: &[
+            ("LOCALAPPDATA", "Programs/ZCode/ZCode.exe"),
+            ("ProgramFiles", "ZCode/ZCode.exe"),
+        ],
+    },
+    EditorDefinition {
+        id: "mimo",
+        name: "Xiaomi MiMo",
+        commands: &["mimo"],
+        #[cfg(target_os = "macos")]
+        mac_apps: &["MiMo.app"],
+        #[cfg(windows)]
+        windows_paths: &[
+            ("LOCALAPPDATA", "Programs/MiMo/MiMo.exe"),
+            ("ProgramFiles", "MiMo/MiMo.exe"),
+        ],
+    },
+    EditorDefinition {
+        id: "chatgpt",
+        name: "ChatGPT",
+        commands: &["ChatGPT"],
+        #[cfg(target_os = "macos")]
+        mac_apps: &["ChatGPT.app"],
+        #[cfg(windows)]
+        windows_paths: &[
+            ("LOCALAPPDATA", "Programs/ChatGPT/ChatGPT.exe"),
+            ("LOCALAPPDATA", "Microsoft/WindowsApps/ChatGPT.exe"),
+        ],
+    },
+    EditorDefinition {
         id: "vscode",
         name: "Visual Studio Code",
         commands: &["code"],
@@ -208,16 +244,52 @@ fn launch_editor_sync(editor_id: &str, cwd: &str) -> Result<(), String> {
     let launcher =
         resolve_editor(editor).ok_or_else(|| format!("{} is no longer installed.", editor.name))?;
 
+    // CLI editors need an interactive terminal, opened only by this explicit action.
+    #[cfg(windows)]
+    {
+        let EditorLauncher::Command(program) = &launcher;
+        let cli = editor.id == "mimo"
+            || (editor.id == "zcode"
+                && program
+                    .extension()
+                    .is_some_and(|e| e == "cmd" || e == "bat"));
+        if cli {
+            use std::os::windows::process::CommandExt;
+            let mut terminal = Command::new("powershell.exe");
+            terminal
+                .args([
+                    "-NoLogo",
+                    "-NoProfile",
+                    "-NoExit",
+                    "-Command",
+                    "& $env:MYCODE_EDITOR_BIN",
+                ])
+                .env("MYCODE_EDITOR_BIN", program)
+                .current_dir(&cwd)
+                .creation_flags(0x00000010);
+            harness::apply_gui_env(&mut terminal);
+            return terminal
+                .spawn()
+                .map(|_| ())
+                .map_err(|e| format!("Could not open {}: {e}", editor.name));
+        }
+    }
+
     #[cfg(target_os = "macos")]
     let mut command = match launcher {
         EditorLauncher::MacApp(app) => {
             let mut command = Command::new("/usr/bin/open");
-            command.arg("-a").arg(app).arg(&cwd);
+            command.arg("-a").arg(app);
+            if editor.id != "chatgpt" {
+                command.arg(&cwd);
+            }
             command
         }
         EditorLauncher::Command(program) => {
             let mut command = Command::new(program);
-            command.arg(&cwd);
+            if editor.id != "chatgpt" {
+                command.arg(&cwd);
+            }
             command
         }
     };
@@ -226,12 +298,16 @@ fn launch_editor_sync(editor_id: &str, cwd: &str) -> Result<(), String> {
     let mut command = match launcher {
         EditorLauncher::Command(program) => {
             let mut command = Command::new(program);
-            command.arg(&cwd);
+            if editor.id != "chatgpt" {
+                command.arg(&cwd);
+            }
             command
         }
     };
 
+    command.current_dir(&cwd);
     harness::apply_gui_env(&mut command);
+    crate::hide_window_console(&mut command);
     command
         .stdin(Stdio::null())
         .stdout(Stdio::null())

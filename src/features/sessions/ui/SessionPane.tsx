@@ -1,3 +1,4 @@
+import { modelContextWindow } from "../model/models";
 import { ChevronDown, GripVertical, X } from "../../../shared/ui/icons";
 import {
   memo,
@@ -526,7 +527,18 @@ export const SessionPane = memo(function SessionPane({
       }
       hideBranchPicker={!!session.inboxAsk || managed}
       hideTopBar={!!session.inboxAsk}
-      context={session.context}
+      context={
+        modelContextWindow(session.model)
+          ? {
+              used: session.context?.used ?? 0,
+              window: Math.min(
+                Number(session.modelSettings?.contextWindow) ||
+                  modelContextWindow(session.model)!,
+                modelContextWindow(session.model)!,
+              ),
+            }
+          : session.context
+      }
       turnMetrics={latestTurnMetrics(session.blocks)}
       quoteRequest={quoteRequest}
       initialDraft={

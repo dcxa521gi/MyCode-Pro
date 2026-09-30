@@ -1,3 +1,4 @@
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "../../../shared/i18n";
@@ -7,6 +8,7 @@ import {
   CONNECTION_PRESETS,
   loadLocalAIConfig,
   type ModelConnection,
+  type ModelMetadata,
 } from "../model/modelConnections";
 
 const inputClass =
@@ -29,6 +31,8 @@ export function ModelConnections() {
   const [modelText, setModelText] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [authorization, setAuthorization] = useState("");
+  const [code, setCode] = useState("");
   const [discovered, setDiscovered] = useState<string[]>([]);
   const [discovering, setDiscovering] = useState(false);
   const [discoveryRetry, setDiscoveryRetry] = useState(0);
@@ -37,6 +41,7 @@ export function ModelConnections() {
       !draft?.baseUrl ||
       (!key &&
         !draft.hasKey &&
+        !draft.baseUrl.startsWith("https://tokendance.space/") &&
         !/^http:\/\/(127\.0\.0\.1|localhost)/.test(draft.baseUrl))
     )
       return;
@@ -44,12 +49,16 @@ export function ModelConnections() {
     const timer = setTimeout(() => {
       setDiscovering(true);
       setStatus("");
-      void invoke<string[]>("local_ai_discover_models", {
+      void invoke<Record<string, ModelMetadata>>("local_ai_discover_models", {
         connection: draft,
         apiKey: key || (draft.hasKey ? null : ""),
       })
-        .then((models) => {
+        .then((metadata) => {
+          const models = Object.keys(metadata);
           if (active) {
+            setDraft((current) =>
+              current ? { ...current, modelMetadata: metadata } : current,
+            );
             setDiscovered(models);
             setModelText((current) =>
               current.trim() ? current : models.join("\n"),
@@ -125,7 +134,7 @@ export function ModelConnections() {
       {items.map((item) => (
         <div
           key={item.id}
-          className="flex flex-wrap items-center gap-3 border-t border-content/10 py-3 text-sm"
+          className="flex flex-wrap items-center gap-3 rounded-xl bg-content/[0.04] p-4 text-sm shadow-sm"
         >
           <span className="min-w-0 flex-1">
             <strong>{item.name}</strong>
@@ -138,7 +147,13 @@ export function ModelConnections() {
                 </span>
               )}
             <span className="ml-2 text-xs text-content/50">
-              {item.models.join(", ")}
+              {item.models.length} {t("Models")} · {item.api}
+              <span className="mt-1 block truncate">{item.baseUrl}</span>
+              {item.primaryModel && (
+                <span className="mt-2 inline-block rounded-md bg-accent/10 px-2 py-1 text-accent">
+                  {t("Primary model")}: {item.primaryModel}
+                </span>
+              )}
             </span>
           </span>
           <SecondaryButton
@@ -294,6 +309,77 @@ export function ModelConnections() {
               )}
             </select>
           </label>
+          {draft.baseUrl.startsWith("https://tokendance.space/") && (
+            <div className="rounded-xl bg-accent/5 p-3 space-y-2">
+              <p className="text-sm font-medium">
+                TokenDance · {t("Partner provider")}
+              </p>
+              <p className="text-xs text-content/60">
+                {t(
+                  "Authorize in your browser, then paste the one-time code. Your API key is stored securely in MyCode.",
+                )}
+              </p>
+              <SecondaryButton
+                disabled={busy}
+                onClick={() =>
+                  void action(async () => {
+                    const flow = await invoke<{ id: string; url: string }>(
+                      "tokendance_authorize",
+                    );
+                    setAuthorization(flow.id);
+                    await openUrl(flow.url);
+                  })
+                }
+              >
+                {t("Authorize TokenDance")}
+              </SecondaryButton>
+              {authorization && (
+                <div className="flex gap-2">
+                  <input
+                    className={inputClass}
+                    aria-label={t("Authorization code")}
+                    placeholder={t("Authorization code")}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                  />
+                  <SecondaryButton
+                    disabled={busy || !code.trim()}
+                    onClick={() =>
+                      void action(async () => {
+                        await invoke("tokendance_exchange", {
+                          id: authorization,
+                          code,
+                          connection: {
+                            ...draft,
+                            models: modelText
+                              .split(/[\n,]/)
+                              .map((s) => s.trim())
+                              .filter(Boolean),
+                          },
+                        });
+                        setCode("");
+                        setAuthorization("");
+                        const config = await loadLocalAIConfig();
+                        setItems(config.connections);
+                        const saved = config.connections.find(
+                          (c) => c.id === draft.id,
+                        );
+                        if (saved) {
+                          setDraft({ ...saved, enabled: true });
+                          setDiscoveryRetry((n) => n + 1);
+                        }
+                        setStatus(
+                          "Authorization succeeded. Select models and save.",
+                        );
+                      })
+                    }
+                  >
+                    {t("Complete authorization")}
+                  </SecondaryButton>
+                </div>
+              )}
+            </div>
+          )}
           <label className="grid gap-1 text-xs">
             {t("API key")}
             <input
@@ -325,11 +411,11 @@ export function ModelConnections() {
             </SecondaryButton>
           </div>
           {discovered.length > 0 && (
-            <div className="grid max-h-48 grid-cols-2 gap-2 overflow-y-auto rounded-lg bg-content/5 p-3">
+            <div className="grid max-h-96 gap-2 overflow-y-auto rounded-lg p-1">
               {discovered.map((id) => (
                 <label
                   key={id}
-                  className="flex min-w-0 items-center gap-2 text-xs"
+                  className="flex min-w-0 items-start gap-3 rounded-xl bg-content/5 p-3 text-xs"
                 >
                   <input
                     type="checkbox"
@@ -347,8 +433,36 @@ export function ModelConnections() {
                       )
                     }
                   />
-                  <span className="truncate" title={id}>
-                    {id}
+                  <span className="min-w-0 flex-1" title={id}>
+                    <strong className="block truncate">
+                      {draft.modelMetadata?.[id]?.name || id}
+                    </strong>
+                    <span className="block text-content/50">{id}</span>
+                    <span className="mt-2 flex flex-wrap gap-2 text-content/65">
+                      <span>
+                        {t("Context")}:{" "}
+                        {draft.modelMetadata?.[
+                          id
+                        ]?.contextWindow?.toLocaleString() || t("Not reported")}
+                      </span>
+                      <span>
+                        {t("Output")}:{" "}
+                        {draft.modelMetadata?.[
+                          id
+                        ]?.maxOutput?.toLocaleString() || t("Not reported")}
+                      </span>
+                      <span>
+                        {t("Modalities")}:{" "}
+                        {draft.modelMetadata?.[id]?.modalities
+                          ?.map((m) => t(m))
+                          .join(" / ") || t("Not reported")}
+                      </span>
+                    </span>
+                    {draft.modelMetadata?.[id]?.source && (
+                      <span className="mt-1 block break-all text-[10px] text-content/40">
+                        {t("Official source")}: {draft.modelMetadata[id].source}
+                      </span>
+                    )}
                   </span>
                 </label>
               ))}

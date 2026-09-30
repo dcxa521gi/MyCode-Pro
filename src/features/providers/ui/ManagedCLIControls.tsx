@@ -1,3 +1,4 @@
+import { IS_WIN } from "../../../platform/tauri/platform";
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "../../../shared/i18n";
@@ -57,6 +58,20 @@ export function ManagedCLIControls({ provider }: { provider: HarnessId }) {
     setBusy(true);
     setStatus(t(install ? "Installing…" : "Checking installed version…"));
     try {
+      if (
+        install &&
+        IS_WIN &&
+        ["fx", "antigravity", "zcode"].includes(provider)
+      ) {
+        setStatus(
+          t(
+            provider === "zcode"
+              ? "ZCode publishes a desktop installer only. Its CLI currently requires a source build; select an existing CLI executable below."
+              : "This agent has no official Windows CLI release. Use a supported system or configure an existing compatible executable.",
+          ),
+        );
+        return;
+      }
       if (install) {
         const path = await invoke<string>("managed_cli_install", { provider });
         if (!(await applyProviderBinaryPath(provider, path)))

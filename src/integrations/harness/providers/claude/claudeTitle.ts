@@ -11,11 +11,15 @@ export async function generateClaudeSessionTitle(input: {
   sessionId: string;
   cwd: string;
   message: string;
+  model?: string;
+  modelConnection?: string;
   providerAccountId?: string;
 }): Promise<GeneratedSessionTitle | null> {
   try {
     const output = await runClaudeTextPrompt({
       cwd: input.cwd,
+      model: input.model,
+      modelConnection: input.modelConnection,
       providerAccountId: input.providerAccountId,
       prompt: buildThreadTitlePrompt(input.message),
       timeoutMs: TITLE_TIMEOUT_MS,

@@ -134,16 +134,17 @@ export function WorkspacePicker({
 
 /** A started conversation owns its working copy; only its branch stays mutable. */
 export function WorkspaceIdentity({ worktree }: { worktree: boolean }) {
+  const { t } = useTranslation();
   const Icon = worktree ? FolderTree : Folder;
   const label = worktree ? "Worktree" : "Current checkout";
   return (
     <div
-      title={`Workspace: ${label}`}
-      aria-label={`Workspace ${label}`}
+      title={`Workspace: ${t(label)}`}
+      aria-label={`Workspace ${t(label)}`}
       className="-ml-1.5 flex h-6 min-w-0 shrink-0 items-center gap-1.5 px-1.5 text-[12px] text-content/45"
     >
       <Icon className="size-3.5 shrink-0" />
-      <span className="truncate">{label}</span>
+      <span className="truncate">{t(label)}</span>
     </div>
   );
 }
@@ -255,7 +256,7 @@ function WorkspaceModePicker({
       setPickError(undefined);
     }, HOVER_CLOSE_MS);
   };
-  const label = mode === "worktree" ? "New worktree" : "Current checkout";
+  const label = mode === "worktree" ? t("New worktree") : t("Current checkout");
   const shortcut = keybindingShortcutLabel(
     "Composer: Toggle Workspace",
     WORKSPACE_MODE_SHORTCUT,
@@ -272,8 +273,8 @@ function WorkspaceModePicker({
         <button
           type="button"
           disabled={!enabled}
-          title={shortcut ? `Workspace: ${label} (${shortcut})` : undefined}
-          aria-label={`Workspace ${label}`}
+          title={shortcut ? `Workspace: ${t(label)} (${shortcut})` : undefined}
+          aria-label={`Workspace ${t(label)}`}
           aria-keyshortcuts={shortcutTokens ?? undefined}
           aria-haspopup="dialog"
           aria-expanded={open}
@@ -288,7 +289,7 @@ function WorkspaceModePicker({
           className="-ml-1.5 flex h-6 min-w-0 max-w-48 items-center gap-1.5 rounded-md px-1.5 text-[12px] text-content/55 hover:bg-content/8 hover:text-content aria-expanded:bg-content/8 aria-expanded:text-content disabled:opacity-40 disabled:hover:bg-transparent active:scale-[0.97]"
         >
           <Icon className="size-3.5 shrink-0" />
-          <span className="truncate">{label}</span>
+          <span className="truncate">{t(label)}</span>
         </button>
       ) : null}
       {open ? (

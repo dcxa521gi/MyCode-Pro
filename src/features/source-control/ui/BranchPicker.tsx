@@ -285,7 +285,7 @@ export function BranchPicker({
     ? detached
       ? `detached ${current}`
       : current
-    : "No repo";
+    : t("No repo");
   const title = awaitingBranch
     ? "Loading branch…"
     : missingGit
@@ -302,7 +302,7 @@ export function BranchPicker({
             ? "Loading branch"
             : missingGit
               ? "No git repository"
-              : `Branch ${label}`
+              : `Branch ${t(label)}`
         }
         aria-expanded={missingGit ? undefined : open}
         aria-haspopup={missingGit ? undefined : "dialog"}
@@ -316,7 +316,7 @@ export function BranchPicker({
           }
           setOpen(true);
         }}
-        label={label}
+        label={t(label)}
         loading={awaitingBranch}
         worktree={worktree}
       />
