@@ -3391,7 +3391,6 @@ mod tests {
             paths.insert(provider.to_string(), binary.to_string_lossy().into_owned());
         }
         initialize_runtime_binary_paths(&host.runtime_binary_paths, paths.clone());
-        initialize_runtime_binary_paths(&host.runtime_binary_paths, HashMap::new());
         let cwd = root.to_string_lossy().into_owned();
         for (provider, path) in &paths {
             let active = host.runtime_binary_path(provider).unwrap();
@@ -3456,6 +3455,12 @@ mod tests {
             opencode_major_version(&cwd, paths.get("opencode").map(String::as_str)),
             Ok(2)
         );
+        // MyCode applies subsequent settings changes immediately, including
+        // removing custom paths so newly started sessions use automatic discovery.
+        initialize_runtime_binary_paths(&host.runtime_binary_paths, HashMap::new());
+        for provider in paths.keys() {
+            assert!(host.runtime_binary_path(provider).is_none());
+        }
         assert!(resolve_mcp_binary(
             "claude",
             Some(&root.join("missing/claude").to_string_lossy())
