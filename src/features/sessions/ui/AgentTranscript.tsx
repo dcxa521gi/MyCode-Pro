@@ -3611,11 +3611,12 @@ function ApprovalControls({
 }
 
 function HandoffDivider({ block }: { block: Block }) {
+  const { t } = useTranslation();
   const meta = block.handoff;
   if (!meta) return null;
 
   const preparing = meta.status === "preparing";
-  const label = preparing ? "Preparing a handoff" : HARNESS_TITLE[meta.to];
+  const label = preparing ? t("Preparing a handoff") : HARNESS_TITLE[meta.to];
 
   return (
     <div className="px-4 py-5">
@@ -3625,8 +3626,8 @@ function HandoffDivider({ block }: { block: Block }) {
           role="separator"
           aria-label={
             preparing
-              ? `Preparing a handoff to ${HARNESS_TITLE[meta.to]}`
-              : `Continued with ${label}`
+              ? t("Preparing a handoff to {agent}").replace("{agent}", HARNESS_TITLE[meta.to])
+              : t("Continued with {agent}").replace("{agent}", label)
           }
           className="flex max-w-[min(100%,20rem)] items-center gap-1.5 px-1.5 font-sans text-[12px] text-content/55"
         >

@@ -2073,6 +2073,8 @@ export default function App({
   );
 
   const activateTab = useCallback((id: string, paneId?: string) => {
+    setSettingsOpen(false);
+    setStandaloneTools(false);
     const tab = tabsRef.current.find((entry) => entry.id === id);
     const nextFocusedId =
       tab &&
@@ -3599,6 +3601,8 @@ export default function App({
       sessionId,
     );
     if (!tab) return false;
+    setSettingsOpen(false);
+    setStandaloneTools(false);
     loadedSessionCache.current.delete(sessionId);
     setActiveTabId(tab.id);
     setTabs((prev) =>
@@ -3969,6 +3973,8 @@ export default function App({
 
   const onSelectHistorySession = useCallback(
     async (sessionId: string) => {
+      setSettingsOpen(false);
+      setStandaloneTools(false);
       let session = await ensureOpenSession(sessionId);
       if (!session || session.inboxAsk) return;
       const parentId =
@@ -5113,6 +5119,8 @@ export default function App({
 
   const onSelectProject = useCallback(
     (path: string) => {
+      setSettingsOpen(false);
+      setStandaloneTools(false);
       setSearchViewOpen(false);
       setInboxViewOpen(false);
       setNotesViewOpen(false);
