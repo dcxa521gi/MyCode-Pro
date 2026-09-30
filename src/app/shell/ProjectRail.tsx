@@ -17,7 +17,7 @@ import {
   Settings,
   Zap,
 } from "../../shared/ui/icons";
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { useDragResize } from "../../shared/hooks/useDragResize";
 import { useLockOverscroll } from "../../shared/hooks/useLockOverscroll";
 import { useProjectDiffStats } from "../../features/source-control/hooks/useProjectDiffStats";
@@ -83,7 +83,9 @@ import { useNotificationProjects } from "../../features/notifications/hooks/useN
 import { GithubStarPrompt } from "./GithubStarPrompt";
 import { useProjectMenu } from "./useProjectMenu";
 
+const RailVisible = createContext(true);
 type Props = {
+  visible?: boolean;
   cwd: string;
   recents: RecentProject[];
   inboxUnseen?: boolean;
@@ -122,6 +124,7 @@ type Props = {
 };
 
 export function ProjectRail({
+  visible = true,
   cwd,
   recents,
   inboxUnseen = false,
@@ -202,6 +205,11 @@ export function ProjectRail({
     onOpenNotificationSettings,
     onOpen: () => setInboxMenu(null),
   });
+  useEffect(() => {
+    if (visible) return;
+    projectMenu.dismiss();
+    setInboxMenu(null);
+  }, [visible]);
   const notificationPreferences = useProjectNotificationPreferences();
   const allProjects = useMemo(
     () => collectRailProjects(recents, cwd),
@@ -325,10 +333,10 @@ export function ProjectRail({
     "y",
   );
   return (
-    <nav
+    <RailVisible.Provider value={visible}><nav
       ref={resize.setPaneRef}
       aria-label={t("Projects")}
-      className="sidebar-glass relative flex shrink-0 flex-col border-r border-stroke"
+      className={`sidebar-glass relative shrink-0 flex-col border-r border-stroke ${visible ? "flex" : "hidden"}`}
     >
       <div
         className="flex h-10 shrink-0 select-none items-center pr-1.5"
@@ -588,8 +596,8 @@ export function ProjectRail({
           </div>
         </>
       )}
-      {projectMenu.element}
-      {inboxMenu ? (
+      {visible ? projectMenu.element : null}
+      {visible && inboxMenu ? (
         <InboxNotificationMenu
           {...inboxMenu}
           projectPaths={[...allProjects.keys()]}
@@ -613,7 +621,7 @@ export function ProjectRail({
         onPointerDown={resize.onPointerDown}
         onDoubleClick={resize.onDoubleClick}
       />
-    </nav>
+    </nav></RailVisible.Provider>
   );
 }
 
@@ -934,7 +942,8 @@ function ProjectCard({
   const name = resolveTabGroupLabel(key, groupLabels, fallbackName);
   const logoPath = resolveTabGroupLogo(key, groupLogos);
   const color = resolveTabGroupColor(key, groupColors, groupCustomColors, seed);
-  const diffEnabled = Boolean(item.path) && item.path !== "~";
+  const railVisible = useContext(RailVisible);
+  const diffEnabled = railVisible && Boolean(item.path) && item.path !== "~";
   const stats = useProjectDiffStats(item.path, diffEnabled);
   const files = stats?.files ?? 0;
   const additions = stats?.additions ?? 0;
