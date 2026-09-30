@@ -557,7 +557,7 @@ export function SettingsView({
                 <LocalCapabilitiesPage key={cwd} cwd={cwd} />
               ) : null}
               {section === "keybindings" ? <KeybindingsPage /> : null}
-              {section === "mcp" ? <McpSettings cwd={cwd} /> : null}
+              {section === "mcp" ? <McpSettings cwd={cwd} recents={recents} /> : null}
               {section === "providers" ? <ModelConnections /> : null}
               {section === "providers-cli" ? (
                 <ProvidersPage cwd={cwd} recents={recents} />
