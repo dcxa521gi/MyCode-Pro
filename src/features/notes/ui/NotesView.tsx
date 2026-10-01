@@ -974,7 +974,7 @@ function NoteEditor({
               }}
             />
           ) : body.trim() ? (
-            <AgentMarkdown text={body} cwd={sourceCwd} />
+            <AgentMarkdown text={body} cwd={sourceCwd} hardBreaks />
           ) : (
             <p className="text-[13px] text-content/45">{t("No description")}</p>
           )}
