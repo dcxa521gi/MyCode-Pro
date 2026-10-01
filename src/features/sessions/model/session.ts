@@ -26,6 +26,7 @@ export type HarnessId =
   | "fx"
   | "hermes"
   | "antigravity"
+  | "minimax"
   | "mimo"
   | "zcode";
 
@@ -37,6 +38,7 @@ export const HARNESSES: HarnessId[] = [
   "opencode",
   "pi",
   "hermes",
+  "minimax",
   "mimo",
 ];
 
@@ -278,6 +280,7 @@ export type TurnMetrics = {
 };
 
 export type Block = {
+  recoveryId?: string;
   id: string;
   role: BlockRole;
   text: string;
@@ -473,6 +476,7 @@ export const HARNESS_LABEL: Record<HarnessId, string> = {
   fx: "fx",
   hermes: "hermes",
   antigravity: "antigravity",
+  minimax: "minimax",
   mimo: "mimo",
   zcode: "zcode",
 };
@@ -488,13 +492,14 @@ export const HARNESS_TITLE: Record<HarnessId, string> = {
   fx: "fx",
   hermes: "Hermes Agent",
   antigravity: "Antigravity",
+  minimax: "MiniMax Code",
   mimo: "MiMo Code",
   zcode: "ZCode",
 };
 
 /** fx ACP rejects attachment prompt blocks. */
 export function harnessSupportsAttachments(id: HarnessId): boolean {
-  return id !== "fx" && id !== "zcode";
+  return id !== "fx" && id !== "zcode" && id !== "minimax";
 }
 
 export function newSession(

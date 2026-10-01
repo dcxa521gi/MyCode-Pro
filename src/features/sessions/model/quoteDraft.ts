@@ -1,3 +1,4 @@
+import { encodeContextDraft } from "./composerBehavior";
 export const ADD_TO_CHAT_EVENT = "monocode:add-to-chat";
 
 export type AddToChatMode = "quote" | "plain";
@@ -29,9 +30,11 @@ export function composerSeedForAddToChat(
   text: string,
   mode: AddToChatMode = "quote",
 ): string {
+  text = text.replace(/\r\n?/g, "\n").trim();
+  if (!text) return "";
   return mode === "plain"
     ? appendComposerInsert("", text)
-    : appendSelectionQuote("", text);
+    : encodeContextDraft("", [text]);
 }
 
 export type QuoteConsumption = {

@@ -1,3 +1,14 @@
+import {
+  beginTurnRecovery,
+  captureTurnRecovery,
+  recoverTurn,
+  queueRecalledDraft,
+} from "../features/sessions/model/turnRecovery";
+import {
+  getComposerDraft as readRecallDraft,
+  setComposerDraft as writeRecallDraft,
+} from "../features/sessions/model/draftCache";
+import { BrowserDock } from "../features/files/ui/BrowserDock";
 import { defaultWorkspace } from "../platform/tauri/workspace";
 import {
   connectGroupRunner,
@@ -1030,6 +1041,7 @@ function Workspace({
     useState<CollapsedProjectRailMode>(loadCollapsedProjectRailMode);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [standaloneTools, setStandaloneTools] = useState(false);
+  const [groupsOpen, setGroupsOpen] = useState(false);
   const settingsReturnViewRef = useRef({
     search: false,
     inbox: false,
@@ -2130,6 +2142,7 @@ function Workspace({
   );
 
   const activateTab = useCallback((id: string, paneId?: string) => {
+    setGroupsOpen(false);
     setSettingsOpen(false);
     setStandaloneTools(false);
     const tab = tabsRef.current.find((entry) => entry.id === id);
@@ -2262,6 +2275,7 @@ function Workspace({
 
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const onNew = useCallback(() => {
+    setGroupsOpen(false);
     setSettingsOpen(false);
     setStandaloneTools(false);
     const tab = tabsRef.current.find((t) => t.id === activeTabIdRef.current);
@@ -2288,6 +2302,7 @@ function Workspace({
   const [homeOpen, setHomeOpen] = useState(false);
   const createWorkspaceTask = useCallback(
     (cwd: string, harness: HarnessId, model: string) => {
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setStandaloneTools(false);
       setHomeOpen(false);
@@ -3534,22 +3549,25 @@ function Workspace({
   );
 
   /** Stack one section's working-tree changes in one review, whatever the diff-view setting. */
-  const onOpenAllChanges = useCallback((kind: GitFileDiffKind) => {
-    setTabs((prev) =>
-      prev.map((tab) =>
-        tab.id === activeTabId
-          ? openChangesTab(
-              tab,
-              gitCwdRef.current,
-              undefined,
-              kind,
-              sidebarCwdRef.current,
-            )
-          : tab,
-      ),
-    );
-    setComposerFocused(false);
-  }, [activeTabId]);
+  const onOpenAllChanges = useCallback(
+    (kind: GitFileDiffKind) => {
+      setTabs((prev) =>
+        prev.map((tab) =>
+          tab.id === activeTabId
+            ? openChangesTab(
+                tab,
+                gitCwdRef.current,
+                undefined,
+                kind,
+                sidebarCwdRef.current,
+              )
+            : tab,
+        ),
+      );
+      setComposerFocused(false);
+    },
+    [activeTabId],
+  );
 
   const onOpenCommit = useCallback(
     (commit: GitHistoryCommit, pin?: boolean) => {
@@ -3663,6 +3681,7 @@ function Workspace({
       sessionId,
     );
     if (!tab) return false;
+    setGroupsOpen(false);
     setSettingsOpen(false);
     setStandaloneTools(false);
     loadedSessionCache.current.delete(sessionId);
@@ -4036,6 +4055,7 @@ function Workspace({
 
   const onSelectHistorySession = useCallback(
     async (sessionId: string) => {
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setStandaloneTools(false);
       let session = await ensureOpenSession(sessionId);
@@ -4073,6 +4093,7 @@ function Workspace({
   );
 
   const onHome = useCallback(() => {
+    setGroupsOpen(false);
     setSettingsOpen(false);
     setSearchViewOpen(false);
     setInboxViewOpen(false);
@@ -4109,6 +4130,7 @@ function Workspace({
       setInboxViewOpen(false);
       setNotesViewOpen(false);
       setAutomationsViewOpen(false);
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setFilePickerOpen(false);
       setSidebarTab("sessions", session.cwd);
@@ -5183,6 +5205,7 @@ function Workspace({
 
   const onSelectProject = useCallback(
     (path: string) => {
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setStandaloneTools(false);
       setSearchViewOpen(false);
@@ -5835,7 +5858,8 @@ function Workspace({
       attachments: Attachment[] = [],
       options?: SubmitOptions,
     ): SubmissionAcceptance => {
-      if (editedResends.isActive(sessionId)) return false;
+      if (editedResends.isActive(sessionId) || recalling.current.has(sessionId))
+        return false;
       const controlError = orchestrator.submissionError(
         sessionId,
         options?.managed,
@@ -6252,7 +6276,9 @@ function Workspace({
           : card
             ? SECOND_OPINION_TITLE
             : submittedText;
+      const recoveryId = crypto.randomUUID();
       const cards = {
+        recoveryId,
         ...(rawCommand ? undefined : userTurnCards(noteCard, card)),
         ...(ciContext ? { ciContext } : {}),
         ...(operatorCommand.matched ? { monocode: true } : {}),
@@ -6678,6 +6704,9 @@ function Workspace({
 
         if (!current.inboxAsk && !orchestrator.forSession(sessionId)) {
           await beginSessionTurn(sessionId, workCwd).catch(() => undefined);
+          await beginTurnRecovery(sessionId, workCwd, recoveryId).catch(
+            () => undefined,
+          );
         }
         if (turnGen.current.get(sessionId) !== gen) return;
         let buildSucceeded = false;
@@ -8487,6 +8516,116 @@ function Workspace({
     [enqueueHarnessEvent, flushHarnessEvents],
   );
 
+  const recallTurnRef = useRef<
+    (sessionId: string, blockId: string, automatic?: boolean) => Promise<void>
+  >(async () => {});
+  const recalling = useRef(new Set<string>());
+  recallTurnRef.current = async (sessionId, blockId, automatic = false) => {
+    if (recalling.current.has(sessionId)) return;
+    const original = sessionsRef.current.find((s) => s.id === sessionId);
+    const block = original?.blocks.find((b) => b.id === blockId);
+    if (!original || !block?.recoveryId) return;
+    const last = [...original.blocks]
+      .reverse()
+      .find((b) => b.role === "user" && !b.internal && !b.draft);
+    const blocked =
+      last?.id !== blockId
+        ? "Recall the latest message first"
+        : readRecallDraft(sessionId)?.trim()
+          ? "Save or clear your current draft before recalling a message"
+          : null;
+    if (blocked) {
+      if (!automatic) window.alert(t(blocked));
+      return;
+    }
+    recalling.current.add(sessionId);
+    try {
+      await Promise.all(
+        sessionChildHarnesses(original).map((id) =>
+          cancelHarnessTurn(id, sessionId),
+        ),
+      );
+      await stopHarnessSession(original.harness, sessionId);
+      const cwd = sessionWorkCwd(original);
+      const status = await recoverTurn(cwd, block.recoveryId, "status");
+      if (automatic && status.files.length) return;
+      if (!status.undoable)
+        throw Error(
+          "Files changed outside captured agent edits; recall was stopped to preserve your work",
+        );
+      await recoverTurn(cwd, block.recoveryId, "undo");
+      await forgetHarnessSession(original.harness, sessionId).catch(
+        () => undefined,
+      );
+      writeRecallDraft(sessionId, block.text);
+      queueRecalledDraft(sessionId, block.text, block.attachments || []);
+      flushSync(() =>
+        setSessions((prev) =>
+          prev.map((s) => {
+            if (s.id !== sessionId) return s;
+            const index = s.blocks.findIndex((b) => b.id === blockId);
+            let next: Session = {
+              ...stopStreaming(s),
+              blocks: s.blocks.slice(0, index),
+              providerSessionId: undefined,
+              context: undefined,
+            };
+            if (next.blocks.length)
+              next = completeHandoff(
+                appendPreparingHandoff(next, next.harness, next.harness),
+                buildDeterministicHandoff(next),
+              );
+            return next;
+          }),
+        ),
+      );
+      window.dispatchEvent(
+        new CustomEvent("mycode:restore-prompt", {
+          detail: {
+            sessionId,
+            text: block.text,
+            attachments: block.attachments || [],
+          },
+        }),
+      );
+      nudgeWorkspace(cwd);
+      notifyGitChanged();
+      nudgeWatchedFiles();
+    } catch (error) {
+      if (!automatic)
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === sessionId
+              ? {
+                  ...s,
+                  blocks: [
+                    ...s.blocks,
+                    {
+                      id: crypto.randomUUID(),
+                      role: "system",
+                      text: t(String(error).replace(/^Error: /, "")),
+                      notice: "error",
+                    },
+                  ],
+                }
+              : s,
+          ),
+        );
+    } finally {
+      recalling.current.delete(sessionId);
+    }
+  };
+  useEffect(() => {
+    const listener = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail;
+      const session = sessionsRef.current.find((s) =>
+        s.blocks.some((b) => b.id === id),
+      );
+      if (session) void recallTurnRef.current(session.id, id);
+    };
+    window.addEventListener("mycode:recall-turn", listener);
+    return () => window.removeEventListener("mycode:recall-turn", listener);
+  }, []);
   const onStop = useCallback(
     (sessionId: string, managed = false) => {
       if (!managed) {
@@ -8518,6 +8657,16 @@ function Workspace({
         }),
       );
       if (session) {
+        const last = [...session.blocks]
+          .reverse()
+          .find((b) => b.role === "user" && !b.internal && !b.draft);
+        if (
+          !managed &&
+          last?.recoveryId &&
+          last.startedAt &&
+          Date.now() - last.startedAt < 60_000
+        )
+          void recallTurnRef.current(sessionId, last.id, true);
         notifyReviewChanged(sessionId);
         nudgeWorkspace(sessionWorkCwd(session));
         notifyGitChanged();
@@ -9584,6 +9733,7 @@ function Workspace({
   const onOpenSearch = useCallback(() => {
     startTransition(() => {
       setFilePickerOpen(false);
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setInboxViewOpen(false);
       setNotesViewOpen(false);
@@ -9600,6 +9750,7 @@ function Workspace({
   const onOpenInbox = useCallback(() => {
     startTransition(() => {
       setFilePickerOpen(false);
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setSearchViewOpen(false);
       setNotesViewOpen(false);
@@ -9613,6 +9764,7 @@ function Workspace({
       const request = linkedWorkItemPanelRequest.current + 1;
       linkedWorkItemPanelRequest.current = request;
       setFilePickerOpen(false);
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setSearchViewOpen(false);
       setNotesViewOpen(false);
@@ -9715,6 +9867,7 @@ function Workspace({
     if (!loadNotesEnabled()) return;
     startTransition(() => {
       setFilePickerOpen(false);
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setSearchViewOpen(false);
       setInboxViewOpen(false);
@@ -9730,6 +9883,7 @@ function Workspace({
   const onOpenAutomations = useCallback(() => {
     startTransition(() => {
       setFilePickerOpen(false);
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setSearchViewOpen(false);
       setInboxViewOpen(false);
@@ -9751,6 +9905,7 @@ function Workspace({
       setSearchViewOpen(false);
       setInboxViewOpen(false);
       setNotesViewOpen(false);
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setFilePickerOpen(false);
       setSidebarTab("sessions", session.cwd);
@@ -9763,6 +9918,7 @@ function Workspace({
 
   const openSettings = useCallback(
     (section?: SettingsSectionId, anchor?: SettingsAnchor) => {
+      setGroupsOpen(false);
       if (!settingsOpenRef.current) {
         settingsReturnViewRef.current = {
           search: searchViewOpenRef.current,
@@ -9789,9 +9945,16 @@ function Workspace({
     [],
   );
 
-  const [groupsOpen, setGroupsOpen] = useState(false);
   useEffect(() => {
-    const open = () => setGroupsOpen(true);
+    const open = () => {
+      setSettingsOpen(false);
+      setSearchViewOpen(false);
+      setInboxViewOpen(false);
+      setNotesViewOpen(false);
+      setAutomationsViewOpen(false);
+      setHomeOpen(false);
+      setGroupsOpen(true);
+    };
     window.addEventListener("mycode:open-groups", open);
     void loadGroups().catch(() => {});
     const stop = startGroupScheduler();
@@ -9896,6 +10059,7 @@ function Workspace({
       if (section !== "skills" && section !== "im-bots") return;
       openSettings();
       setSettingsSection(section);
+      setGroupsOpen(false);
       setStandaloneTools(true);
     };
     window.addEventListener("mycode:open-tools", openTools);
@@ -9929,6 +10093,7 @@ function Workspace({
     setInboxViewOpen(returnView.inbox);
     setNotesViewOpen(returnView.notes && loadNotesEnabled());
     setAutomationsViewOpen(returnView.automations);
+    setGroupsOpen(false);
     setSettingsOpen(false);
   }, []);
 
@@ -9939,6 +10104,7 @@ function Workspace({
 
   const onOpenArchivedSession = useCallback(
     (sessionId: string) => {
+      setGroupsOpen(false);
       setSettingsOpen(false);
       void onSelectHistorySession(sessionId);
     },
@@ -9979,6 +10145,7 @@ function Workspace({
 
   const onRailForward = useCallback(() => {
     setSearchViewOpen(false);
+    setGroupsOpen(false);
     setSettingsOpen(false);
     setInboxViewOpen(false);
     setNotesViewOpen(false);
@@ -10574,6 +10741,7 @@ function Workspace({
   };
 
   const chromeSurfaceOpen =
+    groupsOpen ||
     searchViewOpen ||
     settingsOpen ||
     inboxViewOpen ||
@@ -10663,6 +10831,7 @@ function Workspace({
               onFileDeleted={onFileDeleted}
               canGoBack={
                 tabVisitNav.canBack ||
+                groupsOpen ||
                 searchViewOpen ||
                 settingsOpen ||
                 inboxViewOpen ||
@@ -10717,6 +10886,7 @@ function Workspace({
               inboxUnseen={inboxUnseen}
               linkedSessionUpdateIds={linkedSessionUpdateIds}
               settingsOpen={settingsOpen && !standaloneTools}
+              workspaceHidden={(standaloneTools && settingsOpen) || groupsOpen}
               settingsSection={settingsSection}
               onOpenSettings={onOpenSettings}
               onOpenNotificationSettings={onOpenNotificationSettings}
@@ -10728,8 +10898,12 @@ function Workspace({
             />
 
             <div className="body-glass flex min-h-0 min-w-0 flex-1 flex-col">
+              {groupsOpen && (
+                <GroupChats onClose={() => setGroupsOpen(false)} />
+              )}
               <div
                 className={
+                  groupsOpen ||
                   searchViewOpen ||
                   settingsOpen ||
                   inboxViewOpen ||
@@ -10739,6 +10913,7 @@ function Workspace({
                     : "flex min-h-0 min-w-0 flex-1 flex-col"
                 }
                 aria-hidden={
+                  groupsOpen ||
                   searchViewOpen ||
                   settingsOpen ||
                   inboxViewOpen ||
@@ -10746,6 +10921,7 @@ function Workspace({
                   automationsViewOpen
                 }
                 inert={
+                  groupsOpen ||
                   searchViewOpen ||
                   settingsOpen ||
                   inboxViewOpen ||
@@ -10863,7 +11039,7 @@ function Workspace({
                               <PaneTree
                                 {...sessionPaneProps}
                                 visible={
-                                  tab.id === activeTabId && !inboxViewOpen
+                                  tab.id === activeTabId && !chromeSurfaceOpen
                                 }
                                 layout={tab.layout}
                                 sessions={sessions}
@@ -10875,7 +11051,7 @@ function Workspace({
                                 fileErrorCounts={fileErrorCounts}
                                 focusedId={
                                   tab.id === activeTabId &&
-                                  !inboxViewOpen &&
+                                  !chromeSurfaceOpen &&
                                   !tab.diffFocused &&
                                   !projectTerminalFocused
                                     ? tab.focusedId
@@ -11054,7 +11230,8 @@ function Workspace({
                   onCollapsedProjectRailModeChange={setCollapsedProjectRailMode}
                 />
               ) : null}
-              {searchViewOpen ||
+              {groupsOpen ||
+              searchViewOpen ||
               inboxViewOpen ||
               notesViewOpen ||
               automationsViewOpen ||
@@ -11085,6 +11262,7 @@ function Workspace({
                 />
               )}
             </div>
+            <BrowserDock hidden={chromeSurfaceOpen} />
           </div>
 
           {filePickerOpen ? (
@@ -11108,7 +11286,7 @@ function Workspace({
               openSettings("providers-cli");
             }}
           />
-          {groupsOpen && <GroupChats onClose={() => setGroupsOpen(false)} />}
+
           <CliReadyDialog sessions={sessions} />
           {newTaskOpen && (
             <NewTaskDialog
@@ -11386,6 +11564,7 @@ function trackSessionEdits(
     void prepareSessionCheckpoint(sessionId, cwd, paths).catch(() => undefined);
     return;
   }
+  captureTurnRecovery(sessionId, paths);
   void captureSessionCheckpoint(sessionId, cwd, paths)
     .catch(() => undefined)
     .then(() => notifyReviewChanged(sessionId));

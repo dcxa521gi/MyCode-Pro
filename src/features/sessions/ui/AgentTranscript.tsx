@@ -1817,6 +1817,7 @@ function UserMessageBlock({
                 label={t("Copy message")}
               />
             ) : null}
+            {block.recoveryId && <button type="button" title={t("Recall and restore files")} aria-label={t("Recall and restore files")} className="rounded-md p-1 text-content/50 hover:bg-content/10" onClick={()=>window.dispatchEvent(new CustomEvent("mycode:recall-turn",{detail:block.id}))}>↶</button>}
             {onEdit ? (
               <EditLastTurnButton onEdit={onEdit} editing={editing} />
             ) : null}

@@ -40,6 +40,7 @@ const LOGIN_RESOLVERS: Partial<
   // require every other CLI resolver to exist in that mock.
   claude: () => child.resolveClaudeBinary(),
   codex: () => child.resolveCodexBinary(),
+  minimax: () => child.resolveHarnessBinary("minimax"),
   cursor: () => child.resolveCursorBinary(),
   grok: () => child.resolveGrokBinary(),
   fx: () => child.resolveFxBinary(),

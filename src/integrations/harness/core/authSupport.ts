@@ -11,6 +11,7 @@ import type {
 const LOGIN_ARGS: Partial<Record<HarnessId, readonly string[]>> = {
   claude: ["auth", "login"],
   codex: ["login"],
+  minimax: ["login"],
   cursor: ["login"],
   grok: ["login", "--oauth"],
   // MyCode uses fx through Vercel AI Gateway. Choosing it explicitly avoids

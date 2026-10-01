@@ -1,3 +1,4 @@
+import {decodeContextDraft} from "./composerBehavior";
 import { describe, expect, it } from "vitest";
 import {
   acknowledgeQuoteRequest,
@@ -34,7 +35,7 @@ describe("appendSelectionQuote", () => {
 
 describe("composerSeedForAddToChat", () => {
   it("preserves the requested insertion mode for a new composer", () => {
-    expect(composerSeedForAddToChat("selected")).toBe("> selected\n\n");
+    expect(decodeContextDraft(composerSeedForAddToChat("selected"))).toEqual({text:"",quotes:["selected"]});
     expect(composerSeedForAddToChat("Comment", "plain")).toBe("Comment\n\n");
   });
 });

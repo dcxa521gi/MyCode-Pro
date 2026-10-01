@@ -1,9 +1,14 @@
+import {
+  useComposerBehavior,
+  shouldSend,
+  numberedNewline,
+} from "../../sessions/model/composerBehavior";
 import { open } from "@tauri-apps/plugin-dialog";
 import { listSkills, type DiscoveredSkill } from "../../../platform/tauri/fs";
 import { loadDisabledSkillPaths } from "../../skills/model/skills";
 import { defaultWorkspace } from "../../../platform/tauri/workspace";
-import { useEffect, useState, useSyncExternalStore } from "react";
-import { Modal } from "../../../shared/ui/Modal";
+import { useEffect, useState, useSyncExternalStore, useRef } from "react";
+import { AgentMarkdown } from "../../sessions/ui/AgentMarkdown";
 import { BusyIndicator } from "../../../shared/ui/BusyIndicator";
 import { useTranslation } from "../../../shared/i18n";
 import { pickFolder } from "../../../platform/tauri/fs";
@@ -48,18 +53,33 @@ const newMember = (manager = false): Member => ({
 });
 export function GroupChats({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
+  const composerBehavior = useComposerBehavior();
   useSyncExternalStore(subscribeGroups, groupsVersion);
   useSyncExternalStore(subscribeModels, getModelSnapshot);
   const groups = getGroups();
   const [selected, setSelected] = useState(groups[0]?.id || "");
   const [draft, setDraft] = useState<Group | null>(null);
-  const [text, setText] = useState("");
+  const [draftTexts, setDraftTexts] = useState<Record<string, string>>({});
+  const text = draftTexts[selected] || "";
+  const setText = (next: string | ((old: string) => string)) =>
+    setDraftTexts((current) => ({
+      ...current,
+      [selected]:
+        typeof next === "function" ? next(current[selected] || "") : next,
+    }));
+  const messagesEnd = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [skills, setSkills] = useState<DiscoveredSkill[]>([]);
   const [execute, setExecute] = useState(false);
   const group = groups.find((g) => g.id === selected);
+  useEffect(() => {
+    if (!selected && groups[0]) setSelected(groups[0].id);
+  }, [selected, groups]);
   const running = group ? groupRuns.get(group.id) : undefined;
+  useEffect(() => {
+    messagesEnd.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+  }, [selected, group?.messages.length]);
   const create = async () => {
     setError("");
     try {
@@ -120,20 +140,23 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
     }
   };
   return (
-    <Modal
-      title={t("Group chats")}
-      onClose={onClose}
-      size="lg"
-      className="h-[min(800px,85vh)]"
-      fitViewport
+    <section
+      aria-label={t("Group chats")}
+      className="flex min-h-0 flex-1 flex-col bg-background-base text-content"
     >
       <div className="flex h-full min-h-0 flex-1 overflow-hidden">
-        <aside className="w-48 shrink-0 space-y-2 overflow-y-auto border-r border-content/10 p-3">
+        <aside className="w-64 shrink-0 space-y-2 overflow-y-auto border-r border-content/10 bg-content/[0.025] p-3">
           <button
             className={`${button} w-full text-accent`}
             onClick={() => void create()}
           >
             {t("New group chat")}
+          </button>
+          <button
+            className="mb-2 w-full text-left text-xs text-content/60 hover:text-content"
+            onClick={onClose}
+          >
+            {t("Back to project")}
           </button>
           {groups.map((g) => (
             <button
@@ -156,7 +179,7 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </aside>
-        <main className="flex min-w-0 flex-1 flex-col overflow-y-auto p-5">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto p-5">
           {error && (
             <p
               role="alert"
@@ -393,7 +416,7 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
                   )}
                 </button>
               </header>
-              <div className="min-h-48 flex-1 space-y-4 overflow-y-auto rounded-xl bg-content/[0.02] p-4">
+              <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-6">
                 {!group.messages.length && (
                   <p className="text-sm text-content/50">
                     {t(
@@ -404,7 +427,7 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
                 {group.messages.map((m) => (
                   <article
                     key={m.id}
-                    className={`rounded-xl p-3 ${m.author === "user" ? "bg-accent/10" : "bg-content/5"}`}
+                    className={`mx-auto w-full max-w-3xl rounded-2xl p-4 ${m.author === "user" ? "bg-content/5" : ""}`}
                   >
                     <div className="mb-2 flex justify-between text-xs text-content/50">
                       <strong>{m.name === "You" ? t("You") : m.name}</strong>
@@ -415,11 +438,7 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
                           : ""}
                       </span>
                     </div>
-                    <p
-                      className={`whitespace-pre-wrap break-words text-sm leading-relaxed ${m.error ? "text-red-400" : ""}`}
-                    >
-                      {m.text}
-                    </p>
+                    <AgentMarkdown text={m.text} />
                     {!m.error && (
                       <button
                         className="mt-2 text-xs text-content/45 hover:text-accent"
@@ -437,9 +456,10 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
                     )}
                   </article>
                 ))}
+                <div ref={messagesEnd} />
               </div>
               <form
-                className="mt-4 space-y-3"
+                className="mx-auto mt-4 w-full max-w-3xl shrink-0 space-y-3 rounded-2xl border border-content/10 bg-surface p-4 shadow-sm"
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (!text.trim()) return;
@@ -522,6 +542,30 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
                   placeholder={t("Message your group…")}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.nativeEvent.isComposing || e.key !== "Enter") return;
+                    if (shouldSend(e, composerBehavior.sendKey)) {
+                      e.preventDefault();
+                      if (!running && text.trim())
+                        e.currentTarget.form?.requestSubmit();
+                      return;
+                    }
+                    const next = composerBehavior.numberedLists
+                      ? numberedNewline(
+                          text,
+                          e.currentTarget.selectionStart,
+                          e.currentTarget.selectionEnd,
+                        )
+                      : null;
+                    if (next) {
+                      e.preventDefault();
+                      const el = e.currentTarget;
+                      setText(next.text);
+                      requestAnimationFrame(() =>
+                        el.setSelectionRange(next.cursor, next.cursor),
+                      );
+                    }
+                  }}
                 />
                 <div className="flex items-center justify-between gap-3">
                   <label className="flex items-center gap-2 text-xs text-content/60">
@@ -569,6 +613,6 @@ export function GroupChats({ onClose }: { onClose: () => void }) {
           )}
         </main>
       </div>
-    </Modal>
+    </section>
   );
 }

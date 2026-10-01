@@ -1,3 +1,4 @@
+import minimax from "../../../assets/providers/minimax.png";
 import type { ReactNode } from "react";
 import claude from "../../../assets/providers/claude.svg";
 import codex from "../../../assets/providers/codex.svg";
@@ -24,6 +25,7 @@ export const HARNESS_ICONS: Record<HarnessId, string> = {
   fx,
   hermes,
   antigravity,
+  minimax,
   mimo,
   zcode,
 };

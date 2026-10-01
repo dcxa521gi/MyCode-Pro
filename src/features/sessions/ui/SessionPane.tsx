@@ -506,6 +506,7 @@ export const SessionPane = memo(function SessionPane({
   const draftRef = useRef<string | undefined>(getComposerDraft(session.id));
   const composer = (
     <Composer
+      promptHistory={session.blocks.filter(b => b.role === "user" && !b.internal && !b.draft).map(b => b.text)}
       key={session.id}
       enabled={visible}
       focused={focused && composerFocused && !btw.open}

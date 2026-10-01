@@ -1957,6 +1957,15 @@ fn resolve_cursor_agent() -> Option<PathBuf> {
 }
 
 #[tauri::command(async)]
+pub fn harness_resolve_minimax() -> Result<CursorBinary, String> {
+    which_via_login_shell("mcode")
+        .map(|path| CursorBinary {
+            path: path.to_string_lossy().into_owned(),
+        })
+        .ok_or_else(|| "MiniMax Code CLI not found".into())
+}
+
+#[tauri::command]
 pub fn harness_resolve_mimo() -> Result<CursorBinary, String> {
     which_via_login_shell("mimo")
         .map(|path| CursorBinary {
@@ -1985,6 +1994,7 @@ fn resolve_harness_binary_default(provider: &str) -> Option<PathBuf> {
         "claude" => resolve_claude(),
         "codex" => resolve_codex(),
         "cursor" => resolve_cursor_agent(),
+        "minimax" => which_via_login_shell("mcode"),
         "mimo" => which_via_login_shell("mimo"),
         "zcode" => which_via_login_shell("zcode"),
         "freebuff" => which_via_login_shell("freebuff"),
@@ -2036,6 +2046,7 @@ pub(crate) fn resolve_harness_binary_override(
         "claude" => &["claude"],
         "codex" => &["codex"],
         "cursor" => &["cursor-agent", "agent"],
+        "minimax" => &["mcode", "minimax"],
         "mimo" => &["mimo"],
         "zcode" => &["zcode"],
         "freebuff" => &["freebuff"],

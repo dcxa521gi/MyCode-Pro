@@ -37,6 +37,19 @@ export function ModelConnections() {
   const [busy, setBusy] = useState(false);
   const [authorization, setAuthorization] = useState("");
   const [code, setCode] = useState("");
+  const [modelQuery, setModelQuery] = useState("");
+  const [manualModelOpen, setManualModelOpen] = useState(false);
+  const [manualModelId, setManualModelId] = useState("");
+  const addManualModel = () => {
+    const id = manualModelId.trim();
+    if (!id) return;
+    setDiscovered((models) => [...new Set([...models, id])]);
+    setModelText((current) =>
+      [...new Set([...current.split("\n").filter(Boolean), id])].join("\n"),
+    );
+    setManualModelId("");
+    setModelQuery("");
+  };
   const [discovered, setDiscovered] = useState<string[]>([]);
   const [discovering, setDiscovering] = useState(false);
   const [discoveryRetry, setDiscoveryRetry] = useState(0);
@@ -61,9 +74,14 @@ export function ModelConnections() {
           const models = Object.keys(metadata);
           if (active) {
             setDraft((current) =>
-              current ? { ...current, modelMetadata: metadata } : current,
+              current
+                ? {
+                    ...current,
+                    modelMetadata: { ...current.modelMetadata, ...metadata },
+                  }
+                : current,
             );
-            setDiscovered(models);
+            setDiscovered((current) => [...new Set([...current, ...models])]);
 
             if (!models.length)
               setStatus(
@@ -128,6 +146,8 @@ export function ModelConnections() {
     }
   };
   const edit = (connection: ModelConnection) => {
+    setModelQuery("");
+    setManualModelOpen(false);
     setDiscovered([
       ...new Set([
         ...connection.models,
@@ -576,11 +596,23 @@ export function ModelConnections() {
                     }}
                   />
                 </label>
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
                   <span>
                     {t(discovering ? "Fetching models…" : "Available models")}
                   </span>
                   <span className="flex flex-wrap items-center gap-2">
+                    <input
+                      className={`${inputClass} !w-40`}
+                      aria-label={t("Search models")}
+                      placeholder={t("Search models")}
+                      value={modelQuery}
+                      onChange={(e) => setModelQuery(e.target.value)}
+                    />
+                    <SecondaryButton
+                      onClick={() => setManualModelOpen((v) => !v)}
+                    >
+                      {t("Add model manually")}
+                    </SecondaryButton>
                     <SecondaryButton
                       disabled={busy || !discovered.length}
                       onClick={() => setModelText(discovered.join("\n"))}
@@ -604,95 +636,108 @@ export function ModelConnections() {
                     </SecondaryButton>
                   </span>
                 </div>
+                {modelQuery.trim() &&
+                  !discovered.some((id) =>
+                    `${id} ${draft.modelMetadata?.[id]?.name || ""}`
+                      .toLowerCase()
+                      .includes(modelQuery.trim().toLowerCase()),
+                  ) && (
+                    <p role="status" className="p-3 text-xs text-content/60">
+                      {t("No matching models")}
+                    </p>
+                  )}
                 {discovered.length > 0 && (
                   <div className="grid max-h-96 gap-2 overflow-y-auto rounded-lg p-1">
-                    {discovered.map((id) => (
-                      <label
-                        key={id}
-                        className="flex min-w-0 items-start gap-3 rounded-xl bg-content/5 p-3 text-xs"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={modelText.split("\n").includes(id)}
-                          onChange={(e) =>
-                            setModelText((current) =>
-                              e.target.checked
-                                ? [
-                                    ...current.split("\n").filter(Boolean),
-                                    id,
-                                  ].join("\n")
-                                : current
-                                    .split("\n")
-                                    .filter((m) => m !== id)
-                                    .join("\n"),
-                            )
-                          }
-                        />
-                        <span className="min-w-0 flex-1" title={id}>
-                          <strong className="block truncate">
-                            {draft.modelMetadata?.[id]?.name || id}
-                          </strong>
-                          <span className="block text-content/50">{id}</span>
-                          <span className="mt-2 flex flex-wrap gap-2 text-content/65">
-                            <span>
-                              {t("Context")}:{" "}
-                              {draft.modelMetadata?.[
-                                id
-                              ]?.contextWindow?.toLocaleString() ||
-                                t("Not reported")}
+                    {discovered
+                      .filter((id) =>
+                        `${id} ${draft.modelMetadata?.[id]?.name || ""}`
+                          .toLowerCase()
+                          .includes(modelQuery.trim().toLowerCase()),
+                      )
+                      .map((id) => (
+                        <label
+                          key={id}
+                          className="flex min-w-0 items-start gap-3 rounded-xl bg-content/5 p-3 text-xs"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={modelText.split("\n").includes(id)}
+                            onChange={(e) =>
+                              setModelText((current) =>
+                                e.target.checked
+                                  ? [
+                                      ...current.split("\n").filter(Boolean),
+                                      id,
+                                    ].join("\n")
+                                  : current
+                                      .split("\n")
+                                      .filter((m) => m !== id)
+                                      .join("\n"),
+                              )
+                            }
+                          />
+                          <span className="min-w-0 flex-1" title={id}>
+                            <strong className="block truncate">
+                              {draft.modelMetadata?.[id]?.name || id}
+                            </strong>
+                            <span className="block text-content/50">{id}</span>
+                            <span className="mt-2 flex flex-wrap gap-2 text-content/65">
+                              <span>
+                                {t("Context")}:{" "}
+                                {draft.modelMetadata?.[
+                                  id
+                                ]?.contextWindow?.toLocaleString() ||
+                                  t("Not reported")}
+                              </span>
+                              <span>
+                                {t("Output")}:{" "}
+                                {draft.modelMetadata?.[
+                                  id
+                                ]?.maxOutput?.toLocaleString() ||
+                                  t("Not reported")}
+                              </span>
+                              <span>
+                                {t("Modalities")}:{" "}
+                                {draft.modelMetadata?.[id]?.modalities
+                                  ?.map((m) => t(m))
+                                  .join(" / ") || t("Not reported")}
+                              </span>
                             </span>
-                            <span>
-                              {t("Output")}:{" "}
-                              {draft.modelMetadata?.[
-                                id
-                              ]?.maxOutput?.toLocaleString() ||
-                                t("Not reported")}
-                            </span>
-                            <span>
-                              {t("Modalities")}:{" "}
-                              {draft.modelMetadata?.[id]?.modalities
-                                ?.map((m) => t(m))
-                                .join(" / ") || t("Not reported")}
-                            </span>
+                            {draft.modelMetadata?.[id]?.source && (
+                              <span className="mt-1 block break-all text-[10px] text-content/40">
+                                {t("Official source")}:{" "}
+                                {draft.modelMetadata[id].source}
+                              </span>
+                            )}
                           </span>
-                          {draft.modelMetadata?.[id]?.source && (
-                            <span className="mt-1 block break-all text-[10px] text-content/40">
-                              {t("Official source")}:{" "}
-                              {draft.modelMetadata[id].source}
-                            </span>
-                          )}
-                        </span>
-                      </label>
-                    ))}
+                        </label>
+                      ))}
                   </div>
                 )}
-                {discovered.length === 0 && (
-                  <label className="grid gap-1 text-xs">
-                    {t("Add model ID")}
-                    <input
-                      className={inputClass}
-                      placeholder={t("Model ID")}
-                      onKeyDown={(event) => {
-                        if (event.key !== "Enter") return;
-                        event.preventDefault();
-                        const id = event.currentTarget.value.trim();
-                        if (id) {
-                          setDiscovered((models) => [
-                            ...new Set([...models, id]),
-                          ]);
-                          setModelText((current) =>
-                            [
-                              ...new Set([
-                                ...current.split("\n").filter(Boolean),
-                                id,
-                              ]),
-                            ].join("\n"),
-                          );
-                          event.currentTarget.value = "";
-                        }
-                      }}
-                    />
-                  </label>
+                {(manualModelOpen || discovered.length === 0) && (
+                  <div className="flex items-end gap-2 rounded-lg bg-content/5 p-3">
+                    <label className="grid flex-1 gap-1 text-xs">
+                      {t("Add model ID")}
+                      <input
+                        className={inputClass}
+                        placeholder={t("Model ID")}
+                        value={manualModelId}
+                        onChange={(e) => setManualModelId(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addManualModel();
+                          }
+                        }}
+                      />
+                    </label>
+                    <SecondaryButton
+                      disabled={!manualModelId.trim() || busy}
+                      onClick={addManualModel}
+                    >
+                      {t("Add model")}
+                    </SecondaryButton>
+                  </div>
                 )}
                 <label className="grid gap-1 text-xs">
                   {t("Primary model")}

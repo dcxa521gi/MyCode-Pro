@@ -1,3 +1,4 @@
+import { decodeContextDraft } from "./composerBehavior";
 import { describe, expect, it } from "vitest";
 import { leafIds, newFileTab, newTab, type WorkspaceTab } from "../../workspace/model/layout";
 import type { Session } from "./session";
@@ -61,7 +62,7 @@ describe("applyAddToChatRequest: zero-tab fallback", () => {
     });
 
     expect(newChat(result!).composerSeed).toContain("selected code");
-    expect(newChat(result!).composerSeed).toMatch(/^>/);
+    expect(decodeContextDraft(newChat(result!).composerSeed!)).toEqual({text:"",quotes:["selected code"]});
   });
 
   it("keeps the donor session's harness, model and runtime mode", () => {

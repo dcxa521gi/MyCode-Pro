@@ -268,6 +268,7 @@ function explorerItems(
           },
         ]
       : []),
+    ...(!target.isDir && /\.(html?|svg)$/i.test(target.path) ? [{kind:"item" as const,id:"internal-browser",label:uiTranslate("Open in built-in browser")},{kind:"item" as const,id:"external-browser",label:uiTranslate("Open in external browser")}] : []),
     { kind: "item", id: "reveal", label: REVEAL_LABEL },
   ];
 }
@@ -708,6 +709,9 @@ export const FileTree = memo(function FileTree({
       case "delete":
         await run(() => removeEntry(target.path));
         return;
+      case "internal-browser":
+      case "external-browser":
+        window.dispatchEvent(new CustomEvent("mycode:preview-file",{detail:{path:target.path,external:id === "external-browser"}})); return;
       case "reveal":
         await run(() => revealPath(target.path));
         return;

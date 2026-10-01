@@ -38,7 +38,7 @@ export default defineConfig(async ({ mode }) => {
       watch: {
         ignored: stable
           ? ["**/*"]
-          : ["**/src-tauri/**", "**/target/**", "**/build/cindy-reference/**"],
+          : ["**/src-tauri/**", "**/target/**", "**/build/**"],
       },
     },
   };

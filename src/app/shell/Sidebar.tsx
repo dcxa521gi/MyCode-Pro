@@ -301,6 +301,7 @@ type Props = {
   /** Linked GitHub work changed after the session last advanced. */
   linkedSessionUpdateIds?: ReadonlySet<string>;
   settingsOpen?: boolean;
+  workspaceHidden?: boolean;
   settingsSection?: SettingsSectionId;
   onOpenSettings?: () => void;
   onOpenNotificationSettings?: (projectPath?: string) => void;
@@ -387,6 +388,7 @@ function SidebarComponent({
   inboxUnseen = false,
   linkedSessionUpdateIds = new Set(),
   settingsOpen = false,
+  workspaceHidden = false,
   settingsSection = "general",
   onOpenSettings,
   onOpenNotificationSettings,
@@ -613,6 +615,7 @@ function SidebarComponent({
   // A blank session has no project to browse, so the shell stands alone until
   // one is picked — whether or not the rail is open.
   const sidebarAvailable =
+    !workspaceHidden &&
     !searchActive &&
     !inboxActive &&
     !notesActive &&

@@ -52,6 +52,7 @@ const CLI: Record<HarnessId, { name: string; install?: string }> = {
     install:
       "Install from hermes-agent.nousresearch.com, then run hermes model",
   },
+  minimax: { name: "MiniMax Code CLI", install: "npm install -g @minimax-ai/code" },
   mimo: { name: "MiMo Code CLI", install: "npm install -g @mimo-ai/cli" },
   zcode: { name: "ZCode CLI" },
   antigravity: { name: "Antigravity ACP server (agy_acp_server.par)" },
@@ -90,7 +91,7 @@ export function probeHarnessAvailability(options?: {
   }
   inflight = Promise.all(
     HARNESSES.map(async (id) => {
-      if (id === "mimo" || id === "zcode") {
+      if (id === "minimax" || id === "mimo" || id === "zcode") {
         try {
           await resolveHarnessBinary(id);
           return [id, true] as const;

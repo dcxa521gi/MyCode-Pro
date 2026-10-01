@@ -1799,4 +1799,41 @@ describe("Composer question focus", () => {
       window.removeEventListener("monocode:open-mcp-settings", onOpen);
     }
   });
+  it("keeps quoted selections outside the editable draft and sends their full content", async () => {
+    const onSubmit=vi.fn((_text:string)=>true);
+    await act(async()=>root.render(createElement(Composer, {
+      focused:true,executionCwd:"/repo",harness:"claude",model:"claude-sonnet",runtimeMode:"supervised",
+      hideProjectPicker:true,hideBranchPicker:true,initialDraft:"Explain this",
+      quoteRequest:{id:99,text:"a long selected passage\nsecond line",mode:"quote"},
+      onFocus:vi.fn(),onModelChange:vi.fn(),onRuntimeModeChange:vi.fn(),onSubmit,
+    })));
+    expect(container.querySelector("textarea")!.value).toBe("Explain this");
+    expect(container.querySelector('[aria-label="Quoted context"]')?.textContent).toContain("a long selected passage");
+    await act(async()=>container.querySelector<HTMLButtonElement>('[aria-label="Send"]')!.click());
+    expect(onSubmit.mock.calls[0]?.[0]).toContain("> a long selected passage\n> second line\n\nExplain this");
+  });
+  it("recalls history only outside the textarea and obeys Ctrl+Enter", async()=>{
+    localStorage.setItem("mycode.composer-behavior",JSON.stringify({sendKey:"ctrl-enter",numberedLists:true}));
+    const onSubmit=vi.fn(()=>true);
+    try {
+      await act(async()=>root.render(createElement(Composer, {
+        focused:true,hotkeys:true,executionCwd:"/repo",harness:"claude",model:"claude-sonnet",runtimeMode:"supervised",
+        hideProjectPicker:true,hideBranchPicker:true,promptHistory:["first","1、second"],
+        onFocus:vi.fn(),onModelChange:vi.fn(),onRuntimeModeChange:vi.fn(),onSubmit,
+      })));
+      const textarea=container.querySelector("textarea")!;
+      textarea.blur();
+      await act(async()=>document.body.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowUp",bubbles:true,cancelable:true})));
+      expect(textarea.value).toBe("1、second");
+      textarea.focus();textarea.setSelectionRange(textarea.value.length,textarea.value.length);
+      await act(async()=>textarea.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowUp",bubbles:true,cancelable:true})));
+      expect(textarea.value).toBe("1、second");
+      await act(async()=>textarea.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true,cancelable:true})));
+      expect(textarea.value).toBe("1、second\n2、");
+      expect(onSubmit).not.toHaveBeenCalled();
+      await act(async()=>textarea.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",ctrlKey:true,bubbles:true,cancelable:true})));
+      expect(onSubmit).toHaveBeenCalledOnce();
+    } finally {localStorage.removeItem("mycode.composer-behavior");}
+  });
+
 });

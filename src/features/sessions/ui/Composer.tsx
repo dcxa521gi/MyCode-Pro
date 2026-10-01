@@ -1,3 +1,12 @@
+import { takeRecalledDraft } from "../model/turnRecovery";
+import {
+  useComposerBehavior,
+  shouldSend,
+  numberedNewline,
+  decodeContextDraft,
+  encodeContextDraft,
+  contextPrompt,
+} from "../model/composerBehavior";
 import { useProtectedAttachments } from "../../settings/model/protectedAttachments";
 import { VoiceInput } from "./VoiceInput";
 import type { TurnMetrics } from "../model/session";
@@ -233,6 +242,7 @@ type Props = {
   compactSupported?: boolean;
   quoteRequest?: QuoteRequest;
   initialDraft?: string;
+  promptHistory?: string[];
   draftResetToken?: number;
   inboxCard?: InboxComposerCard;
   noteCard?: NoteComposerCard;
@@ -525,6 +535,7 @@ export function Composer({
   compactSupported = false,
   quoteRequest,
   initialDraft,
+  promptHistory = [],
   draftResetToken,
   inboxCard,
   noteCard,
@@ -593,7 +604,14 @@ export function Composer({
   const positionedInitialDraft = useRef(false);
   const slashRef = useRef<SlashToken | null>(null);
   const mentionRef = useRef<MentionToken | null>(null);
-  const [draft, setDraft] = useState(initialDraft ?? "");
+  const behavior = useComposerBehavior();
+  const [quotes, setQuotes] = useState(
+    () => decodeContextDraft(initialDraft ?? "").quotes,
+  );
+  const [draft, setDraft] = useState(
+    () => decodeContextDraft(initialDraft ?? "").text,
+  );
+  const historyIndex = useRef<number | null>(null);
   const [enhancing, setEnhancing] = useState(false);
   const [enhanceError, setEnhanceError] = useState("");
   const enhancement = useRef<AbortController | null>(null);
@@ -748,38 +766,29 @@ export function Composer({
   });
   const skills = skillCatalog.skills;
   const slashItems = useMemo(
-    () =>
-      [
-            SESSION_FOLDER_COMMAND,
-            MCP_COMMAND,
-            OPERATOR_COMMAND,
-            ...(hideTopBar ? [] : [ORCHESTRATOR_COMMAND]),
-            PLAN_COMMAND,
-            ...(canSaveDraft && onSaveDraft ? [DRAFT_COMMAND] : []),
-            COMPACT_COMMAND,
-            ...(supportsBtwHarness(harness) ? [BTW_COMMAND] : []),
-            ...skills.filter(
-              (skill) =>
-                ![OPERATOR_COMMAND.name, "mono", "monocode"].includes(
-                  skill.name,
-                ) &&
-                (skill.kind === "native" ||
-                  (skill.name !== PLAN_COMMAND.name &&
-                    skill.name !== COMPACT_COMMAND.name &&
-                    skill.name !== SESSION_FOLDER_COMMAND.name &&
-                    skill.name !== MCP_COMMAND.name &&
-                    skill.name !== ORCHESTRATOR_COMMAND.name &&
-                    skill.name !== DRAFT_COMMAND.name &&
-                    skill.name !== BTW_COMMAND.name)),
-            ),
-          ],
-    [
-      harness,
-      skills,
-      hideTopBar,
-      canSaveDraft,
-      onSaveDraft,
+    () => [
+      SESSION_FOLDER_COMMAND,
+      MCP_COMMAND,
+      OPERATOR_COMMAND,
+      ...(hideTopBar ? [] : [ORCHESTRATOR_COMMAND]),
+      PLAN_COMMAND,
+      ...(canSaveDraft && onSaveDraft ? [DRAFT_COMMAND] : []),
+      COMPACT_COMMAND,
+      ...(supportsBtwHarness(harness) ? [BTW_COMMAND] : []),
+      ...skills.filter(
+        (skill) =>
+          ![OPERATOR_COMMAND.name, "mono", "monocode"].includes(skill.name) &&
+          (skill.kind === "native" ||
+            (skill.name !== PLAN_COMMAND.name &&
+              skill.name !== COMPACT_COMMAND.name &&
+              skill.name !== SESSION_FOLDER_COMMAND.name &&
+              skill.name !== MCP_COMMAND.name &&
+              skill.name !== ORCHESTRATOR_COMMAND.name &&
+              skill.name !== DRAFT_COMMAND.name &&
+              skill.name !== BTW_COMMAND.name)),
+      ),
     ],
+    [harness, skills, hideTopBar, canSaveDraft, onSaveDraft],
   );
   const skillLimit = hasNativeCommands(harness)
     ? Number.POSITIVE_INFINITY
@@ -826,13 +835,14 @@ export function Composer({
     (text: string, files: Attachment[]) => {
       setHasValue(
         text.trim().length > 0 ||
+          quotes.length > 0 ||
           files.length > 0 ||
           !!inboxCard ||
           !!noteCard ||
           !!handoffCard,
       );
     },
-    [inboxCard, noteCard, handoffCard],
+    [inboxCard, noteCard, handoffCard, quotes.length],
   );
 
   // A leading mode command in the text shows the same pill as picking the mode.
@@ -1031,7 +1041,8 @@ export function Composer({
   useEffect(() => {
     const el = ref.current;
     if (!el || !initialDraft) return;
-    if (el.value !== initialDraft) el.value = initialDraft;
+    if (el.value !== decodeContextDraft(initialDraft).text)
+      el.value = decodeContextDraft(initialDraft).text;
     if (!positionedInitialDraft.current) {
       const end = el.value.length;
       el.setSelectionRange(end, end);
@@ -1055,8 +1066,8 @@ export function Composer({
   }, [enabled]);
 
   useEffect(() => {
-    onDraftChange?.(draft);
-  }, [draft, onDraftChange]);
+    onDraftChange?.(encodeContextDraft(draft, quotes));
+  }, [draft, quotes, onDraftChange]);
   useEffect(() => {
     if (
       draftResetToken == null ||
@@ -1074,6 +1085,7 @@ export function Composer({
     onDraftChange?.("");
     setDraftSelected(false);
     setPlanSelected(false);
+    setQuotes([]);
     setOrchestrationSelected(false);
     setSessionFolderSelected(false);
     setSessionFolderOpen(false);
@@ -1125,6 +1137,14 @@ export function Composer({
     const el = ref.current;
     if (!el || !quoteRequest) return;
 
+    if (quoteRequest.mode !== "plain") {
+      if (consumedQuoteId.current !== quoteRequest.id)
+        setQuotes((q) => [...q, quoteRequest.text]);
+      consumedQuoteId.current = quoteRequest.id;
+      onQuoteRequestConsumed?.(quoteRequest.id);
+      el.focus();
+      return;
+    }
     const result = consumeQuoteRequest(
       el.value,
       consumedQuoteId.current,
@@ -1634,7 +1654,14 @@ export function Composer({
         ? `/operator ${text}`
         : text;
     const files = attachments;
-    if (!text && files.length === 0 && !noteCard && !handoffCard) return;
+    if (
+      !text &&
+      !quotes.length &&
+      files.length === 0 &&
+      !noteCard &&
+      !handoffCard
+    )
+      return;
     // Clear the parent draft before onSubmit. The app can synchronously remount
     // the composer when the first message leaves an empty session (EmptySession →
     // docked layout). If draftRef still holds the sent text, the new instance
@@ -1644,11 +1671,13 @@ export function Composer({
       borrowedAttachmentIdsRef.current,
     );
     const resendSelectedMcp = selectedMcp;
+    const resendQuotes = quotes;
+
     onDraftChange?.("");
     const accepted = onSubmit(
       mcpContextText(
         taggedMcpServers(submittedText, selectedMcp),
-        submittedText,
+        contextPrompt(submittedText, quotes),
       ),
       files,
       {
@@ -1665,6 +1694,7 @@ export function Composer({
                 if (draftRevisionRef.current !== resendDraftRevision) return;
                 restoreDraft(text, files, resendBorrowedAttachmentIds);
                 setSelectedMcp(resendSelectedMcp);
+                setQuotes(resendQuotes);
                 setResendEdited(!providerRewound);
                 onEditingLastTurnChange?.(!providerRewound);
               },
@@ -1693,6 +1723,7 @@ export function Composer({
     onEditingLastTurnChange?.(false);
     setPlanSelected(false);
     setOperatorSelected(false);
+    setQuotes([]);
     setOrchestrationSelected(false);
     setSessionFolderSelected(false);
     setSessionFolderOpen(false);
@@ -1709,7 +1740,7 @@ export function Composer({
     if (creatingSkill) return;
     if (
       e.key === "Enter" &&
-      !e.shiftKey &&
+      shouldSend(e, behavior.sendKey) &&
       consumeBtwCommand(e.currentTarget.value).matched
     ) {
       e.preventDefault();
@@ -1772,7 +1803,7 @@ export function Composer({
 
     if (
       e.key === "Enter" &&
-      !e.shiftKey &&
+      shouldSend(e, behavior.sendKey) &&
       (isCompactCommand(e.currentTarget.value) ||
         isMcpCommand(e.currentTarget.value) ||
         isSessionFolderCommand(e.currentTarget.value))
@@ -1823,24 +1854,83 @@ export function Composer({
       }
     }
 
-    if (
-      e.key === "ArrowUp" &&
-      editLastTurnSupported &&
-      navigationEmpty &&
-      e.currentTarget.selectionStart === 0 &&
-      e.currentTarget.selectionEnd === 0
-    ) {
-      e.preventDefault();
-      recallLastTurn();
-      return;
-    }
-
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (shouldSend(e, behavior.sendKey)) {
       e.preventDefault();
       submit(e.currentTarget.value);
+      return;
+    }
+    if (e.key === "Enter" && behavior.numberedLists) {
+      const next = numberedNewline(
+        e.currentTarget.value,
+        e.currentTarget.selectionStart,
+        e.currentTarget.selectionEnd,
+      );
+      if (next) {
+        e.preventDefault();
+        e.currentTarget.value = next.text;
+        setDraft(next.text);
+        syncHasValue(next.text, attachmentsRef.current);
+        resizeComposer(e.currentTarget);
+        e.currentTarget.setSelectionRange(next.cursor, next.cursor);
+      }
     }
   };
 
+  useEffect(() => {
+    const recall = (e: globalThis.KeyboardEvent) => {
+      const el = ref.current;
+      const target = e.target as HTMLElement;
+      if (
+        !enabled ||
+        !hotkeys ||
+        disabled ||
+        !el ||
+        e.isComposing ||
+        e.altKey ||
+        e.ctrlKey ||
+        e.metaKey ||
+        !["ArrowUp", "ArrowDown"].includes(e.key) ||
+        target.closest(
+          "input,textarea,select,[contenteditable=true],[role=dialog],[role=menu]",
+        )
+      )
+        return;
+      if (el.value.trim() && historyIndex.current === null) return;
+      if (!promptHistory.length) return;
+      e.preventDefault();
+      const current = historyIndex.current ?? promptHistory.length;
+      const next = Math.max(
+        0,
+        Math.min(
+          promptHistory.length,
+          current + (e.key === "ArrowUp" ? -1 : 1),
+        ),
+      );
+      historyIndex.current = next;
+      const value = promptHistory[next] || "";
+      el.value = value;
+      setDraft(value);
+      syncHasValue(value, attachmentsRef.current);
+      resizeComposer(el);
+    };
+    window.addEventListener("keydown", recall);
+    return () => window.removeEventListener("keydown", recall);
+  }, [enabled, hotkeys, disabled, promptHistory, syncHasValue]);
+  useEffect(() => {
+    const restore = () => {
+      if (!sessionId) return;
+      const detail = takeRecalledDraft(sessionId);
+      if (detail)
+        restoreDraft(
+          detail.text,
+          detail.attachments,
+          new Set(detail.attachments.map((a) => a.id)),
+        );
+    };
+    restore();
+    window.addEventListener("mycode:restore-prompt", restore);
+    return () => window.removeEventListener("mycode:restore-prompt", restore);
+  }, [sessionId, restoreDraft]);
   const onComposerKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (disabled) return;
     if (
@@ -2205,6 +2295,32 @@ export function Composer({
             />
           ) : null}
 
+          {quotes.length > 0 && (
+            <div
+              className="flex flex-wrap gap-2 px-3 pt-3"
+              aria-label={t("Quoted context")}
+            >
+              {quotes.map((quote, i) => (
+                <span
+                  key={i}
+                  className="inline-flex max-w-64 items-center gap-2 rounded-lg border border-accent/20 bg-accent/10 px-2.5 py-1.5 text-xs"
+                >
+                  <span className="truncate" title={quote}>
+                    {quote.split("\n")[0].slice(0, 70) || t("Quoted text")}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={t("Remove quote")}
+                    onClick={() =>
+                      setQuotes((q) => q.filter((_, n) => n !== i))
+                    }
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
           <div className="relative">
             <div
               ref={highlightRef}
@@ -2228,7 +2344,7 @@ export function Composer({
               style={{ textIndent: modeIndent }}
               rows={1}
               spellCheck={false}
-              defaultValue={initialDraft}
+              defaultValue={decodeContextDraft(initialDraft ?? "").text}
               placeholder={t(
                 worktreeRemoved
                   ? "Select a branch or worktree to continue…"
@@ -2252,7 +2368,10 @@ export function Composer({
               onKeyDown={onKeyDown}
               onPaste={onPaste}
               onScroll={(e) => syncHighlightScroll(e.currentTarget)}
-              onClick={(e) => syncTokensFromTextarea(e.currentTarget)}
+              onClick={(e) => {
+                historyIndex.current = null;
+                syncTokensFromTextarea(e.currentTarget);
+              }}
               onKeyUp={(e) => syncTokensFromTextarea(e.currentTarget)}
               onSelect={(e) => syncTokensFromTextarea(e.currentTarget)}
               onInput={(e) => {

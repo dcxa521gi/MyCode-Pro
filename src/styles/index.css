@@ -116,6 +116,18 @@ html.theme-light {
   color-scheme: light;
 }
 
+/* Light surfaces need readable secondary labels rather than dark-theme alpha. */
+html.theme-light :is([class~="text-content/40"], [class~="text-content/45"], [class~="text-content/50"]) {
+  color: color-mix(in srgb, var(--color-content) 72%, var(--color-background-base));
+}
+html.theme-light :is([role="menu"], [role="dialog"]) {
+  box-shadow: 0 12px 40px rgb(30 40 50 / 12%);
+}
+html.theme-light :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 65%, transparent);
+  outline-offset: 2px;
+}
+
 html,
 body,
 #root {
@@ -2769,3 +2781,12 @@ html.theme-light .btw-burst {
 }
 
 select, select option, select optgroup { color: var(--color-content); background-color: var(--color-background-base); }
+
+/* Keep secondary text and controls legible on light surfaces. */
+html.theme-light :is(.text-content\/40,.text-content\/45,.text-content\/50) {
+  color: color-mix(in srgb, var(--color-content) 68%, transparent);
+}
+html.theme-light :is([role="menu"],[role="dialog"]) {
+  box-shadow: 0 12px 40px rgb(30 40 50 / 12%);
+}
+:is(input,textarea,select):focus-visible { outline: 2px solid color-mix(in srgb, var(--color-accent) 65%, transparent); outline-offset: 2px; }

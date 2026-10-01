@@ -1,3 +1,4 @@
+import { ensureMinimaxRegistered } from "../providers/minimax/minimaxAdapter";
 import { ensureMimoRegistered } from "../providers/mimo/mimoAdapter";
 import { ensureClaudeRegistered } from "../providers/claude/claudeAdapter";
 import { ensureCodexRegistered } from "../providers/codex/codexAdapter";
@@ -10,6 +11,7 @@ import { ensurePiRegistered } from "../providers/pi/piAdapter";
 /** Register all known live harness adapters. Idempotent. */
 export function registerBuiltinHarnesses(): void {
   ensureMimoRegistered();
+  ensureMinimaxRegistered();
   ensureClaudeRegistered();
   ensureCursorRegistered();
   ensureCodexRegistered();

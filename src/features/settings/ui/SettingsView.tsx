@@ -1,3 +1,4 @@
+import { useComposerBehavior, saveComposerBehavior } from "../../sessions/model/composerBehavior";
 import { StorageManagementPage } from "./StorageManagementPage";
 import { GitCodeInbox } from "../../inbox/ui/GitCodeInbox";
 import { useShowThinking, setShowThinking } from "../model/showThinking";
@@ -1010,6 +1011,7 @@ function GeneralPage({
 }
 
 function ChatPage() {
+  const composerBehavior = useComposerBehavior();
   const showThinking = useShowThinking();
   const { t } = useTranslation();
   const [transcriptLayout, setTranscriptLayout] =
@@ -1079,6 +1081,7 @@ function ChatPage() {
 
   return (
     <>
+      <Group title={t("Message input")}><Row label={t("Send shortcut")}><select className="rounded-lg bg-content/5 px-3 py-2" value={composerBehavior.sendKey} onChange={e=>saveComposerBehavior({...composerBehavior,sendKey:e.target.value as "enter" | "ctrl-enter"})}><option value="enter">Enter</option><option value="ctrl-enter">Ctrl+Enter</option></select></Row><Row label={t("Continue numbered lists")} description={t("Continue 1, 1. and 1、 when inserting a new line.")}><Toggle label={t("Continue numbered lists")} on={composerBehavior.numberedLists} onChange={numberedLists=>saveComposerBehavior({...composerBehavior,numberedLists})}/></Row></Group>
       <Group
         title={t("Transcript")}
         description={t("How a conversation reads as it grows.")}

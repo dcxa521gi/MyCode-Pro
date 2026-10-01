@@ -297,10 +297,12 @@ describe("sanitizeSessionForPersist", () => {
   it("persists the request ID for an agent-sent follow-up", () => {
     const submitted = appendUser(newSession("codex", "/repo"), "Continue", [], {
       appRequestId: "app-source-request-1",
+      recoveryId: "a1000000-0000-4000-8000-000000000001",
     });
     expect(sanitizeSessionForPersist(submitted).blocks[0]).toMatchObject({
       text: "Continue",
       appRequestId: "app-source-request-1",
+      recoveryId: "a1000000-0000-4000-8000-000000000001",
     });
   });
 

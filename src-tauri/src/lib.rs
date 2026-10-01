@@ -1,3 +1,5 @@
+mod local_preview;
+mod turn_recovery;
 use tauri::Manager;
 
 mod account_center;
@@ -487,6 +489,7 @@ pub fn run() {
             harness::harness_resolve_grok,
             harness::harness_resolve_hermes,
             harness::harness_resolve_antigravity,
+            harness::harness_resolve_minimax,
             harness::harness_resolve_mimo,
             harness::harness_resolve_zcode,
             harness::harness_resolve_freebuff,
@@ -531,6 +534,9 @@ pub fn run() {
             notes::notes_delete,
             notes::notes_save_image,
             notes::notes_image_path,
+            turn_recovery::turn_recovery,
+            local_preview::local_preview_start,
+            local_preview::local_preview_stop,
             checkpoint::session_checkpoint_ensure,
             checkpoint::session_checkpoint_prepare,
             checkpoint::session_checkpoint_capture,

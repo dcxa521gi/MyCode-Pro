@@ -620,6 +620,7 @@ function sanitizeBlock(
   if (block.attachments?.length) {
     next.attachments = block.attachments.map(persistableAttachment);
   }
+  if (block.role === "user" && typeof block.recoveryId === "string" && /^[0-9a-f-]{36}$/i.test(block.recoveryId)) next.recoveryId = block.recoveryId;
   if (block.startedAt != null) next.startedAt = block.startedAt;
   if (block.durationMs != null) next.durationMs = block.durationMs;
   const turnModel = sanitizeTurnModel(block.turnModel);

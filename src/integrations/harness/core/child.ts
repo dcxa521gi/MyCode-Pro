@@ -322,6 +322,7 @@ export async function resolveHarnessBinary(
     fx: "harness_resolve_fx",
     hermes: "harness_resolve_hermes",
     antigravity: "harness_resolve_antigravity",
+    minimax: "harness_resolve_minimax",
     mimo: "harness_resolve_mimo",
     zcode: "harness_resolve_zcode",
     freebuff: "harness_resolve_freebuff",

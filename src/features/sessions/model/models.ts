@@ -41,6 +41,7 @@ export type AgentModel = {
 
 export const MODELS: AgentModel[] = [
   { id: "codex:default", harness: "codex", name: "CLI default", nativeId: "" },
+  { id: "minimax:default", harness: "minimax", name: "CLI default", nativeId: "" },
   { id: "mimo:default", harness: "mimo", name: "CLI default", nativeId: "" },
   {
     id: "claude:sonnet-5",
@@ -191,6 +192,7 @@ export const MODELS: AgentModel[] = [
 export const DEFAULT_MODEL_ID: Record<HarnessId, string> = {
   claude: "claude:sonnet-5",
   codex: "codex:default",
+  minimax: "minimax:default",
   mimo: "mimo:default",
   zcode: "zcode:default",
   cursor: "cursor:composer-2.5",
@@ -583,7 +585,7 @@ export function nativeModelId(model: AgentModel | string): string {
   // Persisted CLI-default choices survive replacement of the initial catalog.
   // They mean “let the CLI choose”, never a literal model named `default`.
   const id = typeof model === "string" ? model : model.id;
-  if (["codex:default", "mimo:default", "zcode:default"].includes(id))
+  if (["codex:default", "minimax:default", "mimo:default", "zcode:default"].includes(id))
     return "";
   if (typeof model !== "string") {
     return model.nativeId ?? nativeIdFrom(model.id);
