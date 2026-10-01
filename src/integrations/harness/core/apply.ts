@@ -212,7 +212,7 @@ function mergeTurnMetrics(
 ): Session {
   let userIndex = -1;
   for (let index = session.blocks.length - 1; index >= 0; index -= 1) {
-    if (session.blocks[index].role === "user") {
+    if (session.blocks[index].role === "user" && !session.blocks[index].draft) {
       userIndex = index;
       break;
     }

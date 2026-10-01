@@ -862,6 +862,15 @@ describe("applyHarnessEvent context", () => {
 });
 
 describe("applyHarnessEvent turn metrics", () => {
+  it("keeps in-flight usage on the submitted turn when a later draft exists", () => {
+    let session = appendUser(newSession("pi", "/repo"), "Run this");
+    session.blocks.push({id:"draft",role:"user",text:"Next request",draft:true});
+    session = applyHarnessEvent(session, {type:"turn.metrics", inputTokens:100, outputTokens:20});
+    expect(session.blocks[0].turnMetrics).toEqual({inputTokens:100,outputTokens:20});
+    expect(session.blocks[0].turnMetricsAt).toBe(Date.now());
+    expect(session.blocks[1].turnMetrics).toBeUndefined();
+  });
+
   it("attaches provider metrics to the latest user turn", () => {
     let session = appendUser(newSession("claude", "/repo"), "Explain this");
     session = applyHarnessEvent(session, {
@@ -1217,3 +1226,4 @@ describe("subagent steps", () => {
     expect(session.blocks[0].agentRun?.steps).toHaveLength(1);
   });
 });
+
