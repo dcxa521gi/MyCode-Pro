@@ -8539,6 +8539,19 @@ function Workspace({
       return;
     }
     recalling.current.add(sessionId);
+    // Invalidate callbacks from the recalled turn before cancelling its process.
+    turnGen.current.set(sessionId, (turnGen.current.get(sessionId) ?? 0) + 1);
+    flushHarnessEvents();
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === sessionId
+          ? {
+              ...stopStreaming(s),
+              queueStatus: s.queuedMessages?.length ? "paused" : s.queueStatus,
+            }
+          : s,
+      ),
+    );
     try {
       await Promise.all(
         sessionChildHarnesses(original).map((id) =>
@@ -8553,12 +8566,20 @@ function Workspace({
         throw Error(
           "Files changed outside captured agent edits; recall was stopped to preserve your work",
         );
+      if (readRecallDraft(sessionId)?.trim())
+        throw Error(
+          "Save or clear your current draft before recalling a message",
+        );
       await recoverTurn(cwd, block.recoveryId, "undo");
       await forgetHarnessSession(original.harness, sessionId).catch(
         () => undefined,
       );
-      writeRecallDraft(sessionId, block.text);
-      queueRecalledDraft(sessionId, block.text, block.attachments || []);
+      const newerDraft = readRecallDraft(sessionId);
+      const recalledText = newerDraft?.trim()
+        ? `${newerDraft}\n\n${block.text}`
+        : block.text;
+      writeRecallDraft(sessionId, recalledText);
+      queueRecalledDraft(sessionId, recalledText, block.attachments || []);
       flushSync(() =>
         setSessions((prev) =>
           prev.map((s) => {
