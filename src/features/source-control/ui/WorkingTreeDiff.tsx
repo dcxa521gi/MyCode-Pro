@@ -69,7 +69,7 @@ export function WorkingTreeDiff({ cwd, focusPath, focusKind }: Props) {
           setFiles(index.files);
           setDiffs(new Map());
           setError(null);
-          const entries = workingTreeDiffEntries(index.files);
+          const entries = workingTreeDiffEntries(index.files, focusKind);
           const loadOrder = prioritizeWorkingTreeDiffEntries(
             entries,
             focusPath,
@@ -147,9 +147,13 @@ export function WorkingTreeDiff({ cwd, focusPath, focusKind }: Props) {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
     };
-  }, [cwd]);
+  }, [cwd, focusKind]);
 
-  const entries = useMemo(() => workingTreeDiffEntries(files ?? []), [files]);
+  // A review opened from the Changes or Staged Changes section shows only that side.
+  const entries = useMemo(
+    () => workingTreeDiffEntries(files ?? [], focusKind),
+    [files, focusKind],
+  );
 
   const models = useMemo<UnifiedDiffFileModel[]>(() => {
     if (!files) return [];
@@ -286,7 +290,7 @@ export function WorkingTreeDiff({ cwd, focusPath, focusKind }: Props) {
   return (
     <UnifiedDiffView
       files={models}
-      fileCount={files.length}
+      fileCount={focusKind ? entries.length : files.length}
       focusId={focusId}
       busyId={busyId}
       totals={totals}
