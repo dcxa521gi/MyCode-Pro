@@ -129,22 +129,28 @@ fn operate(
             for input in paths {
                 let p = PathBuf::from(&input);
                 let relative = if p.is_absolute() {
-                    let root_text = root.to_string_lossy().replace('\\', "/");
-                    let input_text = input.replace('\\', "/");
-                    let root_text = root_text.trim_start_matches("//?/").trim_end_matches('/');
-                    let input_text = input_text.trim_start_matches("//?/");
-                    let prefix = format!("{root_text}/");
-                    let matches = if cfg!(windows) {
-                        input_text
-                            .to_ascii_lowercase()
-                            .starts_with(&prefix.to_ascii_lowercase())
-                    } else {
-                        input_text.starts_with(&prefix)
-                    };
-                    if !matches {
-                        return Err("Edit outside project cannot be recalled".into());
+                    // Resolve existing ancestors too: macOS /var aliases /private/var,
+                    // and Windows paths may arrive without their verbatim prefix.
+                    let mut ancestor = p.as_path();
+                    let mut suffix = Vec::new();
+                    while !ancestor.exists() {
+                        suffix.push(
+                            ancestor
+                                .file_name()
+                                .ok_or("Invalid edit path")?
+                                .to_os_string(),
+                        );
+                        ancestor = ancestor.parent().ok_or("Invalid edit path")?;
                     }
-                    input_text[prefix.len()..].to_string()
+                    let mut resolved = ancestor.canonicalize().map_err(|e| e.to_string())?;
+                    for part in suffix.into_iter().rev() {
+                        resolved.push(part);
+                    }
+                    resolved
+                        .strip_prefix(&root)
+                        .map_err(|_| "Edit outside project cannot be recalled")?
+                        .to_string_lossy()
+                        .replace('\\', "/")
                 } else {
                     input.replace('\\', "/")
                 };
