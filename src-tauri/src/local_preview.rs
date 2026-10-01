@@ -38,6 +38,26 @@ fn resolve(root: &Path, raw: &str) -> Option<PathBuf> {
         None
     }
 }
+// TCP reads are not HTTP message boundaries: a formatted write or the network
+// can split the request line and Host header into separate packets.
+fn read_headers(reader: &mut impl Read) -> Option<String> {
+    let deadline = std::time::Instant::now() + Duration::from_secs(3);
+    let mut request = Vec::new();
+    let mut chunk = [0_u8; 1024];
+    while request.len() < 8192 && std::time::Instant::now() < deadline {
+        let available = chunk.len().min(8192 - request.len());
+        let n = reader.read(&mut chunk[..available]).ok()?;
+        if n == 0 {
+            return None;
+        }
+        request.extend_from_slice(&chunk[..n]);
+        if let Some(end) = request.windows(4).position(|bytes| bytes == b"\r\n\r\n") {
+            return String::from_utf8(request[..end + 4].to_vec()).ok();
+        }
+    }
+    None
+}
+
 #[tauri::command]
 pub fn local_preview_start(path: String) -> Result<serde_json::Value, String> {
     let file = PathBuf::from(&path)
@@ -89,11 +109,9 @@ pub fn local_preview_start(path: String) -> Result<serde_json::Value, String> {
             };
             let _ = stream.set_read_timeout(Some(Duration::from_millis(500)));
             let _ = stream.set_write_timeout(Some(Duration::from_secs(3)));
-            let mut request = [0; 8192];
-            let Ok(n) = stream.read(&mut request) else {
+            let Some(request) = read_headers(&mut stream) else {
                 continue;
             };
-            let request = String::from_utf8_lossy(&request[..n]);
             let mut parts = request.lines().next().unwrap_or("").split_whitespace();
             let method = parts.next().unwrap_or("");
             let target = parts.next().unwrap_or("");
@@ -154,6 +172,22 @@ pub fn local_preview_stop(id: String) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn headers_wait_for_fragmented_packets_and_reject_incomplete_or_large_input() {
+        struct Fragmented(std::io::Cursor<Vec<u8>>);
+        impl Read for Fragmented {
+            fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+                let len = buffer.len().min(2);
+                self.0.read(&mut buffer[..len])
+            }
+        }
+        let input = b"GET /site/index.html HTTP/1.1\r\nHost: 127.0.0.1:1234\r\n\r\n";
+        let mut reader = Fragmented(std::io::Cursor::new(input.to_vec()));
+        assert_eq!(read_headers(&mut reader).unwrap().as_bytes(), input);
+        assert!(read_headers(&mut std::io::Cursor::new(b"GET / HTTP/1.1\r\n")).is_none());
+        assert!(read_headers(&mut std::io::Cursor::new(vec![b'x'; 8193])).is_none());
+    }
+
     #[test]
     fn preview_serves_local_assets_and_rejects_untrusted_host() {
         let root = std::env::temp_dir().join(format!("preview-http-{}", uuid::Uuid::new_v4()));
