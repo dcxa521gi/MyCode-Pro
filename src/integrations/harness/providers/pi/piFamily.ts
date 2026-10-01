@@ -1,3 +1,4 @@
+import { PiTurnUsage } from "./piUsage";
 import { findModel } from "../../../../features/sessions/model/models";
 import { nativeModelId } from "../../../../features/sessions/model/models";
 import { taskListFromToolInput } from "../../../../features/sessions/model/taskList";
@@ -115,6 +116,7 @@ type Live = {
   turnFailed: ((error: Error) => void) | null;
   turnEndPending: boolean;
   activeTurn: boolean;
+  usage: PiTurnUsage;
   emittedAssistant: string;
   emittedReasoning: string;
   /** Reason the turn failed, held until we know it is not being retried. */
@@ -523,6 +525,7 @@ async function startLive(
     turnFailed: null,
     turnEndPending: false,
     activeTurn: false,
+    usage: new PiTurnUsage(),
     emittedAssistant: "",
     emittedReasoning: "",
     turnError: null,
@@ -600,6 +603,7 @@ async function runTurn(
   input: SendTurnInput,
 ): Promise<void> {
   await applyModel(flavor, live, input);
+  live.usage.reset();
   live.emittedAssistant = "";
   live.emittedReasoning = "";
   live.turnError = null;
@@ -867,8 +871,9 @@ function handleFrame(
 
   const context = contextFromUsage(rec, live.contextWindow);
   if (context) live.onEvent({ type: "context", ...context });
+  if (type === "message_start" && asRecord(rec.message)?.role === "assistant") live.usage.startMessage();
   const metrics = turnMetricsFromUsage(rec);
-  if (metrics) live.onEvent({ type: "turn.metrics", ...metrics });
+  if (metrics) live.onEvent({ type: "turn.metrics", ...live.usage.update(metrics) });
 
   const delta = assistantDeltaFromEvent(rec);
   if (delta) {

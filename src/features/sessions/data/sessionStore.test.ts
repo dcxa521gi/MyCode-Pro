@@ -433,6 +433,7 @@ describe("sanitizeSessionForPersist", () => {
         id: "u1",
         role: "user",
         text: "remember this",
+        turnMetricsAt: 1790876485928,
         turnMetrics: {
           inputTokens: 100,
           outputTokens: 20,
@@ -442,6 +443,7 @@ describe("sanitizeSessionForPersist", () => {
       },
     ];
 
+    expect(sanitizeSessionForPersist(session).blocks[0]?.turnMetricsAt).toBe(1790876485928);
     expect(sanitizeSessionForPersist(session).blocks[0]?.turnMetrics).toEqual({
       inputTokens: 100,
       outputTokens: 20,

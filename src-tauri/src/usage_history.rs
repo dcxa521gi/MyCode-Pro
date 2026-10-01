@@ -74,7 +74,7 @@ fn read_history(store: &SessionStore, per_turn: bool) -> Result<Vec<UsageRow>, S
         if per_turn {
             for block in &blocks {
                 let mut turn = base.clone();
-                turn.updated_at = block["startedAt"].as_i64().unwrap_or(0);
+                turn.updated_at = usage_date(block);
                 result.extend(group_usage(&turn, std::slice::from_ref(block)));
             }
         } else {
@@ -82,6 +82,19 @@ fn read_history(store: &SessionStore, per_turn: bool) -> Result<Vec<UsageRow>, S
         }
     }
     Ok(result)
+}
+
+// Historical turns have no report timestamp. Use their completion date when
+// available, never the session update time (renames and unrelated turns alter it).
+fn usage_date(block: &Value) -> i64 {
+    if let Some(at) = block["turnMetricsAt"].as_i64().filter(|at| *at > 0) {
+        return at;
+    }
+    let start = block["startedAt"].as_i64().unwrap_or(0);
+    if start <= 0 {
+        return 0;
+    }
+    start.saturating_add(block["durationMs"].as_i64().unwrap_or(0).max(0))
 }
 
 fn group_usage(base: &UsageRow, blocks: &[Value]) -> Vec<UsageRow> {
@@ -174,6 +187,25 @@ fn group_usage(base: &UsageRow, blocks: &[Value]) -> Vec<UsageRow> {
 mod tests {
     use super::*;
     use serde_json::json;
+    #[test]
+    fn cross_day_usage_uses_report_or_completion_without_inventing_dates() {
+        let start = 1_790_783_940_000_i64;
+        assert_eq!(
+            usage_date(&json!({"startedAt": start, "durationMs":120_000})),
+            start + 120_000
+        );
+        assert_eq!(
+            usage_date(
+                &json!({"startedAt": start, "durationMs":120_000,"turnMetricsAt":start+90_000})
+            ),
+            start + 90_000
+        );
+        assert_eq!(usage_date(&json!({"durationMs":120_000})), 0);
+        assert_eq!(
+            usage_date(&json!({"startedAt":start,"durationMs":-100})),
+            start
+        );
+    }
     #[test]
     fn attributes_each_turn_and_excludes_drafts_and_assistant_metrics() {
         let base = UsageRow {

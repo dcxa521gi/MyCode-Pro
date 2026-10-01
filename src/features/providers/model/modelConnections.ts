@@ -113,5 +113,87 @@ export const CONNECTION_PRESETS = [
     baseUrl: "http://127.0.0.1:1234/v1",
     api: "openai-completions",
   },
+  {
+    name: "Kimi (Global)",
+    baseUrl: "https://api.moonshot.ai/v1",
+    api: "openai-completions",
+  },
+  {
+    name: "Qwen (Global)",
+    baseUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    api: "openai-completions",
+  },
+  {
+    name: "Z.ai",
+    baseUrl: "https://api.z.ai/api/paas/v4",
+    api: "openai-completions",
+  },
+  {
+    name: "MiniMax",
+    baseUrl: "https://api.minimax.io/v1",
+    api: "openai-completions",
+  },
+  {
+    name: "MiniMax (China)",
+    baseUrl: "https://api.minimax.cn/v1",
+    api: "openai-completions",
+  },
+  {
+    name: "StepFun",
+    baseUrl: "https://api.stepfun.com/v1",
+    api: "openai-completions",
+  },
+  {
+    name: "Mistral",
+    baseUrl: "https://api.mistral.ai/v1",
+    api: "openai-completions",
+  },
+  {
+    name: "Together AI",
+    baseUrl: "https://api.together.ai/v1",
+    api: "openai-completions",
+  },
+  {
+    name: "Fireworks",
+    baseUrl: "https://api.fireworks.ai/inference/v1",
+    api: "openai-completions",
+  },
+  {
+    name: "AiHubMix",
+    baseUrl: "https://aihubmix.com/v1",
+    api: "openai-completions",
+  },
   { name: "Custom endpoint", baseUrl: "", api: "openai-completions" },
 ] as const;
+
+export type ConnectionPreset = (typeof CONNECTION_PRESETS)[number];
+export const PROVIDER_CATEGORIES = [
+  "Partners",
+  "Subscription plans",
+  "Direct providers",
+  "Aggregators",
+  "Local and custom",
+] as const;
+export function providerCategory(provider: {
+  name: string;
+  baseUrl: string;
+}): (typeof PROVIDER_CATEGORIES)[number] {
+  if (provider.baseUrl.includes("tokendance.space")) return "Partners";
+  if (provider.baseUrl.includes("token-plan")) return "Subscription plans";
+  if (
+    !provider.baseUrl ||
+    /^http:\/\/(localhost|127\.0\.0\.1)/.test(provider.baseUrl)
+  )
+    return "Local and custom";
+  if (
+    [
+      "openrouter.ai",
+      "siliconflow.cn",
+      "together.ai",
+      "fireworks.ai",
+      "aihubmix.com",
+    ].some((host) => provider.baseUrl.includes(host))
+  )
+    return "Aggregators";
+  return "Direct providers";
+}

@@ -123,10 +123,6 @@ html.theme-light :is([class~="text-content/40"], [class~="text-content/45"], [cl
 html.theme-light :is([role="menu"], [role="dialog"]) {
   box-shadow: 0 12px 40px rgb(30 40 50 / 12%);
 }
-html.theme-light :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--color-accent) 65%, transparent);
-  outline-offset: 2px;
-}
 
 html,
 body,
@@ -2789,4 +2785,13 @@ html.theme-light :is(.text-content\/40,.text-content\/45,.text-content\/50) {
 html.theme-light :is([role="menu"],[role="dialog"]) {
   box-shadow: 0 12px 40px rgb(30 40 50 / 12%);
 }
-:is(input,textarea,select):focus-visible { outline: 2px solid color-mix(in srgb, var(--color-accent) 65%, transparent); outline-offset: 2px; }
+/* Text inputs keep a restrained focus treatment in every theme. The composer
+   already has a container border and must not gain an inset rectangle. */
+html :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select):focus {
+  outline: none;
+  --tw-ring-color: color-mix(in srgb, var(--color-content) 22%, transparent);
+  border-color: color-mix(in srgb, var(--color-content) 28%, transparent);
+}
+html :is(input, textarea, select):focus-visible {
+  outline: none;
+}

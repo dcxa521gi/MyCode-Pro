@@ -765,6 +765,18 @@ describe("OpenCode child permission routing", () => {
     );
   });
 
+  it("records step-finish usage and deduplicates later message totals", async () => {
+    const events: HarnessEvent[] = [];
+    const { done } = await startTurn(events);
+    onSseEvent?.({type: "message.updated", properties: {info: {id: "usage_message",sessionID: "session_1",role: "assistant"}}});
+    onSseEvent?.({type: "message.part.updated", properties: {part: {id: "usage_part",messageID: "usage_message",sessionID: "session_1",type: "step-finish",tokens: {input: 100,output: 20,cache: {read: 300,write: 0}}}}});
+    expect(events.filter(e => e.type === "turn.metrics").at(-1)).toMatchObject({inputTokens:100,outputTokens:20,cacheReadTokens:300});
+    onSseEvent?.({type: "message.updated", properties: {info: {id: "usage_message",sessionID: "session_1",role: "assistant",tokens: {input: 100,output: 20,cache: {read: 300,write: 0}}}}});
+    expect(events.filter(e => e.type === "turn.metrics").at(-1)).toMatchObject({inputTokens:100,outputTokens:20,cacheReadTokens:300});
+    idle();
+    await done;
+  });
+
   it("ignores unrelated sessions and child transcript, status, and error events", async () => {
     const events: HarnessEvent[] = [];
     const { done } = await startTurn(events);

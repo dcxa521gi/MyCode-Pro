@@ -698,6 +698,12 @@ async function handleEvent(
       if (!part) break;
       live.partById.set(part.id, part);
       if (roleForPart(live, part) === "assistant") {
+        // Some servers only send token usage on step-finish. Key by message ID
+        // so the later message.updated replaces it instead of double counting.
+        if (part.type === "step-finish" && part.messageID) {
+          const raw = asRecord(properties.part);
+          emitContext(live, { id: part.messageID, tokens: raw?.tokens });
+        }
         emitAssistantText(live, part);
       }
       if (part.type === "tool") emitTool(live, part);

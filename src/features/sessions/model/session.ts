@@ -302,6 +302,8 @@ export type Block = {
   appRequestId?: string;
   /** Provider-reported token metrics for this user turn, when available. */
   turnMetrics?: TurnMetrics;
+  /** Last provider usage report, epoch milliseconds. */
+  turnMetricsAt?: number;
   tool?: {
     callId?: string;
     title?: string;

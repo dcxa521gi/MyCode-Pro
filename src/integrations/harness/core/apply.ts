@@ -235,7 +235,7 @@ function mergeTurnMetrics(
       : {}),
   };
   const blocks = session.blocks.slice();
-  blocks[userIndex] = { ...current, turnMetrics: metrics };
+  blocks[userIndex] = { ...current, turnMetrics: metrics, turnMetricsAt: Date.now() };
   return { ...session, blocks };
 }
 

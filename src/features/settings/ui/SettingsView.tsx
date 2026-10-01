@@ -559,7 +559,7 @@ export function SettingsView({
               ) : null}
               {section === "keybindings" ? <KeybindingsPage /> : null}
               {section === "mcp" ? <McpSettings cwd={cwd} recents={recents} /> : null}
-              {section === "providers" ? <ModelConnections /> : null}
+              {section === "providers" ? <ModelConnections onOpenCli={() => onSelectSection?.("providers-cli")} /> : null}
               {section === "providers-cli" ? (
                 <ProvidersPage cwd={cwd} recents={recents} />
               ) : null}

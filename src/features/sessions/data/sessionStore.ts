@@ -649,7 +649,11 @@ function sanitizeBlock(
   // the user's own after a reload.
   if (block.role === "user" && block.internal) next.internal = true;
   const turnMetrics = sanitizeTurnMetrics(block.turnMetrics);
-  if (block.role === "user" && turnMetrics) next.turnMetrics = turnMetrics;
+  if (block.role === "user" && turnMetrics) {
+    next.turnMetrics = turnMetrics;
+    if (typeof block.turnMetricsAt === "number" && Number.isFinite(block.turnMetricsAt) && block.turnMetricsAt > 0)
+      next.turnMetricsAt = block.turnMetricsAt;
+  }
   if (block.tool) next.tool = block.tool;
   if (block.approval?.decided) {
     next.approval = {

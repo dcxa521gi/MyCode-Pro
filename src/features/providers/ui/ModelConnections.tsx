@@ -1,3 +1,6 @@
+import { usageTokens } from "../../settings/model/usageTokens";
+import type { UsageRow } from "../../settings/ui/UsageHistoryPage";
+import { ProviderGallery } from "./ProviderGallery";
 import { Modal } from "../../../shared/ui/Modal";
 import { formatTokenCount } from "../../../shared/lib/tokenCount";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -25,8 +28,11 @@ const empty = (): ModelConnection => ({
   hasKey: false,
 });
 
-export function ModelConnections() {
+export function ModelConnections({
+  onOpenCli,
+}: { onOpenCli?: () => void } = {}) {
   const { t } = useTranslation();
+  const [choosingProvider, setChoosingProvider] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [usage, setUsage] = useState<Record<string, number>>({});
   const [items, setItems] = useState<ModelConnection[]>([]);
@@ -115,17 +121,13 @@ export function ModelConnections() {
     );
   };
   useEffect(() => {
-    void invoke<
-      Array<{ connectionId: string; inputTokens: number; outputTokens: number }>
-    >("usage_history")
+    void invoke<UsageRow[]>("usage_history")
       .then((rows) => {
         const totals: Record<string, number> = {};
         for (const row of rows)
           if (row.connectionId)
             totals[row.connectionId] =
-              (totals[row.connectionId] || 0) +
-              row.inputTokens +
-              row.outputTokens;
+              (totals[row.connectionId] || 0) + usageTokens(row);
         setUsage(totals);
       })
       .catch(() => {});
@@ -162,9 +164,36 @@ export function ModelConnections() {
   };
   return (
     <section className="mb-8 space-y-4" aria-label={t("Model connections")}>
+      {choosingProvider && (
+        <ProviderGallery
+          connections={items}
+          onClose={() => setChoosingProvider(false)}
+          onOpenCli={
+            onOpenCli
+              ? () => {
+                  setChoosingProvider(false);
+                  onOpenCli();
+                }
+              : undefined
+          }
+          onSelect={(preset) => {
+            edit({
+              ...empty(),
+              ...(draft ? { id: draft.id } : {}),
+              name: preset.name,
+              baseUrl: preset.baseUrl,
+              api: preset.api,
+            });
+            setChoosingProvider(false);
+          }}
+        />
+      )}
       <div className="mb-2 flex items-center justify-between">
         <h2 className="font-medium">{t("Model connections")}</h2>
-        <SecondaryButton disabled={busy} onClick={() => edit(empty())}>
+        <SecondaryButton
+          disabled={busy}
+          onClick={() => setChoosingProvider(true)}
+        >
           {t("Add connection")}
         </SecondaryButton>
       </div>
@@ -245,7 +274,10 @@ export function ModelConnections() {
               </p>
             </div>
           ))}
-          <SecondaryButton disabled={busy} onClick={() => edit(empty())}>
+          <SecondaryButton
+            disabled={busy}
+            onClick={() => setChoosingProvider(true)}
+          >
             {t("Add connection")}
           </SecondaryButton>
         </div>
@@ -360,7 +392,7 @@ export function ModelConnections() {
                 )
               );
             })()}
-          {draft && (
+          {draft && !choosingProvider && (
             <Modal
               title={t(
                 items.some((item) => item.id === draft.id)
@@ -400,30 +432,18 @@ export function ModelConnections() {
                   });
                 }}
               >
-                <label className="grid gap-1 text-xs">
-                  {t("Provider template")}
-                  <select
-                    aria-label={t("Provider template")}
-                    className={inputClass}
-                    defaultValue=""
-                    onChange={(e) => {
-                      const preset = CONNECTION_PRESETS[Number(e.target.value)];
-                      setDraft({ ...draft, ...preset, hasKey: false });
-                      setKey("");
-                      setModelText("");
-                      setDiscovered([]);
-                    }}
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-content/5 p-3">
+                  <span className="text-sm font-medium">
+                    {draft.name || t("Custom endpoint")}
+                  </span>
+                  <SecondaryButton
+                    type="button"
+                    disabled={busy}
+                    onClick={() => setChoosingProvider(true)}
                   >
-                    <option value="" disabled>
-                      {t("Choose a provider")}
-                    </option>
-                    {CONNECTION_PRESETS.map((p, i) => (
-                      <option key={p.name} value={i}>
-                        {t(p.name)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    {t("Change provider")}
+                  </SecondaryButton>
+                </div>
                 <label className="grid gap-1 text-xs">
                   {t("Name")}
                   <input

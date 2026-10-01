@@ -1,6 +1,7 @@
+import { usageTokens } from "../model/usageTokens";
 import { formatTokenCount } from "../../../shared/lib/tokenCount";
 import { BusyIndicator } from "../../../shared/ui/BusyIndicator";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "../../../shared/i18n";
 export type UsageRow = {
@@ -20,7 +21,7 @@ export type UsageRow = {
   measuredTurns: number;
   turns: number;
 };
-const tokens = (row: UsageRow) => row.inputTokens + row.outputTokens;
+const tokens = usageTokens;
 const dayKey = (time: number) => {
   const d = new Date(time);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -37,15 +38,29 @@ export function UsageHistoryPage() {
     "model",
   );
   const [page, setPage] = useState(0);
-  const refresh = () => {
+  const loading = useRef(false);
+  const refresh = useCallback(() => {
+    if (loading.current) return;
+    loading.current = true;
     setRefreshing(true);
     setError("");
     void invoke<UsageRow[]>("usage_history_turns")
       .then((value) => setRows(Array.isArray(value) ? value : []))
       .catch(() => setError(t("Could not load usage history.")))
-      .finally(() => setRefreshing(false));
-  };
-  useEffect(refresh, []);
+      .finally(() => {
+        loading.current = false;
+        setRefreshing(false);
+      });
+  }, [t]);
+  useEffect(() => {
+    refresh();
+    const timer = setInterval(refresh, 15000);
+    window.addEventListener("focus", refresh);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [refresh]);
   const today = dayKey(Date.now());
   const windowDays = Array.from({ length: 140 }, (_, index) => {
     const d = new Date();
@@ -62,11 +77,16 @@ export function UsageHistoryPage() {
     }
   const start = new Date();
   start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - Number(range) + 1);
+  start.setDate(
+    start.getDate() - (range === "yesterday" ? 1 : Number(range) - 1),
+  );
   const selected = base.filter((r) =>
     day
       ? r.updatedAt > 0 && dayKey(r.updatedAt) === day
-      : range === "all" || r.updatedAt >= start.getTime(),
+      : range === "all" ||
+        (r.updatedAt >= start.getTime() &&
+          (range !== "yesterday" ||
+            dayKey(r.updatedAt) === dayKey(start.getTime()))),
   );
   const grouped = new Map<
     string,
@@ -77,6 +97,7 @@ export function UsageHistoryPage() {
       output: number;
       cached: number;
       turns: number;
+      total: number;
     }
   >();
   for (const row of selected) {
@@ -92,15 +113,17 @@ export function UsageHistoryPage() {
       output: 0,
       cached: 0,
       turns: 0,
+      total: 0,
     };
     item.input += row.inputTokens;
     item.output += row.outputTokens;
     item.cached += row.cacheReadTokens;
     item.turns += row.measuredTurns;
+    item.total += tokens(row);
     grouped.set(id, item);
   }
   const breakdown = [...grouped.entries()].sort(
-    (a, b) => b[1].input + b[1].output - a[1].input - a[1].output,
+    (a, b) => b[1].total - a[1].total,
   );
   const modelDaily = new Map<string, Map<string, number>>();
   const modelNames = [
@@ -154,6 +177,7 @@ export function UsageHistoryPage() {
         >
           {[
             ["1", "Today"],
+            ["yesterday", "Yesterday"],
             ["7", "Last 7 days"],
             ["30", "Last 30 days"],
             ["all", "All time"],
@@ -177,12 +201,23 @@ export function UsageHistoryPage() {
           }}
         />
         <button
+          disabled={refreshing}
           onClick={refresh}
           className="ml-auto rounded-lg bg-content/5 px-3 py-2"
         >
-          {refreshing ? <BusyIndicator label={t("Refreshing…")} /> : t("Refresh")}
+          {refreshing ? (
+            <BusyIndicator label={t("Refreshing…")} />
+          ) : (
+            t("Refresh")
+          )}
         </button>
       </div>
+      <p className="text-xs text-content/60" role="status">
+        {t("Measured turns")}:{" "}
+        {selected.reduce((n, r) => n + r.measuredTurns, 0)} ·{" "}
+        {t("Usage not reported")}:{" "}
+        {selected.reduce((n, r) => n + r.turns - r.measuredTurns, 0)}
+      </p>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           ["Total tokens", total],
@@ -342,14 +377,14 @@ export function UsageHistoryPage() {
                   </td>
                   {[row.input, row.output, row.cached].map((v, i) => (
                     <td key={i} className="p-2 tabular-nums">
-                      {row.turns ? v.toLocaleString(locale) : t("Unavailable")}
+                      {row.turns ? v.toLocaleString(locale) : t("Not reported")}
                     </td>
                   ))}
                   <td className="p-2 tabular-nums">
-                    {total
-                      ? (((row.input + row.output) / total) * 100).toFixed(1)
-                      : "0"}
-                    %
+                    {row.turns
+                      ? (total ? ((row.total / total) * 100).toFixed(1) : "0") +
+                        "%"
+                      : "—"}
                   </td>
                 </tr>
               ))}
@@ -373,7 +408,7 @@ export function UsageHistoryPage() {
       </div>
       <p className="text-xs leading-relaxed text-content/50">
         {t(
-          "Only provider-reported local usage is counted. Turns without dates appear only in All time. Missing usage is not estimated.",
+          "Usage is grouped by report date, or completion date for older turns. Totals include cached tokens without counting Codex cache twice. Missing usage is not estimated; undated turns appear in All time.",
         )}
       </p>
       {error && <p role="alert">{error}</p>}
@@ -393,7 +428,7 @@ export function UsageSummary({ onOpen }: { onOpen: () => void }) {
     return () => clearInterval(timer);
   }, []);
   const measured = rows.some((r) => r.measuredTurns > 0);
-  const total = rows.reduce((n, r) => n + r.inputTokens + r.outputTokens, 0);
+  const total = rows.reduce((n, r) => n + tokens(r), 0);
   return (
     <button
       onClick={onOpen}
@@ -402,9 +437,7 @@ export function UsageSummary({ onOpen }: { onOpen: () => void }) {
     >
       <span>{t("Usage")}</span>
       <span className="font-medium tabular-nums text-content">
-        {measured
-          ? `${formatTokenCount(total)} Token`
-          : t("No usage yet")}
+        {measured ? `${formatTokenCount(total)} Token` : t("No usage yet")}
       </span>
     </button>
   );
