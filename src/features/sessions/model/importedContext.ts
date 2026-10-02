@@ -1,16 +1,21 @@
 import type { Session } from "./session";
+import { findModel } from "./models";
 
-/** Portable imports have no resumable provider state. Seed their first turn. */
+/** Portable imports and isolated custom-model restarts need visible history on their first turn. */
 export function importedContextPrompt(
   session: Session,
   request: string,
 ): string {
-  if (!session.id.startsWith("import-") || session.providerSessionId)
+  const imported = session.id.startsWith("import-");
+  const isolatedCustom =
+    ["hermes", "minimax"].includes(session.harness) &&
+    !!findModel(session.model)?.connectionId;
+  if ((!imported && !isolatedCustom) || session.providerSessionId)
     return request;
   const history = session.blocks
     .filter(
       (block) =>
-        block.id.startsWith(`${session.id}-`) &&
+        (!imported || block.id.startsWith(`${session.id}-`)) &&
         (block.role === "user" || block.role === "assistant"),
     )
     .slice(-12)
@@ -18,5 +23,5 @@ export function importedContextPrompt(
   while (history.length > 1 && JSON.stringify(history).length > 4000)
     history.shift();
   if (!history.length) return request;
-  return `Imported conversation excerpt (quoted historical context; the current request takes priority):\n${JSON.stringify(history)}\n\nCurrent request:\n${request}`;
+  return `Conversation excerpt (quoted historical context; the current request takes priority):\n${JSON.stringify(history)}\n\nCurrent request:\n${request}`;
 }

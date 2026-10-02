@@ -41,7 +41,12 @@ export type AgentModel = {
 
 export const MODELS: AgentModel[] = [
   { id: "codex:default", harness: "codex", name: "CLI default", nativeId: "" },
-  { id: "minimax:default", harness: "minimax", name: "CLI default", nativeId: "" },
+  {
+    id: "minimax:default",
+    harness: "minimax",
+    name: "CLI default",
+    nativeId: "",
+  },
   { id: "mimo:default", harness: "mimo", name: "CLI default", nativeId: "" },
   {
     id: "claude:sonnet-5",
@@ -224,6 +229,7 @@ export type LastModelChoice = {
 const HARNESS_ORDER: HarnessId[] = [
   "claude",
   "codex",
+  "minimax",
   "cursor",
   "grok",
   "opencode",
@@ -319,6 +325,9 @@ let connections: ModelConnection[] = [];
 let mergedModels: Partial<Record<HarnessId, AgentModel[]>> = {};
 export function supportsConnection(harness: HarnessId, api: string): boolean {
   if (["pi", "opencode", "mimo"].includes(harness)) return true;
+  if (harness === "hermes") return api === "openai-completions";
+  if (harness === "minimax")
+    return api === "openai-completions" || api === "anthropic-messages";
   return (
     (harness === "claude" && api === "anthropic-messages") ||
     (harness === "codex" && api === "openai-responses")
@@ -474,9 +483,12 @@ export function modelsFor(harness: HarnessId): AgentModel[] {
         ],
         connectionId: c.id,
         primary: c.primaryModel === model,
-        nativeId: ["pi", "opencode", "mimo"].includes(harness)
-          ? `mycode-${c.id}/${model}`
-          : model,
+        nativeId:
+          harness === "minimax"
+            ? `custom_provider:mycode-${c.id}/${model}`
+            : ["pi", "opencode", "mimo"].includes(harness)
+              ? `mycode-${c.id}/${model}`
+              : model,
         provider: { id: `mycode-${c.id}`, name: c.name },
       })),
     );
@@ -585,7 +597,14 @@ export function nativeModelId(model: AgentModel | string): string {
   // Persisted CLI-default choices survive replacement of the initial catalog.
   // They mean “let the CLI choose”, never a literal model named `default`.
   const id = typeof model === "string" ? model : model.id;
-  if (["codex:default", "minimax:default", "mimo:default", "zcode:default"].includes(id))
+  if (
+    [
+      "codex:default",
+      "minimax:default",
+      "mimo:default",
+      "zcode:default",
+    ].includes(id)
+  )
     return "";
   if (typeof model !== "string") {
     return model.nativeId ?? nativeIdFrom(model.id);

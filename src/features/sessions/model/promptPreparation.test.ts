@@ -73,7 +73,7 @@ describe("preparePrompt", () => {
     expect(mocks.events).toEqual(["warm", "files"]);
 
     files.resolve("with files");
-    await expect(preparation).resolves.toBe("prepared");
+    await expect(preparation).resolves.toContain("prepared\n\n<MyCode-response-preferences>");
     expect(mocks.applyNotesToTurn).toHaveBeenCalledWith("with files");
     expect(mocks.applySkillsToTurn).toHaveBeenCalledWith("with files", {
       harness: "pi",

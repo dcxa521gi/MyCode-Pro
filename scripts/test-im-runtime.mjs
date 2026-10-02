@@ -14,7 +14,7 @@ async init(){owner=host.secrets.read(key);status='connected';if(!owner)throw Err
 message({senderId:'intruder',text:'deny',speaker:{id:'intruder'}});
 message({senderId:owner,text:'protected',protectedContent:true});
 message({senderId:owner,text:'allowed'});
-},async dispose(){status='offline';},async sendText(id,text){host.secrets.write('test_reply',JSON.stringify({channel,id,text,owner}));}
+},async dispose(){status='offline';},async sendText(id,text){host.secrets.write('test_reply',JSON.stringify({channel,id,text,owner}));if(text.startsWith('TEST:')){message({senderId:'intruder',text:text.slice(5)});message({senderId:owner,text:text.slice(5)});}}
 };}
 export const createFeishuIM=h=>transport('feishu',h),createDingTalkIM=h=>transport('dingtalk',h),createWecomIM=h=>transport('wecom',h),createTelegramIM=h=>transport('telegram',h),createDiscordIM=h=>transport('discord',h);
 `;
@@ -137,7 +137,23 @@ try {
         })
       ).error,
     );
+    const session = {id:`session-${channel}`,cwd:'/original-project',harness:'pi',model:'custom/model'};
+    const before = messages.filter(m=>m.kind==='message').length;
+    assert.equal((await request({action:'notify',channel,session,remoteContinue:true,text:'completed'})).value,true);
+    await request({action:'notify',channel,session,remoteContinue:true,text:`TEST:/continue ${session.id} next step`});
+    const continued=messages.filter(m=>m.kind==='message').at(-1).value;
+    assert.equal(messages.filter(m=>m.kind==='message').length,before+1);
+    assert.equal(continued.sessionId,session.id);
+    assert.equal(continued.text,'next step');
+    await request({action:'notify',channel,session,remoteContinue:false,text:`TEST:/continue ${session.id} revoke`});
+    // Notification sent while enabled is accepted; revocation takes effect after the send completes.
+    const afterRevoke=messages.filter(m=>m.kind==='message').length;
+    await request({action:'notify',channel,session,remoteContinue:false,text:`TEST:/continue ${session.id} denied`});
+    assert.equal(messages.filter(m=>m.kind==='message').length,afterRevoke);
+    await request({action:'notify',channel,session,remoteContinue:true,text:'TEST:/continue foreign-session denied'});
+    assert.equal(messages.filter(m=>m.kind==='message').length,afterRevoke);
     const stopped = await request({ action: "stop", channel });
+    assert((await request({action:'notify',channel,session,text:'no'})).error);
     assert.equal(
       stopped.value.find((b) => b.channel === channel).running,
       false,

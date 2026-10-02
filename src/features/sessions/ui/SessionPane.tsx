@@ -95,6 +95,7 @@ import { markLinkedSessionUpdateSeen } from "../../inbox/model/linkedSessionSeen
 
 type Props = {
   session: Session;
+  workspaceSwitchingSessionId?: string;
   reviewUndoLocked?: boolean;
   visible: boolean;
   focused: boolean;
@@ -215,6 +216,7 @@ type Props = {
 
 export const SessionPane = memo(function SessionPane({
   session,
+  workspaceSwitchingSessionId,
   reviewUndoLocked = false,
   visible,
   focused,
@@ -508,6 +510,7 @@ export const SessionPane = memo(function SessionPane({
     <Composer
       promptHistory={session.blocks.filter(b => b.role === "user" && !b.internal && !b.draft).map(b => b.text)}
       key={session.id}
+      disabled={workspaceSwitchingSessionId === session.id}
       enabled={visible}
       focused={focused && composerFocused && !btw.open}
       focusToken={composerFocusToken}

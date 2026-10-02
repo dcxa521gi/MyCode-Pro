@@ -102,13 +102,14 @@ beforeEach(async () => {
 
 it("switches languages without remounting settings and supports Chinese search", async () => {
   await render("general");
-  const select = container.querySelector<HTMLSelectElement>(
-    'select[aria-label="Display language"]',
+  const select = container.querySelector<HTMLElement>(
+    '[role="radiogroup"][aria-label="Display language"]',
   )!;
   expect(select).not.toBeNull();
   await act(async () => {
-    select.value = "zh-CN";
-    select.dispatchEvent(new Event("change", { bubbles: true }));
+    Array.from(select.querySelectorAll<HTMLButtonElement>("button"))
+      .find((b) => b.textContent?.includes("简体中文"))!
+      .click();
   });
   expect(container.textContent).toContain("界面语言");
   expect(container.textContent).toContain("声音");
@@ -118,10 +119,13 @@ it("switches languages without remounting settings and supports Chinese search",
   expect(
     searchSettings("外观").some((result) => result.section === "appearance"),
   ).toBe(true);
-  expect(container.querySelector("select")).toBe(select);
+  expect(
+    container.querySelector('[role="radiogroup"][aria-label="界面语言"]'),
+  ).toBe(select);
   await act(async () => {
-    select.value = "en";
-    select.dispatchEvent(new Event("change", { bubbles: true }));
+    Array.from(select.querySelectorAll<HTMLButtonElement>("button"))
+      .find((b) => b.textContent?.includes("English"))!
+      .click();
   });
   expect(container.textContent).toContain("Display language");
   expect(container.textContent).toContain("Sounds");
@@ -597,20 +601,14 @@ describe("settings pages", () => {
     await render("appearance");
     const row = container.querySelector('[data-setting-id="interface-scale"]')!;
     expect(row.querySelector('input[type="range"]')).toBeNull();
-    const trigger = row.querySelector<HTMLButtonElement>(
-      '[aria-haspopup="listbox"]',
-    )!;
-    expect(trigger.getAttribute("aria-label")).toBe("Interface scale: 100%");
-
-    await act(async () => trigger.click());
+    const control = row.querySelector<HTMLElement>('[role="radiogroup"]')!;
     const option = Array.from(
-      document.querySelectorAll<HTMLButtonElement>('[role="option"]'),
-    ).find((node) => node.textContent?.includes("150%"));
+      control.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((node) => node.textContent === "150%");
     expect(option).toBeTruthy();
     await act(async () => option!.click());
-
     expect(localStorage.getItem("monocode.uiScale")).toBe("1.5");
-    expect(trigger.getAttribute("aria-label")).toBe("Interface scale: 150%");
+    expect(option!.getAttribute("aria-checked")).toBe("true");
     document.documentElement.style.removeProperty("zoom");
   });
 
@@ -961,12 +959,11 @@ describe("settings search", () => {
 
 describe("providers scope inheritance", () => {
   async function selectScope(label: string) {
-    const trigger = container.querySelector<HTMLButtonElement>(
-      '[aria-label^="Provider defaults scope"]',
+    const control = container.querySelector<HTMLElement>(
+      '[role="radiogroup"][aria-label="Provider defaults scope"]',
     )!;
-    await act(async () => trigger.click());
     const option = Array.from(
-      document.querySelectorAll<HTMLButtonElement>('[role="option"]'),
+      control.querySelectorAll<HTMLButtonElement>("button"),
     ).find((node) => node.textContent?.trim() === label);
     expect(option).toBeTruthy();
     await act(async () => option!.click());

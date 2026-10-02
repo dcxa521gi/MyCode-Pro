@@ -167,6 +167,16 @@ pub fn task_import_scan(store: State<'_, SessionStore>) -> Result<Vec<Candidate>
         rows.filter_map(Result::ok).collect()
     };
     let mut result = vec![];
+    for session in crate::task_import_external::scan() {
+        result.push(Candidate {
+            id: session.id.clone(),
+            source: session.harness.clone(),
+            title: session.title,
+            cwd: session.cwd,
+            turns: session.blocks.as_array().map(Vec::len).unwrap_or(0),
+            existing: existing.contains(&session.id),
+        });
+    }
     for (source, root) in sources() {
         let mut paths = vec![];
         files(&root, 6, &mut paths);
@@ -187,6 +197,12 @@ pub fn task_import_scan(store: State<'_, SessionStore>) -> Result<Vec<Candidate>
 }
 #[tauri::command(async)]
 pub fn task_import_read(id: String) -> Result<SessionUpsert, String> {
+    if let Some(session) = crate::task_import_external::scan()
+        .into_iter()
+        .find(|s| s.id == id)
+    {
+        return Ok(session);
+    }
     for (source, root) in sources() {
         let mut paths = vec![];
         files(&root, 6, &mut paths);

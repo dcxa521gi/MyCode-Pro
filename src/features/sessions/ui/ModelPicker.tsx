@@ -1402,7 +1402,7 @@ function ModelFlyout({
         minHeight: MODEL_MENU_HEIGHT,
         maxHeight: MODEL_MENU_HEIGHT,
       }}
-      className="flex min-h-0 overflow-hidden font-sans"
+      className="relative flex min-h-0 overflow-hidden pb-10 font-sans"
     >
       <nav
         role="tablist"
@@ -1571,6 +1571,7 @@ function ModelFlyout({
           )}
         </div>
       </div>
+      <button type="button" onClick={()=>{onDismiss?.("outside"); window.dispatchEvent(new CustomEvent("mycode-manage-models"));}} className="absolute bottom-0 inset-x-0 border-t border-stroke bg-background-base px-3 py-2.5 text-left text-xs text-content/65 hover:bg-selection hover:text-content">{t("Manage models")}</button>
     </Popover>
   );
 }

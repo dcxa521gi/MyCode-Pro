@@ -11,6 +11,7 @@ import {
   findModel,
   nativeModelId,
   setHarnessModels,
+  getConnectionRevision,
 } from "../../../../features/sessions/model/models";
 import {
   eventsFromAcpUpdate,
@@ -24,6 +25,9 @@ import type {
   ApprovalDecision,
 } from "../../core/types";
 type Live = {
+  connectionId?: string;
+  connectionRevision: number;
+  selectedModel: string;
   acp: AcpClient;
   id: string;
   cwd: string;
@@ -43,13 +47,24 @@ async function stop(id: string) {
 }
 async function send(input: SendTurnInput) {
   let state = live.get(input.sessionId);
-  if (state && state.cwd !== input.cwd) {
+  const connectionId = findModel(input.model)?.connectionId;
+  if (
+    state &&
+    (state.cwd !== input.cwd ||
+      state.connectionId !== connectionId ||
+      state.connectionRevision !== getConnectionRevision() ||
+      (connectionId && state.selectedModel !== input.model))
+  ) {
+    resume.delete(input.sessionId);
     await stop(input.sessionId);
     state = undefined;
   }
   if (!state) {
     const { path } = await resolveHarnessBinary("minimax");
     const next: Live = {
+      connectionId,
+      connectionRevision: getConnectionRevision(),
+      selectedModel: input.model,
       acp: null!,
       id: "",
       cwd: input.cwd,

@@ -134,6 +134,7 @@ pub fn im_bridge_request(app: AppHandle, bridge: State<'_, ImBridge>, mut reques
         "start",
         "stop",
         "reply",
+        "notify",
         "wechat-authorize",
         "wechat-verify",
     ]

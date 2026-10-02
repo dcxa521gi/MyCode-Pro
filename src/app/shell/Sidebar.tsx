@@ -7,6 +7,12 @@ import {
 import { getLocale as uiLocale } from "../../shared/i18n";
 import { useTranslation } from "../../shared/i18n";
 import { NO_BRANCH_LABEL } from "../../features/source-control/model/worktrees";
+import {
+  type WorktreeFocus,
+  inWorktreeFocus,
+  useWorktreeFocus,
+} from "../../features/source-control/model/worktreeFocus";
+import { SidebarWorktreeSwitcher } from "../../features/source-control/ui/SidebarWorktreeSwitcher";
 import { OrchestrationSidebarAgents } from "../../features/orchestration/ui/OrchestrationSidebarAgents";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
@@ -215,6 +221,11 @@ type Props = {
   gitCwd?: string;
   /** Branch identity shown for a worktree whose folder has a temporary name. */
   explorerRootLabel?: string;
+  /** Open tabs per worktree path key, for the worktree switcher. */
+  worktreeTabStats?: ReadonlyMap<string, { tabs: number; busy: boolean }>;
+  onSelectWorkspace?: (focus?: WorktreeFocus) => void;
+  workspaceSwitchPending?: boolean;
+  workspaceSwitchError?: string;
   open: boolean;
   sessions: SessionSummary[];
   busySessionIds: Set<string>;
@@ -316,6 +327,10 @@ function SidebarComponent({
   cwd,
   gitCwd,
   explorerRootLabel,
+  worktreeTabStats,
+  onSelectWorkspace,
+  workspaceSwitchPending,
+  workspaceSwitchError,
   open,
   sessions,
   busySessionIds,
@@ -481,11 +496,16 @@ function SidebarComponent({
   // Revisits render straight from cache, so this is only ever true the first
   // time a project is opened.
   const pendingFirstLoad = pending && sessions.length === 0;
+  const worktreeFocus = useWorktreeFocus(cwd);
+  const focusedWorktree = worktreeFocus;
   const listedSessions = mergeFolderSessionSummaries(
     sessions,
     openSessions,
     sessionFolders,
-  ).filter((session) => !session.orchestrationLeadId);
+  ).filter(
+    (session) =>
+      !session.orchestrationLeadId && inWorktreeFocus(session, focusedWorktree),
+  );
   const visibleSessions = [
     ...filterSessionsByQuery(
       filterSessionsByStatus(
@@ -1426,9 +1446,21 @@ function SidebarComponent({
             className="flex h-10 shrink-0 select-none items-center gap-1 border-b border-stroke pl-3 pr-1.5"
             data-tauri-drag-region="deep"
           >
-            <span className="min-w-0 flex-1 truncate text-sm font-medium leading-tight">
-              {t("Workspace")}
-            </span>
+            <div className="flex min-w-0 flex-1 items-center">
+              {cwd && cwd !== "~" ? (
+                <SidebarWorktreeSwitcher
+                  cwd={cwd}
+                  tabStats={worktreeTabStats}
+                  onSelect={onSelectWorkspace}
+                  pending={workspaceSwitchPending}
+                  switchError={workspaceSwitchError}
+                />
+              ) : (
+                <span className="min-w-0 truncate text-sm font-medium leading-tight">
+                  Workspace
+                </span>
+              )}
+            </div>
             <button
               type="button"
               className="rounded p-1 text-content/60 hover:bg-content/10"

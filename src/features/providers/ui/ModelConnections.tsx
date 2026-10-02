@@ -1,3 +1,4 @@
+import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
 import { usageTokens } from "../../settings/model/usageTokens";
 import type { UsageRow } from "../../settings/ui/UsageHistoryPage";
 import { ProviderGallery } from "./ProviderGallery";
@@ -17,7 +18,7 @@ import {
 } from "../model/modelConnections";
 
 const inputClass =
-  "w-full rounded-lg border border-content/15 bg-content/5 px-3 py-2 text-sm outline-none focus:border-accent";
+  "w-full rounded-lg border border-content/15 bg-content/5 px-3 py-2 text-sm outline-none focus:border-content/30";
 const empty = (): ModelConnection => ({
   id: crypto.randomUUID(),
   name: "",
@@ -36,13 +37,19 @@ export function ModelConnections({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [usage, setUsage] = useState<Record<string, number>>({});
   const [items, setItems] = useState<ModelConnection[]>([]);
+  const [formStep, setFormStep] = useState(2);
   const [draft, setDraft] = useState<ModelConnection | null>(null);
+  useEffect(() => setFormStep(2), [draft?.id]);
   const [key, setKey] = useState("");
   const [modelText, setModelText] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [authorization, setAuthorization] = useState("");
   const [code, setCode] = useState("");
+  useEffect(() => {
+    setAuthorization("");
+    setCode("");
+  }, [draft?.id, draft?.baseUrl]);
   const [modelQuery, setModelQuery] = useState("");
   const [manualModelOpen, setManualModelOpen] = useState(false);
   const [manualModelId, setManualModelId] = useState("");
@@ -163,7 +170,7 @@ export function ModelConnections({
     setStatus("");
   };
   return (
-    <section className="mb-8 space-y-4" aria-label={t("Model connections")}>
+    <section className="mb-8 space-y-4" aria-label={t("Add model providers")}>
       {choosingProvider && (
         <ProviderGallery
           connections={items}
@@ -189,12 +196,12 @@ export function ModelConnections({
         />
       )}
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="font-medium">{t("Model connections")}</h2>
+        <h2 className="font-medium">{t("Add model providers")}</h2>
         <SecondaryButton
           disabled={busy}
           onClick={() => setChoosingProvider(true)}
         >
-          {t("Add connection")}
+          {t("Add provider")}
         </SecondaryButton>
       </div>
       <p className="mb-4 text-xs leading-relaxed text-content/55">
@@ -204,7 +211,7 @@ export function ModelConnections({
       </p>
       <p className="text-xs leading-relaxed text-content/55">
         {t(
-          "Custom models work in Pi, OpenCode and MiMo Code. Claude requires Anthropic Messages (MiMo switches automatically); Codex requires OpenAI Responses. Other agents use their own model catalogs.",
+          "Custom models work in Pi, OpenCode and MiMo Code. Hermes supports OpenAI Chat Completions; MiniMax Code supports OpenAI Chat Completions and Anthropic Messages. Claude requires Anthropic Messages (MiMo switches automatically); Codex requires OpenAI Responses. Other agents use their own model catalogs.",
         )}
       </p>
       <p className="text-xs leading-relaxed text-content/55">
@@ -278,7 +285,7 @@ export function ModelConnections({
             disabled={busy}
             onClick={() => setChoosingProvider(true)}
           >
-            {t("Add connection")}
+            {t("Add provider")}
           </SecondaryButton>
         </div>
         <div className="min-w-0">
@@ -397,7 +404,7 @@ export function ModelConnections({
               title={t(
                 items.some((item) => item.id === draft.id)
                   ? "Edit connection"
-                  : "Add connection",
+                  : "Add provider",
               )}
               onClose={() => {
                 if (!busy) {
@@ -411,6 +418,10 @@ export function ModelConnections({
                 className="mt-4 grid gap-3 rounded-lg bg-content/[0.025] p-4"
                 onSubmit={(event) => {
                   event.preventDefault();
+                  if (formStep === 2) {
+                    setFormStep(3);
+                    return;
+                  }
                   void action(async () => {
                     await invoke("local_ai_save_connection", {
                       connection: {
@@ -444,360 +455,399 @@ export function ModelConnections({
                     {t("Change provider")}
                   </SecondaryButton>
                 </div>
-                <label className="grid gap-1 text-xs">
-                  {t("Name")}
-                  <input
-                    aria-label={t("Name")}
-                    required
-                    className={inputClass}
-                    value={draft.name}
-                    onChange={(e) =>
-                      setDraft({ ...draft, name: e.target.value })
-                    }
-                  />
-                </label>
-                <label className="grid gap-1 text-xs">
-                  {t("API base URL")}
-                  <input
-                    aria-label={t("API base URL")}
-                    required
-                    type="url"
-                    className={inputClass}
-                    value={draft.baseUrl}
-                    onChange={(e) => {
-                      setDraft({
-                        ...draft,
-                        baseUrl: e.target.value,
-                        hasKey: false,
-                      });
-                      setKey("");
-                      setDiscovered([]);
-                    }}
-                  />
-                </label>
-                <label className="grid gap-1 text-xs">
-                  {t("API protocol")}
-                  <select
-                    aria-label={t("API protocol")}
-                    className={inputClass}
-                    value={draft.api}
-                    onChange={(e) => {
-                      const api = e.target.value;
-                      const mimo =
-                        /^https:\/\/(api|token-plan-cn)\.xiaomimimo\.com\/(v1|anthropic)\/?$/.test(
-                          draft.baseUrl,
-                        );
-                      setDraft({
-                        ...draft,
-                        api,
-                        hasKey: false,
-                        baseUrl: mimo
-                          ? draft.baseUrl.replace(
-                              /\/(v1|anthropic)\/?$/,
-                              api === "anthropic-messages"
-                                ? "/anthropic"
-                                : "/v1",
-                            )
-                          : draft.baseUrl,
-                      });
-                      setDiscovered([]);
-                      if (draft.hasKey && !key)
-                        setStatus(
-                          "Protocol changed. Enter your API key again.",
-                        );
-                    }}
-                  >
-                    <option value="openai-completions">
-                      {t("OpenAI Chat Completions")}
-                    </option>
-                    {!/\.xiaomimimo\.com\//.test(draft.baseUrl) && (
-                      <option value="openai-responses">
-                        {t("OpenAI Responses")}
-                      </option>
-                    )}
-                    <option value="anthropic-messages">
-                      {t("Anthropic Messages")}
-                    </option>
-                    {!/\.xiaomimimo\.com\//.test(draft.baseUrl) && (
-                      <option value="google-generative-ai">
-                        {t("Google Generative AI")}
-                      </option>
-                    )}
-                  </select>
-                </label>
-                {draft.baseUrl.startsWith("https://tokendance.space/") && (
-                  <div className="rounded-xl bg-accent/5 p-3 space-y-2">
-                    <p className="text-sm font-medium">
-                      TokenDance · {t("Partner provider")}
-                    </p>
-                    <p className="text-xs text-content/60">
-                      {t(
-                        "Authorize in your browser, then paste the one-time code. Your API key is stored securely in MyCode.",
-                      )}
-                    </p>
-                    <SecondaryButton
-                      disabled={busy}
-                      onClick={() =>
-                        void action(async () => {
-                          const flow = await invoke<{
-                            id: string;
-                            url: string;
-                          }>("tokendance_authorize");
-                          setAuthorization(flow.id);
-                          await openUrl(flow.url);
-                        })
-                      }
-                    >
-                      {t("Authorize TokenDance")}
-                    </SecondaryButton>
-                    {authorization && (
-                      <div className="flex gap-2">
-                        <input
-                          className={inputClass}
-                          aria-label={t("Authorization code")}
-                          placeholder={t("Authorization code")}
-                          value={code}
-                          onChange={(e) => setCode(e.target.value)}
-                        />
-                        <SecondaryButton
-                          disabled={busy || !code.trim()}
-                          onClick={() =>
-                            void action(async () => {
-                              await invoke("tokendance_exchange", {
-                                id: authorization,
-                                code,
-                                connection: {
-                                  ...draft,
-                                  models: modelText
-                                    .split(/[\n,]/)
-                                    .map((s) => s.trim())
-                                    .filter(Boolean),
-                                },
-                              });
-                              setCode("");
-                              setAuthorization("");
-                              const config = await loadLocalAIConfig();
-                              setItems(config.connections);
-                              const saved = config.connections.find(
-                                (c) => c.id === draft.id,
-                              );
-                              if (saved) {
-                                setDraft({ ...saved, enabled: true });
-                                setDiscoveryRetry((n) => n + 1);
-                              }
-                              setStatus(
-                                "Authorization succeeded. Select models and save.",
-                              );
-                            })
-                          }
-                        >
-                          {t("Complete authorization")}
-                        </SecondaryButton>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <label className="grid gap-1 text-xs">
-                  {t("API key")}
-                  <input
-                    aria-label={t("API key")}
-                    type="password"
-                    autoComplete="new-password"
-                    className={inputClass}
-                    value={key}
-                    placeholder={t(
-                      draft.hasKey
-                        ? "Leave blank to keep the saved key"
-                        : "Optional for local models",
-                    )}
-                    onChange={(e) => {
-                      setKey(e.target.value);
-                      setModelText("");
-                    }}
-                  />
-                </label>
-                <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-                  <span>
-                    {t(discovering ? "Fetching models…" : "Available models")}
+                <div className="flex items-center gap-2 text-xs text-content/55">
+                  <span className="rounded-full bg-content/5 px-3 py-1">
+                    {t("2 · Configure connection")}
                   </span>
-                  <span className="flex flex-wrap items-center gap-2">
-                    <input
-                      className={`${inputClass} !w-40`}
-                      aria-label={t("Search models")}
-                      placeholder={t("Search models")}
-                      value={modelQuery}
-                      onChange={(e) => setModelQuery(e.target.value)}
-                    />
-                    <SecondaryButton
-                      onClick={() => setManualModelOpen((v) => !v)}
-                    >
-                      {t("Add model manually")}
-                    </SecondaryButton>
-                    <SecondaryButton
-                      disabled={busy || !discovered.length}
-                      onClick={() => setModelText(discovered.join("\n"))}
-                    >
-                      {t("Select all models")}
-                    </SecondaryButton>
-                    <SecondaryButton
-                      disabled={busy || !modelText}
-                      onClick={() => {
-                        setModelText("");
-                        setDraft({ ...draft, primaryModel: undefined });
-                      }}
-                    >
-                      {t("Clear model selection")}
-                    </SecondaryButton>
-                    <SecondaryButton
-                      disabled={discovering || busy}
-                      onClick={() => setDiscoveryRetry((n) => n + 1)}
-                    >
-                      {t("Refresh models")}
-                    </SecondaryButton>
+                  <span>→</span>
+                  <span
+                    className={`rounded-full px-3 py-1 ${formStep === 3 ? "bg-selection text-content" : "bg-content/5"}`}
+                  >
+                    {t("3 · Select models")}
                   </span>
                 </div>
-                {modelQuery.trim() &&
-                  !discovered.some((id) =>
-                    `${id} ${draft.modelMetadata?.[id]?.name || ""}`
-                      .toLowerCase()
-                      .includes(modelQuery.trim().toLowerCase()),
-                  ) && (
-                    <p role="status" className="p-3 text-xs text-content/60">
-                      {t("No matching models")}
-                    </p>
-                  )}
-                {discovered.length > 0 && (
-                  <div className="grid max-h-96 gap-2 overflow-y-auto rounded-lg p-1">
-                    {discovered
-                      .filter((id) =>
-                        `${id} ${draft.modelMetadata?.[id]?.name || ""}`
-                          .toLowerCase()
-                          .includes(modelQuery.trim().toLowerCase()),
-                      )
-                      .map((id) => (
-                        <label
-                          key={id}
-                          className="flex min-w-0 items-start gap-3 rounded-xl bg-content/5 p-3 text-xs"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={modelText.split("\n").includes(id)}
-                            onChange={(e) =>
-                              setModelText((current) =>
-                                e.target.checked
-                                  ? [
-                                      ...current.split("\n").filter(Boolean),
-                                      id,
-                                    ].join("\n")
-                                  : current
-                                      .split("\n")
-                                      .filter((m) => m !== id)
-                                      .join("\n"),
+                <div hidden={formStep !== 2} className="space-y-4">
+                  <label className="grid gap-1 text-xs">
+                    {t("Name")}
+                    <input
+                      aria-label={t("Name")}
+                      required
+                      className={inputClass}
+                      value={draft.name}
+                      onChange={(e) =>
+                        setDraft({ ...draft, name: e.target.value })
+                      }
+                    />
+                  </label>
+                  <label className="grid gap-1 text-xs">
+                    {t("API base URL")}
+                    <input
+                      aria-label={t("API base URL")}
+                      required
+                      type="url"
+                      className={inputClass}
+                      value={draft.baseUrl}
+                      onChange={(e) => {
+                        setDraft({
+                          ...draft,
+                          baseUrl: e.target.value,
+                          hasKey: false,
+                        });
+                        setKey("");
+                        setDiscovered([]);
+                      }}
+                    />
+                  </label>
+                  <label className="grid gap-1 text-xs">
+                    {t("API protocol")}
+                    <SettingsOptions
+                      aria-label={t("API protocol")}
+                      className={inputClass}
+                      value={draft.api}
+                      onChange={(e) => {
+                        const api = e.target.value;
+                        const mimo =
+                          /^https:\/\/(api|token-plan-cn)\.xiaomimimo\.com\/(v1|anthropic)\/?$/.test(
+                            draft.baseUrl,
+                          );
+                        setDraft({
+                          ...draft,
+                          api,
+                          hasKey: false,
+                          baseUrl: mimo
+                            ? draft.baseUrl.replace(
+                                /\/(v1|anthropic)\/?$/,
+                                api === "anthropic-messages"
+                                  ? "/anthropic"
+                                  : "/v1",
                               )
-                            }
-                          />
-                          <span className="min-w-0 flex-1" title={id}>
-                            <strong className="block truncate">
-                              {draft.modelMetadata?.[id]?.name || id}
-                            </strong>
-                            <span className="block text-content/50">{id}</span>
-                            <span className="mt-2 flex flex-wrap gap-2 text-content/65">
-                              <span>
-                                {t("Context")}:{" "}
-                                {draft.modelMetadata?.[
-                                  id
-                                ]?.contextWindow?.toLocaleString() ||
-                                  t("Not reported")}
-                              </span>
-                              <span>
-                                {t("Output")}:{" "}
-                                {draft.modelMetadata?.[
-                                  id
-                                ]?.maxOutput?.toLocaleString() ||
-                                  t("Not reported")}
-                              </span>
-                              <span>
-                                {t("Modalities")}:{" "}
-                                {draft.modelMetadata?.[id]?.modalities
-                                  ?.map((m) => t(m))
-                                  .join(" / ") || t("Not reported")}
-                              </span>
-                            </span>
-                            {draft.modelMetadata?.[id]?.source && (
-                              <span className="mt-1 block break-all text-[10px] text-content/40">
-                                {t("Official source")}:{" "}
-                                {draft.modelMetadata[id].source}
-                              </span>
-                            )}
-                          </span>
-                        </label>
-                      ))}
-                  </div>
-                )}
-                {(manualModelOpen || discovered.length === 0) && (
-                  <div className="flex items-end gap-2 rounded-lg bg-content/5 p-3">
-                    <label className="grid flex-1 gap-1 text-xs">
-                      {t("Add model ID")}
-                      <input
-                        className={inputClass}
-                        placeholder={t("Model ID")}
-                        value={manualModelId}
-                        onChange={(e) => setManualModelId(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            addManualModel();
-                          }
-                        }}
-                      />
-                    </label>
-                    <SecondaryButton
-                      disabled={!manualModelId.trim() || busy}
-                      onClick={addManualModel}
+                            : draft.baseUrl,
+                        });
+                        setDiscovered([]);
+                        if (draft.hasKey && !key)
+                          setStatus(
+                            "Protocol changed. Enter your API key again.",
+                          );
+                      }}
                     >
-                      {t("Add model")}
-                    </SecondaryButton>
-                  </div>
-                )}
-                <label className="grid gap-1 text-xs">
-                  {t("Primary model")}
-                  <select
-                    aria-label={t("Primary model")}
-                    className={inputClass}
-                    value={draft.primaryModel ?? ""}
-                    onChange={(e) =>
-                      setDraft({ ...draft, primaryModel: e.target.value })
-                    }
-                  >
-                    <option value="">{t("No primary model")}</option>
-                    {modelText
-                      .split("\n")
-                      .map((m) => m.trim())
-                      .filter(Boolean)
-                      .map((m) => (
-                        <option key={m} value={m}>
-                          {m}
+                      <option value="openai-completions">
+                        {t("OpenAI Chat Completions")}
+                      </option>
+                      {!/\.xiaomimimo\.com\//.test(draft.baseUrl) && (
+                        <option value="openai-responses">
+                          {t("OpenAI Responses")}
                         </option>
-                      ))}
-                  </select>
-                </label>
-                <label className="flex gap-2 text-xs">
-                  <input
-                    type="checkbox"
-                    checked={draft.enabled}
-                    onChange={(e) =>
-                      setDraft({ ...draft, enabled: e.target.checked })
-                    }
-                  />
-                  {t("Enabled")}
-                </label>
+                      )}
+                      <option value="anthropic-messages">
+                        {t("Anthropic Messages")}
+                      </option>
+                      {!/\.xiaomimimo\.com\//.test(draft.baseUrl) && (
+                        <option value="google-generative-ai">
+                          {t("Google Generative AI")}
+                        </option>
+                      )}
+                    </SettingsOptions>
+                  </label>
+                  {(draft.baseUrl.startsWith("https://tokendance.space/") ||
+                    draft.baseUrl.replace(/\/$/, "") ===
+                      "https://openrouter.ai/api/v1") && (
+                    <div className="rounded-xl bg-accent/5 p-3 space-y-2">
+                      <p className="text-sm font-medium">
+                        {draft.baseUrl.includes("openrouter.ai") ? (
+                          "OpenRouter · OAuth"
+                        ) : (
+                          <>TokenDance · {t("Partner provider")}</>
+                        )}
+                      </p>
+                      <p className="text-xs text-content/60">
+                        {t(
+                          "Authorize in your browser, then paste the one-time code. Your API key is stored securely in MyCode.",
+                        )}
+                      </p>
+                      <SecondaryButton
+                        disabled={busy}
+                        onClick={() =>
+                          void action(async () => {
+                            const flow = await invoke<{
+                              id: string;
+                              url: string;
+                            }>("tokendance_authorize", {
+                              provider: draft.baseUrl.includes("openrouter.ai")
+                                ? "openrouter"
+                                : "tokendance",
+                            });
+                            setAuthorization(flow.id);
+                            await openUrl(flow.url);
+                          })
+                        }
+                      >
+                        {t(
+                          draft.baseUrl.includes("openrouter.ai")
+                            ? "Authorize OpenRouter"
+                            : "Authorize TokenDance",
+                        )}
+                      </SecondaryButton>
+                      {authorization && (
+                        <div className="flex gap-2">
+                          <input
+                            className={inputClass}
+                            aria-label={t("Authorization code")}
+                            placeholder={t("Authorization code")}
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
+                          />
+                          <SecondaryButton
+                            disabled={busy || !code.trim()}
+                            onClick={() =>
+                              void action(async () => {
+                                await invoke("tokendance_exchange", {
+                                  id: authorization,
+                                  code,
+                                  connection: {
+                                    ...draft,
+                                    models: modelText
+                                      .split(/[\n,]/)
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  },
+                                });
+                                setCode("");
+                                setAuthorization("");
+                                const config = await loadLocalAIConfig();
+                                setItems(config.connections);
+                                const saved = config.connections.find(
+                                  (c) => c.id === draft.id,
+                                );
+                                if (saved) {
+                                  setDraft({ ...saved, enabled: true });
+                                  setDiscoveryRetry((n) => n + 1);
+                                }
+                                setStatus(
+                                  "Authorization succeeded. Select models and save.",
+                                );
+                              })
+                            }
+                          >
+                            {t("Complete authorization")}
+                          </SecondaryButton>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <label className="grid gap-1 text-xs">
+                    {t("API key")}
+                    <input
+                      aria-label={t("API key")}
+                      type="password"
+                      autoComplete="new-password"
+                      className={inputClass}
+                      value={key}
+                      placeholder={t(
+                        draft.hasKey
+                          ? "Leave blank to keep the saved key"
+                          : "Optional for local models",
+                      )}
+                      onChange={(e) => {
+                        setKey(e.target.value);
+                        setModelText("");
+                      }}
+                    />
+                  </label>
+                </div>
+                <div hidden={formStep !== 3} className="space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <span>
+                      {t(discovering ? "Fetching models…" : "Available models")}
+                    </span>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <input
+                        className={`${inputClass} !w-40`}
+                        aria-label={t("Search models")}
+                        placeholder={t("Search models")}
+                        value={modelQuery}
+                        onChange={(e) => setModelQuery(e.target.value)}
+                      />
+                      <SecondaryButton
+                        onClick={() => setManualModelOpen((v) => !v)}
+                      >
+                        {t("Add model manually")}
+                      </SecondaryButton>
+                      <SecondaryButton
+                        disabled={busy || !discovered.length}
+                        onClick={() => setModelText(discovered.join("\n"))}
+                      >
+                        {t("Select all models")}
+                      </SecondaryButton>
+                      <SecondaryButton
+                        disabled={busy || !modelText}
+                        onClick={() => {
+                          setModelText("");
+                          setDraft({ ...draft, primaryModel: undefined });
+                        }}
+                      >
+                        {t("Clear model selection")}
+                      </SecondaryButton>
+                      <SecondaryButton
+                        disabled={discovering || busy}
+                        onClick={() => setDiscoveryRetry((n) => n + 1)}
+                      >
+                        {t("Refresh models")}
+                      </SecondaryButton>
+                    </span>
+                  </div>
+                  {modelQuery.trim() &&
+                    !discovered.some((id) =>
+                      `${id} ${draft.modelMetadata?.[id]?.name || ""}`
+                        .toLowerCase()
+                        .includes(modelQuery.trim().toLowerCase()),
+                    ) && (
+                      <p role="status" className="p-3 text-xs text-content/60">
+                        {t("No matching models")}
+                      </p>
+                    )}
+                  {discovered.length > 0 && (
+                    <div className="grid max-h-96 gap-2 overflow-y-auto rounded-lg p-1">
+                      {discovered
+                        .filter((id) =>
+                          `${id} ${draft.modelMetadata?.[id]?.name || ""}`
+                            .toLowerCase()
+                            .includes(modelQuery.trim().toLowerCase()),
+                        )
+                        .map((id) => (
+                          <label
+                            key={id}
+                            className="flex min-w-0 items-start gap-3 rounded-xl bg-content/5 p-3 text-xs"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={modelText.split("\n").includes(id)}
+                              onChange={(e) =>
+                                setModelText((current) =>
+                                  e.target.checked
+                                    ? [
+                                        ...current.split("\n").filter(Boolean),
+                                        id,
+                                      ].join("\n")
+                                    : current
+                                        .split("\n")
+                                        .filter((m) => m !== id)
+                                        .join("\n"),
+                                )
+                              }
+                            />
+                            <span className="min-w-0 flex-1" title={id}>
+                              <strong className="block truncate">
+                                {draft.modelMetadata?.[id]?.name || id}
+                              </strong>
+                              <span className="block text-content/50">
+                                {id}
+                              </span>
+                              <span className="mt-2 flex flex-wrap gap-2 text-content/65">
+                                <span>
+                                  {t("Context")}:{" "}
+                                  {draft.modelMetadata?.[
+                                    id
+                                  ]?.contextWindow?.toLocaleString() ||
+                                    t("Not reported")}
+                                </span>
+                                <span>
+                                  {t("Output")}:{" "}
+                                  {draft.modelMetadata?.[
+                                    id
+                                  ]?.maxOutput?.toLocaleString() ||
+                                    t("Not reported")}
+                                </span>
+                                <span>
+                                  {t("Modalities")}:{" "}
+                                  {draft.modelMetadata?.[id]?.modalities
+                                    ?.map((m) => t(m))
+                                    .join(" / ") || t("Not reported")}
+                                </span>
+                              </span>
+                              {draft.modelMetadata?.[id]?.source && (
+                                <span className="mt-1 block break-all text-[10px] text-content/40">
+                                  {t("Official source")}:{" "}
+                                  {draft.modelMetadata[id].source}
+                                </span>
+                              )}
+                            </span>
+                          </label>
+                        ))}
+                    </div>
+                  )}
+                  {(manualModelOpen || discovered.length === 0) && (
+                    <div className="flex items-end gap-2 rounded-lg bg-content/5 p-3">
+                      <label className="grid flex-1 gap-1 text-xs">
+                        {t("Add model ID")}
+                        <input
+                          className={inputClass}
+                          placeholder={t("Model ID")}
+                          value={manualModelId}
+                          onChange={(e) => setManualModelId(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addManualModel();
+                            }
+                          }}
+                        />
+                      </label>
+                      <SecondaryButton
+                        disabled={!manualModelId.trim() || busy}
+                        onClick={addManualModel}
+                      >
+                        {t("Add model")}
+                      </SecondaryButton>
+                    </div>
+                  )}
+                  <label className="grid gap-1 text-xs">
+                    {t("Primary model")}
+                    <SettingsOptions
+                      aria-label={t("Primary model")}
+                      className={inputClass}
+                      value={draft.primaryModel ?? ""}
+                      onChange={(e) =>
+                        setDraft({ ...draft, primaryModel: e.target.value })
+                      }
+                    >
+                      <option value="">{t("No primary model")}</option>
+                      {modelText
+                        .split("\n")
+                        .map((m) => m.trim())
+                        .filter(Boolean)
+                        .map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                    </SettingsOptions>
+                  </label>
+                  <label className="flex gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={draft.enabled}
+                      onChange={(e) =>
+                        setDraft({ ...draft, enabled: e.target.checked })
+                      }
+                    />
+                    {t("Enabled")}
+                  </label>
+                </div>
                 <div className="flex gap-2">
+                  {formStep === 3 && (
+                    <SecondaryButton
+                      type="button"
+                      onClick={() => setFormStep(2)}
+                    >
+                      {t("Back")}
+                    </SecondaryButton>
+                  )}
                   <button
                     className="rounded-lg bg-accent px-4 py-2 text-sm text-white"
-                    disabled={busy}
+                    disabled={busy || (formStep === 3 && !modelText.trim())}
                     type="submit"
                   >
-                    {t(busy ? "Saving…" : "Save")}
+                    {t(busy ? "Saving…" : formStep === 2 ? "Next" : "Save")}
                   </button>
                   <SecondaryButton
                     disabled={busy}

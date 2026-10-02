@@ -49,6 +49,8 @@ mod session_store;
 mod skills;
 mod storage_management;
 mod task_import;
+mod task_import_cursor_cli;
+mod task_import_external;
 mod tokendance;
 #[cfg(target_os = "windows")]
 mod tray;

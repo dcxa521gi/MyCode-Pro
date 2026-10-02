@@ -1,3 +1,4 @@
+import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "../../../shared/i18n";
@@ -71,7 +72,7 @@ export function VoiceSettings() {
         <div className="space-y-2 text-sm">
           <label>
             {t("Use a saved Xiaomi MiMo account")}
-            <select
+            <SettingsOptions
               className="mt-2 w-full rounded-lg bg-surface px-3 py-2"
               value={account}
               onChange={(e) => setAccount(e.target.value)}
@@ -82,7 +83,7 @@ export function VoiceSettings() {
                   {c.name} · {new URL(c.baseUrl).hostname}
                 </option>
               ))}
-            </select>
+            </SettingsOptions>
           </label>
           <button
             type="button"
@@ -108,7 +109,7 @@ export function VoiceSettings() {
       )}
       <label className="block space-y-2 text-sm">
         <span>{t("Speech provider")}</span>
-        <select
+        <SettingsOptions
           className="w-full rounded-lg bg-surface px-3 py-2"
           value={
             config.protocol === "mimo"
@@ -142,7 +143,7 @@ export function VoiceSettings() {
           <option value="transcription">
             {t("Local / OpenAI-compatible speech service")}
           </option>
-        </select>
+        </SettingsOptions>
       </label>
       <p className="text-xs text-content/50">
         {t(

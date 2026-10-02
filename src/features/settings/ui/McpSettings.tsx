@@ -1,3 +1,4 @@
+import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
 import { translate as t } from "../../../shared/i18n";
 import { invoke } from "@tauri-apps/api/core";
 import { ask } from "@tauri-apps/plugin-dialog";
@@ -15,16 +16,7 @@ import { HarnessIcon } from "../../sessions/ui/HarnessIcon";
 import { SearchableProjectPicker } from "../../projects/ui/SearchableProjectPicker";
 import type { RecentProject } from "../../projects/model/recents";
 import { Modal } from "../../../shared/ui/Modal";
-import { Popover } from "../../../shared/ui/Popover";
-import { LAYER } from "../../../shared/lib/layers";
-import {
-  Globe,
-  Plus,
-  RefreshCw,
-  ChevronDown,
-  ListFilter,
-  Check,
-} from "../../../shared/ui/icons";
+import { Globe, Plus, RefreshCw, ListFilter } from "../../../shared/ui/icons";
 import { MCP_PROVIDER_LABELS, type McpConnection } from "../model/mcp";
 import {
   getCachedMcpSettings,
@@ -73,89 +65,20 @@ function McpPicker<T extends string>({
   options: { value: T; label: string; icon?: ReactNode }[];
   onChange: (value: T) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const anchor = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-  const selected = options.find((option) => option.value === value);
   return (
-    <div ref={anchor} className="relative min-w-0">
+    <div className="min-w-0 space-y-1">
       <span className="text-xs text-content/65">{t(label)}</span>
-      <button
-        ref={trigger}
-        type="button"
-        aria-label={`${label}: ${t(selected?.label ?? value)}`}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-        className="mt-1 flex h-8 w-full items-center gap-2 rounded-md border border-content/10 bg-content/5 px-2 text-left text-[12px] text-content outline-none hover:border-content/20 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+      <SettingsOptions
+        aria-label={t(label)}
+        value={value}
+        onChange={(event) => onChange(event.target.value as T)}
       >
-        {selected?.icon}
-        <span className="min-w-0 flex-1 truncate">
-          {t(selected?.label ?? value)}
-        </span>
-        <ChevronDown
-          className={`size-3.5 shrink-0 text-content/50 transition-transform ${open ? "rotate-180" : ""}`}
-          strokeWidth={1.75}
-        />
-      </button>
-      {open ? (
-        <Popover
-          anchor={anchor}
-          side="bottom"
-          align="start"
-          width={240}
-          maxHeight={320}
-          layer={LAYER.dialogPopover}
-          autoFocus
-          onDismiss={() => setOpen(false)}
-          role="listbox"
-          aria-label={label}
-          data-dialog-popover
-          onKeyDown={(event) => {
-            if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
-            event.preventDefault();
-            const choices = Array.from(
-              event.currentTarget.querySelectorAll<HTMLButtonElement>(
-                '[role="option"]',
-              ),
-            );
-            if (choices.length === 0) return;
-            const current = choices.indexOf(
-              document.activeElement as HTMLButtonElement,
-            );
-            const direction = event.key === "ArrowDown" ? 1 : -1;
-            const next =
-              current < 0
-                ? direction === 1
-                  ? 0
-                  : choices.length - 1
-                : (current + direction + choices.length) % choices.length;
-            choices[next].focus();
-          }}
-          className="overflow-y-auto overscroll-contain p-1"
-        >
-          {options.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="option"
-              aria-selected={value === option.value}
-              onClick={() => {
-                onChange(option.value);
-                setOpen(false);
-                trigger.current?.focus();
-              }}
-              className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] focus-visible:outline-2 focus-visible:outline-accent ${value === option.value ? "bg-selection text-content" : "text-content hover:bg-content/5"}`}
-            >
-              {option.icon}
-              <span className="min-w-0 flex-1 truncate">{t(option.label)}</span>
-              {value === option.value ? (
-                <Check className="size-3.5 shrink-0" />
-              ) : null}
-            </button>
-          ))}
-        </Popover>
-      ) : null}
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {t(option.label)}
+          </option>
+        ))}
+      </SettingsOptions>
     </div>
   );
 }
@@ -596,7 +519,7 @@ function McpConnections({
                   {!server.configPath ? (
                     <label className="text-xs text-content/55">
                       Scope{" "}
-                      <select
+                      <SettingsOptions
                         aria-label={`Scope to remove ${server.name} from`}
                         value={removeScopes[server.name] ?? "local"}
                         onChange={(event) =>
@@ -610,7 +533,7 @@ function McpConnections({
                         <option value="local">{t("Local")}</option>
                         <option value="project">{t("Project")}</option>
                         <option value="user">{t("User")}</option>
-                      </select>
+                      </SettingsOptions>
                     </label>
                   ) : null}
                   <button

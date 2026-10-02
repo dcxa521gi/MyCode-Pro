@@ -8,6 +8,10 @@ import type { ProviderRateLimits } from "../../features/providers/model/rateLimi
 import { projectKey } from "../../shared/lib/paths";
 import { saveTabGroupMascot } from "../../features/workspace/model/tabGroups";
 import { needsProviderLogin, UsageProviderChip } from "./UsageProviderChip";
+import {
+  saveMaskEmails,
+  saveShowRemainingUsage,
+} from "../../features/settings/model/displayPrefs";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: vi.fn(async () => null),
@@ -128,6 +132,7 @@ describe("UsageProviderChip", () => {
   });
 
   it("opens a column of detailed progress bars", async () => {
+    saveShowRemainingUsage(true);
     act(() =>
       root.render(
         createElement(UsageProviderChip, { limits: codexLimits(), now }),
@@ -145,14 +150,65 @@ describe("UsageProviderChip", () => {
     expect(dialog?.textContent).toContain("58% remaining");
     expect(dialog?.textContent).toContain("19% remaining");
     expect(dialog?.querySelectorAll('[role="progressbar"]')).toHaveLength(2);
-    expect(
-      dialog
-        ?.querySelector('[aria-label="Weekly limit remaining"]')
-        ?.getAttribute("aria-valuenow"),
-    ).toBe("19");
+    const sessionBar = dialog?.querySelector(
+      '[aria-label="5-hour limit remaining"]',
+    );
+    const weeklyBar = dialog?.querySelector(
+      '[aria-label="Weekly limit remaining"]',
+    );
+    expect(sessionBar?.getAttribute("aria-valuenow")).toBe("58");
+    expect(sessionBar?.querySelector("span")?.getAttribute("style")).toBe(
+      "width: 58%;",
+    );
+    expect(weeklyBar?.getAttribute("aria-valuenow")).toBe("19");
+    expect(weeklyBar?.querySelector("span")?.getAttribute("style")).toBe(
+      "width: 19%;",
+    );
+  });
+
+  it("fills bars with used capacity by default", async () => {
+    act(() =>
+      root.render(
+        createElement(UsageProviderChip, { limits: codexLimits(), now }),
+      ),
+    );
+
+    const trigger = button("Codex usage details");
+    expect(trigger.querySelector(".w-8 > span")?.getAttribute("style")).toBe(
+      "width: 81%;",
+    );
+    await act(async () => trigger.click());
+
+    const weeklyBar = document.querySelector(
+      '[role="dialog"] [aria-label="Weekly limit used"]',
+    );
+    expect(weeklyBar?.getAttribute("aria-valuenow")).toBe("81");
+    expect(weeklyBar?.querySelector("span")?.getAttribute("style")).toBe(
+      "width: 81%;",
+    );
+  });
+
+  it("shows a full bar before usage and an empty bar when exhausted", async () => {
+    saveShowRemainingUsage(true);
+    const limits = codexLimits();
+    limits.session!.usedPercent = 0;
+    limits.weekly!.usedPercent = 100;
+    act(() => root.render(createElement(UsageProviderChip, { limits, now })));
+
+    await act(async () => button("Codex usage details").click());
+    const dialog = document.querySelector('[role="dialog"]')!;
+    const session = dialog.querySelector(
+      '[aria-label="5-hour limit remaining"]',
+    );
+    const weekly = dialog.querySelector(
+      '[aria-label="Weekly limit remaining"]',
+    );
+    expect(session?.getAttribute("aria-valuenow")).toBe("100");
+    expect(weekly?.getAttribute("aria-valuenow")).toBe("0");
   });
 
   it("switches between named accounts from the usage popover", async () => {
+    saveShowRemainingUsage(true);
     const onSelectAccount = vi.fn();
     act(() =>
       root.render(
@@ -186,6 +242,7 @@ describe("UsageProviderChip", () => {
   });
 
   it("reveals emails independently of account switching and hides them on reopening", async () => {
+    saveMaskEmails(true);
     vi.mocked(invoke).mockImplementation(async (command) =>
       command === "provider_account_identity"
         ? { email: "user@example.com", plan: "Pro" }

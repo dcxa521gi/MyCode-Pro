@@ -379,6 +379,74 @@ pub fn local_ai_memory(app: AppHandle, cwd: String) -> Result<String, String> {
         .join("\n\n"))
 }
 
+fn configure_custom_agent(
+    cmd: &mut Command,
+    provider: Option<&str>,
+    connection: &Connection,
+    selected_model: Option<&str>,
+    key: &str,
+) -> Result<(), String> {
+    let id = connection.id.as_str();
+    match provider {
+        Some("hermes") if connection.api == "openai-completions" => {
+            use sha2::Digest;
+            let workdir = cmd.get_current_dir().ok_or("Task directory is required")?;
+            let model = selected_model.ok_or("A custom model is required")?;
+            let home = workdir
+                .join(".mycode/cli-homes/hermes")
+                .join(id)
+                .join(format!("{:x}", sha2::Sha256::digest(model.as_bytes())));
+            fs::create_dir_all(&home).map_err(|e| e.to_string())?;
+            write_private(&home.join("config.yaml"), serde_json::to_vec(&json!({"model":{"default":model,"provider":"custom","base_url":connection.base_url,"key_env":"MYCODE_HERMES_API_KEY","api_mode":"chat_completions"},"providers":{"custom":{"base_url":connection.base_url}}})).map_err(|e|e.to_string())?.as_slice())?;
+            cmd.env("HERMES_HOME", &home)
+                .env("OPENAI_BASE_URL", &connection.base_url)
+                .env("OPENAI_API_KEY", key)
+                .env("MYCODE_HERMES_API_KEY", key)
+                .env_remove("OPENROUTER_API_KEY")
+                .env_remove("ANTHROPIC_API_KEY");
+        }
+        Some("minimax")
+            if matches!(
+                connection.api.as_str(),
+                "openai-completions" | "anthropic-messages"
+            ) =>
+        {
+            use sha2::Digest;
+            let workdir = cmd.get_current_dir().ok_or("Task directory is required")?;
+            let model = selected_model.ok_or("A custom model is required")?;
+            let home = workdir
+                .join(".mycode/cli-homes/minimax")
+                .join(id)
+                .join(format!("{:x}", sha2::Sha256::digest(model.as_bytes())));
+            fs::create_dir_all(&home).map_err(|e| e.to_string())?;
+            let native = model
+                .strip_prefix(&format!("custom_provider:mycode-{id}/"))
+                .unwrap_or(model);
+            let provider_key = format!("mycode-{id}");
+            let npm = if connection.api == "anthropic-messages" {
+                "@ai-sdk/anthropic"
+            } else {
+                "@ai-sdk/openai-compatible"
+            };
+            let mut headers = json!({});
+            if crate::tokendance::is_endpoint(&connection.base_url) {
+                headers["X-App-URL"] = json!(crate::tokendance::APP_URL);
+            }
+            let value = json!({"custom_provider":{provider_key.clone():{"kind":"custom","enabled":true,"name":connection.name,"api":connection.api,"npm":npm,"env":["MYCODE_MINIMAX_API_KEY"],"options":{"baseURL":connection.base_url,"authMode":"api-key","headers":headers},"models":{native:{"id":native,"name":native}}}},"nexus":{"model":{"providerID":format!("custom_provider:{provider_key}"),"modelID":native}}});
+            write_private(
+                &home.join("config.yaml"),
+                serde_json::to_vec(&value)
+                    .map_err(|e| e.to_string())?
+                    .as_slice(),
+            )?;
+            cmd.env("MINIMAX_DATA_DIR", &home)
+                .env("MYCODE_MINIMAX_API_KEY", key);
+        }
+        _ => return Err("This agent does not support this custom model protocol".into()),
+    }
+    Ok(())
+}
+
 /// Extend only the Pi/Claude children created by this app, never user CLI files.
 pub fn configure_child(
     app: &AppHandle,
@@ -390,7 +458,7 @@ pub fn configure_child(
 ) -> Result<(), String> {
     if !matches!(
         provider,
-        Some("pi" | "claude" | "codex" | "opencode" | "mimo")
+        Some("pi" | "claude" | "codex" | "opencode" | "mimo" | "hermes" | "minimax")
     ) {
         return Ok(());
     }
@@ -419,6 +487,9 @@ pub fn configure_child(
             .ok_or("Model connection is missing or disabled")?;
         let key = connection_key(connection)?;
         match provider {
+            Some("hermes" | "minimax") => {
+                configure_custom_agent(cmd, provider, connection, selected_model, &key)?
+            }
             Some("claude")
                 if connection.api == "anthropic-messages"
                     || mimo_anthropic_base(connection).is_some() =>
@@ -937,6 +1008,67 @@ fn parse_model_ids(value: &Value) -> Result<Vec<String>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn custom_agents_use_project_owned_profiles_and_environment_keys() {
+        let root = std::env::temp_dir().join(format!("mycode-cli-config-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&root).unwrap();
+        let connection = Connection {
+            id: "qa".into(),
+            name: "QA".into(),
+            base_url: "https://tokendance.space/gateway/v1".into(),
+            api: "openai-completions".into(),
+            ..Default::default()
+        };
+        for (provider, env, model) in [
+            ("hermes", "HERMES_HOME", "vendor/model"),
+            (
+                "minimax",
+                "MINIMAX_DATA_DIR",
+                "custom_provider:mycode-qa/vendor/model",
+            ),
+        ] {
+            let mut command = Command::new("unused");
+            command.current_dir(&root);
+            configure_custom_agent(
+                &mut command,
+                Some(provider),
+                &connection,
+                Some(model),
+                "test-private-key",
+            )
+            .unwrap();
+            let directory = command
+                .get_envs()
+                .find(|(k, _)| *k == env)
+                .unwrap()
+                .1
+                .unwrap();
+            let directory = PathBuf::from(directory);
+            assert!(directory.starts_with(&root));
+            let bytes = fs::read_to_string(directory.join("config.yaml")).unwrap();
+            assert!(!bytes.contains("test-private-key"));
+            let value: Value = serde_json::from_str(&bytes).unwrap();
+            if provider == "hermes" {
+                assert_eq!(value["model"]["default"], "vendor/model");
+                assert_eq!(value["model"]["key_env"], "MYCODE_HERMES_API_KEY");
+            } else {
+                assert_eq!(value["nexus"]["model"]["modelID"], "vendor/model");
+                assert_eq!(
+                    value["custom_provider"]["mycode-qa"]["options"]["headers"]["X-App-URL"],
+                    crate::tokendance::APP_URL
+                );
+            }
+        }
+        assert!(configure_custom_agent(
+            &mut Command::new("unused"),
+            Some("hermes"),
+            &connection,
+            None,
+            "key"
+        )
+        .is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn model_metadata_never_invents_missing_capabilities() {
         let missing = model_metadata(

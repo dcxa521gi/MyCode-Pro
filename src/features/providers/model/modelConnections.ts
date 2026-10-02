@@ -164,6 +164,9 @@ export const CONNECTION_PRESETS = [
     api: "openai-completions",
   },
   { name: "Custom endpoint", baseUrl: "", api: "openai-completions" },
+  { name: "NVIDIA NIM", baseUrl: "https://integrate.api.nvidia.com/v1", api: "openai-completions" },
+  { name: "Hugging Face", baseUrl: "https://router.huggingface.co/v1", api: "openai-completions" },
+  { name: "Vercel AI Gateway", baseUrl: "https://ai-gateway.vercel.sh/v1", api: "openai-completions" },
 ] as const;
 
 export type ConnectionPreset = (typeof CONNECTION_PRESETS)[number];
@@ -192,6 +195,8 @@ export function providerCategory(provider: {
       "together.ai",
       "fireworks.ai",
       "aihubmix.com",
+      "huggingface.co",
+      "ai-gateway.vercel.sh",
     ].some((host) => provider.baseUrl.includes(host))
   )
     return "Aggregators";

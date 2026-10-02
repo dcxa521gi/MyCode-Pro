@@ -1,4 +1,8 @@
-import { nativeModelId } from "../../../../features/sessions/model/models";
+import {
+  nativeModelId,
+  findModel,
+  getConnectionRevision,
+} from "../../../../features/sessions/model/models";
 import type { RuntimeMode } from "../../../../features/sessions/model/session";
 import { readTextFile } from "../../../../platform/tauri/fs";
 import { AcpClient, type AcpHandlers } from "../../core/acp";
@@ -36,6 +40,9 @@ import type {
 } from "../../core/types";
 
 type Live = {
+  connectionId?: string;
+  connectionRevision?: number;
+  selectedModel?: string;
   subagents: AcpSubagents;
   background: Map<string, HermesBackgroundDispatch>;
   acp: AcpClient;
@@ -180,7 +187,14 @@ export function bindHermesSession(
 
 async function ensureLive(input: HarnessSessionInput): Promise<Live> {
   const existing = liveByThread.get(input.sessionId);
-  if (existing && existing.cwd === input.cwd) {
+  const connectionId = findModel(input.model)?.connectionId;
+  if (
+    existing &&
+    existing.cwd === input.cwd &&
+    existing.connectionId === connectionId &&
+    existing.connectionRevision === getConnectionRevision() &&
+    (!connectionId || existing.selectedModel === input.model)
+  ) {
     existing.onEvent = input.onEvent;
     existing.runtimeMode = input.runtimeMode;
     existing.planning = input.intent === "plan";
@@ -257,6 +271,8 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
     input.cwd,
     undefined,
     "hermes",
+    connectionId,
+    nativeModelId(input.model),
   );
 
   try {
@@ -311,6 +327,9 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
       throw new Error("Hermes Agent did not return a session id");
 
     const live: Live = {
+      connectionId,
+      connectionRevision: getConnectionRevision(),
+      selectedModel: input.model,
       subagents: new AcpSubagents(),
       background: new Map(),
       acp,
@@ -347,6 +366,7 @@ async function applyModelSelection(
   input: HarnessSessionInput,
 ): Promise<void> {
   const modelId = nativeModelId(input.model).trim();
+  if (live.connectionId) return; // The isolated child config pins the custom endpoint and model.
   if (!modelId || modelId === "default" || modelId === live.modelId) return;
   await live.acp.request(
     "session/set_model",

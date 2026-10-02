@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "../../../shared/i18n";
 import { Modal } from "../../../shared/ui/Modal";
+import { loginHarness } from "../../../integrations/harness/core/auth";
+import type { HarnessId } from "../../sessions/model/session";
 import {
   CONNECTION_PRESETS,
   PROVIDER_CATEGORIES,
@@ -23,6 +25,8 @@ export function ProviderGallery({
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>("");
+  const [signingIn, setSigningIn] = useState<string>();
+  const [authStatus, setAuthStatus] = useState("");
   const matches = CONNECTION_PRESETS.filter(
     (p) =>
       (!category || providerCategory(p) === category) &&
@@ -39,6 +43,7 @@ export function ProviderGallery({
       onClose={onClose}
     >
       <div className="space-y-4 px-4 py-4 text-content">
+        <p className="text-xs text-content/45">{t("1 · Choose provider")}</p>
         <input
           autoFocus
           type="search"
@@ -64,6 +69,65 @@ export function ProviderGallery({
             </button>
           ))}
         </div>
+        {(!category || category === "Subscription plans") && (
+          <section className="space-y-2.5">
+            <h3 className="text-xs font-medium text-content/60">
+              {t("Sign in with a CLI account")}
+            </h3>
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+              {(
+                [
+                  ["claude", "Claude"],
+                  ["codex", "ChatGPT / Codex"],
+                  ["cursor", "Cursor"],
+                  ["minimax", "MiniMax Code"],
+                  ["grok", "Grok"],
+                ] as const
+              )
+                .filter(([, name]) =>
+                  name.toLowerCase().includes(query.toLowerCase()),
+                )
+                .map(([id, name]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    disabled={!!signingIn}
+                    onClick={() => {
+                      setSigningIn(id);
+                      setAuthStatus("");
+                      void loginHarness(id as HarnessId)
+                        .then(() =>
+                          setAuthStatus(
+                            "Sign-in completed. Select models in the conversation.",
+                          ),
+                        )
+                        .catch(() =>
+                          setAuthStatus(
+                            "Could not sign in. Install or update this CLI in CLI tools, then retry.",
+                          ),
+                        )
+                        .finally(() => setSigningIn(undefined));
+                    }}
+                    className="min-h-16 rounded-xl border border-content/10 bg-content/[0.025] p-3 text-left hover:bg-selection disabled:opacity-50"
+                  >
+                    <strong className="block text-xs">{name}</strong>
+                    <span className="mt-1 block text-[11px] text-content/45">
+                      {t(
+                        signingIn === id
+                          ? "Signing in…"
+                          : "Official browser sign-in",
+                      )}
+                    </span>
+                  </button>
+                ))}
+            </div>
+            {authStatus && (
+              <p role="status" className="text-xs text-content/60">
+                {t(authStatus)}
+              </p>
+            )}
+          </section>
+        )}
         {PROVIDER_CATEGORIES.map((c) => {
           const providers = matches.filter((p) => providerCategory(p) === c);
           if (!providers.length) return null;

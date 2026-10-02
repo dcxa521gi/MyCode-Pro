@@ -1,3 +1,4 @@
+import { translateActivity } from "../../../shared/i18n/activity";
 import { useTranslation } from "../../../shared/i18n";
 import { useEffect, useState } from "react";
 import { useLockOverscroll } from "../../../shared/hooks/useLockOverscroll";
@@ -77,7 +78,7 @@ export function LiveAgentsPreview({
   return (
     <section
       aria-label={t("Working agents")}
-      className={`shrink-0 px-2 ${bottomSpacing ? "pb-2" : ""}`}
+      className={`shrink-0 px-2 pb-3 ${bottomSpacing ? "pt-1" : ""}`}
       data-live-agents-preview="full"
     >
       <span className="sr-only" aria-live="polite" aria-atomic="true">
@@ -128,7 +129,7 @@ export function LiveAgentsPreview({
             ) : (
               <ChevronDown className="size-3" strokeWidth={1.75} />
             )}
-            {expanded ? t("Show less") : `${extra} more`}
+            {expanded ? t("Show less") : `${extra} ${t("more")}`}
           </button>
         ) : null}
       </div>
@@ -171,7 +172,7 @@ function LiveAgentCard({
     ? t("Need approval")
     : agent.done
       ? t("Done")
-      : t(agent.activity);
+      : translateActivity(agent.activity);
   const live = !agent.needsApproval && !agent.done;
   const title = [agent.title, project, activity, elapsed]
     .filter(Boolean)

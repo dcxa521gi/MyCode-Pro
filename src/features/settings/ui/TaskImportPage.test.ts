@@ -68,7 +68,7 @@ it("keeps successful imports and retries only the failed selection", async () =>
     );
     await act(async () => root.render(createElement(TaskImportPage)));
     expect(container.textContent).toContain("Open task: a");
-    expect(container.querySelectorAll("[role=radio]")).toHaveLength(4);
+    expect(container.querySelectorAll("[role=radio]")).toHaveLength(7);
     expect(container.querySelectorAll("input[type=checkbox]")).toHaveLength(2);
     expect(
       vi

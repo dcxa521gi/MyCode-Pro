@@ -1,3 +1,4 @@
+import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -27,7 +28,7 @@ type Bot = {
   route: Route | null;
 };
 const inputClass =
-  "w-full rounded-lg border border-content/15 bg-content/[0.025] px-3 py-2 text-sm outline-none focus:border-accent";
+  "w-full rounded-lg border border-content/15 bg-content/[0.025] px-3 py-2 text-sm outline-none focus:border-content/30";
 export function IMBotsPage({ cwd }: { cwd?: string }) {
   const { t } = useTranslation();
   useSyncExternalStore(subscribeModels, getModelSnapshot, getModelSnapshot);
@@ -214,7 +215,7 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
         </label>
         <label className="grid gap-1 text-xs">
           {t("Agent and model")}
-          <select
+          <SettingsOptions
             required
             className={inputClass}
             value={route.model}
@@ -243,12 +244,12 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
                 {m.harness} · {t(m.name)}
               </option>
             ))}
-          </select>
+          </SettingsOptions>
         </label>
         {channel === "feishu" && (
           <label className="grid gap-1 text-xs">
             {t("Service region")}
-            <select
+            <SettingsOptions
               className={inputClass}
               value={credentials.service ?? "feishu"}
               onChange={(e) =>
@@ -257,7 +258,7 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
             >
               <option value="feishu">飞书</option>
               <option value="lark">Lark</option>
-            </select>
+            </SettingsOptions>
           </label>
         )}
       </div>

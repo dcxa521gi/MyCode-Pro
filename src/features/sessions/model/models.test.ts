@@ -515,3 +515,16 @@ it("routes custom reasoning effort to the Codex setting and preserves official c
     setConnectionModels([]);
   }
 });
+
+it("binds compatible custom connections to Hermes and MiniMax without losing model namespaces",()=>{
+ setConnectionModels([{id:"qa",name:"QA",baseUrl:"https://example.com/v1",api:"openai-completions",models:["vendor/model"],enabled:true,hasKey:true}]);
+ try {
+  const hermes=modelsFor("hermes").find(m=>m.connectionId==="qa")!;
+  const minimax=modelsFor("minimax").find(m=>m.connectionId==="qa")!;
+  expect(hermes).toBeDefined();expect(nativeModelId(hermes.id)).toBe("vendor/model");
+  expect(nativeModelId(minimax.id)).toBe("custom_provider:mycode-qa/vendor/model");
+  setConnectionModels([{id:"qa",name:"QA",baseUrl:"https://example.com/v1",api:"anthropic-messages",models:["vendor/model"],enabled:true,hasKey:true}]);
+  expect(modelsFor("hermes").some(m=>m.connectionId==="qa")).toBe(false);
+  expect(modelsFor("minimax").some(m=>m.connectionId==="qa")).toBe(true);
+ }finally{setConnectionModels([]);}
+});

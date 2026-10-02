@@ -399,3 +399,5 @@ export function looksLikeProject(path: string): boolean {
   if (path.includes(".app/") || path.includes(".app\\")) return false;
   return true;
 }
+
+export function isRemoteProjectPath(path: string) { return /^remote:\/\//.test(path); }

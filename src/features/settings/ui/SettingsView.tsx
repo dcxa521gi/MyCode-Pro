@@ -1,4 +1,9 @@
-import { useComposerBehavior, saveComposerBehavior } from "../../sessions/model/composerBehavior";
+import { IMCompletionSettings } from "./IMCompletionSettings";
+import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
+import {
+  useComposerBehavior,
+  saveComposerBehavior,
+} from "../../sessions/model/composerBehavior";
 import { StorageManagementPage } from "./StorageManagementPage";
 import { GitCodeInbox } from "../../inbox/ui/GitCodeInbox";
 import { useShowThinking, setShowThinking } from "../model/showThinking";
@@ -24,7 +29,6 @@ import { ask } from "@tauri-apps/plugin-dialog";
 import {
   ArrowDownCircle,
   Check,
-  ChevronDown,
   ExternalLink,
   FolderOpen,
   Globe,
@@ -242,6 +246,12 @@ import {
   useProviderAccountIdentities,
 } from "../../providers/model/providerAccountIdentity";
 import { ProviderAccountSubtitle } from "../../providers/ui/ProviderAccountSubtitle";
+import {
+  saveMaskEmails,
+  saveShowRemainingUsage,
+  useMaskEmails,
+  useShowRemainingUsage,
+} from "../model/displayPrefs";
 import {
   loadSessionSidebarFilters,
   saveSessionSidebarFilters,
@@ -558,8 +568,14 @@ export function SettingsView({
                 <LocalCapabilitiesPage key={cwd} cwd={cwd} />
               ) : null}
               {section === "keybindings" ? <KeybindingsPage /> : null}
-              {section === "mcp" ? <McpSettings cwd={cwd} recents={recents} /> : null}
-              {section === "providers" ? <ModelConnections onOpenCli={() => onSelectSection?.("providers-cli")} /> : null}
+              {section === "mcp" ? (
+                <McpSettings cwd={cwd} recents={recents} />
+              ) : null}
+              {section === "providers" ? (
+                <ModelConnections
+                  onOpenCli={() => onSelectSection?.("providers-cli")}
+                />
+              ) : null}
               {section === "providers-cli" ? (
                 <ProvidersPage cwd={cwd} recents={recents} />
               ) : null}
@@ -839,7 +855,7 @@ function GeneralPage({
             "Chinese time zones use Simplified Chinese; other regions use English. If the time zone is unavailable or UTC, the system language is used.",
           )}
         >
-          <select
+          <SettingsOptions
             aria-label={t("Display language")}
             value={preference}
             onChange={(event) =>
@@ -850,7 +866,7 @@ function GeneralPage({
             <option value="auto">{t("Automatic (computer time zone)")}</option>
             <option value="zh-CN">简体中文</option>
             <option value="en">{t("English")}</option>
-          </select>
+          </SettingsOptions>
         </Row>
       </Group>
       <Group
@@ -1081,7 +1097,36 @@ function ChatPage() {
 
   return (
     <>
-      <Group title={t("Message input")}><Row label={t("Send shortcut")}><select className="rounded-lg bg-content/5 px-3 py-2" value={composerBehavior.sendKey} onChange={e=>saveComposerBehavior({...composerBehavior,sendKey:e.target.value as "enter" | "ctrl-enter"})}><option value="enter">Enter</option><option value="ctrl-enter">Ctrl+Enter</option></select></Row><Row label={t("Continue numbered lists")} description={t("Continue 1, 1. and 1、 when inserting a new line.")}><Toggle label={t("Continue numbered lists")} on={composerBehavior.numberedLists} onChange={numberedLists=>saveComposerBehavior({...composerBehavior,numberedLists})}/></Row></Group>
+      <IMCompletionSettings />
+      <Group title={t("Message input")}>
+        <Row label={t("Send shortcut")}>
+          <SettingsOptions
+            className="rounded-lg bg-content/5 px-3 py-2"
+            value={composerBehavior.sendKey}
+            onChange={(e) =>
+              saveComposerBehavior({
+                ...composerBehavior,
+                sendKey: e.target.value as "enter" | "ctrl-enter",
+              })
+            }
+          >
+            <option value="enter">Enter</option>
+            <option value="ctrl-enter">Ctrl+Enter</option>
+          </SettingsOptions>
+        </Row>
+        <Row
+          label={t("Continue numbered lists")}
+          description={t("Continue 1, 1. and 1、 when inserting a new line.")}
+        >
+          <Toggle
+            label={t("Continue numbered lists")}
+            on={composerBehavior.numberedLists}
+            onChange={(numberedLists) =>
+              saveComposerBehavior({ ...composerBehavior, numberedLists })
+            }
+          />
+        </Row>
+      </Group>
       <Group
         title={t("Transcript")}
         description={t("How a conversation reads as it grows.")}
@@ -3429,6 +3474,8 @@ function ProvidersPage({
     <>
       <ProviderAccountsSettings />
 
+      <UsageDisplaySettings />
+
       <Group
         id="agent-clis"
         title={t("Agent CLIs")}
@@ -3505,6 +3552,38 @@ function ProvidersPage({
         </Row>
       </Group>
     </>
+  );
+}
+
+function UsageDisplaySettings() {
+  const { t } = useTranslation();
+  const showRemainingUsage = useShowRemainingUsage();
+  const maskEmails = useMaskEmails();
+  return (
+    <Group title="Usage and privacy">
+      <Row
+        id="show-remaining-usage"
+        label="Show remaining usage"
+        description="Fill usage meters with what is left in each limit instead of what has been used."
+      >
+        <Toggle
+          label={t("Show remaining usage")}
+          on={showRemainingUsage}
+          onChange={saveShowRemainingUsage}
+        />
+      </Row>
+      <Row
+        id="mask-emails"
+        label="Mask account emails"
+        description="Blur account emails in Settings and the usage popover until you click one, so they stay out of screenshots."
+      >
+        <Toggle
+          label={t("Mask account emails")}
+          on={maskEmails}
+          onChange={saveMaskEmails}
+        />
+      </Row>
+    </Group>
   );
 }
 
@@ -3687,7 +3766,14 @@ function ProviderAccountsSettings() {
                         ) : null}
                       </div>
                       <div className="mt-0.5 truncate text-[10px] text-content/35">
-                        <ProviderAccountSubtitle identity={identity} fallback={t(account.isDefault ? "Provider CLI profile" : "Isolated profile")} />
+                        <ProviderAccountSubtitle
+                          identity={identity}
+                          fallback={t(
+                            account.isDefault
+                              ? "Provider CLI profile"
+                              : "Isolated profile",
+                          )}
+                        />
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
@@ -4449,7 +4535,6 @@ function Toggle({
   );
 }
 
-/** Theme-aware dropdown for a Settings row: a trigger button opening a Popover listbox. Used instead of a native select, whose option popup is OS-rendered and unreadable in dark mode on Windows/Linux. */
 function Select({
   label,
   value,
@@ -4461,157 +4546,17 @@ function Select({
   options: { value: string; label: string; icon?: ReactNode }[];
   onChange: (value: string) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(() =>
-    Math.max(
-      0,
-      options.findIndex((option) => option.value === value),
-    ),
-  );
-  const root = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-  const activeOption = useRef<HTMLButtonElement>(null);
-  const listId = useId();
-  const selected = options.find((option) => option.value === value);
-  const activeId =
-    options[active] != null ? `${listId}-opt-${active}` : undefined;
-
-  useEffect(() => {
-    if (!open) return;
-    setActive(
-      Math.max(
-        0,
-        options.findIndex((option) => option.value === value),
-      ),
-    );
-  }, [open, value, options]);
-
-  useEffect(() => {
-    if (!open) return;
-    activeOption.current?.scrollIntoView({ block: "nearest" });
-  }, [active, open]);
-
-  const pick = (next: string) => {
-    onChange(next);
-    setOpen(false);
-    trigger.current?.focus();
-  };
-
-  const onMenuKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setActive((i) => Math.min(options.length - 1, i + 1));
-      return;
-    }
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setActive((i) => Math.max(0, i - 1));
-      return;
-    }
-    if (e.key === "Home") {
-      e.preventDefault();
-      setActive(0);
-      return;
-    }
-    if (e.key === "End") {
-      e.preventDefault();
-      setActive(options.length - 1);
-      return;
-    }
-    if (e.key === "Tab") {
-      const option = options[active];
-      if (option && option.value !== value) onChange(option.value);
-      setOpen(false);
-      trigger.current?.focus();
-      return;
-    }
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const option = options[active];
-      if (option) pick(option.value);
-    }
-  };
-
   return (
-    <div ref={root} className="relative max-w-52">
-      <button
-        type="button"
-        ref={trigger}
-        aria-label={`${label}: ${selected?.label ?? value}`}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between gap-2 rounded-md border border-content/10 bg-content/5 px-2 py-1 text-left text-[12px] text-content outline-none hover:border-content/20"
-      >
-        <span className="flex min-w-0 flex-1 items-center gap-1.5">
-          {selected?.icon ? (
-            <span className="grid size-4 shrink-0 place-items-center">
-              {selected.icon}
-            </span>
-          ) : null}
-          <span className="min-w-0 truncate">
-            {selected ? selected.label : value}
-          </span>
-        </span>
-        <ChevronDown
-          className={`size-3.5 shrink-0 text-content/50 transition-transform ${open ? "rotate-180" : ""}`}
-          strokeWidth={1.75}
-        />
-      </button>
-      {open ? (
-        <Popover
-          anchor={root}
-          side="bottom"
-          align="end"
-          width={280}
-          maxHeight={320}
-          autoFocus
-          onDismiss={(reason) => {
-            setOpen(false);
-            if (reason === "escape") trigger.current?.focus();
-          }}
-          role="listbox"
-          aria-label={label}
-          aria-activedescendant={activeId}
-          tabIndex={-1}
-          onKeyDown={onMenuKey}
-          className="overflow-y-auto overscroll-contain p-1"
-        >
-          {options.map((option, index) => {
-            const isSelected = option.value === value;
-            const highlighted = index === active;
-            return (
-              <button
-                key={option.value}
-                ref={highlighted ? activeOption : undefined}
-                type="button"
-                id={`${listId}-opt-${index}`}
-                role="option"
-                tabIndex={-1}
-                aria-selected={isSelected}
-                onMouseDown={(e) => e.preventDefault()}
-                onMouseEnter={() => setActive(index)}
-                onClick={() => pick(option.value)}
-                className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] ${
-                  highlighted || isSelected
-                    ? "bg-selection text-content"
-                    : "text-content hover:bg-content/5"
-                }`}
-              >
-                {option.icon ? (
-                  <span className="grid size-4 shrink-0 place-items-center">
-                    {option.icon}
-                  </span>
-                ) : null}
-                <span className="min-w-0 flex-1 truncate">{option.label}</span>
-                {isSelected ? (
-                  <Check className="size-3.5 shrink-0" strokeWidth={2.25} />
-                ) : null}
-              </button>
-            );
-          })}
-        </Popover>
-      ) : null}
-    </div>
+    <SettingsOptions
+      aria-label={label}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </SettingsOptions>
   );
 }

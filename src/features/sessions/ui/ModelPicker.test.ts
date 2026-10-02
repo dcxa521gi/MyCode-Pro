@@ -1136,3 +1136,41 @@ describe("model picker", () => {
     ).toBeNull();
   });
 });
+
+it("opens provider management from the model flyout footer", () => {
+  const manage = vi.fn();
+  window.addEventListener("mycode-manage-models", manage);
+  try {
+    act(() =>
+      root.render(
+        createElement(ModelPicker, {
+          harness: "grok",
+          model: "grok:grok-4.6",
+          values: { effort: "high" },
+          onChange: vi.fn(),
+          onSettingsChange: vi.fn(),
+        }),
+      ),
+    );
+    act(() =>
+      container
+        .querySelector<HTMLButtonElement>(
+          'button[aria-haspopup="menu"]',
+        )!
+        .click(),
+    );
+    hover(
+      Array.from(container.querySelectorAll("button")).find((b) =>
+        b.textContent?.startsWith("Model"),
+      )!,
+    );
+    const button = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((b) => b.textContent?.trim() === "Manage models")!;
+    expect(button).toBeDefined();
+    act(() => button.click());
+    expect(manage).toHaveBeenCalledOnce();
+  } finally {
+    window.removeEventListener("mycode-manage-models", manage);
+  }
+});

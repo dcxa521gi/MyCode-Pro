@@ -1,3 +1,4 @@
+import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
 import { usageTokens } from "../model/usageTokens";
 import { formatTokenCount } from "../../../shared/lib/tokenCount";
 import { BusyIndicator } from "../../../shared/ui/BusyIndicator";
@@ -151,7 +152,7 @@ export function UsageHistoryPage() {
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 text-sm">
-        <select
+        <SettingsOptions
           aria-label={t("Agent")}
           className="rounded-lg bg-surface px-3 py-2"
           value={filter}
@@ -164,8 +165,8 @@ export function UsageHistoryPage() {
           {[...new Set(rows.map((r) => r.harness))].map((h) => (
             <option key={h}>{h}</option>
           ))}
-        </select>
-        <select
+        </SettingsOptions>
+        <SettingsOptions
           aria-label={t("Date range")}
           className="rounded-lg bg-surface px-3 py-2"
           value={range}
@@ -186,7 +187,7 @@ export function UsageHistoryPage() {
               {t(label)}
             </option>
           ))}
-        </select>
+        </SettingsOptions>
         <input
           type="date"
           aria-label={t("Date")}

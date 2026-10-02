@@ -1,3 +1,5 @@
+import { translateActivity } from "../../../shared/i18n/activity";
+import { getLocale } from "../../../shared/i18n";
 import { useShowThinking } from "../../settings/model/showThinking";
 import { getLocale as uiLocale } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
@@ -720,7 +722,7 @@ function AgentTranscriptComponent({
           ) : durationMs != null ? (
             formatWorkingDuration(durationMs, turnModelName, true)
           ) : (
-            workSummaryLine(folded)
+            translateActivity(workSummaryLine(folded))
           );
           const showFoldLine = live || durationMs != null || !!fold;
           // It sits where the work starts, from before there is any: the row
@@ -1194,7 +1196,7 @@ function TurnMetricsBadge({
   return (
     <div
       ref={root}
-      className="relative shrink-0"
+      className="relative shrink-0 ml-[3px]"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setHovered(true)}
@@ -2228,7 +2230,7 @@ function ActivityPhaseGroup({
     for (const step of phase.steps) settled.current?.add(step.id);
   }, [phase.steps]);
   const turnFor = useStepQueue();
-  const title = activityPhaseTitle(phase, active);
+  const title = translateActivity(activityPhaseTitle(phase, active));
   const monoCodePhase = !!monoCodeWorkSummary(phase.steps, active);
   // Opening a group on purpose is also how you read the line that titled it,
   // whole. The auto-open while it runs is a live view, not a reading one, and
@@ -2879,7 +2881,7 @@ function ActivityInterjectionRow({ block }: { block: Block }) {
   const summary = proseSummary(block.text);
   const label = (
     <span className="min-w-0 flex-1 truncate font-sans text-sm">
-      <span className="text-content/55">{chrome.label}</span>
+      <span className="text-content/55">{translateActivity(chrome.label)}</span>
       {chrome.severityText ? (
         <span className={`text-[11px] ${chrome.severityClass}`}>
           {" "}
@@ -2898,7 +2900,7 @@ function ActivityInterjectionRow({ block }: { block: Block }) {
   if (!block.text.trim()) {
     return (
       <div
-        aria-label={`${chrome.label} note`}
+        aria-label={`${translateActivity(chrome.label)} note`}
         className="flex min-w-0 items-center gap-1.5 py-1"
       >
         {label}
@@ -2912,7 +2914,7 @@ function ActivityInterjectionRow({ block }: { block: Block }) {
         type="button"
         aria-expanded={open}
         aria-label={
-          open ? `Hide the ${chrome.label} note` : `${chrome.label}: ${summary}`
+          open ? `Hide the ${translateActivity(chrome.label)} note` : `${translateActivity(chrome.label)}: ${summary}`
         }
         onClick={() => setOpen((value) => !value)}
         className="group flex min-w-0 items-center gap-1.5 py-1 text-left"
@@ -3322,6 +3324,10 @@ function formatWorkingDuration(
   done = false,
 ): string {
   const who = modelName?.trim();
+  if (getLocale() === "zh-CN") {
+    const elapsed = formatElapsed(elapsedMs)?.replace(/m/g,"分").replace(/s/g,"秒");
+    return `${who ? who+" " : ""}${done ? "已运行" : "运行中"}${elapsed ? " · "+elapsed : done ? "" : "…"}`;
+  }
   const elapsed = formatElapsed(elapsedMs);
   const verb = done ? (who ? "worked" : "Worked") : who ? "working" : "Working";
   if (elapsed == null) {
@@ -3499,7 +3505,7 @@ function ToolCallSummary({
         }`}
         title={label}
       >
-        {label}
+        {translateActivity(label)}
       </span>
     );
   }
@@ -3524,7 +3530,7 @@ function ToolCallSummary({
   return (
     <span className="flex min-w-0 flex-1 items-center gap-1.5 font-mono text-[13px]">
       <span className={`shrink-0 font-sans text-sm ${actionTone}`}>
-        {action}
+        {translateActivity(action)}
       </span>
       {isFile ? (
         canPreview ? (

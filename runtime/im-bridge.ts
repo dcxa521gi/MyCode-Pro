@@ -31,6 +31,14 @@ let channels: Record<
 > = {};
 type Route = { cwd: string; harness: string; model: string; ownerId: string };
 let routes: Record<string, Route> = {};
+type ContinuedSession = {
+  sessionId: string;
+  cwd: string;
+  harness: string;
+  model: string;
+  expires: number;
+};
+const continuations = new Map<string, ContinuedSession>();
 const running = new Set<string>();
 const pending = new Map<
   string,
@@ -161,6 +169,21 @@ function init(data: { secrets: Record<string, string>; directory: string }) {
         if (item.expires < Date.now()) pending.delete(key);
       if (pending.size >= 100) return;
       const receipt = randomUUID();
+      const command = event.text
+        .trim()
+        .match(/^\/continue\s+(\S+)\s+([\s\S]+)$/);
+      const continuation = command
+        ? continuations.get(`${channel}:${command[1]}`)
+        : undefined;
+      if (command && (!continuation || continuation.expires < Date.now())) {
+        void transport
+          .sendText(
+            event.senderId,
+            "MyCode: continuation unavailable / 此会话未授权远程继续或已过期。",
+          )
+          .catch(() => {});
+        return;
+      }
       pending.set(receipt, { channel, event, expires: Date.now() + 3600000 });
       emit({
         kind: "message",
@@ -168,7 +191,8 @@ function init(data: { secrets: Record<string, string>; directory: string }) {
           receipt,
           channel,
           senderId: event.senderId,
-          text: event.text.slice(0, 64000),
+          text: (command ? command[2] : event.text).slice(0, 64000),
+          ...(continuation ? { sessionId: continuation.sessionId } : {}),
           route,
         },
       });
@@ -178,6 +202,20 @@ function init(data: { secrets: Record<string, string>; directory: string }) {
 async function dispatch(input: any) {
   if (input.action === "bootstrap") {
     init(input);
+    let saved: string[] = [];
+    try {
+      saved = JSON.parse(secrets.mycode_running ?? "[]");
+    } catch {}
+    if (Array.isArray(saved))
+      for (const channel of saved)
+        if (channels[channel] && routes[channel]) {
+          running.add(channel);
+          try {
+            await channels[channel].init();
+          } catch {
+            running.delete(channel);
+          }
+        }
     return publicState();
   }
   if (input.action === "status") return publicState();
@@ -196,16 +234,29 @@ async function dispatch(input: any) {
   }
   if (input.action === "stop") {
     running.delete(channel);
+    for (const key of continuations.keys())
+      if (key.startsWith(`${channel}:`)) continuations.delete(key);
     await transport.dispose();
+    secrets.mycode_running = JSON.stringify([...running]);
+    save();
     return publicState();
   }
   if (input.action === "start") {
     if (!routes[channel]) throw Error("Configure a bot first");
     running.add(channel);
-    await transport.init();
+    try {
+      await transport.init();
+    } catch (error) {
+      running.delete(channel);
+      throw error;
+    }
+    secrets.mycode_running = JSON.stringify([...running]);
+    save();
     return publicState();
   }
   if (input.action === "configure") {
+    for (const key of continuations.keys())
+      if (key.startsWith(`${channel}:`)) continuations.delete(key);
     const route = { ...input.route } as Route;
     if (channel === "wechat")
       route.ownerId = (
@@ -225,6 +276,8 @@ async function dispatch(input: any) {
     if (channel === "wechat") {
       running.add(channel);
       await transport.init();
+      secrets.mycode_running = JSON.stringify([...running]);
+      save();
       return publicState();
     }
     const commands: Record<string, string> = {
@@ -246,17 +299,59 @@ async function dispatch(input: any) {
       await transport.dispose();
       await transport.init();
     }
+    secrets.mycode_running = JSON.stringify([...running]);
+    save();
     return publicState();
   }
   if (input.action === "reply") {
     const item = pending.get(input.receipt);
-    if (!item || item.channel !== channel || !running.has(channel))
+    if (
+      !item ||
+      item.expires < Date.now() ||
+      item.channel !== channel ||
+      !running.has(channel)
+    )
       throw Error("Reply is no longer available");
     await transport.sendText(
       item.event.senderId,
       String(input.text ?? "").slice(0, 30000),
     );
     pending.delete(input.receipt);
+    return true;
+  }
+  if (input.action === "notify") {
+    const route = routes[channel];
+    if (!route || !running.has(channel))
+      throw Error("Connect this bot before sending notifications");
+    const session = input.session;
+    if (
+      !session ||
+      typeof session.id !== "string" ||
+      !session.id ||
+      typeof session.cwd !== "string" ||
+      typeof session.harness !== "string" ||
+      typeof session.model !== "string"
+    )
+      throw Error("Invalid notified session");
+    for (const [key, item] of continuations)
+      if (item.expires < Date.now()) continuations.delete(key);
+    await transport.sendText(
+      route.ownerId,
+      String(input.text ?? "").slice(0, 30000),
+    );
+    if (
+      input.remoteContinue === true &&
+      (continuations.has(`${channel}:${session.id}`) ||
+        continuations.size < 500)
+    )
+      continuations.set(`${channel}:${session.id}`, {
+        sessionId: session.id,
+        cwd: session.cwd,
+        harness: session.harness,
+        model: session.model,
+        expires: Date.now() + 7 * 24 * 3600000,
+      });
+    else continuations.delete(`${channel}:${session.id}`);
     return true;
   }
   throw Error("Unsupported IM action");
