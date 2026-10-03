@@ -1,4 +1,6 @@
 {
+  "Memory": "记忆",
+  "Manage": "管理",
   "GitHub CLI is installed and authenticated. MyCode uses it for GitHub inbox items.": "GitHub CLI 已安装并完成登录，MyCode 使用它读取 GitHub 收件箱内容。",
   "Run gh auth login in a terminal, complete the sign-in flow, then check again.": "在终端运行 gh auth login，完成登录后重新检查。",
   "Install GitHub CLI from cli.github.com, run gh auth login in a terminal, then check again.": "从 cli.github.com 安装 GitHub CLI，在终端运行 gh auth login 后重新检查。",
