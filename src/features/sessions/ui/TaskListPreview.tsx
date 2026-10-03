@@ -1,7 +1,6 @@
 import { useTranslation } from "../../../shared/i18n";
 import { Check, ListEnd, Loader, Minus } from "../../../shared/ui/icons";
 import type { TaskListItem, TaskListItemStatus } from "../model/session";
-import { taskListProgressLabel } from "../model/taskList";
 
 type Props = {
   items: TaskListItem[];
@@ -10,6 +9,8 @@ type Props = {
 
 export function TaskListPreview({ items, explanation }: Props) {
   const { t } = useTranslation();
+  const completed = items.filter((item) => item.status === "completed").length;
+  const total = items.filter((item) => item.status !== "cancelled").length;
   return (
     <section
       aria-label={t("Task progress")}
@@ -23,10 +24,15 @@ export function TaskListPreview({ items, explanation }: Props) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-3">
             <h3 className="font-mono text-[12px] font-medium text-content/85">
-              {t("Tasks")}
+              {t("Task plan")}
             </h3>
             <span className="shrink-0 rounded-full bg-content/7 px-2 py-0.5 font-mono text-[10px] text-content/50">
-              {taskListProgressLabel(items)}
+              {completed} / {total || items.length} ·{" "}
+              {t(
+                total > 0 && completed === total
+                  ? "Completed"
+                  : "Task progress",
+              )}
             </span>
           </div>
           {explanation ? (
@@ -69,7 +75,7 @@ function TaskState({ status }: { status: TaskListItemStatus }) {
     return (
       <span
         aria-label={t("Completed")}
-        className="mt-px grid size-4 shrink-0 place-items-center rounded-full bg-emerald-400/20 text-emerald-300"
+        className="mt-px grid size-4 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
       >
         <Check className="size-2.5" strokeWidth={2.5} />
       </span>
@@ -79,7 +85,7 @@ function TaskState({ status }: { status: TaskListItemStatus }) {
     return (
       <span
         aria-label={t("In progress")}
-        className="mt-px grid size-4 shrink-0 place-items-center text-sky-300"
+        className="mt-px grid size-4 shrink-0 place-items-center text-sky-600 dark:text-sky-300"
       >
         <Loader className="size-4 motion-safe:animate-spin" strokeWidth={2} />
       </span>

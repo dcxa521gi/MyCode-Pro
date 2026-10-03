@@ -1,4 +1,7 @@
+mod development;
 mod local_preview;
+mod mobile;
+mod power;
 mod turn_recovery;
 use tauri::Manager;
 
@@ -242,10 +245,13 @@ pub fn run() {
         )
         .manage(harness::HarnessHost::new())
         .manage(im_bridge::ImBridge::default())
+        .manage(mobile::MobileHost::default())
+        .manage(power::PowerHost::default())
         .manage(pty::PtyHost::new())
         .manage(window_transfer::WindowTransferState::new())
         .setup(|app| {
             cache_location::initialize(app.handle());
+            power::init(app.handle());
             managed_cli::init(app.handle());
             harness::reap_orphaned_harness_processes();
             session_store::init(app.handle())?;
@@ -276,6 +282,14 @@ pub fn run() {
             menu::dispatch(app, event.id().as_ref());
         })
         .invoke_handler(tauri::generate_handler![
+            development::development_detect,
+            development::development_context,
+            development::development_run,
+            power::power_sync,
+            mobile::mobile_start,
+            mobile::mobile_stop,
+            mobile::mobile_status,
+            mobile::mobile_reply,
             control::control_enable,
             control::control_disable,
             control::control_reply,
@@ -340,6 +354,10 @@ pub fn run() {
             local_ai::local_ai_remove_connection,
             local_ai::local_ai_save_context,
             local_ai::local_ai_memory,
+            local_ai::local_ai_save_personalization,
+            local_ai::local_ai_remember,
+            local_ai::local_ai_clear_collected_memory,
+            local_ai::local_ai_edit_collected_memory,
             local_ai::local_ai_test_connection,
             local_ai::local_ai_discover_models,
             gitcode::gitcode_config,
@@ -630,6 +648,7 @@ pub fn run() {
                 .iter()
                 .any(|window| window.label() != label);
             control::window_closed(handle, &label);
+            power::window_closed(handle, &label);
             if !other_window {
                 reap_harness_children(handle);
             }

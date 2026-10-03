@@ -1,0 +1,8 @@
+plugins { id 'com.android.application' }
+android {
+ namespace 'com.mycode.mobile'
+ compileSdk 35
+ defaultConfig { applicationId 'com.mycode.mobile'; minSdk 26; targetSdk 35; versionCode 160; versionName '0.16.0' }
+ compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies { implementation 'com.journeyapps:zxing-android-embedded:4.3.0' }

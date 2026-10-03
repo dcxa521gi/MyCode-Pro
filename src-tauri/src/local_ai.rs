@@ -22,13 +22,39 @@ pub struct Connection {
     secret: String,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+fn memory_on() -> bool {
+    true
+}
+
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LocalConfig {
     connections: Vec<Connection>,
     memory: String,
+    custom_instructions: String,
+    about_you: String,
+    #[serde(default = "memory_on")]
+    memory_enabled: bool,
+    active_memory: bool,
+    collected_memories: std::collections::BTreeMap<String, Vec<String>>,
     project_memories: std::collections::BTreeMap<String, String>,
     mcp_servers: Value,
+}
+
+impl Default for LocalConfig {
+    fn default() -> Self {
+        Self {
+            connections: Vec::new(),
+            memory: String::new(),
+            custom_instructions: String::new(),
+            about_you: String::new(),
+            memory_enabled: true,
+            active_memory: false,
+            collected_memories: Default::default(),
+            project_memories: Default::default(),
+            mcp_servers: Value::Null,
+        }
+    }
 }
 
 fn directory(app: &AppHandle) -> Result<PathBuf, String> {
@@ -364,7 +390,11 @@ pub fn local_ai_save_context(
 }
 
 #[tauri::command(async)]
-pub fn local_ai_memory(app: AppHandle, cwd: String) -> Result<String, String> {
+pub fn local_ai_memory(
+    app: AppHandle,
+    cwd: String,
+    include_memory: Option<bool>,
+) -> Result<String, String> {
     let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
     let config = load(&app)?;
     let project = config
@@ -372,7 +402,21 @@ pub fn local_ai_memory(app: AppHandle, cwd: String) -> Result<String, String> {
         .get(&project_key(&cwd))
         .cloned()
         .unwrap_or_default();
-    Ok([config.memory, project]
+    let memories = if config.memory_enabled && include_memory != Some(false) {
+        [
+            config.memory,
+            project,
+            config
+                .collected_memories
+                .get(&project_key(&cwd))
+                .map(|v| v.join("\n"))
+                .unwrap_or_default(),
+        ]
+        .join("\n\n")
+    } else {
+        String::new()
+    };
+    Ok([config.custom_instructions, config.about_you, memories]
         .into_iter()
         .filter(|s| !s.trim().is_empty())
         .collect::<Vec<_>>()
@@ -1009,6 +1053,31 @@ fn parse_model_ids(value: &Value) -> Result<Vec<String>, String> {
 mod tests {
     use super::*;
     #[test]
+    fn old_local_config_preserves_memory_and_defaults_to_no_automatic_collection() {
+        let config: LocalConfig = serde_json::from_str(
+            r#"{"memory":"existing","projectMemories":{"/project":"keep"},"connections":[]}"#,
+        )
+        .unwrap();
+        assert_eq!(config.memory, "existing");
+        assert_eq!(config.project_memories["/project"], "keep");
+        assert!(config.memory_enabled);
+        assert!(!config.active_memory);
+        assert!(config.collected_memories.is_empty());
+    }
+    #[test]
+    fn personalization_serializes_new_fields_without_dropping_old_settings() {
+        let config = LocalConfig {
+            custom_instructions: "Verify before answering".into(),
+            about_you: "Local work".into(),
+            memory_enabled: false,
+            ..Default::default()
+        };
+        let value = serde_json::to_value(&config).unwrap();
+        assert_eq!(value["customInstructions"], "Verify before answering");
+        assert_eq!(value["memoryEnabled"], false);
+        assert!(value["projectMemories"].is_object());
+    }
+    #[test]
     fn custom_agents_use_project_owned_profiles_and_environment_keys() {
         let root = std::env::temp_dir().join(format!("mycode-cli-config-{}", uuid::Uuid::new_v4()));
         fs::create_dir_all(&root).unwrap();
@@ -1185,4 +1254,83 @@ mod tests {
         assert!(script.contains("apiKey: process.env[c.env]"));
         assert!(!script.contains("cindy"));
     }
+}
+
+#[tauri::command(async)]
+pub fn local_ai_save_personalization(
+    app: AppHandle,
+    custom_instructions: String,
+    about_you: String,
+    memory_enabled: bool,
+    active_memory: bool,
+) -> Result<(), String> {
+    if custom_instructions.len() + about_you.len() > 64000 {
+        return Err("Personalization exceeds 64 KB".into());
+    }
+    let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
+    let mut c = load(&app)?;
+    c.custom_instructions = custom_instructions;
+    c.about_you = about_you;
+    c.memory_enabled = memory_enabled;
+    c.active_memory = active_memory;
+    save(&app, &c)
+}
+#[tauri::command(async)]
+pub fn local_ai_remember(app: AppHandle, cwd: String, text: String) -> Result<(), String> {
+    if cwd.is_empty() || text.len() > 4000 {
+        return Ok(());
+    }
+    let lower = text.to_lowercase();
+    if ![
+        "记住",
+        "我的偏好",
+        "我习惯",
+        "请始终",
+        "remember my",
+        "my preference",
+        "always respond",
+    ]
+    .iter()
+    .any(|v| lower.starts_with(v))
+    {
+        return Ok(());
+    }
+    let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
+    let mut c = load(&app)?;
+    if !c.memory_enabled || !c.active_memory {
+        return Ok(());
+    }
+    let entries = c.collected_memories.entry(project_key(&cwd)).or_default();
+    if !entries.contains(&text) {
+        entries.push(text);
+        if entries.len() > 32 {
+            entries.remove(0);
+        }
+    }
+    save(&app, &c)
+}
+#[tauri::command(async)]
+pub fn local_ai_clear_collected_memory(app: AppHandle, cwd: String) -> Result<(), String> {
+    let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
+    let mut c = load(&app)?;
+    c.collected_memories.remove(&project_key(&cwd));
+    save(&app, &c)
+}
+
+#[tauri::command(async)]
+pub fn local_ai_edit_collected_memory(
+    app: AppHandle,
+    cwd: String,
+    items: Vec<String>,
+) -> Result<(), String> {
+    if cwd.is_empty() || items.len() > 32 || items.iter().any(|v| v.len() > 4000) {
+        return Err("Invalid project memory".into());
+    }
+    let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
+    let mut c = load(&app)?;
+    c.collected_memories.insert(
+        project_key(&cwd),
+        items.into_iter().filter(|v| !v.trim().is_empty()).collect(),
+    );
+    save(&app, &c)
 }

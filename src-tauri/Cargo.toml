@@ -30,6 +30,8 @@ tauri-plugin-dialog = "2"
 rusqlite = { version = "0.40.2", features = ["bundled"], default-features = false }
 ureq = { version = "2.12.1", default-features = false, features = ["tls", "gzip"] }
 url = "2.5"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+rcgen = { version = "0.14", default-features = false, features = ["crypto", "ring"] }
 tauri-plugin-process = "2"
 
 [target.'cfg(unix)'.dependencies]
@@ -38,7 +40,7 @@ libc = "0.2"
 [target.'cfg(windows)'.dependencies]
 tauri = { version = "2", features = ["tray-icon"] }
 portable-pty = { version = "0.9", path = "../vendor/portable-pty" }
-windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Cryptography", "Win32_Storage_FileSystem", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_System_LibraryLoader", "Win32_System_Diagnostics_ToolHelp"] }
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Cryptography", "Win32_Storage_FileSystem", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_System_Power", "Win32_System_LibraryLoader", "Win32_System_Diagnostics_ToolHelp"] }
 tauri-winrt-notification = "0.8"
 # WinRT toast settings (Windows.UI.Notifications) to read the per-app block.
 windows = { version = "0.62", features = ["UI_Notifications"] }

@@ -1,4 +1,4 @@
-import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
+import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -34,7 +34,7 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
   useSyncExternalStore(subscribeModels, getModelSnapshot, getModelSnapshot);
   const models = allModels();
   const [bots, setBots] = useState<Bot[]>([]);
-  const [channel, setChannel] = useState("feishu");
+  const [channel, setChannel] = useState("");
   const [route, setRoute] = useState<Route>(() => ({
     ownerId: "",
     cwd: cwd ?? "",
@@ -215,7 +215,7 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
         </label>
         <label className="grid gap-1 text-xs">
           {t("Agent and model")}
-          <SettingsOptions
+          <SettingsDropdown
             required
             className={inputClass}
             value={route.model}
@@ -244,12 +244,12 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
                 {m.harness} · {t(m.name)}
               </option>
             ))}
-          </SettingsOptions>
+          </SettingsDropdown>
         </label>
         {channel === "feishu" && (
           <label className="grid gap-1 text-xs">
             {t("Service region")}
-            <SettingsOptions
+            <SettingsDropdown
               className={inputClass}
               value={credentials.service ?? "feishu"}
               onChange={(e) =>
@@ -258,7 +258,7 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
             >
               <option value="feishu">飞书</option>
               <option value="lark">Lark</option>
-            </SettingsOptions>
+            </SettingsDropdown>
           </label>
         )}
       </div>
@@ -300,7 +300,7 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
                 disabled={busy}
                 className={`flex w-full items-center gap-3 rounded-xl p-4 text-left text-sm ${channel === id ? "bg-accent/10 text-accent" : "bg-content/5 hover:bg-content/10"}`}
                 onClick={() => {
-                  setChannel(id);
+                  setChannel(channel === id ? "" : id);
                   setError("");
                   setCredentials({ service: "feishu" });
                   setRoute(

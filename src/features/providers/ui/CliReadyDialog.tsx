@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { invoke } from "@tauri-apps/api/core";
+import { BusyIndicator } from "../../../shared/ui/BusyIndicator";
 import { useTranslation } from "../../../shared/i18n";
 import { HARNESS_TITLE, type Session } from "../../sessions/model/session";
 import { ensureCliReady, type CliCheck } from "../model/cliReady";
@@ -71,17 +72,17 @@ export function CliReadyDialog({ sessions }: { sessions: Session[] }) {
         role="dialog"
         aria-modal="true"
         aria-label={t("CLI version check")}
-        className="w-full max-w-lg space-y-4 rounded-2xl bg-surface p-6 text-content shadow-2xl"
+        className="w-full max-w-xl max-h-[calc(100dvh-48px)] overflow-y-auto space-y-4 rounded-2xl bg-surface p-6 text-content shadow-2xl"
       >
         <h2 className="text-lg font-semibold">
           {HARNESS_TITLE[current.provider]} · {t("CLI version check")}
         </h2>
-        <p>
+        <p className="rounded-xl bg-content/5 p-3 text-sm leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">
           {t("Installed")}: {current.installed || t("Not installed")} ·{" "}
           {t("Latest")}: {current.latest || t("Unknown")}
         </p>
         {current.error && (
-          <p className="text-sm text-content/60">
+          <p className="text-sm text-content/60 [overflow-wrap:anywhere]">
             {t(
               "Could not check latest version. You can retry installation or continue with the installed CLI.",
             )}{" "}
@@ -89,22 +90,21 @@ export function CliReadyDialog({ sessions }: { sessions: Session[] }) {
           </p>
         )}
         {busy && (
-          <>
-            <progress
-              aria-label={t("Installing…")}
-              className="h-2 w-full accent-accent"
+          <div className="rounded-xl border border-content/10 bg-content/[0.035] p-3">
+            <BusyIndicator
+              label={t("Downloading and installing in MyCode. Please wait…")}
             />
-            <p role="status">
-              {t("Downloading and installing in MyCode. Please wait…")}
-            </p>
-          </>
+          </div>
         )}
         {status && (
-          <p role="status" className="break-words text-sm">
+          <p
+            role="status"
+            className="whitespace-pre-wrap text-sm [overflow-wrap:anywhere]"
+          >
             {t(status)}
           </p>
         )}
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-wrap justify-end gap-2 [&>button]:rounded-lg [&>button]:border [&>button]:border-content/10 [&>button]:px-3 [&>button]:py-2">
           <button disabled={busy} onClick={() => close(false)}>
             {t("Cancel")}
           </button>

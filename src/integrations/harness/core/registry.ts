@@ -254,8 +254,30 @@ export function sendHarnessTurn(input: SendTurnInput & { harness: HarnessId }) {
       });
     activeTurnSessions.add(input.sessionId);
     try {
-      const memory = controlled && input.modelSettings?.mycodeGroup !== "true"
-        ? await invoke<string>("local_ai_memory", { cwd: input.cwd })
+      if (controlled && input.modelSettings?.mycodeGroup !== "true")
+        await invoke("local_ai_remember", {
+          cwd: input.cwd,
+          text: input.text,
+        }).catch(() => {});
+      const memory = controlled
+        ? await invoke<string>("local_ai_memory", {
+            cwd: input.cwd,
+            includeMemory: input.modelSettings?.mycodeGroup !== "true",
+          })
+        : "";
+      let toolPaths: Record<string, string> = {};
+      try {
+        toolPaths = JSON.parse(
+          localStorage.getItem("mycode.developmentTools") ?? "{}",
+        );
+      } catch {
+        /* Optional UI configuration. */
+      }
+      const developerTools = controlled
+        ? await invoke<string>("development_context", {
+            cwd: input.cwd,
+            paths: toolPaths,
+          }).catch(() => "")
         : "";
       const references = controlled
         ? await invoke<string>("session_reference_context", {
@@ -284,12 +306,13 @@ export function sendHarnessTurn(input: SendTurnInput & { harness: HarnessId }) {
           );
         },
       };
+      routed.text = `${routed.text}\n\n[MyCode task tracking] For work with multiple steps, use your native plan/todo tool when available. Otherwise publish a section titled "Task plan" with Markdown checklist items. Update the same checklist as work progresses: [ ] pending, [~] in progress, [x] completed, [-] cancelled. Only mark items completed when actually finished. Follow the user's selected language. Do not add a plan for a simple answer. [End of task tracking]`;
       const send = () =>
         adapter.sendTurn(
-          memory?.trim() || references?.trim()
+          memory?.trim() || references?.trim() || developerTools?.trim()
             ? {
                 ...routed,
-                text: `[MyCode local memory — user-maintained context]\n${memory}\n[End of local memory]\n${references}\n${input.text}`,
+                text: `[MyCode local memory — user-maintained context]\n${memory}\n[End of local memory]\n${references}\n${developerTools}\n${routed.text}`,
               }
             : routed,
         );

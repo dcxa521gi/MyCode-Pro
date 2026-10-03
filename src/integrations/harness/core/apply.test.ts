@@ -713,6 +713,7 @@ describe("task list updates", () => {
       "assistant",
       "tool",
       "plan",
+      "tasks",
     ]);
     expect(session.blocks[1]?.text).toBe(
       "I'll inspect the relevant files first.",

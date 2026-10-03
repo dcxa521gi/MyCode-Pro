@@ -1,4 +1,4 @@
-import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
+import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
 import { IS_WIN } from "../../../platform/tauri/platform";
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
@@ -106,7 +106,7 @@ export function ManagedCLIControls({ provider }: { provider: HarnessId }) {
   };
   return (
     <span className="inline-flex flex-wrap items-center gap-2 text-[11px] font-normal">
-      <SettingsOptions
+      <SettingsDropdown
         aria-label={t("CLI scope")}
         disabled={busy}
         value={scope}
@@ -115,7 +115,7 @@ export function ManagedCLIControls({ provider }: { provider: HarnessId }) {
       >
         <option value="app">{t("MyCode app")}</option>
         <option value="global">{t("Global (this computer)")}</option>
-      </SettingsOptions>
+      </SettingsDropdown>
       <button
         disabled={busy}
         className="rounded-md border border-content/15 px-2 py-1 text-content/60 disabled:opacity-40"

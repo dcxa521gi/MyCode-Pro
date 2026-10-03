@@ -20,6 +20,8 @@ import {
 } from "../../features/settings/model/settings";
 
 const SECTION_ICONS: Record<SettingsSectionId, IconComponent> = {
+  mobile: MessageSquare,
+  development: FolderTree,
   general: SlidersHorizontal,
   voice: MessageSquare,
   computer: Bot,

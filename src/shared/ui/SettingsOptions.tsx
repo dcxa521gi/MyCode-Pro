@@ -35,7 +35,7 @@ export function SettingsOptions({
         return;
       if (child.type === "option")
         options.push({
-          value: String(child.props.value ?? ""),
+          value: String(child.props.value ?? child.props.children ?? ""),
           label: child.props.children,
           disabled: child.props.disabled,
         });

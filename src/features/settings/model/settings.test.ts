@@ -619,6 +619,8 @@ describe("settings navigation", () => {
       "inbox",
       "archive",
       "worktrees",
+      "mobile",
+      "development",
       "storage",
     ]);
   });

@@ -1408,7 +1408,7 @@ function ModelFlyout({
         role="tablist"
         aria-label={t("Providers")}
         aria-orientation="vertical"
-        className="flex w-11 shrink-0 flex-col items-center gap-1 border-r border-stroke p-1.5"
+        className="flex w-11 shrink-0 flex-col items-center gap-1 border-r border-stroke p-1.5 overflow-y-auto overscroll-contain"
       >
         <ProviderTabButton
           title={t("Favorites")}

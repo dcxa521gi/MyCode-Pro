@@ -14,7 +14,7 @@ async init(){owner=host.secrets.read(key);status='connected';if(!owner)throw Err
 message({senderId:'intruder',text:'deny',speaker:{id:'intruder'}});
 message({senderId:owner,text:'protected',protectedContent:true});
 message({senderId:owner,text:'allowed'});
-},async dispose(){status='offline';},async sendText(id,text){host.secrets.write('test_reply',JSON.stringify({channel,id,text,owner}));if(text.startsWith('TEST:')){message({senderId:'intruder',text:text.slice(5)});message({senderId:owner,text:text.slice(5)});}}
+},async dispose(){status='offline';},async sendText(id,text){host.secrets.write('test_reply',JSON.stringify({channel,id,text,owner}));if(text.startsWith('TEST:')){message({senderId:'intruder',text:text.slice(5)});message({senderId:owner,text:text.slice(5)});}if(text.startsWith('QUOTE:')){const [sid,...words]=text.slice(6).split(' ');message({senderId:owner,text:words.join(' '),replyContext:{text:'/continue '+sid+' instruction',isBot:true}});}return {messageId:'notification-'+text};}
 };}
 export const createFeishuIM=h=>transport('feishu',h),createDingTalkIM=h=>transport('dingtalk',h),createWecomIM=h=>transport('wecom',h),createTelegramIM=h=>transport('telegram',h),createDiscordIM=h=>transport('discord',h);
 `;
@@ -137,23 +137,116 @@ try {
         })
       ).error,
     );
-    const session = {id:`session-${channel}`,cwd:'/original-project',harness:'pi',model:'custom/model'};
-    const before = messages.filter(m=>m.kind==='message').length;
-    assert.equal((await request({action:'notify',channel,session,remoteContinue:true,text:'completed'})).value,true);
-    await request({action:'notify',channel,session,remoteContinue:true,text:`TEST:/continue ${session.id} next step`});
-    const continued=messages.filter(m=>m.kind==='message').at(-1).value;
-    assert.equal(messages.filter(m=>m.kind==='message').length,before+1);
-    assert.equal(continued.sessionId,session.id);
-    assert.equal(continued.text,'next step');
-    await request({action:'notify',channel,session,remoteContinue:false,text:`TEST:/continue ${session.id} revoke`});
+    const session = {
+      id: `session-${channel}`,
+      cwd: "/original-project",
+      harness: "pi",
+      model: "custom/model",
+    };
+    const before = messages.filter((m) => m.kind === "message").length;
+    assert.equal(
+      (
+        await request({
+          action: "notify",
+          channel,
+          session,
+          remoteContinue: true,
+          text: "completed",
+        })
+      ).value,
+      true,
+    );
+    await request({
+      action: "notify",
+      channel,
+      session,
+      remoteContinue: true,
+      text: `TEST:/continue ${session.id} next step`,
+    });
+    const continued = messages.filter((m) => m.kind === "message").at(-1).value;
+    assert.equal(
+      messages.filter((m) => m.kind === "message").length,
+      before + 1,
+    );
+    assert.equal(continued.sessionId, session.id);
+    assert.equal(continued.text, "next step");
+    assert.equal(continued.route.cwd, session.cwd);
+    await request({
+      action: "notify",
+      channel,
+      session,
+      remoteContinue: true,
+      text: "TEST:plain next step",
+    });
+    const plain = messages.filter((m) => m.kind === "message").at(-1).value;
+    assert.equal(plain.sessionId, session.id);
+    assert.equal(plain.route.cwd, "/original-project");
+    assert.equal(plain.route.model, session.model);
+    const second = {
+      ...session,
+      id: `second-${channel}`,
+      cwd: "/another-project",
+    };
+    await request({
+      action: "notify",
+      channel,
+      session: second,
+      remoteContinue: true,
+      text: "other completed",
+    });
+    await request({
+      action: "notify",
+      channel,
+      session: second,
+      remoteContinue: true,
+      text: `QUOTE:${session.id} quoted follow up`,
+    });
+    const quoted = messages.filter((m) => m.kind === "message").at(-1).value;
+    assert.equal(quoted.sessionId, session.id);
+    assert.equal(quoted.route.cwd, session.cwd);
+    // Saved bindings survive bridge restart without changing the owner allowlist.
+    const stored = messages.filter((m) => m.kind === "secrets").at(-1).value;
+    await request({ action: "bootstrap", secrets: stored, directory });
+    const restored = messages
+      .filter((m) => m.kind === "message" && m.value.channel === channel)
+      .at(-1).value;
+    assert.equal(restored.sessionId, second.id);
+    assert.equal(restored.route.cwd, second.cwd);
+    await request({
+      action: "notify",
+      channel,
+      session,
+      remoteContinue: false,
+      text: `TEST:/continue ${session.id} revoke`,
+    });
     // Notification sent while enabled is accepted; revocation takes effect after the send completes.
-    const afterRevoke=messages.filter(m=>m.kind==='message').length;
-    await request({action:'notify',channel,session,remoteContinue:false,text:`TEST:/continue ${session.id} denied`});
-    assert.equal(messages.filter(m=>m.kind==='message').length,afterRevoke);
-    await request({action:'notify',channel,session,remoteContinue:true,text:'TEST:/continue foreign-session denied'});
-    assert.equal(messages.filter(m=>m.kind==='message').length,afterRevoke);
+    const afterRevoke = messages.filter((m) => m.kind === "message").length;
+    await request({
+      action: "notify",
+      channel,
+      session,
+      remoteContinue: false,
+      text: `TEST:/continue ${session.id} denied`,
+    });
+    assert.equal(
+      messages.filter((m) => m.kind === "message").length,
+      afterRevoke,
+    );
+    await request({
+      action: "notify",
+      channel,
+      session,
+      remoteContinue: true,
+      text: "TEST:/continue foreign-session denied",
+    });
+    assert.equal(
+      messages.filter((m) => m.kind === "message").length,
+      afterRevoke,
+    );
     const stopped = await request({ action: "stop", channel });
-    assert((await request({action:'notify',channel,session,text:'no'})).error);
+    assert(
+      (await request({ action: "notify", channel, session, text: "no" })).error,
+    );
     assert.equal(
       stopped.value.find((b) => b.channel === channel).running,
       false,

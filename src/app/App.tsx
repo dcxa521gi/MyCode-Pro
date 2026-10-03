@@ -1,3 +1,4 @@
+import { useTaskPower } from "../features/settings/ui/TaskPowerSettings";
 import {
   getLocale as uiLocale,
   translate as uiTranslate,
@@ -30,7 +31,7 @@ import {
 } from "../features/groups/model/groups";
 import { GroupChats } from "../features/groups/ui/GroupChats";
 import { CLIUpdateNotice } from "../features/providers/ui/CLIUpdateNotice";
-import { findModel } from "../features/sessions/model/models";
+import { allModels, findModel } from "../features/sessions/model/models";
 import { CliReadyDialog } from "../features/providers/ui/CliReadyDialog";
 import { newSessionLike } from "../features/sessions/model/session";
 import { NewTaskDialog } from "../features/sessions/ui/NewTaskDialog";
@@ -1116,6 +1117,8 @@ function Workspace({
     () => new Map(),
   );
   const [history, setHistory] = useState<SessionSummary[]>(() => bootHistory);
+  const mobileHistoryRef = useRef(history);
+  mobileHistoryRef.current = history;
   const [storedLinkedSessions, setStoredLinkedSessions] = useState<
     SessionSummary[]
   >(() => bootHistory.filter((session) => session.linkedWorkItem));
@@ -1293,6 +1296,7 @@ function Workspace({
     () =>
       preloadNavigationWhenIdle([
         InboxView.preload,
+        LinkedWorkItemPanel.preload,
         AutomationsView.preload,
         listAutomations,
         ...(notesEnabled ? [NotesView.preload, loadNotes] : []),
@@ -6036,6 +6040,8 @@ function Workspace({
     [invalidateLoadedSession],
   );
 
+  useTaskPower(sessions);
+
   const submitSession = useCallback(
     (
       sessionId: string,
@@ -6043,6 +6049,7 @@ function Workspace({
       attachments: Attachment[] = [],
       options?: SubmitOptions,
     ): SubmissionAcceptance => {
+      flushHarnessEvents();
       if (editedResends.isActive(sessionId) || recalling.current.has(sessionId))
         return false;
       const controlError = orchestrator.submissionError(
@@ -9026,6 +9033,174 @@ function Workspace({
     },
     [],
   );
+
+  useEffect(() => {
+    let disposed = false;
+    let unlisten: (() => void) | undefined;
+    void listen<{
+      requestId: string;
+      input: {
+        action: string;
+        sessionId?: string;
+        projectId?: string;
+        model?: string;
+        text?: string;
+        requestId?: number;
+        answers?: Record<string, string[]>;
+        decision?: "allow" | "deny";
+      };
+    }>("mycode-mobile-request", ({ payload }) => {
+      const run = async () => {
+        const input = payload.input;
+        if (input.action === "snapshot") {
+          const entries = new Map(
+            mobileHistoryRef.current
+              .filter((s) => !s.orchestrationLeadId && !s.archived)
+              .map((s) => [
+                s.id,
+                {
+                  id: s.id,
+                  title: s.title,
+                  cwd: s.cwd,
+                  harness: s.harness,
+                  model: s.model,
+                  busy: false,
+                },
+              ]),
+          );
+          for (const s of sessionsRef.current)
+            if (!s.orchestrationLeadId && !s.modelSettings?.mycodeGroup)
+              entries.set(s.id, {
+                id: s.id,
+                title: s.title,
+                cwd: s.cwd,
+                harness: s.harness,
+                model: s.model,
+                busy: !!s.busy,
+              });
+          return {
+            sessions: [...entries.values()].slice(0, 500),
+            models: allModels().map((m) => ({
+              id: m.id,
+              name: m.name,
+              harness: m.harness,
+            })),
+          };
+        }
+        const session = await ensureOpenSession(input.sessionId ?? "");
+        if (
+          !session ||
+          session.orchestrationLeadId ||
+          session.modelSettings?.mycodeGroup
+        )
+          throw Error("This session is unavailable on mobile.");
+        const current =
+          sessionsRef.current.find((s) => s.id === session.id) ?? session;
+        if (input.action === "session")
+          return {
+            id: current.id,
+            title: current.title,
+            cwd: current.cwd,
+            busy: !!current.busy,
+            model: current.model,
+            harness: current.harness,
+            messages: current.blocks
+              .filter(
+                (b) =>
+                  !b.internal &&
+                  (b.role === "user" || b.role === "assistant") &&
+                  !b.tool,
+              )
+              .slice(-100)
+              .map((b) => ({ role: b.role, text: b.text.slice(-12000) })),
+            tasks:
+              [...current.blocks].reverse().find((b) => b.role === "tasks")
+                ?.taskList?.items ?? [],
+            activity: current.blocks
+              .filter((b) => b.tool)
+              .slice(-8)
+              .map((b) => ({
+                text: b.tool?.title ?? b.text,
+                status: b.tool?.status,
+              })),
+            approvals: current.blocks
+              .filter((b) => b.approval && !b.approval?.decided)
+              .map((b) => ({
+                requestId: b.approval!.requestId,
+                title: b.text.slice(0, 4000),
+                preview: b.tool?.preview,
+              })),
+            question: current.pendingQuestion,
+          };
+        if (input.action === "send") {
+          if (current.busy)
+            throw Error(
+              "This task is still running. Pause it before sending another message.",
+            );
+          const accepted = await Promise.resolve(
+            submitSession(current.id, input.text ?? "", [], {}),
+          );
+          if (!accepted) throw Error("Message was not accepted.");
+          return { accepted: true };
+        }
+        if (input.action === "stop") {
+          onStop(current.id, true);
+          return { stopped: true };
+        }
+        if (input.action === "approve") {
+          const pending = current.blocks.find(
+            (b) =>
+              b.approval?.requestId === input.requestId && !b.approval?.decided,
+          );
+          if (!pending || !input.decision)
+            throw Error("This approval is no longer pending.");
+          onApproval(current.id, input.requestId!, input.decision);
+          return { accepted: true };
+        }
+        if (input.action === "question") {
+          const prompt = current.pendingQuestion;
+          if (!prompt || prompt.requestId !== input.requestId || !input.answers)
+            throw Error("This question is no longer pending.");
+          for (const question of prompt.questions) {
+            const answers = input.answers[question.id];
+            if (
+              !Array.isArray(answers) ||
+              (!question.multiSelect && answers.length !== 1) ||
+              answers.some(
+                (value) =>
+                  !question.options.some((option) => option.id === value),
+              )
+            )
+              throw Error("Invalid question answer");
+          }
+          onQuestionReply(current.id, prompt.requestId, {
+            kind: "answered",
+            answers: input.answers,
+          });
+          return { accepted: true };
+        }
+        throw Error("Unsupported mobile action");
+      };
+      void run()
+        .then((result) =>
+          invoke("mobile_reply", { requestId: payload.requestId, result }),
+        )
+        .catch((error) =>
+          invoke("mobile_reply", {
+            requestId: payload.requestId,
+            result: { error: String(error) },
+          }),
+        )
+        .catch(() => {});
+    }).then((stop) => {
+      if (disposed) stop();
+      else unlisten = stop;
+    });
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, [ensureOpenSession, submitSession, onStop, onApproval, onQuestionReply]);
 
   const onOpenApprovalSession = useCallback(
     (sessionId: string) => {

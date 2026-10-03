@@ -56,3 +56,8 @@ Desktop.ini
 
 # Generated app-owned Node/npm/IM runtime
 src-tauri/runtime/
+
+# Android generated build state
+android/.gradle/
+android/**/build/
+android/local.properties

@@ -26,6 +26,11 @@ export type ModelConnection = {
 export type LocalAIConfig = {
   connections: ModelConnection[];
   memory: string;
+  customInstructions?: string;
+  aboutYou?: string;
+  memoryEnabled?: boolean;
+  activeMemory?: boolean;
+  collectedMemories?: Record<string,string[]>;
   projectMemories: Record<string, string>;
   mcpServers: Record<string, unknown> | null;
 };

@@ -37,8 +37,32 @@ type ContinuedSession = {
   harness: string;
   model: string;
   expires: number;
+  ownerId: string;
+  enabled: boolean;
+  messages: string[];
+  updated: number;
 };
 const continuations = new Map<string, ContinuedSession>();
+let lastContinuationUpdate = 0;
+function continuationTime() {
+  lastContinuationUpdate = Math.max(Date.now(), lastContinuationUpdate + 1);
+  return lastContinuationUpdate;
+}
+function persistContinuations() {
+  secrets.mycode_continuations = JSON.stringify([...continuations]);
+  save();
+}
+function quotedMessageId(event: IMMessageEvent): string | undefined {
+  const raw = event.raw as Record<string, any> | undefined;
+  const value =
+    raw?.reply_to_message?.message_id ??
+    raw?.reference?.messageId ??
+    raw?.message?.parent_id ??
+    event.replyThread?.rootMessageId;
+  return typeof value === "string" || typeof value === "number"
+    ? String(value)
+    : undefined;
+}
 const running = new Set<string>();
 const pending = new Map<
   string,
@@ -70,6 +94,36 @@ function init(data: { secrets: Record<string, string>; directory: string }) {
     routes = JSON.parse(secrets.mycode_routes ?? "{}");
   } catch {
     routes = {};
+  }
+  continuations.clear();
+  try {
+    const stored = JSON.parse(secrets.mycode_continuations ?? "[]");
+    if (Array.isArray(stored))
+      for (const entry of stored.slice(-500)) {
+        if (!Array.isArray(entry) || entry.length !== 2) continue;
+        const [key, value] = entry;
+        const channel = typeof key === "string" ? key.split(":")[0] : "";
+        if (
+          !value ||
+          !routes[channel] ||
+          value.ownerId !== routes[channel].ownerId ||
+          value.expires < Date.now() ||
+          typeof value.sessionId !== "string" ||
+          !value.cwd ||
+          !value.harness ||
+          !value.model ||
+          typeof value.updated !== "number" ||
+          !Array.isArray(value.messages)
+        )
+          continue;
+        continuations.set(key, value);
+        lastContinuationUpdate = Math.max(
+          lastContinuationUpdate,
+          value.updated,
+        );
+      }
+  } catch {
+    /* Ignore malformed or obsolete bindings, preserving other secrets. */
   }
   const media = path.join(data.directory, "im-media");
   fs.mkdirSync(media, { recursive: true });
@@ -172,17 +226,40 @@ function init(data: { secrets: Record<string, string>; directory: string }) {
       const command = event.text
         .trim()
         .match(/^\/continue\s+(\S+)\s+([\s\S]+)$/);
+      const quoted = quotedMessageId(event);
+      const quotedSession =
+        event.replyContext?.text.match(/\/continue\s+(\S+)/)?.[1];
+      const hasQuote = !!quoted || !!event.replyContext;
+      const available = [...continuations.entries()].filter(
+        ([key, item]) =>
+          key.startsWith(`${channel}:`) && item.ownerId === route.ownerId,
+      );
       const continuation = command
         ? continuations.get(`${channel}:${command[1]}`)
-        : undefined;
-      if (command && (!continuation || continuation.expires < Date.now())) {
+        : quotedSession
+          ? continuations.get(`${channel}:${quotedSession}`)
+          : quoted
+            ? available.find(([, item]) => item.messages.includes(quoted))?.[1]
+            : available.sort((a, b) => b[1].updated - a[1].updated)[0]?.[1];
+      // A notification reply must never fall back into the bot's default project.
+      if (
+        (command || hasQuote || continuation) &&
+        (!continuation ||
+          continuation.ownerId !== route.ownerId ||
+          continuation.expires < Date.now() ||
+          !continuation.enabled)
+      ) {
         void transport
           .sendText(
             event.senderId,
-            "MyCode: continuation unavailable / 此会话未授权远程继续或已过期。",
+            "MyCode: continuation unavailable / 此会话未授权远程继续或已过期，请在会话设置中启用远程继续，或用 /continue 指定已授权的会话。",
           )
           .catch(() => {});
         return;
+      }
+      if (continuation) {
+        continuation.updated = continuationTime();
+        persistContinuations();
       }
       pending.set(receipt, { channel, event, expires: Date.now() + 3600000 });
       emit({
@@ -193,7 +270,14 @@ function init(data: { secrets: Record<string, string>; directory: string }) {
           senderId: event.senderId,
           text: (command ? command[2] : event.text).slice(0, 64000),
           ...(continuation ? { sessionId: continuation.sessionId } : {}),
-          route,
+          route: continuation
+            ? {
+                ...route,
+                cwd: continuation.cwd,
+                harness: continuation.harness,
+                model: continuation.model,
+              }
+            : route,
         },
       });
     });
@@ -236,6 +320,7 @@ async function dispatch(input: any) {
     running.delete(channel);
     for (const key of continuations.keys())
       if (key.startsWith(`${channel}:`)) continuations.delete(key);
+    persistContinuations();
     await transport.dispose();
     secrets.mycode_running = JSON.stringify([...running]);
     save();
@@ -257,6 +342,7 @@ async function dispatch(input: any) {
   if (input.action === "configure") {
     for (const key of continuations.keys())
       if (key.startsWith(`${channel}:`)) continuations.delete(key);
+    persistContinuations();
     const route = { ...input.route } as Route;
     if (channel === "wechat")
       route.ownerId = (
@@ -335,23 +421,31 @@ async function dispatch(input: any) {
       throw Error("Invalid notified session");
     for (const [key, item] of continuations)
       if (item.expires < Date.now()) continuations.delete(key);
-    await transport.sendText(
+    const sent = await transport.sendText(
       route.ownerId,
       String(input.text ?? "").slice(0, 30000),
     );
     if (
-      input.remoteContinue === true &&
-      (continuations.has(`${channel}:${session.id}`) ||
-        continuations.size < 500)
-    )
+      continuations.has(`${channel}:${session.id}`) ||
+      continuations.size < 500
+    ) {
+      const previous = continuations.get(`${channel}:${session.id}`);
       continuations.set(`${channel}:${session.id}`, {
         sessionId: session.id,
         cwd: session.cwd,
         harness: session.harness,
         model: session.model,
+        ownerId: route.ownerId,
+        enabled: input.remoteContinue === true,
+        messages: [
+          ...(previous?.messages ?? []),
+          ...(sent?.messageId ? [String(sent.messageId)] : []),
+        ].slice(-32),
+        updated: continuationTime(),
         expires: Date.now() + 7 * 24 * 3600000,
       });
-    else continuations.delete(`${channel}:${session.id}`);
+      persistContinuations();
+    }
     return true;
   }
   throw Error("Unsupported IM action");

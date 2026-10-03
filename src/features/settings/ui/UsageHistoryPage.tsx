@@ -163,7 +163,9 @@ export function UsageHistoryPage() {
         >
           <option value="">{t("All agents")}</option>
           {[...new Set(rows.map((r) => r.harness))].map((h) => (
-            <option key={h}>{h}</option>
+            <option key={h} value={h}>
+              {h}
+            </option>
           ))}
         </SettingsOptions>
         <SettingsOptions

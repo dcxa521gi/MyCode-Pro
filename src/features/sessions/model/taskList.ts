@@ -1,7 +1,10 @@
 import type { TaskListItem, TaskListItemStatus } from "./session";
 
 export function isTaskListToolName(value: string): boolean {
-  const name = value.trim().toLowerCase().replace(/[\s_-]+/g, "");
+  const name = value
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "");
   return ["todowrite", "writetodos", "updatetodos"].some(
     (candidate) => name === candidate || name.endsWith(candidate),
   );
@@ -20,8 +23,7 @@ export function taskListFromToolInput(
     const row = asRecord(todo);
     const text = [row?.content, row?.activeForm, row?.text]
       .find(
-        (value): value is string =>
-          typeof value === "string" && !!value.trim(),
+        (value): value is string => typeof value === "string" && !!value.trim(),
       )
       ?.trim();
     if (!text) return [];
@@ -111,4 +113,48 @@ function taskListItemId(value: unknown): string | undefined {
   if (typeof value === "string") return value.trim() || undefined;
   if (typeof value === "number" && Number.isFinite(value)) return String(value);
   return undefined;
+}
+
+/** Only explicit agent-owned plan sections become task tables. Code and quotes are excluded. */
+export function taskListFromPlanText(text: string): TaskListItem[] | null {
+  if (text.length > 128_000) return null;
+  let fenced = false;
+  let active = false;
+  let items: TaskListItem[] = [];
+  let latest: TaskListItem[] | null = null;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (/^(```|~~~)/.test(line)) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced || /^>/.test(line)) continue;
+    if (
+      /^(?:#{1,6}\s*)?(?:\*\*)?(?:任务计划(?:表)?|执行计划|工作计划|计划(?:进度|更新)?|待办(?:事项)?|task plan|implementation plan|execution plan|plan(?: update)?|tasks|todo list)(?:\*\*)?\s*[:：]?$/i.test(
+        line,
+      )
+    ) {
+      if (items.length) latest = items;
+      items = [];
+      active = true;
+      continue;
+    }
+    if (!active) continue;
+    const row = line.match(
+      /^(?:[-*+]\s+|\d+[.、)]\s*)(?:\[([xX ~…-])\]\s*)?(.+)$/,
+    );
+    if (row && items.length < 100) {
+      const content = row[2].trim();
+      if (content.length > 2000) continue;
+      items.push({
+        text: content,
+        status: row[1] ? statusFromLegacyMark(row[1]) : "pending",
+      });
+    } else if (line && !/^\s+/.test(raw)) {
+      if (items.length) latest = items;
+      items = [];
+      active = false;
+    }
+  }
+  return items.length ? items : latest;
 }

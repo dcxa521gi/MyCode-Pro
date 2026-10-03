@@ -17,7 +17,10 @@ import {
   stubFilePreview,
 } from "./preview";
 import { joinStreamText } from "./streamText";
-import { taskListText } from "../../../features/sessions/model/taskList";
+import {
+  taskListText,
+  taskListFromPlanText,
+} from "../../../features/sessions/model/taskList";
 import { isReviewablePlan } from "../../../features/sessions/model/plan";
 import { resolveModel } from "../../../features/sessions/model/models";
 import type { HarnessEvent } from "./types";
@@ -59,13 +62,13 @@ export function applyHarnessEvent(
     case "message.delta":
       return patchStreaming(session, "assistant", event.text, true);
     case "message.completed":
-      return finishRole(session, "assistant");
+      return syncTextPlan(finishRole(session, "assistant"));
     case "reasoning.delta":
       return patchStreaming(session, "reasoning", event.text, true);
     case "reasoning.completed":
       return finishRole(session, "reasoning");
     case "tool.started":
-      return upsertTool(session, {
+      return upsertTool(syncTextPlan(session), {
         callId: event.callId,
         title: event.title,
         kind: event.kind,
@@ -138,7 +141,7 @@ export function applyHarnessEvent(
     case "turn.metrics":
       return mergeTurnMetrics(session, event);
     case "tasks.updated":
-      return upsertTaskList(session, event);
+      return upsertTaskList(removeTextPlan(session), event);
     case "background.updated":
       if (event.tasks.length === 0) {
         if (!session.backgroundTasks) return session;
@@ -147,7 +150,7 @@ export function applyHarnessEvent(
       }
       return { ...session, backgroundTasks: event.tasks };
     case "plan":
-      return upsertPlan(session, event);
+      return syncTextPlan(upsertPlan(session, event));
     case "session.error":
       return appendBlock(failStreaming(session), {
         id: crypto.randomUUID(),
@@ -235,7 +238,11 @@ function mergeTurnMetrics(
       : {}),
   };
   const blocks = session.blocks.slice();
-  blocks[userIndex] = { ...current, turnMetrics: metrics, turnMetricsAt: Date.now() };
+  blocks[userIndex] = {
+    ...current,
+    turnMetrics: metrics,
+    turnMetricsAt: Date.now(),
+  };
   return { ...session, blocks };
 }
 
@@ -291,6 +298,45 @@ function upsertPlan(
   });
 }
 
+/** Provider task events take precedence over the conservative text fallback. */
+function removeTextPlan(session: Session): Session {
+  const user = lastMatchingBlock(session.blocks, (b) => b.role === "user");
+  return {
+    ...session,
+    blocks: session.blocks.filter(
+      (b, i) => i <= user || !b.taskList?.key?.startsWith("mycode:text-plan:"),
+    ),
+  };
+}
+function syncTextPlan(session: Session): Session {
+  const user = lastMatchingBlock(session.blocks, (b) => b.role === "user");
+  if (user < 0) return session;
+  const blocks = session.blocks.slice(user + 1);
+  if (
+    blocks.some(
+      (b) =>
+        b.role === "tasks" && !b.taskList?.key?.startsWith("mycode:text-plan:"),
+    )
+  )
+    return session;
+  const block = [...blocks]
+    .reverse()
+    .find((b) => b.role === "assistant" || b.role === "plan");
+  if (!block || block.internal) return session;
+  const items = taskListFromPlanText(block.text);
+  if (!items) return session;
+  const key = `mycode:text-plan:${session.blocks[user].id}`;
+  const previous = blocks.find((b) => b.taskList?.key === key)?.taskList?.items;
+  if (previous && taskListText(previous) === taskListText(items))
+    return session;
+  return upsertTaskList(session, {
+    type: "tasks.updated",
+    key,
+    authoritative: true,
+    items,
+  });
+}
+
 function upsertTaskList(
   session: Session,
   event: Extract<HarnessEvent, { type: "tasks.updated" }>,
@@ -332,7 +378,9 @@ function upsertTaskList(
 
   const taskList = {
     ...(key ? { key } : {}),
-    ...(event.providerSessionId ? { providerSessionId: event.providerSessionId } : {}),
+    ...(event.providerSessionId
+      ? { providerSessionId: event.providerSessionId }
+      : {}),
     ...(event.explanation?.trim()
       ? { explanation: event.explanation.trim() }
       : {}),
@@ -497,12 +545,12 @@ export function appendSteerUser(
 export function stopStreaming(session: Session): Session {
   const { backgroundTasks: _cleared, ...settled } =
     settlePendingApprovals(session);
-  return {
+  return syncTextPlan({
     ...settled,
     busy: false,
     pendingQuestion: undefined,
     blocks: stampTurnDuration(settled.blocks.map(stopBlockProgress)),
-  };
+  });
 }
 
 /**

@@ -1,3 +1,7 @@
+import { DevelopmentToolsPage } from "./DevelopmentToolsPage";
+import { MobileSettings } from "./MobileSettings";
+import { TaskPowerSettings } from "./TaskPowerSettings";
+import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
 import { IMCompletionSettings } from "./IMCompletionSettings";
 import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
 import {
@@ -558,12 +562,17 @@ export function SettingsView({
               {section === "general" ? (
                 <>
                   <GeneralPage onOpenWhatsNew={onOpenWhatsNew} />
+                  <TaskPowerSettings />
                 </>
               ) : null}
               {section === "appearance" ? (
                 <AppearancePage appearance={appearance} />
               ) : null}
               {section === "chat" ? <ChatPage /> : null}
+              {section === "development" ? (
+                <DevelopmentToolsPage cwd={cwd} />
+              ) : null}
+              {section === "mobile" ? <MobileSettings /> : null}
               {section === "local-ai" ? (
                 <LocalCapabilitiesPage key={cwd} cwd={cwd} />
               ) : null}
@@ -2438,15 +2447,21 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
             "Zoom the whole interface. You can also use Ctrl+=, Ctrl+-, and Ctrl+0 (Cmd on macOS).",
           )}
         >
-          <Select
-            label={t("Interface scale")}
-            value={String(Math.round(appearance.uiScale * 100))}
-            options={UI_SCALE_PERCENTS.map((percent) => ({
-              value: String(percent),
-              label: `${percent}%`,
-            }))}
-            onChange={(value) => appearance.onUiScale(Number(value))}
-          />
+          <label className="flex w-60 max-w-full items-center gap-3">
+            <input
+              type="range"
+              aria-label={t("Interface scale")}
+              min={UI_SCALE_PERCENTS[0]}
+              max={UI_SCALE_PERCENTS[UI_SCALE_PERCENTS.length - 1]}
+              step={10}
+              value={Math.round(appearance.uiScale * 100)}
+              onChange={(e) => appearance.onUiScale(Number(e.target.value))}
+              className="min-w-0 flex-1 accent-accent"
+            />
+            <output className="w-12 shrink-0 text-right text-xs tabular-nums">
+              {Math.round(appearance.uiScale * 100)}%
+            </output>
+          </label>
         </Row>
         <Row
           id="show-excluded-files"
@@ -3480,7 +3495,7 @@ function ProvidersPage({
         id="agent-clis"
         title={t("Agent CLIs")}
         action={
-          <Select
+          <Dropdown
             label={t("Provider defaults scope")}
             value={scope}
             options={scopeOptions}
@@ -3994,7 +4009,7 @@ function ProviderRow({
       }
     >
       {current ? (
-        <Select
+        <Dropdown
           label={formatMessage("{provider} model", {
             provider: HARNESS_TITLE[harness],
           })}
@@ -4558,5 +4573,31 @@ function Select({
         </option>
       ))}
     </SettingsOptions>
+  );
+}
+
+function Dropdown({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <SettingsDropdown
+      aria-label={label}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </SettingsDropdown>
   );
 }

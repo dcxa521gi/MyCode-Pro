@@ -1,3 +1,4 @@
+import { PersonalizationSettings } from "./PersonalizationSettings";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "../../../shared/i18n";
@@ -6,7 +7,7 @@ import { SecondaryButton } from "../../../shared/ui/SecondaryButton";
 import { IS_WIN } from "../../../platform/tauri/platform";
 
 const field =
-  "w-full rounded-lg border border-content/15 bg-content/5 p-3 text-sm outline-none focus:border-accent";
+  "w-full rounded-lg border border-content/15 bg-content/5 p-3 text-sm outline-none focus:border-content/30";
 
 export function LocalCapabilitiesPage({ cwd }: { cwd: string }) {
   const { t } = useTranslation();
@@ -60,6 +61,7 @@ export function LocalCapabilitiesPage({ cwd }: { cwd: string }) {
   };
   return (
     <div className="grid gap-6">
+      <PersonalizationSettings cwd={cwd} />
       <section className="rounded-xl border border-content/10 p-5">
         <h2 className="mb-2 font-medium">{t("Personal memory")}</h2>
         <p className="mb-3 text-xs leading-relaxed text-content/55">
@@ -92,8 +94,10 @@ export function LocalCapabilitiesPage({ cwd }: { cwd: string }) {
           </>
         )}
       </section>
-      <section className="rounded-xl border border-content/10 p-5">
-        <h2 className="mb-2 font-medium">{t("Local MCP servers")}</h2>
+      <details className="rounded-xl border border-content/10 p-5">
+        <summary className="cursor-pointer font-medium">
+          {t("Local MCP servers")}
+        </summary>
         <p className="mb-3 text-xs leading-relaxed text-content/55">
           {t(
             "Configure local stdio servers for Claude Code. These commands run on your computer when a new session starts. Existing CLI configuration is preserved.",
@@ -113,7 +117,7 @@ export function LocalCapabilitiesPage({ cwd }: { cwd: string }) {
             "Format: a JSON object keyed by server name, with command and args fields.",
           )}
         </p>
-      </section>
+      </details>
       <div>
         <SecondaryButton disabled={busy || !loaded} onClick={() => void save()}>
           {t(busy ? "Saving…" : "Save")}

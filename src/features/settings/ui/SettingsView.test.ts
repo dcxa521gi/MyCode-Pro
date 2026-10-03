@@ -597,18 +597,21 @@ describe("settings pages", () => {
     expect(hidden?.getAttribute("aria-checked")).toBe("true");
   });
 
-  it("sets interface scale from a menu instead of a live slider", async () => {
+  it("sets interface scale with a live percentage slider", async () => {
     await render("appearance");
     const row = container.querySelector('[data-setting-id="interface-scale"]')!;
-    expect(row.querySelector('input[type="range"]')).toBeNull();
-    const control = row.querySelector<HTMLElement>('[role="radiogroup"]')!;
-    const option = Array.from(
-      control.querySelectorAll<HTMLButtonElement>("button"),
-    ).find((node) => node.textContent === "150%");
-    expect(option).toBeTruthy();
-    await act(async () => option!.click());
+    const slider = row.querySelector<HTMLInputElement>('input[type="range"]')!;
+    expect(slider).toBeTruthy();
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value",
+      )!.set!.call(slider, "150");
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+      slider.dispatchEvent(new Event("change", { bubbles: true }));
+    });
     expect(localStorage.getItem("monocode.uiScale")).toBe("1.5");
-    expect(option!.getAttribute("aria-checked")).toBe("true");
+    expect(row.querySelector("output")?.textContent).toBe("150%");
     document.documentElement.style.removeProperty("zoom");
   });
 
@@ -959,11 +962,12 @@ describe("settings search", () => {
 
 describe("providers scope inheritance", () => {
   async function selectScope(label: string) {
-    const control = container.querySelector<HTMLElement>(
-      '[role="radiogroup"][aria-label="Provider defaults scope"]',
+    const control = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="Provider defaults scope"]',
     )!;
+    await act(async () => control.click());
     const option = Array.from(
-      control.querySelectorAll<HTMLButtonElement>("button"),
+      document.querySelectorAll<HTMLButtonElement>('[role="option"]'),
     ).find((node) => node.textContent?.trim() === label);
     expect(option).toBeTruthy();
     await act(async () => option!.click());

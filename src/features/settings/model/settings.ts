@@ -26,6 +26,8 @@ export type SettingsSectionId =
   | "chat"
   | "providers"
   | "providers-cli"
+  | "mobile"
+  | "development"
   | "storage"
   | "usage"
   | "task-import"
@@ -58,7 +60,6 @@ export type SettingsSection = {
 };
 
 export const SETTINGS_SECTIONS: SettingsSection[] = [
-
   {
     id: "general",
     group: "app",
@@ -149,7 +150,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   {
     id: "local-ai",
     group: "agents",
-    label: "Memory & MCP",
+    label: "Personalization",
     description:
       "Personal memory, project knowledge and local tools. Everything is stored on this computer.",
     keywords: "memory knowledge local mcp tools 记忆 知识 本地 工具",
@@ -158,8 +159,10 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     id: "mcp",
     group: "agents",
     label: "MCP",
-    description: "Find MCP servers across providers and manage their connections.",
-    keywords: "tools servers connections oauth authenticate login claude codex cursor opencode",
+    description:
+      "Find MCP servers across providers and manage their connections.",
+    keywords:
+      "tools servers connections oauth authenticate login claude codex cursor opencode",
   },
   {
     id: "skills",
@@ -191,6 +194,22 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     label: "Worktrees",
     description: "Manage additional worktrees for each project.",
     keywords: "git branch worktree working copy project create delete",
+  },
+  {
+    id: "mobile",
+    group: "workspace",
+    label: "Mobile connection",
+    description:
+      "Pair an Android controller with this computer over a trusted local network.",
+    keywords: "android phone pairing mobile 手机 安卓 配对",
+  },
+  {
+    id: "development",
+    group: "workspace",
+    label: "Developer tools",
+    description:
+      "Detect and run local WeChat, HarmonyOS, Android and Xcode project tools.",
+    keywords: "wechat harmony deveco android ios mac test build 开发 测试 打包",
   },
   {
     id: "storage",
