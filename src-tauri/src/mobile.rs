@@ -1,4 +1,6 @@
-//! Opt-in, certificate-pinned LAN bridge. No arbitrary Tauri or filesystem access.
+//! Opt-in direct and encrypted remote bridge. No arbitrary Tauri or filesystem access.
+#[path = "mobile_relay.rs"]
+mod relay;
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::{
@@ -8,11 +10,13 @@ use std::{
     sync::{mpsc, Arc, Mutex},
     time::{Duration, Instant},
 };
-use tauri::{AppHandle, Emitter, State, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 
 #[derive(Default)]
 struct Inner {
     enabled: bool,
+    pairing_info: Option<Value>,
+    relay_status: String,
     generation: u64,
     pairing: String,
     expires: Option<Instant>,
@@ -35,7 +39,11 @@ fn digest(text: &str) -> String {
 }
 fn validate_action(v: &Value) -> Result<&str, String> {
     let action = v["action"].as_str().ok_or("Missing action")?;
-    if !["snapshot", "session", "send", "stop", "approve", "question"].contains(&action) {
+    if ![
+        "snapshot", "session", "send", "stop", "approve", "question", "model", "message",
+    ]
+    .contains(&action)
+    {
         return Err("Unsupported mobile action".into());
     }
     if action != "snapshot"
@@ -52,6 +60,22 @@ fn validate_action(v: &Value) -> Result<&str, String> {
     }
     if action == "approve" && !["allow", "deny"].contains(&v["decision"].as_str().unwrap_or("")) {
         return Err("Invalid approval".into());
+    }
+    if action == "model"
+        && (v["model"].as_str().unwrap_or("").is_empty()
+            || v["model"].as_str().unwrap_or("").len() > 512
+            || v["harness"].as_str().unwrap_or("").is_empty())
+    {
+        return Err("Invalid model choice".into());
+    }
+    if action == "message"
+        && (v["blockId"].as_str().unwrap_or("").is_empty()
+            || v["blockId"].as_str().unwrap_or("").len() > 128)
+    {
+        return Err("Invalid message identifier".into());
+    }
+    if action == "session" && v.get("before").is_some_and(|b| !b.is_u64()) {
+        return Err("Invalid history offset".into());
     }
     Ok(action)
 }
@@ -94,23 +118,49 @@ fn authorize(inner: &mut Inner, generation: u64, value: &Value) -> Result<Option
         return Err("Request already received".into());
     }
     if inner.receipts.len() >= 10000
-        && !["snapshot", "session"].contains(&value["action"].as_str().unwrap_or(""))
+        && !["snapshot", "session", "message"].contains(&value["action"].as_str().unwrap_or(""))
     {
         return Err("Reconnect from desktop to renew the bridge".into());
     }
     // Read-only polls do not exhaust the replay budget of mutating operations.
-    if !["snapshot", "session"].contains(&value["action"].as_str().unwrap_or("")) {
+    if !["snapshot", "session", "message"].contains(&value["action"].as_str().unwrap_or("")) {
         inner.receipts.insert(receipt);
     }
     Ok(None)
 }
 
 #[tauri::command]
-pub fn mobile_start(
+pub async fn mobile_start(
     app: AppHandle,
     window: WebviewWindow,
     host: State<'_, MobileHost>,
+    relay_url: Option<String>,
+    registration_key: Option<String>,
 ) -> Result<Value, String> {
+    let state = host.0.clone();
+    let label = window.label().to_string();
+    tauri::async_runtime::spawn_blocking(move || {
+        start_bridge(app, label, state, relay_url, registration_key)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+fn start_bridge(
+    app: AppHandle,
+    label: String,
+    state: Arc<Mutex<Inner>>,
+    relay_url: Option<String>,
+    registration_key: Option<String>,
+) -> Result<Value, String> {
+    if let Some(url) = relay_url.filter(|v| !v.trim().is_empty()) {
+        return relay::start(
+            app,
+            label,
+            state,
+            &url,
+            registration_key.as_deref().unwrap_or(""),
+        );
+    }
     let issued =
         rcgen::generate_simple_self_signed(vec!["localhost".into()]).map_err(|e| e.to_string())?;
     let fingerprint = format!("{:x}", Sha256::digest(issued.cert.der().as_ref()));
@@ -129,7 +179,7 @@ pub fn mobile_start(
     let port = listener.local_addr().map_err(|e| e.to_string())?.port();
     let pairing = secret();
     let generation = {
-        let mut inner = host.0.lock().map_err(|e| e.to_string())?;
+        let mut inner = state.lock().map_err(|e| e.to_string())?;
         inner.enabled = true;
         inner.generation += 1;
         inner.devices.clear();
@@ -137,12 +187,15 @@ pub fn mobile_start(
         inner.pending.clear();
         inner.pairing = pairing.clone();
         inner.expires = Some(Instant::now() + Duration::from_secs(600));
-        inner.window = window.label().into();
+        inner.window = label;
+        inner.relay_status.clear();
+        inner.pairing_info = None;
         inner.generation
     };
-    let state = host.0.clone();
+    let thread_state = state.clone();
     let tls = Arc::new(config);
     std::thread::spawn(move || {
+        let state = thread_state;
         let (tx, rx) = mpsc::sync_channel::<TcpStream>(16);
         let rx = Arc::new(Mutex::new(rx));
         for _ in 0..4 {
@@ -185,9 +238,19 @@ pub fn mobile_start(
         })
         .map(|a| a.ip().to_string())
         .unwrap_or_else(|| "127.0.0.1".into());
-    Ok(
-        json!({"url":format!("https://{address}:{port}/mycode/v1"),"fingerprint":fingerprint,"pairing":pairing,"expiresIn":600}),
-    )
+    let mut addresses = local_addresses();
+    if !addresses.iter().any(|a| a["address"] == address) {
+        addresses.push(json!({"address":address,"name":address}))
+    }
+    let info = json!({"mode":"direct","url":format!("https://{address}:{port}/mycode/v1"),"fingerprint":fingerprint,"pairing":pairing,"expiresIn":600,"addresses":addresses});
+    {
+        let mut s = state.lock().map_err(|e| e.to_string())?;
+        if s.generation != generation {
+            return Err("Connection replaced".into());
+        }
+        s.pairing_info = Some(info.clone());
+    }
+    Ok(info)
 }
 
 fn serve(
@@ -197,6 +260,13 @@ fn serve(
     generation: u64,
     tls: Arc<rustls::ServerConfig>,
 ) {
+    serve_transport(socket, tls, |value| dispatch(value, app, state, generation));
+}
+fn serve_transport(
+    socket: TcpStream,
+    tls: Arc<rustls::ServerConfig>,
+    handler: impl FnOnce(Value) -> Result<Value, String>,
+) {
     let _ = socket.set_read_timeout(Some(Duration::from_secs(4)));
     let _ = socket.set_write_timeout(Some(Duration::from_secs(4)));
     let Ok(connection) = rustls::ServerConnection::new(tls) else {
@@ -205,96 +275,193 @@ fn serve(
     let mut stream = rustls::StreamOwned::new(connection, socket);
     let result = (|| -> Result<Value, String> {
         let mut reader = BufReader::new(&mut stream);
-        let mut line = String::new();
+        let value = read_http(&mut reader)?;
+        handler(value)
+    })();
+    let body = wrap_response(result).to_string();
+    let _=write!(stream,"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nCache-Control: no-store\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{}",body.len(),body);
+    stream.conn.send_close_notify();
+    let _ = stream.flush();
+}
+fn wrap_response(result: Result<Value, String>) -> Value {
+    let body = match result {
+        Ok(value) => json!({"ok":true,"result":value}),
+        Err(error) => json!({"ok":false,"error":error}),
+    };
+    if serde_json::to_vec(&body).is_ok_and(|data| data.len() > 4_000_000) {
+        json!({"ok":false,"error":"Response too large. Load history in smaller pages."})
+    } else {
+        body
+    }
+}
+fn read_http(reader: &mut impl BufRead) -> Result<Value, String> {
+    let mut line = String::new();
+    reader
+        .by_ref()
+        .take(4097)
+        .read_line(&mut line)
+        .map_err(|_| "Read failed")?;
+    if line != "POST /mycode/v1 HTTP/1.1\r\n" {
+        return Err("Unsupported endpoint".into());
+    }
+    let mut length = None;
+    let mut headers = 0;
+    loop {
+        line.clear();
         reader
             .by_ref()
             .take(4097)
             .read_line(&mut line)
             .map_err(|_| "Read failed")?;
-        if line != "POST /mycode/v1 HTTP/1.1\r\n" {
-            return Err("Unsupported endpoint".into());
+        headers += line.len();
+        if headers > 8192 || line.is_empty() {
+            return Err("Invalid headers".into());
         }
-        let mut length = None;
-        let mut headers = 0;
-        loop {
-            line.clear();
-            reader
-                .by_ref()
-                .take(4097)
-                .read_line(&mut line)
-                .map_err(|_| "Read failed")?;
-            headers += line.len();
-            if headers > 8192 || line.is_empty() {
-                return Err("Invalid headers".into());
+        if line == "\r\n" {
+            break;
+        }
+        let lower = line.to_lowercase();
+        if lower.starts_with("origin:") || lower.starts_with("transfer-encoding:") {
+            return Err("Browser and chunked requests are not supported".into());
+        }
+        if let Some(v) = lower.strip_prefix("content-length:") {
+            if length.is_some() {
+                return Err("Duplicate length".into());
             }
-            if line == "\r\n" {
-                break;
-            }
-            let lower = line.to_lowercase();
-            if lower.starts_with("origin:") || lower.starts_with("transfer-encoding:") {
-                return Err("Browser and chunked requests are not supported".into());
-            }
-            if let Some(v) = lower.strip_prefix("content-length:") {
-                if length.is_some() {
-                    return Err("Duplicate length".into());
-                }
-                length = Some(v.trim().parse::<usize>().map_err(|_| "Invalid length")?);
-            }
+            length = Some(v.trim().parse::<usize>().map_err(|_| "Invalid length")?);
         }
-        let length = length.filter(|v| *v <= 65536).ok_or("Request too large")?;
-        let mut bytes = vec![0; length];
-        reader.read_exact(&mut bytes).map_err(|_| "Read failed")?;
-        let value: Value = serde_json::from_slice(&bytes).map_err(|_| "Invalid JSON")?;
-        let mut inner = state.lock().map_err(|_| "Bridge unavailable")?;
-        if let Some(response) = authorize(&mut inner, generation, &value)? {
-            return Ok(response);
-        }
-        let request_id = uuid::Uuid::new_v4().to_string();
-        let (tx, rx) = mpsc::channel();
-        inner.pending.insert(request_id.clone(), tx);
-        let window = inner.window.clone();
-        drop(inner);
-        let mut forwarded = value;
-        if let Some(map) = forwarded.as_object_mut() {
-            map.remove("deviceToken");
-            map.remove("pairing");
-        }
-        if app
-            .emit_to(
-                &window,
-                "mycode-mobile-request",
-                json!({"requestId":request_id,"input":forwarded}),
-            )
-            .is_err()
-        {
-            state.lock().ok().map(|mut s| s.pending.remove(&request_id));
-            return Err("Desktop unavailable".into());
-        }
-        let answer = rx
-            .recv_timeout(Duration::from_secs(20))
-            .map_err(|_| "Desktop request timed out");
-        if let Ok(mut s) = state.lock() {
-            s.pending.remove(&request_id);
-        }
-        answer.map_err(str::to_string)
-    })();
-    let body = match result {
-        Ok(v) => json!({"ok":true,"result":v}),
-        Err(e) => json!({"ok":false,"error":e}),
     }
-    .to_string();
-    let _=write!(stream,"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nCache-Control: no-store\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{}",body.len(),body);
-    let _ = stream.flush();
+    let length = length.filter(|v| *v <= 65536).ok_or("Request too large")?;
+    let mut bytes = vec![0; length];
+    reader.read_exact(&mut bytes).map_err(|_| "Read failed")?;
+    serde_json::from_slice(&bytes).map_err(|_| "Invalid JSON".into())
+}
+
+fn dispatch(
+    value: Value,
+    app: &AppHandle,
+    state: &Arc<Mutex<Inner>>,
+    generation: u64,
+) -> Result<Value, String> {
+    let mut inner = state.lock().map_err(|_| "Bridge unavailable")?;
+    if let Some(response) = authorize(&mut inner, generation, &value)? {
+        return Ok(response);
+    }
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let (tx, rx) = mpsc::channel();
+    inner.pending.insert(request_id.clone(), tx);
+    let window = inner.window.clone();
+    drop(inner);
+    let mut forwarded = value;
+    if let Some(map) = forwarded.as_object_mut() {
+        map.remove("deviceToken");
+        map.remove("pairing");
+    }
+    if app
+        .emit_to(
+            &window,
+            "mycode-mobile-request",
+            json!({"requestId":request_id,"input":forwarded}),
+        )
+        .is_err()
+    {
+        state.lock().ok().map(|mut s| s.pending.remove(&request_id));
+        return Err("Desktop unavailable".into());
+    }
+    let answer = rx
+        .recv_timeout(Duration::from_secs(20))
+        .map_err(|_| "Desktop request timed out");
+    if let Ok(mut s) = state.lock() {
+        s.pending.remove(&request_id);
+    }
+    answer.map_err(str::to_string)
+}
+fn local_addresses() -> Vec<Value> {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        let powershell = std::path::PathBuf::from(
+            std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into()),
+        )
+        .join("System32/WindowsPowerShell/v1.0/powershell.exe");
+        let result=std::process::Command::new(powershell).env_remove("PSModulePath").args(["-NoProfile","-NonInteractive","-Command","Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } | Select-Object @{n='address';e={$_.IPAddress}},@{n='name';e={$_.InterfaceAlias}} | ConvertTo-Json -Compress"]).creation_flags(0x08000000).output();
+        if let Ok(output) = result {
+            if let Ok(value) = serde_json::from_slice::<Value>(&output.stdout) {
+                return match value {
+                    Value::Array(v) => v,
+                    Value::Object(_) => vec![value],
+                    _ => vec![],
+                };
+            }
+        }
+    }
+    vec![]
+}
+pub fn window_closed(app: &AppHandle, label: &str) {
+    if let Ok(mut s) = app.state::<MobileHost>().0.lock() {
+        if s.window == label {
+            s.enabled = false;
+            s.generation += 1;
+            s.devices.clear();
+            s.pairing.clear();
+            s.pairing_info = None;
+            s.pending.clear();
+        }
+    }
 }
 #[tauri::command]
-pub fn mobile_status(host: State<'_, MobileHost>) -> Result<Value, String> {
+pub fn mobile_renew(window: WebviewWindow, host: State<'_, MobileHost>) -> Result<Value, String> {
+    let mut s = host.0.lock().map_err(|e| e.to_string())?;
+    if !s.enabled || s.window != window.label() {
+        return Err("Connection unavailable".into());
+    }
+    s.pairing = secret();
+    s.expires = Some(Instant::now() + Duration::from_secs(600));
+    let key = s.pairing.clone();
+    let info = s.pairing_info.as_mut().ok_or("Connection unavailable")?;
+    info["pairing"] = json!(key);
+    info["expiresIn"] = json!(600);
+    Ok(info.clone())
+}
+#[tauri::command]
+pub fn mobile_revoke(
+    window: WebviewWindow,
+    host: State<'_, MobileHost>,
+    device_id: String,
+) -> Result<(), String> {
+    let mut s = host.0.lock().map_err(|e| e.to_string())?;
+    if s.window != window.label() {
+        return Err("Wrong window".into());
+    }
+    s.devices.remove(&device_id);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn mobile_status(window: WebviewWindow, host: State<'_, MobileHost>) -> Result<Value, String> {
     let s = host.0.lock().map_err(|e| e.to_string())?;
-    Ok(json!({"enabled":s.enabled,"devices":s.devices.values().collect::<Vec<_>>()}))
+    let owner = s.window == window.label();
+    let mut info = if owner { s.pairing_info.clone() } else { None };
+    if let Some(ref mut info) = info {
+        info["expiresIn"] = json!(s
+            .expires
+            .map(|d| d.saturating_duration_since(Instant::now()).as_secs())
+            .unwrap_or(0));
+        if s.pairing.is_empty() {
+            info["pairing"] = json!("")
+        }
+    }
+    Ok(
+        json!({"enabled":s.enabled,"devices":s.devices.iter().map(|(id,name)|json!({"id":id,"name":name})).collect::<Vec<_>>(),"pairing":info,"relayStatus":s.relay_status}),
+    )
 }
 #[tauri::command]
 pub fn mobile_stop(host: State<'_, MobileHost>) -> Result<(), String> {
     let mut s = host.0.lock().map_err(|e| e.to_string())?;
     s.enabled = false;
+    s.generation += 1;
+    s.pairing_info = None;
+    s.relay_status.clear();
     s.devices.clear();
     s.pairing.clear();
     s.pending.clear();
@@ -320,6 +487,70 @@ pub fn mobile_reply(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn direct_tls_pairing_has_complete_json_and_clean_tls_shutdown() {
+        let issued = rcgen::generate_simple_self_signed(vec!["localhost".into()]).unwrap();
+        let certificate = issued.cert.der().clone();
+        let provider = Arc::new(rustls::crypto::ring::default_provider());
+        let server = rustls::ServerConfig::builder_with_provider(provider.clone())
+            .with_safe_default_protocol_versions()
+            .unwrap()
+            .with_no_client_auth()
+            .with_single_cert(
+                vec![certificate.clone()],
+                rustls::pki_types::PrivatePkcs8KeyDer::from(issued.signing_key.serialize_der())
+                    .into(),
+            )
+            .unwrap();
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let thread = std::thread::spawn(move || {
+            let mut inner = Inner {
+                enabled: true,
+                generation: 1,
+                pairing: "known-test-code".into(),
+                expires: Some(Instant::now() + Duration::from_secs(10)),
+                ..Default::default()
+            };
+            let (socket, _) = listener.accept().unwrap();
+            serve_transport(socket, Arc::new(server), |value| {
+                authorize(&mut inner, 1, &value)?.ok_or("Unexpected action".into())
+            });
+        });
+        let mut roots = rustls::RootCertStore::empty();
+        roots.add(certificate).unwrap();
+        let client = rustls::ClientConfig::builder_with_provider(provider)
+            .with_safe_default_protocol_versions()
+            .unwrap()
+            .with_root_certificates(roots)
+            .with_no_client_auth();
+        let connection = rustls::ClientConnection::new(
+            Arc::new(client),
+            rustls::pki_types::ServerName::try_from("localhost").unwrap(),
+        )
+        .unwrap();
+        let socket = TcpStream::connect(address).unwrap();
+        socket
+            .set_read_timeout(Some(Duration::from_secs(5)))
+            .unwrap();
+        let mut stream = rustls::StreamOwned::new(connection, socket);
+        let body = json!({"action":"pair","pairing":"known-test-code","name":"安卓"}).to_string();
+        write!(stream,"POST /mycode/v1 HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",body.len(),body).unwrap();
+        stream.flush().unwrap();
+        let mut reply = String::new();
+        stream.read_to_string(&mut reply).unwrap();
+        let (_, body) = reply.split_once("\r\n\r\n").unwrap();
+        let result: Value = serde_json::from_str(body).unwrap();
+        assert_eq!(result["ok"], true);
+        assert_eq!(result["result"]["deviceToken"].as_str().unwrap().len(), 64);
+        thread.join().unwrap();
+    }
+    #[test]
+    fn malformed_http_and_ambiguous_lengths_are_rejected() {
+        for request in ["GET /mycode/v1 HTTP/1.1\r\n\r\n","POST /mycode/v1 HTTP/1.1\r\nContent-Length: 2\r\nContent-Length: 2\r\n\r\n{}","POST /mycode/v1 HTTP/1.1\r\nOrigin: https://example.com\r\nContent-Length: 2\r\n\r\n{}","POST /mycode/v1 HTTP/1.1\r\nContent-Length: 999999\r\n\r\n{}"] {
+            assert!(read_http(&mut std::io::Cursor::new(request.as_bytes())).is_err());
+        }
+    }
     #[test]
     fn pairing_is_single_use_and_revocation_and_generation_fail_closed() {
         let mut inner = Inner {

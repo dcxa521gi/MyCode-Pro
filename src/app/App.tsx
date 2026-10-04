@@ -1,3 +1,9 @@
+import {
+  mobileModels,
+  mobileModelChoice,
+  mobilePublicBlocks,
+  mobileHistory,
+} from "../features/settings/model/mobileSession";
 import { useTaskPower } from "../features/settings/ui/TaskPowerSettings";
 import {
   getLocale as uiLocale,
@@ -31,7 +37,7 @@ import {
 } from "../features/groups/model/groups";
 import { GroupChats } from "../features/groups/ui/GroupChats";
 import { CLIUpdateNotice } from "../features/providers/ui/CLIUpdateNotice";
-import { allModels, findModel } from "../features/sessions/model/models";
+import { findModel } from "../features/sessions/model/models";
 import { CliReadyDialog } from "../features/providers/ui/CliReadyDialog";
 import { newSessionLike } from "../features/sessions/model/session";
 import { NewTaskDialog } from "../features/sessions/ui/NewTaskDialog";
@@ -9044,6 +9050,9 @@ function Workspace({
         sessionId?: string;
         projectId?: string;
         model?: string;
+        harness?: string;
+        before?: number;
+        blockId?: string;
         text?: string;
         requestId?: number;
         answers?: Record<string, string[]>;
@@ -9080,11 +9089,7 @@ function Workspace({
               });
           return {
             sessions: [...entries.values()].slice(0, 500),
-            models: allModels().map((m) => ({
-              id: m.id,
-              name: m.name,
-              harness: m.harness,
-            })),
+            models: mobileModels(),
           };
         }
         const session = await ensureOpenSession(input.sessionId ?? "");
@@ -9101,18 +9106,11 @@ function Workspace({
             id: current.id,
             title: current.title,
             cwd: current.cwd,
-            busy: !!current.busy,
+            busy: !!current.busy || isPreparingHandoff(current),
             model: current.model,
+            models: mobileModels(current.cwd),
             harness: current.harness,
-            messages: current.blocks
-              .filter(
-                (b) =>
-                  !b.internal &&
-                  (b.role === "user" || b.role === "assistant") &&
-                  !b.tool,
-              )
-              .slice(-100)
-              .map((b) => ({ role: b.role, text: b.text.slice(-12000) })),
+            ...mobileHistory(current, input.before),
             tasks:
               [...current.blocks].reverse().find((b) => b.role === "tasks")
                 ?.taskList?.items ?? [],
@@ -9122,18 +9120,58 @@ function Workspace({
               .map((b) => ({
                 text: b.tool?.title ?? b.text,
                 status: b.tool?.status,
+                detail:
+                  b.tool?.preview?.output?.slice(-12000) ??
+                  b.text.slice(-12000),
               })),
             approvals: current.blocks
               .filter((b) => b.approval && !b.approval?.decided)
               .map((b) => ({
                 requestId: b.approval!.requestId,
                 title: b.text.slice(0, 4000),
-                preview: b.tool?.preview,
+                preview: b.tool?.preview
+                  ? {
+                      kind: b.tool.preview.kind,
+                      title: b.tool.preview.title,
+                      path: b.tool.preview.path,
+                      output: b.tool.preview.output?.slice(0, 16000),
+                    }
+                  : undefined,
               })),
             question: current.pendingQuestion,
           };
+        if (input.action === "message") {
+          const block = mobilePublicBlocks(current).find(
+            (b) => b.id === input.blockId,
+          );
+          if (!block) throw Error("Message is unavailable.");
+          return {
+            id: block.id,
+            text: block.text.slice(0, 1_000_000),
+            truncated: block.text.length > 1_000_000,
+          };
+        }
+        if (input.action === "model") {
+          if (current.busy || isPreparingHandoff(current))
+            throw Error("Pause the task before changing its model.");
+          const model = mobileModelChoice(
+            current.cwd,
+            input.model ?? "",
+            input.harness ?? "",
+          );
+          if (!model)
+            throw Error(
+              "This model is no longer available. Refresh and select another model.",
+            );
+          flushSync(() => onModelChange(current.id, model.harness, model.id));
+          return { accepted: true, model: model.id, harness: model.harness };
+        }
         if (input.action === "send") {
-          if (current.busy)
+          if (!mobileModelChoice(current.cwd, current.model, current.harness))
+            throw Error(
+              "This model is no longer available. Refresh and select another model.",
+            );
+          if (current.busy || isPreparingHandoff(current))
             throw Error(
               "This task is still running. Pause it before sending another message.",
             );
@@ -9200,7 +9238,14 @@ function Workspace({
       disposed = true;
       unlisten?.();
     };
-  }, [ensureOpenSession, submitSession, onStop, onApproval, onQuestionReply]);
+  }, [
+    ensureOpenSession,
+    submitSession,
+    onStop,
+    onApproval,
+    onQuestionReply,
+    onModelChange,
+  ]);
 
   const onOpenApprovalSession = useCallback(
     (sessionId: string) => {

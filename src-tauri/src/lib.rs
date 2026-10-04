@@ -1,6 +1,7 @@
 mod development;
 mod local_preview;
 mod mobile;
+mod mobile_crypto;
 mod power;
 mod turn_recovery;
 use tauri::Manager;
@@ -289,6 +290,8 @@ pub fn run() {
             mobile::mobile_start,
             mobile::mobile_stop,
             mobile::mobile_status,
+            mobile::mobile_renew,
+            mobile::mobile_revoke,
             mobile::mobile_reply,
             control::control_enable,
             control::control_disable,
@@ -649,6 +652,7 @@ pub fn run() {
                 .any(|window| window.label() != label);
             control::window_closed(handle, &label);
             power::window_closed(handle, &label);
+            mobile::window_closed(handle, &label);
             if !other_window {
                 reap_harness_children(handle);
             }

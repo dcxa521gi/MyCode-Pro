@@ -32,6 +32,7 @@ ureq = { version = "2.12.1", default-features = false, features = ["tls", "gzip"
 url = "2.5"
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 rcgen = { version = "0.14", default-features = false, features = ["crypto", "ring"] }
+ring = "0.17"
 tauri-plugin-process = "2"
 
 [target.'cfg(unix)'.dependencies]

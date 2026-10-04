@@ -61,3 +61,4 @@ src-tauri/runtime/
 android/.gradle/
 android/**/build/
 android/local.properties
+relay/.env

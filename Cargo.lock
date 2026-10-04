@@ -2316,7 +2316,7 @@ dependencies = [
 
 [[package]]
 name = "monocode"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "base64 0.22.1",
  "block2",
@@ -2330,6 +2330,7 @@ dependencies = [
  "portable-pty",
  "raw-window-handle",
  "rcgen",
+ "ring",
  "rusqlite",
  "rustls",
  "serde",

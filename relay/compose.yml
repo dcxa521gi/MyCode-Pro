@@ -1,0 +1,22 @@
+services:
+  relay:
+    build:
+      context: ..
+      dockerfile: relay/Dockerfile
+    restart: unless-stopped
+    environment:
+      MYCODE_RELAY_REGISTRATION_KEY: ${MYCODE_RELAY_REGISTRATION_KEY:?Set a relay registration key in .env}
+  gateway:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      RELAY_DOMAIN: ${RELAY_DOMAIN:?Set your public relay domain in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - certificates:/data
+      - gateway_config:/config
+    depends_on: [relay]
+volumes:
+  certificates:
+  gateway_config:

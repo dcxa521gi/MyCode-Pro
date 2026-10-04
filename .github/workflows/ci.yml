@@ -36,6 +36,7 @@ jobs:
       - run: npm run build:runtime
       - run: node scripts/test-im-runtime.mjs
       - run: node scripts/test-wechat-runtime.mjs
+      - run: node scripts/test-remote-relay.mjs
       - run: npm test
       - run: npx tsc --noEmit
       - run: cargo fmt --check
