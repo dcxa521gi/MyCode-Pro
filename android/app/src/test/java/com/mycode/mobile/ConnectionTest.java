@@ -19,14 +19,16 @@ public class ConnectionTest {
  @Test public void scanRequestsPermissionAndDenialKeepsPairingActivityAlive(){
   try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
    MainActivity activity=controller.get();Shadows.shadowOf(RuntimeEnvironment.getApplication()).denyPermissions(Manifest.permission.CAMERA);
-   activity.startScan();assertNull(Shadows.shadowOf(activity).getNextStartedActivityForResult());
+   assertEquals("Denied camera permission precondition",PackageManager.PERMISSION_DENIED,activity.checkSelfPermission(Manifest.permission.CAMERA));
+   activity.startScan();var requested=Shadows.shadowOf(activity).getLastRequestedPermission();assertNotNull("Camera permission must be requested",requested);assertArrayEquals(new String[]{Manifest.permission.CAMERA},requested.requestedPermissions);
    activity.onRequestPermissionsResult(2501,new String[]{Manifest.permission.CAMERA},new int[]{PackageManager.PERMISSION_DENIED});assertFalse(activity.isFinishing());
   }
  }
  @Test public void scanLaunchesDedicatedInternalActivityAfterPermissionGranted(){
   try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
    MainActivity activity=controller.get();Shadows.shadowOf(RuntimeEnvironment.getApplication()).grantPermissions(Manifest.permission.CAMERA);
-   activity.startScan();var started=Shadows.shadowOf(activity).getNextStartedActivityForResult();assertNotNull(started);assertEquals(ScanActivity.class.getName(),started.intent.getComponent().getClassName());
+   assertEquals("Granted camera permission precondition",PackageManager.PERMISSION_GRANTED,activity.checkSelfPermission(Manifest.permission.CAMERA));
+   activity.startScan();var started=Shadows.shadowOf(activity).getNextStartedActivityForResult();assertNotNull("Scan intent must start",started);assertNotNull("Explicit scan component",started.intent.getComponent());assertEquals(ScanActivity.class.getName(),started.intent.getComponent().getClassName());
   }
  }
  @Test public void copiedDirectAndRemotePairingAreValidatedBeforeNetworkUse() throws Exception {
