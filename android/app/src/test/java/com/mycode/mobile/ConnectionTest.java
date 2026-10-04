@@ -42,6 +42,11 @@ public class ConnectionTest {
   remote.put("url","http://relay.example.com/v1/rooms/"+room+"/request");assertThrows(IllegalArgumentException.class,()->PairingConfig.parse(remote.toString()));
   direct.put("pairing","");assertThrows(IllegalArgumentException.class,()->PairingConfig.parse(direct.toString()));
  }
+ @Test public void scannerActivityCanCreateAndReturnWithoutBreakingLifecycle(){
+  try(var controller=Robolectric.buildActivity(ScanActivity.class).setup()){
+   assertNotNull(controller.get());
+  }
+ }
  @Test public void transportMatchesSharedCryptoVectorAndRejectsWrongRoomAndTampering() throws Exception {
   JSONObject fixture=new JSONObject().put("nonce","IiIiIiIiIiIiIiIi").put("ciphertext","bNVmKrSm8DHHBfxPLciN9zOxuYcS9Y5xcKixT+5ayOrkxkyZ/YrV/Co9m0SFPR1a2LfwQK9QDpvHAMedhx2G0R2uMBo44XMoyRNT4GKMjXjIjIFDueUXyeXgPLinxMJUVyUkyQ==");
   assertEquals("继续项目",TransportCrypto.open(KEY,fixture,"mycode:request:fixture-room").getString("text"));
