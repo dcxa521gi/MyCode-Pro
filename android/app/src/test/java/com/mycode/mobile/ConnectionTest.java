@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import org.json.JSONObject;
 import org.junit.Test;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -15,6 +16,7 @@ import static org.junit.Assert.*;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk=35)
 public class ConnectionTest {
+ @Before public void diagnostics(){org.robolectric.shadows.ShadowLog.stream=System.err;}
  private static final String KEY="11".repeat(32);
  @Test public void scanRequestsPermissionAndDenialKeepsPairingActivityAlive(){
   try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
