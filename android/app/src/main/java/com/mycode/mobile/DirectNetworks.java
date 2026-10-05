@@ -1,8 +1,15 @@
 package com.mycode.mobile;
 
 import android.content.Context;
-import android.net.*;
-import java.net.*;
+import android.net.ConnectivityManager;
+import android.net.LinkAddress;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import java.net.InetAddress;
+import java.net.Proxy;
+import java.net.URL;
+import java.net.URLConnection;
 
 /** A direct LAN pairing should stay on its matching physical subnet, even with a VPN. */
 final class DirectNetworks {
