@@ -242,6 +242,7 @@ fn start_bridge(
     if !addresses.iter().any(|a| a["address"] == address) {
         addresses.push(json!({"address":address,"name":address}))
     }
+    let address = preferred_direct_address(&addresses).unwrap_or(address);
     let info = json!({"mode":"direct","url":format!("https://{address}:{port}/mycode/v1"),"fingerprint":fingerprint,"pairing":pairing,"expiresIn":600,"addresses":addresses});
     {
         let mut s = state.lock().map_err(|e| e.to_string())?;
@@ -384,7 +385,7 @@ fn local_addresses() -> Vec<Value> {
             std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into()),
         )
         .join("System32/WindowsPowerShell/v1.0/powershell.exe");
-        let result=std::process::Command::new(powershell).env_remove("PSModulePath").args(["-NoProfile","-NonInteractive","-Command","Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } | Select-Object @{n='address';e={$_.IPAddress}},@{n='name';e={$_.InterfaceAlias}} | ConvertTo-Json -Compress"]).creation_flags(0x08000000).output();
+        let result=std::process::Command::new(powershell).env_remove("PSModulePath").args(["-NoProfile","-NonInteractive","-Command","[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } | Select-Object @{n='address';e={$_.IPAddress}},@{n='name';e={$_.InterfaceAlias}} | ConvertTo-Json -Compress"]).creation_flags(0x08000000).output();
         if let Ok(output) = result {
             if let Ok(value) = serde_json::from_slice::<Value>(&output.stdout) {
                 return match value {
@@ -396,6 +397,64 @@ fn local_addresses() -> Vec<Value> {
         }
     }
     vec![]
+}
+fn preferred_direct_address(addresses: &[Value]) -> Option<String> {
+    addresses.iter().find_map(|value| {
+        let name = value["name"].as_str().unwrap_or("").to_lowercase();
+        if [
+            "vpn",
+            "wintun",
+            "wireguard",
+            "tap",
+            "vethernet",
+            "vmware",
+            "virtual",
+            "loopback",
+        ]
+        .iter()
+        .any(|part| name.contains(part))
+        {
+            return None;
+        }
+        let address = value["address"].as_str()?;
+        let ip = address.parse::<std::net::Ipv4Addr>().ok()?;
+        ip.is_private().then(|| address.to_owned())
+    })
+}
+#[tauri::command]
+pub async fn mobile_allow_firewall(
+    window: WebviewWindow,
+    host: State<'_, MobileHost>,
+) -> Result<(), String> {
+    {
+        let state = host.0.lock().map_err(|e| e.to_string())?;
+        if !state.enabled
+            || state.window != window.label()
+            || state
+                .pairing_info
+                .as_ref()
+                .is_none_or(|p| p["mode"] != "direct")
+        {
+            return Err("Enable direct connection first".into());
+        }
+    }
+    #[cfg(not(windows))]
+    return Err("Configure direct connection permissions in your system firewall".into());
+    #[cfg(windows)]
+    tauri::async_runtime::spawn_blocking(|| {
+        use windows_sys::Win32::{Foundation::CloseHandle,System::Threading::{WaitForSingleObject,GetExitCodeProcess},UI::Shell::{ShellExecuteExW,SHELLEXECUTEINFOW,SEE_MASK_NOCLOSEPROCESS}};
+        let executable=std::env::current_exe().map_err(|e|e.to_string())?;
+        let rule=format!("MyCode Mobile Direct {}",&digest(&executable.to_string_lossy())[..12]);
+        let mut check=std::process::Command::new("netsh.exe");check.args(["advfirewall","firewall","show","rule",&format!("name={rule}")]);crate::hide_window_console(&mut check);
+        if check.output().is_ok_and(|o|o.status.success()) { return Ok(()); }
+        let wide=|s:&str|s.encode_utf16().chain(Some(0)).collect::<Vec<_>>();
+        let verb=wide("runas");let file=wide("netsh.exe");let parameters=wide(&format!("advfirewall firewall add rule name=\"{rule}\" dir=in action=allow program=\"{}\" enable=yes profile=private,domain remoteip=localsubnet protocol=TCP",executable.display()));
+        let mut info:SHELLEXECUTEINFOW=unsafe{std::mem::zeroed()};info.cbSize=std::mem::size_of::<SHELLEXECUTEINFOW>() as u32;info.fMask=SEE_MASK_NOCLOSEPROCESS;info.lpVerb=verb.as_ptr();info.lpFile=file.as_ptr();info.lpParameters=parameters.as_ptr();info.nShow=0;
+        if unsafe{ShellExecuteExW(&mut info)}==0 { return Err("Firewall permission was not granted".into()); }
+        if info.hProcess.is_null() { return Err("Could not check firewall result".into()); }
+        let mut exit=259;unsafe{WaitForSingleObject(info.hProcess,30000);GetExitCodeProcess(info.hProcess,&mut exit);CloseHandle(info.hProcess);}
+        if exit==0 {Ok(())}else{Err("Firewall permission was not granted".into())}
+    }).await.map_err(|e|e.to_string())?
 }
 pub fn window_closed(app: &AppHandle, label: &str) {
     if let Ok(mut s) = app.state::<MobileHost>().0.lock() {
@@ -487,6 +546,19 @@ pub fn mobile_reply(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn direct_address_prefers_physical_lan_over_vpn_and_virtual_interfaces() {
+        let addresses = vec![
+            json!({"address":"10.8.0.2","name":"WireGuard VPN"}),
+            json!({"address":"172.16.0.1","name":"vEthernet"}),
+            json!({"address":"192.168.1.20","name":"Wi-Fi"}),
+        ];
+        assert_eq!(
+            preferred_direct_address(&addresses),
+            Some("192.168.1.20".into())
+        );
+        assert_eq!(preferred_direct_address(&addresses[..2]), None);
+    }
     #[test]
     fn direct_tls_pairing_has_complete_json_and_clean_tls_shutdown() {
         let issued = rcgen::generate_simple_self_signed(vec!["localhost".into()]).unwrap();

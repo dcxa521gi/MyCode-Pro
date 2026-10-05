@@ -1,19 +1,36 @@
 import { useTranslation } from "../../../shared/i18n";
 import { Check, ListEnd, Loader, Minus } from "../../../shared/ui/icons";
 import type { TaskListItem, TaskListItemStatus } from "../model/session";
+import { useSyncExternalStore } from "react";
+import {
+  planPosition,
+  savePlanPosition,
+  subscribePlanPosition,
+} from "../model/taskPlanPlacement";
+import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
 
 type Props = {
   items: TaskListItem[];
   explanation?: string;
+  blockId?: string;
+  floating?: boolean;
 };
 
-export function TaskListPreview({ items, explanation }: Props) {
+export function TaskListPreview({
+  items,
+  explanation,
+  blockId,
+  floating,
+}: Props) {
   const { t } = useTranslation();
+  const position = useSyncExternalStore(subscribePlanPosition, planPosition);
+  if (!floating && position !== "inline") return null;
   const completed = items.filter((item) => item.status === "completed").length;
   const total = items.filter((item) => item.status !== "cancelled").length;
   return (
     <section
       aria-label={t("Task progress")}
+      data-task-plan={floating ? undefined : blockId}
       className="mb-2 overflow-hidden rounded-[10px] border border-content/10 bg-content/[0.035]"
     >
       <div className="flex items-start gap-2 border-b border-stroke px-2.5 py-2">
@@ -22,10 +39,24 @@ export function TaskListPreview({ items, explanation }: Props) {
           strokeWidth={1.75}
         />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="font-mono text-[12px] font-medium text-content/85">
               {t("Task plan")}
             </h3>
+            {!floating && (
+              <SettingsDropdown
+                aria-label={t("Plan position")}
+                value={position}
+                onChange={(e) =>
+                  savePlanPosition(e.target.value as typeof position)
+                }
+              >
+                <option value="inline">{t("In conversation")}</option>
+                <option value="top-right">{t("Top right")}</option>
+                <option value="bottom-right">{t("Bottom right")}</option>
+                <option value="above-input">{t("Above input")}</option>
+              </SettingsDropdown>
+            )}
             <span className="shrink-0 rounded-full bg-content/7 px-2 py-0.5 font-mono text-[10px] text-content/50">
               {completed} / {total || items.length} ·{" "}
               {t(

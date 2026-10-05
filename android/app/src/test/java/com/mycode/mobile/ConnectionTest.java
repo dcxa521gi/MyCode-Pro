@@ -54,4 +54,17 @@ public class ConnectionTest {
   JSONObject sealed=TransportCrypto.seal(KEY,new JSONObject().put("deviceToken","test-device"),"response");assertFalse(sealed.toString().contains("test-device"));
   assertEquals("test-device",TransportCrypto.open(KEY,sealed,"response").getString("deviceToken"));sealed.put("ciphertext","AAAA");assertThrows(Exception.class,()->TransportCrypto.open(KEY,sealed,"response"));
  }
+ @Test public void standaloneEndpointsRejectInsecureUrlsCredentialsAndUnsupportedProtocols() throws Exception {
+  JSONObject profile=new JSONObject().put("url","https://api.example.com/v1");
+  assertEquals("https://api.example.com/v1/chat/completions",StandaloneModel.endpoint(profile).toString());
+  profile.put("protocol","anthropic-messages");assertEquals("https://api.example.com/v1/messages",StandaloneModel.endpoint(profile).toString());
+  for(String url:new String[]{"http://api.example.com/v1","https://user:secret@api.example.com/v1","https://api.example.com/v1?key=secret"}){profile.put("url",url);assertThrows(IllegalArgumentException.class,()->StandaloneModel.endpoint(profile));}
+  profile.put("url","https://api.example.com/v1").put("protocol","unknown");assertThrows(IllegalArgumentException.class,()->StandaloneModel.endpoint(profile));
+ }
+ @Test public void directVpnBypassOnlySelectsMatchingIpv4Subnets() throws Exception {
+  assertTrue(DirectNetworks.sameSubnet(java.net.InetAddress.getByName("192.168.1.10"),java.net.InetAddress.getByName("192.168.1.20"),24));
+  assertFalse(DirectNetworks.sameSubnet(java.net.InetAddress.getByName("192.168.1.10"),java.net.InetAddress.getByName("10.8.0.2"),24));
+  assertFalse(DirectNetworks.sameSubnet(java.net.InetAddress.getByName("192.168.1.10"),java.net.InetAddress.getByName("192.168.2.20"),24));
+  assertFalse(DirectNetworks.sameSubnet(java.net.InetAddress.getByName("192.168.1.10"),java.net.InetAddress.getByName("192.168.1.20"),0));
+ }
 }

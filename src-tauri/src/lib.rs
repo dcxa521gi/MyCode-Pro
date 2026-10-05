@@ -288,6 +288,7 @@ pub fn run() {
             development::development_run,
             power::power_sync,
             mobile::mobile_start,
+            mobile::mobile_allow_firewall,
             mobile::mobile_stop,
             mobile::mobile_status,
             mobile::mobile_renew,
@@ -671,6 +672,7 @@ pub fn run() {
             window::request_quit(handle);
         }
         tauri::RunEvent::Exit => {
+            power::shutdown(handle);
             reap_harness_children(handle);
         }
         _ => {}

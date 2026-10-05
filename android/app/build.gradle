@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
  namespace 'com.mycode.mobile'
  compileSdk 35
- defaultConfig { applicationId 'com.mycode.mobile'; minSdk 26; targetSdk 35; versionCode 170; versionName '0.17.0' }
+ defaultConfig { applicationId 'com.mycode.mobile'; minSdk 26; targetSdk 35; versionCode 180; versionName '0.18.0' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
  testOptions {
   unitTests.includeAndroidResources = true

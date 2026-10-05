@@ -240,7 +240,8 @@ export function ComposerRunner({
         const shell = box.closest("[data-composer]");
         const review = shell?.querySelector("[data-session-review]");
         const queue = shell?.querySelector("[data-message-queue-card]");
-        const ledge = review ?? queue;
+        const plan = box.closest("[data-session-drop]")?.querySelector("[data-task-plan-ledge]");
+        const ledge = plan ?? review ?? queue;
         cachedTrack = runnerTrack(
           box.getBoundingClientRect(),
           ledge?.getBoundingClientRect() ?? null,

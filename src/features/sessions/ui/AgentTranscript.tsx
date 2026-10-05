@@ -1170,23 +1170,23 @@ function TurnMetricsBadge({
   const headline =
     [
       metrics.cacheHitPercent != null
-        ? `Cache hit ${Math.round(metrics.cacheHitPercent)}%`
+        ? `${t("Cache hit rate")} ${Math.round(metrics.cacheHitPercent)}%`
         : null,
       outputRate != null
-        ? `Output ${formatMetricCount(outputRate)} tok/s`
+        ? `${t("Output")} ${formatMetricCount(outputRate)} ${t("Tokens per second")}`
         : null,
     ]
       .filter(Boolean)
-      .join(" · ") || "Turn tokens";
+      .join(" · ") || t("Turn tokens");
   const detail = [
     metrics.inputTokens != null
-      ? `${formatMetricCount(metrics.inputTokens)} input`
+      ? `${formatMetricCount(metrics.inputTokens)} ${t("Input")}`
       : null,
     metrics.outputTokens != null
-      ? `${formatMetricCount(metrics.outputTokens)} output`
+      ? `${formatMetricCount(metrics.outputTokens)} ${t("Output")}`
       : null,
     metrics.cacheReadTokens != null
-      ? `${formatMetricCount(metrics.cacheReadTokens)} cached`
+      ? `${formatMetricCount(metrics.cacheReadTokens)} ${t("Cached")}`
       : null,
   ]
     .filter(Boolean)
@@ -1205,7 +1205,7 @@ function TurnMetricsBadge({
       <span
         role="img"
         tabIndex={0}
-        aria-label={`Turn metrics: ${label}`}
+        aria-label={`${t("Turn metrics")}: ${label}`}
         title={t("Turn metrics")}
         className="grid rounded-md p-1 text-content/40 outline-none hover:bg-content/8 hover:text-content/70 focus-visible:ring-1 focus-visible:ring-accent"
       >
@@ -1389,7 +1389,8 @@ function EditLastTurnButton({
   onEdit: () => void;
   editing?: boolean;
 }) {
-  const label = editing ? "Cancel edit" : "Edit and resend";
+  const { t } = useTranslation();
+  const label = t(editing ? "Cancel edit" : "Edit and resend");
   return (
     <button
       type="button"
@@ -1497,6 +1498,7 @@ const TranscriptBlock = memo(function TranscriptBlock({
     return (
       <div className={embedded ? "py-1" : "px-4 py-1"}>
         <TaskListPreview
+          blockId={block.id}
           items={block.taskList.items}
           explanation={block.taskList.explanation}
         />
@@ -1510,7 +1512,7 @@ const TranscriptBlock = memo(function TranscriptBlock({
     if (legacyTasks) {
       return (
         <div className={embedded ? "py-1" : "px-4 py-1"}>
-          <TaskListPreview items={legacyTasks} />
+          <TaskListPreview items={legacyTasks} blockId={block.id} />
         </div>
       );
     }

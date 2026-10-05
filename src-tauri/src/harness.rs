@@ -2451,7 +2451,33 @@ fn is_pi_coding_agent(path: &Path) -> bool {
     if !binary_name_eq(path, "pi") {
         return false;
     }
-    file_mentions_pi_coding_agent(path) || help_mentions_rpc_mode(path)
+    file_mentions_pi_coding_agent(path) || pi_package_manifest(path) || help_mentions_rpc_mode(path)
+}
+fn pi_package_manifest(path: &Path) -> bool {
+    let Ok(real) = std::fs::canonicalize(path) else {
+        return false;
+    };
+    let Some(mut dir) = real.parent() else {
+        return false;
+    };
+    for _ in 0..6 {
+        if let Ok(data) = std::fs::read(dir.join("package.json")) {
+            if let Ok(value) = serde_json::from_slice::<serde_json::Value>(&data) {
+                return value["name"].as_str().is_some_and(|name| {
+                    [
+                        "@earendil-works/pi-coding-agent",
+                        "@mariozechner/pi-coding-agent",
+                    ]
+                    .contains(&name.to_lowercase().as_str())
+                });
+            }
+        }
+        let Some(parent) = dir.parent() else {
+            break;
+        };
+        dir = parent;
+    }
+    false
 }
 
 fn file_mentions_pi_coding_agent(path: &Path) -> bool {

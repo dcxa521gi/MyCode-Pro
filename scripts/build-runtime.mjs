@@ -6,6 +6,7 @@ import { build } from "esbuild";
 const require = createRequire(import.meta.url);
 const out = path.resolve("src-tauri/runtime");
 fs.mkdirSync(out, { recursive: true });
+await build({entryPoints:["runtime/development-test.ts"],outfile:path.join(out,"development-test.cjs"),bundle:true,platform:"node",target:"node22",format:"cjs",external:["bufferutil","utf-8-validate"],logLevel:"warning"});
 const bundle = await build({
   entryPoints: ["runtime/im-bridge.ts"],
   outfile: path.join(out, "im-bridge.cjs"),

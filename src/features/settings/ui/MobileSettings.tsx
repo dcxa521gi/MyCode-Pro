@@ -69,7 +69,7 @@ export function MobileSettings() {
         url: pairing.mode === "relay" ? pairing.url : address || pairing.url,
         ...(pairing.mode === "relay"
           ? { room: pairing.room, transportKey: pairing.transportKey }
-          : { fingerprint: pairing.fingerprint }),
+          : { fingerprint: pairing.fingerprint, addresses: pairing.addresses }),
         pairing: pairing.pairing,
       })
     : "";
@@ -293,6 +293,30 @@ export function MobileSettings() {
               />
             </label>
             <div className="flex flex-wrap gap-2">
+              {pairing.mode !== "relay" && (
+                <button
+                  className={button}
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    setStatus(t("Checking direct connection permissions…"));
+                    try {
+                      await invoke("mobile_allow_firewall");
+                      setStatus(
+                        t(
+                          "Direct connection allowed on private networks. Choose the same Wi-Fi address as your phone.",
+                        ),
+                      );
+                    } catch (error) {
+                      setStatus(t(String(error)));
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  {t("Allow direct connection in Windows firewall")}
+                </button>
+              )}
               <button
                 disabled={!pairing.pairing || pairing.expiresIn === 0}
                 onClick={() =>

@@ -1,4 +1,6 @@
 import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
+import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
+import { reportedProtocols, supportsProtocol } from "../model/modelProtocols";
 import { usageTokens } from "../../settings/model/usageTokens";
 import type { UsageRow } from "../../settings/ui/UsageHistoryPage";
 import { ProviderGallery } from "./ProviderGallery";
@@ -423,6 +425,22 @@ export function ModelConnections({
                     return;
                   }
                   void action(async () => {
+                    if (
+                      modelText
+                        .split(/[\n,]/)
+                        .some(
+                          (id) =>
+                            !supportsProtocol(
+                              draft.modelMetadata?.[id.trim()],
+                              draft.api,
+                            ),
+                        )
+                    )
+                      throw Error(
+                        t(
+                          "Some selected models do not support this protocol. Choose a reported protocol or deselect those models.",
+                        ),
+                      );
                     await invoke("local_ai_save_connection", {
                       connection: {
                         ...draft,
@@ -500,7 +518,7 @@ export function ModelConnections({
                   </label>
                   <label className="grid gap-1 text-xs">
                     {t("API protocol")}
-                    <SettingsOptions
+                    <SettingsDropdown
                       aria-label={t("API protocol")}
                       className={inputClass}
                       value={draft.api}
@@ -546,7 +564,7 @@ export function ModelConnections({
                           {t("Google Generative AI")}
                         </option>
                       )}
-                    </SettingsOptions>
+                    </SettingsDropdown>
                   </label>
                   {(draft.baseUrl.startsWith("https://tokendance.space/") ||
                     draft.baseUrl.replace(/\/$/, "") ===
@@ -720,6 +738,12 @@ export function ModelConnections({
                           >
                             <input
                               type="checkbox"
+                              disabled={
+                                !supportsProtocol(
+                                  draft.modelMetadata?.[id],
+                                  draft.api,
+                                )
+                              }
                               checked={modelText.split("\n").includes(id)}
                               onChange={(e) =>
                                 setModelText((current) =>
@@ -759,11 +783,46 @@ export function ModelConnections({
                                 </span>
                                 <span>
                                   {t("Modalities")}:{" "}
-                                  {draft.modelMetadata?.[id]?.modalities
-                                    ?.map((m) => t(m))
-                                    .join(" / ") || t("Not reported")}
+                                  {draft.modelMetadata?.[id]?.modalities?.length
+                                    ? draft.modelMetadata[id].modalities!.map(
+                                        (m) => (
+                                          <span
+                                            key={m}
+                                            className="mx-1 inline-block rounded-md border border-content/15 bg-content/8 px-2 py-1 font-medium text-content"
+                                          >
+                                            {t(m)}
+                                          </span>
+                                        ),
+                                      )
+                                    : t("Not reported")}
                                 </span>
                               </span>
+                              <div className="mt-2 flex flex-wrap gap-1 text-[11px] text-content/60">
+                                <span>{t("Reported protocols")}:</span>
+                                {reportedProtocols(draft.modelMetadata?.[id])
+                                  .length ? (
+                                  reportedProtocols(
+                                    draft.modelMetadata?.[id],
+                                  ).map((protocol) => (
+                                    <span
+                                      key={protocol}
+                                      className="rounded bg-content/8 px-1.5 py-0.5"
+                                    >
+                                      {t(protocol)}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span>{t("Not reported")}</span>
+                                )}
+                                {!supportsProtocol(
+                                  draft.modelMetadata?.[id],
+                                  draft.api,
+                                ) && (
+                                  <strong>
+                                    {t("Choose another API protocol")}
+                                  </strong>
+                                )}
+                              </div>
                               {draft.modelMetadata?.[id]?.source && (
                                 <span className="mt-1 block break-all text-[10px] text-content/40">
                                   {t("Official source")}:{" "}

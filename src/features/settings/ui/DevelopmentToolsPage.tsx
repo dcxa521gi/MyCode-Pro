@@ -5,9 +5,10 @@ import { useTranslation } from "../../../shared/i18n";
 import { BusyIndicator } from "../../../shared/ui/BusyIndicator";
 type Tool = { id: string; path: string | null };
 const tools = [
-  { id: "wechat", name: "WeChat DevTools", actions: ["open", "preview"] },
+  { id: "wechat", name: "WeChat DevTools", actions: ["open", "preview", "test"] },
   { id: "deveco", name: "DevEco Studio", actions: ["open"] },
-  { id: "hvigor", name: "HarmonyOS build", actions: ["build"] },
+  { id: "hvigor", name: "HarmonyOS build", actions: ["build", "test"] },
+  { id: "emulator", name: "HarmonyOS emulator", actions: ["devices"] },
   { id: "hdc", name: "HarmonyOS devices", actions: ["devices"] },
   { id: "adb", name: "Android devices", actions: ["devices"] },
   { id: "gradle", name: "Android build and tests", actions: ["build", "test"] },
@@ -56,6 +57,7 @@ export function DevelopmentToolsPage({ cwd }: { cwd?: string }) {
         action,
         cwd: project,
         binary: paths[id] || detected.find((v) => v.id === id)?.path || "",
+        paths,
       });
       setOutput(
         `${t(result.success ? "Completed" : "Could not complete operation")}\n${result.output}${result.log ? `\n${result.log}` : ""}`,

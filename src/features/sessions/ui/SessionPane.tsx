@@ -11,6 +11,8 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Composer } from "./Composer";
+import { useTranslation } from "../../../shared/i18n";
+import { TaskPlanSurface } from "./TaskPlanSurface";
 import type { Worktree } from "../../source-control/model/worktrees";
 import {
   orchestrationCheckoutCwd,
@@ -276,6 +278,7 @@ export const SessionPane = memo(function SessionPane({
   onPaneDragStart,
   transcriptPool,
 }: Props) {
+  const { t } = useTranslation();
   const orchestrationRuns = useSyncExternalStore(
     orchestrator.subscribe,
     orchestrator.snapshot,
@@ -732,6 +735,7 @@ export const SessionPane = memo(function SessionPane({
           ref={transcriptScope}
           className="@container relative min-h-0 flex-1"
         >
+          <TaskPlanSurface blocks={session.blocks} scope={transcriptScope} scroller={transcriptScroller} visible={visible} />
           {visible && focused && !session.inboxAsk ? (
             <LinkedWorkItemUpdateNotice
               sessionId={session.id}
@@ -909,8 +913,8 @@ export const SessionPane = memo(function SessionPane({
                 <div className="pointer-events-none absolute inset-x-0 bottom-2 z-30 flex justify-center">
                   <button
                     type="button"
-                    title="Jump to latest"
-                    aria-label="Jump to latest"
+                    title={t("Jump to latest")}
+                    aria-label={t("Jump to latest")}
                     data-jump-to-bottom
                     onClick={() => jumpToBottomRef.current?.()}
                     className="pointer-events-auto grid size-6 place-items-center rounded-md border border-content/15 bg-content/10 text-content shadow-md hover:bg-content/5 backdrop-blur-md"
@@ -929,6 +933,7 @@ export const SessionPane = memo(function SessionPane({
             inert={btw.open}
             className="mx-auto w-full max-w-4xl shrink-0"
           >
+            <TaskPlanSurface blocks={session.blocks} scope={transcriptScope} scroller={transcriptScroller} visible={visible} aboveInput />
             {composer}
           </div>
         ) : null}

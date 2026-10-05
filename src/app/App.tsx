@@ -6046,7 +6046,7 @@ function Workspace({
     [invalidateLoadedSession],
   );
 
-  useTaskPower(sessions);
+  useTaskPower();
 
   const submitSession = useCallback(
     (

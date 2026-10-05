@@ -29,7 +29,11 @@ public final class MainActivity extends Activity {
  private WebView web;
  private volatile JSONObject credentials;
  private static final int CAMERA_PERMISSION=2501;
- private final java.util.concurrent.ExecutorService network = Executors.newSingleThreadExecutor();
+ private final java.util.concurrent.ExecutorService network = Executors.newFixedThreadPool(2);
+ private final java.util.concurrent.ExecutorService models = Executors.newSingleThreadExecutor();
+ private volatile JSONObject localState = new JSONObject();
+ private final java.util.concurrent.ExecutorService storage = Executors.newSingleThreadExecutor();
+ private volatile boolean localReady=false;
  private String locale="zh-CN";
  @Override public void onCreate(Bundle state){super.onCreate(state);web=new WebView(this);setContentView(web);
   web.setOnApplyWindowInsetsListener((view,insets)->{if(android.os.Build.VERSION.SDK_INT>=30){android.graphics.Insets edges=insets.getInsets(android.view.WindowInsets.Type.systemBars()|android.view.WindowInsets.Type.ime());view.setPadding(edges.left,edges.top,edges.right,edges.bottom);}else{view.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());}return insets;});
@@ -39,15 +43,15 @@ public final class MainActivity extends Activity {
  }
  private void callback(String id,JSONObject result){runOnUiThread(()->{if(isFinishing()||isDestroyed()||web==null)return;web.evaluateJavascript("window.onNative("+JSONObject.quote(id)+","+result+")",null);});}
  private JSONObject error(String text){JSONObject result=new JSONObject();try{result.put("error",text);}catch(Exception ignored){}return result;}
- private javax.crypto.SecretKey key() throws Exception {KeyStore store=KeyStore.getInstance("AndroidKeyStore");store.load(null);if(!store.containsAlias("mycode-pairing")){KeyGenerator generator=KeyGenerator.getInstance("AES","AndroidKeyStore");generator.init(new KeyGenParameterSpec.Builder("mycode-pairing",KeyProperties.PURPOSE_ENCRYPT|KeyProperties.PURPOSE_DECRYPT).setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).build());generator.generateKey();}return (javax.crypto.SecretKey)store.getKey("mycode-pairing",null);}
+ private synchronized javax.crypto.SecretKey key() throws Exception {KeyStore store=KeyStore.getInstance("AndroidKeyStore");store.load(null);if(!store.containsAlias("mycode-pairing")){KeyGenerator generator=KeyGenerator.getInstance("AES","AndroidKeyStore");generator.init(new KeyGenParameterSpec.Builder("mycode-pairing",KeyProperties.PURPOSE_ENCRYPT|KeyProperties.PURPOSE_DECRYPT).setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).build());generator.generateKey();}return (javax.crypto.SecretKey)store.getKey("mycode-pairing",null);}
  private void persist() throws Exception {Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.ENCRYPT_MODE,key());String sealed=Base64.encodeToString(cipher.getIV(),Base64.NO_WRAP)+":"+Base64.encodeToString(cipher.doFinal(credentials.toString().getBytes(StandardCharsets.UTF_8)),Base64.NO_WRAP);getSharedPreferences("pairing",MODE_PRIVATE).edit().putString("sealed",sealed).apply();}
  private void restore(){try{String sealed=getSharedPreferences("pairing",MODE_PRIVATE).getString("sealed",null);if(sealed==null)return;String[] parts=sealed.split(":",2);Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.DECRYPT_MODE,key(),new GCMParameterSpec(128,Base64.decode(parts[0],Base64.NO_WRAP)));credentials=new JSONObject(new String(cipher.doFinal(Base64.decode(parts[1],Base64.NO_WRAP)),StandardCharsets.UTF_8));}catch(Exception e){credentials=null;getSharedPreferences("pairing",MODE_PRIVATE).edit().clear().apply();}}
  private boolean chinese(){return !locale.equals("en");}
  private String friendly(Exception e){
   String text=e.getMessage()==null?"":e.getMessage();
-  if(e instanceof java.net.SocketTimeoutException)return chinese()?"连接超时。请检查电脑是否运行、地址和防火墙；远程模式请检查中继状态。":"Connection timed out. Check desktop, address, firewall or remote relay.";
+  if(e instanceof java.net.SocketTimeoutException)return chinese()?"连接超时。请确认电脑运行和防火墙允许连接；两端 VPN 请允许局域网访问，关闭“阻止绕过”后重试，或使用远程中继。":"Connection timed out. Check desktop and firewall. Allow LAN access in both VPNs, disable block-without-VPN, or use the remote relay.";
   if(e instanceof java.net.UnknownHostException)return chinese()?"地址无法解析，请检查域名及手机网络。":"Cannot resolve the address. Check hostname and network.";
-  if(e instanceof java.net.ConnectException||e instanceof java.net.NoRouteToHostException)return chinese()?"无法连接此地址。直连请选择手机可达的电脑地址并允许防火墙；不同网络请在电脑选择远程中继。":"Address is unreachable. Check direct address/firewall, or use remote relay across networks.";
+  if(e instanceof java.net.ConnectException||e instanceof java.net.NoRouteToHostException||e instanceof SecurityException)return chinese()?"地址无法连接或被系统网络策略阻止。请选择电脑的 Wi-Fi/以太网地址，允许防火墙和两端 VPN 的局域网访问；跨网络请使用远程中继。":"Address unreachable or blocked by system policy. Select the desktop Wi-Fi/Ethernet address and allow firewall/LAN traffic in both VPNs. Use remote relay across networks.";
   if(e instanceof javax.net.ssl.SSLException||e instanceof java.security.GeneralSecurityException)return chinese()?"连接证书或加密校验失败，请复制电脑新生成的配对信息，并检查手机时间。":"Certificate or encryption verification failed. Use new pairing information and check phone time.";
   if(text.contains("Pairing expired")||text.contains("Pairing expired or invalid"))return chinese()?"配对码已使用、过期或无效，请在电脑点击刷新配对码。":"Pairing code used, expired or invalid. Refresh it on the desktop.";
   if(text.contains("not authorized")||text.contains("Bridge disabled"))return chinese()?"设备授权已失效，请断开后重新配对。":"Device authorization expired. Disconnect and pair again.";
@@ -64,7 +68,8 @@ public final class MainActivity extends Activity {
  private JSONObject post(JSONObject config,JSONObject request) throws Exception {
   URL url=new URL(config.getString("url"));boolean remote=config.optString("mode","direct").equals("relay");
   if(!url.getProtocol().equals("https")||url.getUserInfo()!=null||url.getQuery()!=null||url.getRef()!=null)throw new IllegalArgumentException("Invalid address");
-  HttpsURLConnection connection=(HttpsURLConnection)url.openConnection();JSONObject outgoing=request;
+  // LAN traffic must not inherit a system HTTP proxy pointing at another network.
+  HttpsURLConnection connection=(HttpsURLConnection)(remote?url.openConnection():DirectNetworks.open(MainActivity.this,url));JSONObject outgoing=request;
   if(remote){outgoing=TransportCrypto.seal(config.getString("transportKey"),request,"mycode:request:"+config.getString("room"));}
   else {
    String fingerprint=config.getString("fingerprint");
@@ -93,6 +98,16 @@ public final class MainActivity extends Activity {
  private void launchScan(){try{IntentIntegrator scan=new IntentIntegrator(MainActivity.this);scan.setCaptureActivity(ScanActivity.class);scan.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE);scan.setPrompt(chinese()?"扫描 MyCode 配对二维码":"Scan MyCode pairing QR");scan.setBeepEnabled(false);scan.setOrientationLocked(false);scan.initiateScan();}catch(RuntimeException|LinkageError error){android.util.Log.w("MyCodeScan","Could not start pairing scanner",error);callback("notice",error(chinese()?"无法启动摄像头，您仍可粘贴配对信息连接。":"Camera could not start. Paste pairing information to connect."));}}
  @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==CAMERA_PERMISSION){if(grants.length>0&&grants[0]==android.content.pm.PackageManager.PERMISSION_GRANTED)launchScan();else callback("notice",error(chinese()?"未允许摄像头。可在系统设置中授权，或粘贴配对信息连接。":"Camera permission denied. Enable it in system settings or paste pairing information."));}}
  public final class Bridge {
+  @JavascriptInterface public void localLoad(String id){storage.execute(()->{try{
+   File file=new File(getFilesDir(),"local-state.sealed");if(file.isFile()){
+    String[] sealed=new String(java.nio.file.Files.readAllBytes(file.toPath()),StandardCharsets.UTF_8).split(":",2);Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.DECRYPT_MODE,key(),new GCMParameterSpec(128,Base64.decode(sealed[0],Base64.NO_WRAP)));localState=new JSONObject(new String(cipher.doFinal(Base64.decode(sealed[1],Base64.NO_WRAP)),StandardCharsets.UTF_8));
+   }localReady=true;callback(id,new JSONObject(localState.toString()));
+  }catch(Exception e){callback(id,error(chinese()?"手机本地数据无法读取，原文件已保留。":"Local data could not be read; the original file was retained."));}});}
+  @JavascriptInterface public void localSave(String id,String text){storage.execute(()->{try{
+   if(!localReady)throw new IOException("Local data not loaded");byte[] data=text.getBytes(StandardCharsets.UTF_8);if(data.length>6*1024*1024)throw new IOException("Local storage limit exceeded");JSONObject next=new JSONObject(text);Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.ENCRYPT_MODE,key());String sealed=Base64.encodeToString(cipher.getIV(),Base64.NO_WRAP)+":"+Base64.encodeToString(cipher.doFinal(data),Base64.NO_WRAP);
+   File temporary=new File(getFilesDir(),"local-state.pending"),destination=new File(getFilesDir(),"local-state.sealed");try(FileOutputStream output=new FileOutputStream(temporary)){output.write(sealed.getBytes(StandardCharsets.UTF_8));output.getFD().sync();}java.nio.file.Files.move(temporary.toPath(),destination.toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING);localState=next;callback(id,new JSONObject().put("saved",true));
+  }catch(Exception e){callback(id,error(chinese()?"保存失败，请保留本次内容后重试。":"Save failed. Retain this content and retry."));}});}
+  @JavascriptInterface public void localChat(String id,String text){models.execute(()->{try{JSONObject request=new JSONObject(text);callback(id,StandaloneModel.request(request.getJSONObject("profile"),request.getJSONArray("messages")));}catch(Exception e){callback(id,error(friendly(e)));}});}
   @JavascriptInterface public void language(String value){locale=value.equals("en")?"en":"zh-CN";}
   @JavascriptInterface public void pair(String id,String text){network.execute(()->{try{
    JSONObject config=PairingConfig.parse(text);JSONObject request=new JSONObject().put("action","pair").put("id",UUID.randomUUID().toString()).put("pairing",config.getString("pairing")).put("name",android.os.Build.MODEL);JSONObject result=post(config,request);
@@ -107,5 +122,5 @@ public final class MainActivity extends Activity {
  @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);IntentResult scan=IntentIntegrator.parseActivityResult(request,result,data);if(scan!=null){if(scan.getContents()!=null){JSONObject value=new JSONObject();try{value.put("pairing",scan.getContents());callback("pairing",value);}catch(Exception ignored){}}else if(data!=null&&data.getBooleanExtra("MYCODE_SCAN_ERROR",false))callback("notice",error(chinese()?"摄像头无法打开，请粘贴配对信息连接。":"Camera unavailable. Paste pairing information to connect."));}}
  @Override protected void onResume(){super.onResume();if(web!=null){web.onResume();web.evaluateJavascript("window.refresh&&window.refresh()",null);}}
  @Override protected void onPause(){if(web!=null){web.onPause();web.evaluateJavascript("window.pauseRefresh&&window.pauseRefresh()",null);}super.onPause();}
- @Override protected void onDestroy(){network.shutdownNow();if(web!=null){web.removeJavascriptInterface("Desktop");web.destroy();web=null;}super.onDestroy();}
+ @Override protected void onDestroy(){network.shutdownNow();models.shutdownNow();storage.shutdown();if(web!=null){web.removeJavascriptInterface("Desktop");web.destroy();web=null;}super.onDestroy();}
 }

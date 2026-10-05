@@ -18,6 +18,10 @@ fn candidates(tool: &str) -> Vec<PathBuf> {
             "F:/Program Files/Huawei/DevEco Studio/bin/devecostudio64.exe",
             "C:/Program Files/Huawei/DevEco Studio/bin/devecostudio64.exe",
         ],
+        "emulator" => &[
+            "F:/Program Files/Huawei/DevEco Studio/tools/emulator/Emulator.exe",
+            "C:/Program Files/Huawei/DevEco Studio/tools/emulator/Emulator.exe",
+        ],
         "hdc" => &[
             "F:/Program Files/Huawei/DevEco Studio/sdk/default/openharmony/toolchains/hdc.exe",
             "C:/Program Files/Huawei/DevEco Studio/sdk/default/openharmony/toolchains/hdc.exe",
@@ -36,6 +40,7 @@ fn candidates(tool: &str) -> Vec<PathBuf> {
     let names: &[&str] = match tool {
         "wechat" => &["cli.bat", "cli.sh"],
         "deveco" => &["devecostudio64.exe", "devecostudio.sh"],
+        "emulator" => &["Emulator.exe"],
         "hdc" => &["hdc.exe", "hdc"],
         "adb" => &["adb.exe", "adb"],
         "hvigor" => &["hvigorw.bat", "hvigorw"],
@@ -60,7 +65,7 @@ fn candidates(tool: &str) -> Vec<PathBuf> {
 }
 #[tauri::command]
 pub fn development_detect() -> Value {
-    json!( ["wechat","deveco","hvigor","hdc","adb","xcode"].iter().map(|id|json!({"id":id,"path":candidates(id).into_iter().find(|p|p.is_file()).map(|p|p.to_string_lossy().into_owned())})).collect::<Vec<_>>() )
+    json!( ["wechat","deveco","emulator","hvigor","hdc","adb","xcode"].iter().map(|id|json!({"id":id,"path":candidates(id).into_iter().find(|p|p.is_file()).map(|p|p.to_string_lossy().into_owned())})).collect::<Vec<_>>() )
 }
 fn command(binary: &Path, args: &[String]) -> Result<Command, String> {
     #[cfg(windows)]
@@ -83,7 +88,8 @@ fn command(binary: &Path, args: &[String]) -> Result<Command, String> {
             .collect::<Vec<_>>()
             .join(" ");
         let mut cmd = Command::new("cmd.exe");
-        cmd.args(["/D", "/S", "/C", &format!("\"{line}\"")]);
+        use std::os::windows::process::CommandExt;
+        cmd.args(["/D", "/S", "/C"]).raw_arg(format!("\"{line}\""));
         return Ok(cmd);
     }
     let mut cmd = Command::new(binary);
@@ -99,6 +105,9 @@ fn operation(tool: &str, action: &str, cwd: &Path) -> Result<Vec<String>, String
         ("wechat", "preview") if cwd.join("project.config.json").is_file() => {
             vec!["preview", "--project", &project, "--qr-format", "terminal"]
         }
+        ("wechat", "test") if cwd.join("project.config.json").is_file() => vec![],
+        ("hvigor", "test") if cwd.join("build-profile.json5").is_file() => vec![],
+        ("emulator", "devices") => vec!["-list", "-details"],
         ("deveco", "open") => vec![&project],
         ("hdc", "devices") => vec!["list", "targets"],
         ("adb", "devices") => vec!["devices", "-l"],
@@ -130,16 +139,23 @@ fn operation(tool: &str, action: &str, cwd: &Path) -> Result<Vec<String>, String
 }
 #[tauri::command]
 pub async fn development_run(
+    app: tauri::AppHandle,
     tool: String,
     action: String,
     cwd: String,
     binary: String,
+    paths: Option<std::collections::BTreeMap<String, String>>,
 ) -> Result<Value, String> {
     tauri::async_runtime::spawn_blocking(move||{
  let cwd=fs::canonicalize(cwd).map_err(|e|e.to_string())?;
  if !cwd.is_dir(){return Err("Choose a project folder".into());}
- let args=operation(&tool,&action,&cwd)?;
+ let mut args=operation(&tool,&action,&cwd)?;
  let binary=if tool=="gradle"{cwd.join(if cfg!(windows){"gradlew.bat"}else{"gradlew"})}else{PathBuf::from(binary)};
+ let binary=if action=="test" && ["wechat","hvigor"].contains(&tool.as_str()) {
+   let runtime=crate::managed_cli::runtime_dir(&app)?;
+   args=vec![runtime.join("development-test.cjs").to_string_lossy().into_owned(),if tool=="wechat"{"wechat".into()}else{"harmony".into()},cwd.to_string_lossy().into_owned(),serde_json::to_string(&tool_paths(paths.unwrap_or_default())).map_err(|e|e.to_string())?];
+   crate::managed_cli::node(&app)?
+ }else{binary};
  if !binary.is_file(){return Err("Tool is not installed. Configure its executable path first".into());}
  let mut cmd=command(&binary,&args)?;cmd.current_dir(&cwd);
  if action=="open"{cmd.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());crate::hide_window_console(&mut cmd);cmd.spawn().map_err(|e|e.to_string())?;return Ok(json!({"success":true,"output":"Opened local developer tool"}));}
@@ -174,6 +190,7 @@ mod tests {
 }
 #[tauri::command]
 pub fn development_context(
+    app: tauri::AppHandle,
     cwd: String,
     paths: Option<std::collections::BTreeMap<String, String>>,
 ) -> String {
@@ -181,15 +198,34 @@ pub fn development_context(
     let paths = paths.unwrap_or_default();
     let mut tools = Vec::new();
     let actions: Vec<(&str, &str)> = if cwd.join("project.config.json").is_file() {
-        vec![("wechat", "open"), ("wechat", "preview")]
+        vec![
+            ("wechat", "open"),
+            ("wechat", "preview"),
+            ("wechat", "test"),
+        ]
     } else if cwd.join("build-profile.json5").is_file() {
-        vec![("deveco", "open"), ("hvigor", "build"), ("hdc", "devices")]
+        vec![
+            ("deveco", "open"),
+            ("hvigor", "build"),
+            ("hvigor", "test"),
+            ("emulator", "devices"),
+            ("hdc", "devices"),
+        ]
     } else if cwd.join("settings.gradle").is_file() || cwd.join("settings.gradle.kts").is_file() {
         vec![("gradle", "build"), ("gradle", "test"), ("adb", "devices")]
     } else {
         vec![]
     };
     for (tool, action) in actions {
+        if action == "test" && ["wechat", "hvigor"].contains(&tool) {
+            if let (Ok(node), Ok(runtime)) = (
+                crate::managed_cli::node(&app),
+                crate::managed_cli::runtime_dir(&app),
+            ) {
+                tools.push(json!({"tool":tool,"action":action,"program":node,"args":[runtime.join("development-test.cjs"),if tool=="wechat"{"wechat"}else{"harmony"},cwd,serde_json::to_string(&tool_paths(paths.clone())).unwrap_or_default()],"cwd":cwd}));
+            }
+            continue;
+        }
         let binary = if tool == "gradle" {
             Some(cwd.join(if cfg!(windows) {
                 "gradlew.bat"
@@ -213,6 +249,18 @@ pub fn development_context(
     if tools.is_empty() {
         String::new()
     } else {
-        format!("[MyCode installed local developer tools - reference data]\n{}\nUse these installed tools when the user's task calls for testing or building this project, through your normal command tools and approval flow. Keep generated artifacts in the project. Do not upload or publish without user authorization. WeChat CLI requires its service to be enabled and the owner to be logged in; HarmonyOS/Android require project SDK and signing configuration. Do not claim device validation from build success alone.\n[End of local developer tool reference]",json!(tools))
+        format!("[MyCode installed local developer tools - reference data]\n{}\nWhen implementing or fixing this project's UI, automatically run its simulator test action through normal command tools and approval flow after building. WeChat starts automation, checks active pages and saves screenshots; .mycode/wechat-tests.json can specify pages and RPC assertions. HarmonyOS requires .mycode/harmony-tests.json with bundle, module, project-relative hap and testHap paths, optional emulator name and port. Build signed test HAPs first, then the test action starts an existing emulator and runs Hypium. Do not accept SDK agreements or bypass tool authorization. Keep results under .mycode/test-results. Report missing prerequisites or failed assertions honestly. Do not claim full business acceptance from a smoke check. Do not upload or publish without authorization.\n[End of local developer tool reference]",json!(tools))
     }
+}
+fn tool_paths(
+    mut configured: std::collections::BTreeMap<String, String>,
+) -> std::collections::BTreeMap<String, String> {
+    for id in ["wechat", "hdc", "emulator"] {
+        if !configured.get(id).is_some_and(|p| Path::new(p).is_file()) {
+            if let Some(path) = candidates(id).into_iter().find(|p| p.is_file()) {
+                configured.insert(id.into(), path.to_string_lossy().into_owned());
+            }
+        }
+    }
+    configured
 }
