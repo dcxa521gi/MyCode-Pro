@@ -385,7 +385,7 @@ fn local_addresses() -> Vec<Value> {
             std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into()),
         )
         .join("System32/WindowsPowerShell/v1.0/powershell.exe");
-        let result=std::process::Command::new(powershell).env_remove("PSModulePath").args(["-NoProfile","-NonInteractive","-Command","[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } | Select-Object @{n='address';e={$_.IPAddress}},@{n='name';e={$_.InterfaceAlias}} | ConvertTo-Json -Compress"]).creation_flags(0x08000000).output();
+        let result=std::process::Command::new(powershell).env_remove("PSModulePath").args(["-NoProfile","-NonInteractive","-Command","[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); $mycodeAdapters=@{}; Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue | ForEach-Object { $mycodeAdapters[$_.ifIndex]=$_.HardwareInterface }; Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } | Select-Object @{n='address';e={$_.IPAddress}},@{n='name';e={$_.InterfaceAlias}},@{n='physical';e={$mycodeAdapters[$_.InterfaceIndex]}} | ConvertTo-Json -Compress"]).creation_flags(0x08000000).output();
         if let Ok(output) = result {
             if let Ok(value) = serde_json::from_slice::<Value>(&output.stdout) {
                 return match value {
@@ -399,27 +399,31 @@ fn local_addresses() -> Vec<Value> {
     vec![]
 }
 fn preferred_direct_address(addresses: &[Value]) -> Option<String> {
-    addresses.iter().find_map(|value| {
-        let name = value["name"].as_str().unwrap_or("").to_lowercase();
-        if [
-            "vpn",
-            "wintun",
-            "wireguard",
-            "tap",
-            "vethernet",
-            "vmware",
-            "virtual",
-            "loopback",
-        ]
+    addresses
         .iter()
-        .any(|part| name.contains(part))
-        {
-            return None;
-        }
-        let address = value["address"].as_str()?;
-        let ip = address.parse::<std::net::Ipv4Addr>().ok()?;
-        ip.is_private().then(|| address.to_owned())
-    })
+        .filter(|v| v["physical"] == true)
+        .chain(addresses.iter().filter(|v| v["physical"].is_null()))
+        .find_map(|value| {
+            let name = value["name"].as_str().unwrap_or("").to_lowercase();
+            if [
+                "vpn",
+                "wintun",
+                "wireguard",
+                "tap",
+                "vethernet",
+                "vmware",
+                "virtual",
+                "loopback",
+            ]
+            .iter()
+            .any(|part| name.contains(part))
+            {
+                return None;
+            }
+            let address = value["address"].as_str()?;
+            let ip = address.parse::<std::net::Ipv4Addr>().ok()?;
+            ip.is_private().then(|| address.to_owned())
+        })
 }
 #[tauri::command]
 pub async fn mobile_allow_firewall(
@@ -558,6 +562,15 @@ mod tests {
             Some("192.168.1.20".into())
         );
         assert_eq!(preferred_direct_address(&addresses[..2]), None);
+        let adapters = vec![
+            json!({"address":"10.8.0.2","name":"Meta","physical":false}),
+            json!({"address":"192.168.9.20","name":"Ethernet","physical":true}),
+        ];
+        assert_eq!(
+            preferred_direct_address(&adapters),
+            Some("192.168.9.20".into())
+        );
+        assert_eq!(preferred_direct_address(&adapters[..1]), None);
     }
     #[test]
     fn direct_tls_pairing_has_complete_json_and_clean_tls_shutdown() {
