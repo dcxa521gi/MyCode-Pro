@@ -156,6 +156,8 @@ function renderPhoneMessages() {
   const root = $("messages");
   root.replaceChildren();
   const chat = phoneState.chats.find((c) => c.id === phoneChat);
+  if(chat) $("chatTitle").textContent=chat.title;
+  $("composerHint").textContent=t("通过手机配置的模型生成回复，对话保存在手机中。","Replies use your phone model provider; conversations stay on this phone.");
   for (const item of chat?.messages || []) {
     const div = document.createElement("div");
     div.className = "message " + item.role;
