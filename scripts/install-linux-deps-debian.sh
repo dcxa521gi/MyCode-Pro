@@ -4,6 +4,7 @@ set -euo pipefail
 # Hosted runners include unrelated third-party repositories. CI can select the
 # distribution's own source file without editing the machine's apt config.
 APT_SOURCES=()
+APT_NETWORK=(-o Acquire::ForceIPv4=true -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o Acquire::Retries=2)
 if [ "$#" -gt 0 ]; then
   if [ "$#" -ne 2 ] || [ "$1" != "--sources" ] || [ ! -f "$2" ]; then
     echo "Usage: $0 [--sources EXISTING_SOURCE_FILE]" >&2
@@ -27,8 +28,8 @@ else
 fi
 
 # The conditional expansions also support empty arrays with nounset on Bash 3.
-${SUDO[@]+"${SUDO[@]}"} apt-get ${APT_SOURCES[@]+"${APT_SOURCES[@]}"} update
-${SUDO[@]+"${SUDO[@]}"} env DEBIAN_FRONTEND=noninteractive apt-get ${APT_SOURCES[@]+"${APT_SOURCES[@]}"} install -y \
+${SUDO[@]+"${SUDO[@]}"} apt-get "${APT_NETWORK[@]}" ${APT_SOURCES[@]+"${APT_SOURCES[@]}"} update
+${SUDO[@]+"${SUDO[@]}"} env DEBIAN_FRONTEND=noninteractive apt-get "${APT_NETWORK[@]}" ${APT_SOURCES[@]+"${APT_SOURCES[@]}"} install -y \
   build-essential \
   curl \
   file \

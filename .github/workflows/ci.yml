@@ -37,7 +37,10 @@ jobs:
 
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
-        run: bash scripts/install-linux-deps-debian.sh --sources /etc/apt/sources.list.d/ubuntu.sources
+        timeout-minutes: 10
+        run: |
+          sed -E 's|http://[^ /]*archive.ubuntu.com/ubuntu/?|https://archive.ubuntu.com/ubuntu/|g; s|http://security.ubuntu.com/ubuntu/?|https://security.ubuntu.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources > "$RUNNER_TEMP/mycode-ubuntu.sources"
+          bash scripts/install-linux-deps-debian.sh --sources "$RUNNER_TEMP/mycode-ubuntu.sources"
 
       - uses: actions/setup-node@v4
         with:
