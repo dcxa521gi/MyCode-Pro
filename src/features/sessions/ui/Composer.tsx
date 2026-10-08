@@ -58,6 +58,7 @@ import {
   EXPLORER_FILE_POINTER_DRAG_EVENT,
   type ExplorerFilePointerDragDetail,
 } from "../../../shared/lib/drag";
+import { dragPointToClient } from "../../../shared/lib/dragPoint";
 import type { ContextUsage } from "../model/contextUsage";
 import {
   loadProjectFiles,
@@ -601,6 +602,12 @@ export function Composer({
   const consumedQuoteId = useRef<number | null>(null);
   const draftRevisionRef = useRef(0);
   const draftResetTokenRef = useRef(draftResetToken);
+  /** Bumped when the draft is cleared, so a late file read cannot land on the next one. */
+  const pasteGenerationRef = useRef(0);
+  /** Pasted and dropped files still reading when Send is pressed. */
+  const pasteFlightRef = useRef<Promise<void> | null>(null);
+  const submitLockRef = useRef(false);
+  const [pasteError, setPasteError] = useState<string | null>(null);
   const positionedInitialDraft = useRef(false);
   const slashRef = useRef<SlashToken | null>(null);
   const mentionRef = useRef<MentionToken | null>(null);
@@ -662,6 +669,9 @@ export function Composer({
       if (!controller.signal.aborted) setEnhancing(false);
     }
   };
+  const [mountDraft] = useState(
+    () => decodeContextDraft(initialDraft ?? "").text,
+  );
   const { branches: draftBranches } = useProjectBranchesState(
     executionCwd,
     draftWorkspace && enabled && !busy,
@@ -921,6 +931,61 @@ export function Composer({
     },
     [harness, syncHasValue],
   );
+  // Native listener registration crosses several IPC hops. Keep changing
+  // composer callbacks and capabilities out of its subscription dependencies.
+  const remote = /^remote:\/\//.test(executionCwd ?? cwd ?? "");
+  const fileDropStateRef = useRef({
+    attachmentsSupported,
+    remote,
+    addAttachments,
+  });
+  fileDropStateRef.current = { attachmentsSupported, remote, addAttachments };
+
+  const rememberAttachmentRead = useCallback((work: Promise<void>) => {
+    const flight = work.then(
+      () => undefined,
+      () => undefined,
+    );
+    const previous = pasteFlightRef.current;
+    const joined = previous ? previous.then(() => flight) : flight;
+    pasteFlightRef.current = joined;
+    void joined.finally(() => {
+      if (pasteFlightRef.current === joined) pasteFlightRef.current = null;
+    });
+  }, []);
+
+  const readDroppedAttachments = useCallback(
+    (read: () => Promise<Attachment[]>) => {
+      const generation = pasteGenerationRef.current;
+      setPasteError(null);
+      rememberAttachmentRead(
+        read()
+          .then((incoming) => {
+            if (
+              pasteGenerationRef.current !== generation ||
+              !fileDropStateRef.current.attachmentsSupported
+            ) {
+              incoming.forEach(revokeAttachment);
+              return;
+            }
+            if (incoming.length === 0) {
+              setPasteError(
+                "Nothing to attach from that drop — the file may have been moved, renamed, or deleted.",
+              );
+              return;
+            }
+            fileDropStateRef.current.addAttachments(incoming);
+          })
+          .catch((reason: unknown) => {
+            if (pasteGenerationRef.current !== generation) return;
+            setPasteError(
+              reason instanceof Error ? reason.message : String(reason),
+            );
+          }),
+      );
+    },
+    [rememberAttachmentRead],
+  );
 
   const removeAttachment = useCallback(
     (id: string) => {
@@ -943,6 +1008,7 @@ export function Composer({
     return () => {
       queueMicrotask(() => {
         if (attachmentLifecycleRef.current !== lifecycle) return;
+        pasteGenerationRef.current += 1;
         for (const file of attachmentsRef.current) {
           if (!borrowedAttachmentIdsRef.current.delete(file.id)) {
             revokeAttachment(file);
@@ -1076,6 +1142,7 @@ export function Composer({
       return;
     }
     draftResetTokenRef.current = draftResetToken;
+    pasteGenerationRef.current += 1;
     draftRevisionRef.current += 1;
     if (ref.current) {
       ref.current.value = "";
@@ -1330,27 +1397,14 @@ export function Composer({
     const dropRoot = () =>
       boxRef.current?.closest("[data-session-drop]") as HTMLElement | null;
     let nativeDropAt = 0;
-
-    const toClientPoint = (x: number, y: number) => {
-      const scale = window.devicePixelRatio || 1;
-      // Tauri types this as PhysicalPosition, but macOS wry reports logical
-      // points. Only scale down when the point sits outside the CSS viewport.
-      if (scale !== 1 && (x > window.innerWidth || y > window.innerHeight)) {
-        return { x: x / scale, y: y / scale };
-      }
-      return { x, y };
-    };
+    let cancelled = false;
 
     const overTarget = (x: number, y: number) => {
       const root = dropRoot();
       if (!root) return false;
-      const point = toClientPoint(x, y);
       const rect = root.getBoundingClientRect();
       return (
-        point.x >= rect.left &&
-        point.x <= rect.right &&
-        point.y >= rect.top &&
-        point.y <= rect.bottom
+        x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
       );
     };
 
@@ -1358,9 +1412,9 @@ export function Composer({
       const data = event.dataTransfer;
       if (!hasFiles(data)) return;
       event.preventDefault();
-      if (!attachmentsSupported) return;
-      data.dropEffect = "copy";
-      setFileDrag(true);
+      const supported = fileDropStateRef.current.attachmentsSupported;
+      data.dropEffect = supported ? "copy" : "none";
+      setFileDrag(supported);
     };
     const onDragLeave = (event: DragEvent) => {
       const root = dropRoot();
@@ -1374,14 +1428,15 @@ export function Composer({
       if (!hasFiles(data)) return;
       event.preventDefault();
       setFileDrag(false);
-      if (!attachmentsSupported) return;
+      if (!fileDropStateRef.current.attachmentsSupported) return;
       if (Date.now() - nativeDropAt < 250) return;
-      const files = [...data.files];
+      const files = filesFromClipboard(data);
       if (files.length === 0) return;
-      void attachmentsFromFiles(files).then(addAttachments);
+      readDroppedAttachments(() => attachmentsFromFiles(files));
     };
 
     const onExplorerFilePointerDrag = (event: Event) => {
+      if (fileDropStateRef.current.remote) return;
       const detail = (event as CustomEvent<ExplorerFilePointerDragDetail>)
         .detail;
       if (!detail || detail.type === "end") {
@@ -1389,13 +1444,14 @@ export function Composer({
         return;
       }
       const over = overTarget(detail.x, detail.y);
+      const supported = fileDropStateRef.current.attachmentsSupported;
       if (detail.type === "move") {
-        setFileDrag(over && attachmentsSupported);
+        setFileDrag(over && supported);
         return;
       }
       setFileDrag(false);
-      if (!over || !attachmentsSupported) return;
-      void attachmentsFromPaths([detail.path]).then(addAttachments);
+      if (!over || !supported) return;
+      readDroppedAttachments(() => attachmentsFromPaths([detail.path]));
     };
 
     const root = dropRoot();
@@ -1407,25 +1463,34 @@ export function Composer({
       onExplorerFilePointerDrag,
     );
 
-    let cancelled = false;
     let unlisten: (() => void) | undefined;
     void getCurrentWebview()
       .onDragDropEvent((event) => {
+        if (cancelled) return;
         if (event.payload.type === "leave") {
           setFileDrag(false);
           return;
         }
         const { x, y } = event.payload.position;
-        const over = overTarget(x, y);
+        const point = dragPointToClient(x, y);
+        const over = overTarget(point.x, point.y);
+        const supported = fileDropStateRef.current.attachmentsSupported;
         if (event.payload.type === "enter" || event.payload.type === "over") {
-          setFileDrag(over && attachmentsSupported);
+          setFileDrag(over && supported);
           return;
         }
         if (event.payload.type !== "drop") return;
         setFileDrag(false);
-        if (!over || !attachmentsSupported) return;
+        if (!over || !supported) return;
+        if (event.payload.paths.length === 0) {
+          setPasteError(
+            "This drag did not provide a file. Save the image, then drag the saved file here.",
+          );
+          return;
+        }
         nativeDropAt = Date.now();
-        void attachmentsFromPaths(event.payload.paths).then(addAttachments);
+        const paths = event.payload.paths;
+        readDroppedAttachments(() => attachmentsFromPaths(paths));
       })
       .then((fn) => {
         if (cancelled) fn();
@@ -1444,7 +1509,10 @@ export function Composer({
       );
       unlisten?.();
     };
-  }, [addAttachments, attachmentsSupported, enabled]);
+  }, [disabled, enabled, readDroppedAttachments]);
+  useEffect(() => {
+    if (!attachmentsSupported) setFileDrag(false);
+  }, [attachmentsSupported]);
   const restoreDraft = useCallback(
     (
       text: string,
@@ -1455,8 +1523,7 @@ export function Composer({
       onDraftChange?.(text);
       if (ref.current) {
         ref.current.value = text;
-        ref.current.style.height = "auto";
-        ref.current.style.height = `${Math.min(ref.current.scrollHeight, 240)}px`;
+        resizeComposer(ref.current);
       }
 
       const nextIds = new Set(nextAttachments.map((file) => file.id));
@@ -1549,6 +1616,17 @@ export function Composer({
   }, [editLastTurnSupported, onRecallLastTurnReady, recallLastTurn]);
 
   const submit = (value: string) => {
+    if (submitLockRef.current) return;
+    if (pasteFlightRef.current) {
+      submitLockRef.current = true;
+      const generation = pasteGenerationRef.current;
+      void pasteFlightRef.current.then(() => {
+        submitLockRef.current = false;
+        if (generation === pasteGenerationRef.current) submit(ref.current?.value ?? value);
+      });
+      return;
+    }
+
     if (disabled || worktreeRemoved) return;
     if (isMcpCommand(value)) {
       mcpInsertAt.current = 0;
@@ -1567,7 +1645,7 @@ export function Composer({
       ? consumeDraftCommand(value)
       : { text: value, matched: false };
     if ((draftSelected || draftCommand.matched) && onSaveDraft) {
-      const files = attachments;
+      const files = attachmentsRef.current;
       const text = draftCommand.text;
       if (!text.trim() && files.length === 0) return;
       const accepted = onSaveDraft(
@@ -1653,7 +1731,7 @@ export function Composer({
       operatorSelected && !consumeOperatorCommand(text).matched
         ? `/operator ${text}`
         : text;
-    const files = attachments;
+    const files = attachmentsRef.current;
     if (
       !text &&
       !quotes.length &&
@@ -1673,6 +1751,7 @@ export function Composer({
     const resendSelectedMcp = selectedMcp;
     const resendQuotes = quotes;
 
+    pasteGenerationRef.current += 1;
     onDraftChange?.("");
     const accepted = onSubmit(
       mcpContextText(
@@ -1968,14 +2047,14 @@ export function Composer({
       );
       el.dispatchEvent(new Event("input", { bubbles: true }));
       if (attachmentsSupported)
-        void attachmentsFromFiles(messageFiles).then(addAttachments);
+        readDroppedAttachments(() => attachmentsFromFiles(messageFiles));
       return;
     }
     const files = filesFromClipboard(e.clipboardData);
     if (files.length === 0) return;
     e.preventDefault();
     if (!attachmentsSupported) return;
-    void attachmentsFromFiles(files).then(addAttachments);
+    readDroppedAttachments(() => attachmentsFromFiles(files));
   };
 
   const attachFromPicker = () => {
@@ -2280,6 +2359,11 @@ export function Composer({
             </div>
           ) : null}
 
+          {pasteError ? (
+            <p role="alert" className="px-3 pt-2 text-xs text-red-400">
+              {t(pasteError)}
+            </p>
+          ) : null}
           {inboxCard ? (
             <InboxMiniCard card={inboxCard} onDismiss={onInboxCardDismiss} />
           ) : null}
@@ -2343,8 +2427,8 @@ export function Composer({
               data-composer-empty={navigationEmpty ? "true" : undefined}
               style={{ textIndent: modeIndent }}
               rows={1}
-              spellCheck={false}
-              defaultValue={decodeContextDraft(initialDraft ?? "").text}
+              spellCheck
+              defaultValue={mountDraft}
               placeholder={t(
                 worktreeRemoved
                   ? "Select a branch or worktree to continue…"
@@ -2928,7 +3012,11 @@ export function ComposerAction({
 
 function hasFiles(data: DataTransfer | null): data is DataTransfer {
   if (!data) return false;
-  return [...data.types].some(
-    (type) => type === "Files" || type === "application/x-moz-file",
+  return (
+    data.files.length > 0 ||
+    [...data.types].some(
+      (type) => type === "Files" || type === "application/x-moz-file",
+    ) ||
+    Array.from(data.items ?? []).some((item) => item.kind === "file")
   );
 }

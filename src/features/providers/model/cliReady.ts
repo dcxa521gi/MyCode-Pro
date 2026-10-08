@@ -1,3 +1,4 @@
+import { compareCliVersions } from "./cliVersion";
 import { isTauri, invoke } from "@tauri-apps/api/core";
 import { inspectHarnessBinary } from "../../../integrations/harness/core/child";
 import type { HarnessId } from "../../sessions/model/session";
@@ -10,15 +11,7 @@ export type CliCheck = {
 };
 const checks = new Map<string, Promise<boolean>>();
 export function newerCliVersion(installed: string, latest: string): boolean {
-  const a = installed.match(/\d+\.\d+\.\d+(?:[-.][\w]+)*/)?.[0];
-  const b = latest.match(/\d+\.\d+\.\d+(?:[-.][\w]+)*/)?.[0];
-  if (!a || !b) return false;
-  const left = a.split(/[.-]/).slice(0, 3).map(Number),
-    right = b.split(/[.-]/).slice(0, 3).map(Number);
-  for (let i = 0; i < 3; i++) {
-    if (left[i] !== right[i]) return right[i] > left[i];
-  }
-  return a !== b && a.includes("-") && !b.includes("-");
+  return (compareCliVersions(installed, latest) ?? 0) > 0;
 }
 export function ensureCliReady(
   provider: HarnessId,

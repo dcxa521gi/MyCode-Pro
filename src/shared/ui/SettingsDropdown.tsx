@@ -20,8 +20,9 @@ export function SettingsDropdown({
   value,
   onChange,
   disabled,
+  onOpen,
   ...props
-}: SelectHTMLAttributes<HTMLSelectElement>) {
+}: SelectHTMLAttributes<HTMLSelectElement> & { onOpen?: () => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false),
     [query, setQuery] = useState("");
@@ -135,6 +136,7 @@ export function SettingsDropdown({
         aria-expanded={open}
         onClick={() => {
           setQuery("");
+          if (!open) onOpen?.();
           setOpen(!open);
         }}
         className="flex w-full items-center justify-between gap-3 rounded-lg border border-content/15 bg-content/[0.035] px-3 py-2 text-left text-xs text-content hover:bg-content/5 disabled:opacity-40"

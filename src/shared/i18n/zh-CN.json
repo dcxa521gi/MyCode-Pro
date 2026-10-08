@@ -2180,5 +2180,13 @@
   "Windows did not report a power scheme": "Windows 未返回有效电源方案。",
   "System wake lock could not be acquired": "系统唤醒请求未成功，请检查系统电源权限。",
   "Collapse": "收起",
-  "Expand": "展开"
+  "Expand": "展开",
+  "No new version": "无新版",
+  "New version": "有新版",
+  "Retry check": "重试检测",
+  "Version check failed": "版本检测失败",
+  "Install": "安装",
+  "Update": "更新",
+  "Could not compare CLI versions. Retry the version check.": "无法可靠比较 CLI 版本，请重试检测。",
+  "Nothing to attach from that drop — the file may have been moved, renamed, or deleted.": "没有可添加的文件，文件可能已被移动、重命名或删除。"
 }

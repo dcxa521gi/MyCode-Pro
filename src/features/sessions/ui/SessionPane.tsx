@@ -733,7 +733,9 @@ export const SessionPane = memo(function SessionPane({
       <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
         <div
           ref={transcriptScope}
-          className="@container relative min-h-0 flex-1"
+          className={`@container relative min-h-0 flex-1${
+            dockComposer ? " transcript-composer-fade" : ""
+          }`}
         >
           <TaskPlanSurface blocks={session.blocks} scope={transcriptScope} scroller={transcriptScroller} visible={visible} />
           {visible && focused && !session.inboxAsk ? (

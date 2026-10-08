@@ -163,7 +163,6 @@ import { HarnessIcon } from "../../features/sessions/ui/HarnessIcon";
 import { LiveAgentsPreview } from "../../features/sessions/ui/LiveAgentsPreview";
 import { ProjectRail } from "./ProjectRail";
 import { InboxNotificationMenu } from "../../features/inbox/ui/InboxNotificationMenu";
-import { prefetchGithubWorkItem } from "../../features/inbox/model/githubTasks";
 import { RailAction } from "./RailAction";
 import { TerminalSpinner } from "../../features/sessions/ui/TerminalSpinner";
 import { DevModeSlot, IconButton, TabVisitNav } from "./TitleBar";
@@ -660,6 +659,12 @@ function SidebarComponent({
   const drawerRendered = drawerVisible || drawerClosing;
   const drawerAnimation = useRef<Animation | null>(null);
   const panelOpen = open || drawerVisible;
+  // Keep the hidden explorer intact when a chat tab changes worktrees. Its
+  // rows and file icons only need rebuilding when Files is actually shown.
+  const explorer = useRef<{ cwd: string; rootLabel?: string } | null>(null);
+  if (panelOpen && tab === "files") {
+    explorer.current = { cwd: gitRoot, rootLabel: explorerRootLabel };
+  }
   const gitStatuses = useGitFileStatuses(gitRoot, panelOpen && tab === "files");
   const changeStats = useProjectDiffStats(gitRoot, panelOpen);
 
@@ -1572,17 +1577,19 @@ function SidebarComponent({
             />
           ) : cwd && cwd !== "~" ? (
             <div className="flex min-h-0 flex-1 flex-col">
-              <FileTree
-                key={gitRoot}
-                cwd={gitRoot}
-                rootLabel={explorerRootLabel}
-                onOpenFile={onOpenFile}
-                onOpenTerminal={onOpenTerminal}
-                onFileMoved={onFileMoved}
-                onFileDeleted={onFileDeleted}
-                onSearch={onOpenFilesSearch}
-                gitStatuses={gitStatuses}
-              />
+              {explorer.current ? (
+                <FileTree
+                  key={explorer.current.cwd}
+                  cwd={explorer.current.cwd}
+                  rootLabel={explorer.current.rootLabel}
+                  onOpenFile={onOpenFile}
+                  onOpenTerminal={onOpenTerminal}
+                  onFileMoved={onFileMoved}
+                  onFileDeleted={onFileDeleted}
+                  onSearch={onOpenFilesSearch}
+                  gitStatuses={gitStatuses}
+                />
+              ) : null}
             </div>
           ) : (
             <p className="px-3 py-2 text-[12px] text-content/50">
@@ -1612,7 +1619,7 @@ function SidebarComponent({
             sessionsLock(el);
             sessionsScrollRef.current = el;
           }}
-          className={`min-h-0 flex-1 overflow-y-auto overscroll-none ${
+          className={`sidebar-session-scroll min-h-0 flex-1 overflow-y-auto overscroll-none ${
             tab === "sessions" ? "" : "hidden"
           }`}
         >
@@ -1648,7 +1655,7 @@ function SidebarComponent({
                   <SessionsEmpty message="Sessions you start will show up here" />
                 )
               ) : (
-                <ul data-session-list className="flex flex-col gap-0.5 p-1.5">
+                <ul data-session-list className="flex flex-col gap-0.5 p-1.5 pb-10">
                   {sessionListEntries.map((entry, index) => {
                     if (entry.kind === "pinned" || entry.kind === "reminders") {
                       const isReminders = entry.kind === "reminders";
@@ -3042,11 +3049,6 @@ const SessionCard = memo(function SessionCard({
       data-tauri-drag-region="false"
       title={`Open ${linkedWorkItem.kind === "pr" ? "PR" : "issue"} #${linkedWorkItem.number} beside this session (${MOD}-click for GitHub)`}
       aria-label={`Open ${linkedWorkItem.kind === "pr" ? "PR" : "issue"} #${linkedWorkItem.number}`}
-      onPointerEnter={() => {
-        // Hover usually precedes the click by a few hundred ms, which is
-        // most of what the panel would otherwise spend waiting on GitHub.
-        if (onOpenWorkItem) prefetchGithubWorkItem(session.cwd, linkedWorkItem);
-      }}
       onPointerDown={(event) => event.stopPropagation()}
       onClick={(event) => {
         event.preventDefault();
@@ -3566,6 +3568,44 @@ function DiffStat({
   additions: number;
   deletions: number;
 }) {
+  const containerRef = useRef<HTMLSpanElement>(null);
+  const contentRef = useRef<HTMLSpanElement>(null);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) return;
+
+    const fit = () => {
+      const availableWidth = container.getBoundingClientRect().width;
+      if (availableWidth <= 0) return;
+
+      // Measure at the normal size so the text can grow again after resizing.
+      let maxFontSize = 11;
+      content.style.fontSize = `${maxFontSize}px`;
+      if (content.getBoundingClientRect().width <= availableWidth) return;
+
+      // Font metrics can change at small sizes, so check the rendered width.
+      let minFontSize = 0;
+      while (maxFontSize - minFontSize > 0.1) {
+        const fontSize = (minFontSize + maxFontSize) / 2;
+        content.style.fontSize = `${fontSize}px`;
+        if (content.getBoundingClientRect().width > availableWidth) {
+          maxFontSize = fontSize;
+        } else {
+          minFontSize = fontSize;
+        }
+      }
+      content.style.fontSize = `${minFontSize}px`;
+    };
+
+    fit();
+    // Sidebar dragging writes its width directly to the DOM, without a render.
+    const observer = new ResizeObserver(fit);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [additions, deletions]);
+
   if (additions <= 0 && deletions <= 0) return null;
 
   const label = [
@@ -3577,19 +3617,25 @@ function DiffStat({
 
   return (
     <span
+      ref={containerRef}
       title={`${label} uncommitted`}
-      className="flex shrink-0 items-center gap-1.5 font-sans text-[11px] font-semibold tabular-nums"
+      className="flex h-full w-full min-w-0 items-center justify-center overflow-hidden"
     >
-      {additions > 0 ? (
-        <span className="text-diff-add-fg">
-          +<TightDiffNumber value={additions} />
-        </span>
-      ) : null}
-      {deletions > 0 ? (
-        <span className="text-diff-del-fg">
-          -<TightDiffNumber value={deletions} />
-        </span>
-      ) : null}
+      <span
+        ref={contentRef}
+        className="flex shrink-0 items-center gap-[0.55em] whitespace-nowrap font-sans text-[11px] font-semibold tabular-nums"
+      >
+        {additions > 0 ? (
+          <span className="text-diff-add-fg">
+            +<TightDiffNumber value={additions} />
+          </span>
+        ) : null}
+        {deletions > 0 ? (
+          <span className="text-diff-del-fg">
+            -<TightDiffNumber value={deletions} />
+          </span>
+        ) : null}
+      </span>
     </span>
   );
 }

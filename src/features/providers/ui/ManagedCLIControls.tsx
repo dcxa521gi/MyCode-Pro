@@ -1,5 +1,4 @@
 import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
-import { IS_WIN } from "../../../platform/tauri/platform";
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "../../../shared/i18n";
@@ -9,10 +8,21 @@ import {
 } from "../model/providerBinaryPaths";
 import { probeHarnessAvailability } from "../../../integrations/harness/core/availability";
 import { inspectHarnessBinary } from "../../../integrations/harness/core/child";
-import type { HarnessId } from "../../sessions/model/session";
+import type { ConfigurableBinaryProvider } from "../model/providerBinaryPaths";
+import {
+  checkCLIVersion,
+  invalidateCLIVersion,
+  useCLIVersion,
+} from "../model/cliVersions";
+import { ArrowDownCircle, Loader } from "../../../shared/ui/icons";
 import { refreshPiCatalog } from "../../../integrations/harness/providers/pi/piCatalog";
-export function ManagedCLIControls({ provider }: { provider: HarnessId }) {
+export function ManagedCLIControls({
+  provider,
+}: {
+  provider: ConfigurableBinaryProvider;
+}) {
   const { t } = useTranslation();
+  const version = useCLIVersion(provider);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
   const [scope, setScope] = useState(
@@ -59,22 +69,11 @@ export function ManagedCLIControls({ provider }: { provider: HarnessId }) {
     setBusy(true);
     setStatus(t(install ? "Installing…" : "Checking installed version…"));
     try {
-      if (
-        install &&
-        IS_WIN &&
-        ["fx", "antigravity", "zcode"].includes(provider)
-      ) {
-        setStatus(
-          t(
-            provider === "zcode"
-              ? "ZCode publishes a desktop installer only. Its CLI currently requires a source build; select an existing CLI executable below."
-              : "This agent has no official Windows CLI release. Use a supported system or configure an existing compatible executable.",
-          ),
-        );
-        return;
-      }
       if (install) {
         const path = await invoke<string>("managed_cli_install", { provider });
+        const verified = await inspectHarnessBinary(provider, path);
+        if (!verified.version)
+          throw Error(verified.error || "CLI returned no valid version.");
         if (!(await applyProviderBinaryPath(provider, path)))
           throw Error("Could not save the binary path.");
         localStorage.setItem("mycode.appCliPath." + provider, path);
@@ -82,21 +81,11 @@ export function ManagedCLIControls({ provider }: { provider: HarnessId }) {
         setScope("app");
         await probeHarnessAvailability({ force: true });
         if (provider === "pi") await refreshPiCatalog();
+        invalidateCLIVersion(provider);
+        await checkCLIVersion(provider, true);
         setStatus(t("Installed in MyCode. New sessions use this version."));
       } else {
-        const current = await inspectHarnessBinary(provider).catch(() => null);
-        const installed = `${t("Installed")}: ${current?.version ?? t("Not installed")}`;
-        setStatus(`${installed} · ${t("Checking latest version…")}`);
-        const latest = await invoke<{ version: string }>("managed_cli_latest", {
-          provider,
-        }).catch((error) => {
-          setStatus(`${installed} · ${String(error)}`);
-          return null;
-        });
-        if (!latest) return;
-        setStatus(
-          `${t("Installed")}: ${current?.version ?? t("Not installed")} · ${t("Latest")}: ${latest.version}`,
-        );
+        await checkCLIVersion(provider, true);
       }
     } catch (error) {
       setStatus(`${t("CLI operation failed.")} ${String(error)}`);
@@ -124,12 +113,59 @@ export function ManagedCLIControls({ provider }: { provider: HarnessId }) {
         {t("Check version")}
       </button>
       <button
-        disabled={busy}
-        className="rounded-md bg-accent/10 px-2 py-1 text-accent disabled:opacity-40"
-        onClick={() => void run(true)}
+        disabled={
+          busy || ["idle", "checking", "current"].includes(version.phase)
+        }
+        title={t(
+          version.phase === "current"
+            ? "No new version"
+            : version.phase === "error"
+              ? "Retry check"
+              : "Install / update in MyCode",
+        )}
+        className="inline-flex items-center gap-1.5 rounded-md bg-accent/10 px-2 py-1 text-accent disabled:cursor-default disabled:bg-content/5 disabled:text-content/35"
+        onClick={() => void run(version.phase !== "error")}
       >
-        {t(busy ? "Working…" : "Install / update in MyCode")}
+        {busy || ["idle", "checking"].includes(version.phase) ? (
+          <Loader className="size-3 animate-spin" />
+        ) : version.phase === "update" ? (
+          <ArrowDownCircle className="size-3.5" aria-hidden />
+        ) : null}
+        {t(
+          busy
+            ? "Working…"
+            : version.phase === "missing"
+              ? "Install"
+              : version.phase === "update"
+                ? "Update"
+                : version.phase === "current"
+                  ? "No new version"
+                  : version.phase === "error"
+                    ? "Retry check"
+                    : "Checking version…",
+        )}
       </button>
+      {version.phase === "update" && (
+        <span className="rounded bg-accent/10 px-1.5 py-0.5 text-accent">
+          {t("New version")} · {version.latest}
+        </span>
+      )}
+      {version.phase === "error" && (
+        <span
+          role="status"
+          className="max-w-72 text-content/50 [overflow-wrap:anywhere]"
+        >
+          {t("Version check failed")} · {t(version.error || "Unknown")}
+        </span>
+      )}
+      {version.installed && (
+        <span
+          title={version.installed}
+          className="max-w-48 truncate text-content/45"
+        >
+          {t("Installed")}: {version.installed.split("\n")[0]}
+        </span>
+      )}
       {status && (
         <span role="status" className="max-w-80 text-content/50">
           {status}

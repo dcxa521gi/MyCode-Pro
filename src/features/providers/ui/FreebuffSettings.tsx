@@ -1,13 +1,9 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { TerminalView } from "../../terminal/ui/TerminalView";
-import {
-  inspectHarnessBinary,
-  resolveHarnessBinary,
-} from "../../../integrations/harness/core/child";
-import { applyProviderBinaryPath } from "../model/providerBinaryPaths";
+import { resolveHarnessBinary } from "../../../integrations/harness/core/child";
+import { ManagedCLIControls } from "./ManagedCLIControls";
 import { useTranslation } from "../../../shared/i18n";
 import { IS_WIN } from "../../../platform/tauri/platform";
 export function FreebuffSettings({ cwd }: { cwd?: string }) {
@@ -19,46 +15,24 @@ export function FreebuffSettings({ cwd }: { cwd?: string }) {
     cwd: string;
     command: string;
   } | null>(null);
-  const run = async (action: "check" | "install" | "open") => {
+  const run = async () => {
     setBusy(true);
     setStatus("");
     try {
-      if (action === "install") {
-        const path = await invoke<string>("managed_cli_install", {
-          provider: "freebuff",
-        });
-        if (!(await applyProviderBinaryPath("freebuff", path)))
-          throw Error("Could not save the binary path.");
-        const info = await inspectHarnessBinary("freebuff", path);
-        if (!info.version)
-          throw Error(info.error || "CLI returned no valid version.");
-        setStatus(`${t("Installation successful")} · ${info.version}`);
-      } else if (action === "check") {
-        const installed = await inspectHarnessBinary("freebuff").catch(
-          () => null,
-        );
-        const latest = await invoke<{ version: string }>("managed_cli_latest", {
-          provider: "freebuff",
-        });
-        setStatus(
-          `${t("Installed")}: ${installed?.version || t("Not installed")} · ${t("Latest")}: ${latest.version}`,
-        );
-      } else {
-        const folder =
-          cwd ||
-          (await open({
-            directory: true,
-            multiple: false,
-            title: t("Choose workspace folder"),
-          }));
-        if (typeof folder !== "string") return;
-        const { path } = await resolveHarnessBinary("freebuff");
-        // Fixed platform shell; quote the executable as a literal, never code.
-        const command = IS_WIN
-          ? `& '${path.replace(/'/g, "''")}'`
-          : `'${path.replace(/'/g, "'\\''")}'`;
-        setTerminal({ id: crypto.randomUUID(), cwd: folder, command });
-      }
+      const folder =
+        cwd ||
+        (await open({
+          directory: true,
+          multiple: false,
+          title: t("Choose workspace folder"),
+        }));
+      if (typeof folder !== "string") return;
+      const { path } = await resolveHarnessBinary("freebuff");
+      // Fixed platform shell; quote the executable as a literal, never code.
+      const command = IS_WIN
+        ? `& '${path.replace(/'/g, "''")}'`
+        : `'${path.replace(/'/g, "'\\''")}'`;
+      setTerminal({ id: crypto.randomUUID(), cwd: folder, command });
     } catch (error) {
       setStatus(String(error));
     } finally {
@@ -74,22 +48,14 @@ export function FreebuffSettings({ cwd }: { cwd?: string }) {
         )}
       </p>
       <div className="flex gap-3 text-xs">
-        {(["check", "install", "open"] as const).map((action, i) => (
-          <button
-            disabled={busy}
-            key={action}
-            className="rounded-lg bg-content/10 px-3 py-2 disabled:opacity-40"
-            onClick={() => void run(action)}
-          >
-            {t(
-              [
-                "Check version",
-                "Install / update in MyCode",
-                "Open Freebuff terminal",
-              ][i],
-            )}
-          </button>
-        ))}
+        <ManagedCLIControls provider="freebuff" />
+        <button
+          disabled={busy}
+          className="rounded-lg bg-content/10 px-3 py-2 disabled:opacity-40"
+          onClick={() => void run()}
+        >
+          {t("Open Freebuff terminal")}
+        </button>
       </div>
       {busy && <progress aria-label={t("Working…")} className="w-full" />}
       {status && (

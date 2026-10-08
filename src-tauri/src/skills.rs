@@ -6,7 +6,7 @@ use serde::Serialize;
 use crate::dirs_home;
 use crate::fs::expand_home;
 
-const MAX_SKILLS: usize = 300;
+const MAX_SKILLS: usize = 5_000;
 const MAX_FRONTMATTER_BYTES: usize = 16 * 1024;
 
 #[derive(Serialize, Clone, Debug, PartialEq, Eq)]
@@ -454,6 +454,11 @@ fn parse_frontmatter(text: &str, fallback: &str) -> (String, String) {
         }
 
         let line = raw.trim_end();
+        // Nested metadata must not replace the skill's top-level identity.
+        // Block scalar content has already been consumed above.
+        if is_yaml_indent(line) {
+            continue;
+        }
         if let Some(value) = yaml_value(line, "name") {
             name = Some(unquote(&value));
         } else if let Some(value) = yaml_value(line, "description") {
@@ -612,6 +617,21 @@ mod tests {
     }
 
     #[test]
+    fn nested_frontmatter_does_not_replace_the_skill_identity() {
+        let (name, description) = parse_frontmatter(
+            "---\r\nname: actual\r\ndescription: >-\r\n  First line.\r\n  Second line.\r\nmetadata:\r\n  name: nested\r\n  description: hidden\r\n---\r\n",
+            "fallback",
+        );
+        assert_eq!(name, "actual");
+        assert_eq!(description, "First line. Second line.");
+        let (_, literal) = parse_frontmatter(
+            "---\nname: actual\ndescription: |\n  First\n  Second\n---\n",
+            "fallback",
+        );
+        assert_eq!(literal, "First\nSecond");
+    }
+
+    #[test]
     fn agents_skills_win_over_provider_dirs() {
         let project = tmp("proj");
         let home = tmp("home");
@@ -649,6 +669,31 @@ mod tests {
         let native = skills.iter().find(|s| s.name == "cursor-only").unwrap();
         assert_eq!(native.source, "cursor");
         assert_eq!(native.scope, "project");
+    }
+
+    #[test]
+    fn lists_large_catalogs_from_every_root() {
+        let project = tmp("proj");
+        let home = tmp("home");
+        for index in 0..1_400 {
+            let name = format!("shared-{index:04}");
+            write_skill(
+                &home.0.join(".agents/skills"),
+                &name,
+                &format!("---\nname: {name}\ndescription: Shared skill {index}\n---\n"),
+            );
+        }
+        write_skill(
+            &home.0.join(".codex/skills"),
+            "codex-only",
+            "---\nname: codex-only\ndescription: Codex native\n---\n",
+        );
+
+        let skills = list_skills_from(&project.0, Some(&home.0), None);
+        assert_eq!(skills.len(), 1_401);
+        assert!(skills.iter().any(|s| s.name == "shared-1399"));
+        let codex = skills.iter().find(|s| s.name == "codex-only").unwrap();
+        assert_eq!(codex.source, "codex");
     }
 
     #[test]

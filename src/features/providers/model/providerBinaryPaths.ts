@@ -90,7 +90,7 @@ export async function applyProviderBinaryPath(
     if (!saveProviderBinaryPath(provider, normalized)) return false;
     if (normalized) runtimeBinaryPaths[provider] = normalized;
     else delete runtimeBinaryPaths[provider];
-    window.dispatchEvent(new Event("mycode-cli-paths-changed"));
+    window.dispatchEvent(new CustomEvent("mycode-cli-paths-changed", {detail:{provider}}));
     return true;
   } catch {
     return false;

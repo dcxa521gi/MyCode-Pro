@@ -2316,7 +2316,7 @@ dependencies = [
 
 [[package]]
 name = "monocode"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "base64 0.22.1",
  "block2",
@@ -2345,6 +2345,7 @@ dependencies = [
  "tauri-plugin-updater",
  "tauri-plugin-window-state",
  "tauri-winrt-notification 0.8.1",
+ "time",
  "toml 0.9.12+spec-1.1.0",
  "unicode-normalization",
  "ureq",

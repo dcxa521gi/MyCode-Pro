@@ -727,7 +727,8 @@ describe("Checks tab user behavior", () => {
       invoke.mock.calls.filter(
         ([command]) => command === "git_github_pr_checks",
       );
-    expect(checksCalls()).toHaveLength(1);
+    // Entering Checks resumes polling immediately, then revision refreshes again.
+    expect(checksCalls()).toHaveLength(2);
     render(
       createElement(InboxDetail, {
         item: { ...prItem, projectPath: "/tmp/web", provider: "github" },
@@ -740,7 +741,7 @@ describe("Checks tab user behavior", () => {
       }),
     );
     await flush();
-    expect(checksCalls()).toHaveLength(2);
+    expect(checksCalls()).toHaveLength(3);
   });
 
   it("loads checks in the linked side panel where revision stays 0", async () => {
