@@ -227,7 +227,7 @@ export function WorktreesPage({
                   type="button"
                   disabled={!!blocked || refreshingAfterFailure || !!loadError}
                   aria-label={`Delete ${tree.branch ?? "worktree"}`}
-                  title={blocked ?? "Delete worktree"}
+                  title={blocked ?? t("Delete worktree")}
                   onClick={() => {
                     setError(undefined);
                     setDeleting(tree);

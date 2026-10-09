@@ -863,7 +863,10 @@ function TitleBarComponent({
       <div className="flex h-full shrink-0 items-stretch">
         {mono && onShowMonoDetails ? (
           <div className="flex items-center px-3">
-            <IconButton label="Show Mono details" onClick={onShowMonoDetails}>
+            <IconButton
+              label={t("Show Mono details")}
+              onClick={onShowMonoDetails}
+            >
               <PanelRightToggle className="size-3.5" strokeWidth={1.75} />
             </IconButton>
           </div>

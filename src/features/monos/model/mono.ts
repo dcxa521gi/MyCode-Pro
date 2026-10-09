@@ -44,6 +44,8 @@ export type Mono = {
   projects: string[];
   /** New sessions appear in the project sidebar unless explicitly disabled. */
   showStartedSessionsInSidebar?: boolean;
+  /** Files the sessions it starts into a sidebar folder named after it. */
+  useSidebarFolders?: boolean;
   /** Superseded by SOUL.md; only read once, to seed it. */
   instructions?: string;
   /**
@@ -169,6 +171,7 @@ function parseMono(value: unknown): Mono | undefined {
     ...(typeof entry.showStartedSessionsInSidebar === "boolean"
       ? { showStartedSessionsInSidebar: entry.showStartedSessionsInSidebar }
       : {}),
+    ...(entry.useSidebarFolders === true ? { useSidebarFolders: true } : {}),
     ...(instructions ? { instructions } : {}),
     ...(legacyProject ? { legacyProject } : {}),
   };
@@ -359,7 +362,7 @@ const MONO_NAME: Record<string, string> = { mushroom: "Shroom" };
 
 /** The name a Mono goes by until the user names it: "MonoCrab", "MonoShroom". */
 export function defaultMonoName(mascot: string): string {
-  return `Mono${MONO_NAME[mascot] ?? mascot.charAt(0).toUpperCase() + mascot.slice(1)}`;
+  return t(`Mono${MONO_NAME[mascot] ?? mascot.charAt(0).toUpperCase() + mascot.slice(1)}`);
 }
 
 /** One project a Mono works on, as the rail labels it. */

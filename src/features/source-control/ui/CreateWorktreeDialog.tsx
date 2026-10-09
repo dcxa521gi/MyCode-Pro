@@ -120,7 +120,7 @@ export function CreateWorktreeDialog({
               onChange={setName}
               placeholder={t("Choose a branch…")}
               searchPlaceholder="Search local branches…"
-              emptyLabel="No matching local branches"
+              emptyLabel={t("No matching local branches")}
               layer={LAYER.dialogPopover}
             />
           ) : (

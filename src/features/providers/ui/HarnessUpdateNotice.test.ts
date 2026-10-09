@@ -3,6 +3,7 @@ import { act, createElement, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HarnessUpdateNotice } from "./HarnessUpdateNotice";
+import { setLanguage } from "../../../shared/i18n";
 
 let claimed = false;
 vi.mock("@tauri-apps/api/core", () => ({
@@ -56,8 +57,14 @@ vi.mock("@tauri-apps/api/event", () => ({
 vi.mock("../../sessions/ui/HarnessIcon", () => ({ HarnessIcon: () => null }));
 
 describe("HarnessUpdateNotice", () => {
-  beforeEach(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));
-  afterEach(() => vi.unstubAllGlobals());
+  beforeEach(() => {
+    setLanguage("en");
+    vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  });
+  afterEach(() => {
+    setLanguage("en");
+    vi.unstubAllGlobals();
+  });
 
   it("survives a StrictMode remount and updates from the card", async () => {
     const container = document.createElement("div");
@@ -104,6 +111,24 @@ describe("HarnessUpdateNotice", () => {
     expect(refreshHarnessCatalogs).toHaveBeenLastCalledWith(["claude"], {
       force: true,
     });
+    act(() => root.unmount());
+  });
+
+  it("changes its header and update actions when the UI language changes", async () => {
+    const root = createRoot(document.createElement("div"));
+    await act(async () => {
+      root.render(createElement(HarnessUpdateNotice));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(document.body.textContent).toContain("Harness update available");
+    await act(async () => {
+      setLanguage("zh-CN");
+    });
+    expect(document.body.textContent).not.toContain("Harness update available");
+    expect(document.body.textContent).not.toContain(
+      "New models often need the latest version.",
+    );
+    expect(document.body.textContent).toContain("CLI");
     act(() => root.unmount());
   });
 });

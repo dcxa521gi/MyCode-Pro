@@ -261,8 +261,10 @@ import {
 } from "../../providers/model/providerAccountIdentity";
 import { ProviderAccountSubtitle } from "../../providers/ui/ProviderAccountSubtitle";
 import {
+  saveComposerAutocorrect,
   saveMaskEmails,
   saveShowRemainingUsage,
+  useComposerAutocorrect,
   useMaskEmails,
   useShowRemainingUsage,
 } from "../model/displayPrefs";
@@ -1093,6 +1095,7 @@ function ChatPage() {
   const [diffViewer, setDiffViewer] = useState<DiffViewer>(loadDiffViewer);
   const [formatOnSave, setFormatOnSave] = useState(loadFormatOnSave);
   const [composerRunner, setComposerRunner] = useState(loadComposerRunner);
+  const composerAutocorrect = useComposerAutocorrect();
   const [gridArcadeEnabled, setGridArcadeEnabled] = useState(
     loadGridArcadeEnabled,
   );
@@ -1263,6 +1266,19 @@ function ChatPage() {
               { value: "beside", label: t("Beside") },
             ]}
             onChange={onModelControls}
+          />
+        </Row>
+        <Row
+          id="composer-autocorrect"
+          label={t("Autocorrect")}
+          description={t(
+            "Spell check and autocorrect prompts in session and mono composers. Turn this off to keep the text exactly as typed.",
+          )}
+        >
+          <Toggle
+            label={t("Autocorrect")}
+            on={composerAutocorrect}
+            onChange={saveComposerAutocorrect}
           />
         </Row>
       </Group>
@@ -3234,13 +3250,18 @@ function ProviderBinaryControl({
         type="button"
         aria-label={
           restartRequired
-            ? `Show ${title} CLI details, restart required`
-            : `Show ${title} CLI details`
+            ? formatMessage("Show {provider} CLI details, restart required", {
+                provider: title,
+              })
+            : formatMessage("Show {provider} CLI details", { provider: title })
         }
         aria-expanded={open}
         aria-controls={`${provider}-binary-popover`}
         aria-haspopup="dialog"
-        title={`${title} CLI path${restartRequired ? " — restart required" : ""}`}
+        title={
+          formatMessage("{provider} CLI path", { provider: title }) +
+          (restartRequired ? ` — ${t("Restart required")}` : "")
+        }
         onClick={() => {
           if (!open && !inspection && !working && !error) {
             void inspect(loadProviderBinaryPath(provider));
@@ -3260,7 +3281,9 @@ function ProviderBinaryControl({
         <Popover
           id={`${provider}-binary-popover`}
           role="dialog"
-          aria-label={`${title} CLI details`}
+          aria-label={formatMessage("{provider} CLI details", {
+            provider: title,
+          })}
           aria-busy={working}
           tabIndex={-1}
           anchor={root}
@@ -3321,7 +3344,7 @@ function ProviderBinaryControl({
                 ref={editInput}
                 type="text"
                 value={draft}
-                placeholder={inspection?.path ?? "Auto-detected path"}
+                placeholder={inspection?.path ?? t("Auto-detected path")}
                 disabled={working}
                 autoFocus
                 onChange={(event) => setDraft(event.target.value)}
@@ -3401,9 +3424,12 @@ function ProviderBinaryControl({
                 {error ? (
                   <SecondaryButton
                     disabled={working}
-                    aria-label={`Retry ${title} ${
-                      overridden ? "configured path" : "auto-detect"
-                    }`}
+                    aria-label={formatMessage(
+                      overridden
+                        ? "Retry {provider} configured path"
+                        : "Retry {provider} auto-detect",
+                      { provider: title },
+                    )}
                     onClick={() =>
                       void inspect(overridden ? draft.trim() || null : null)
                     }
@@ -3415,7 +3441,9 @@ function ProviderBinaryControl({
                   </SecondaryButton>
                 ) : null}
                 <SecondaryButton
-                  aria-label={`Open ${title} CLI location`}
+                  aria-label={formatMessage("Open {provider} CLI location", {
+                    provider: title,
+                  })}
                   disabled={!inspection}
                   onClick={() => {
                     if (inspection) {
@@ -3433,7 +3461,9 @@ function ProviderBinaryControl({
                   {t("Open location")}
                 </SecondaryButton>
                 <SecondaryButton
-                  aria-label={`Edit ${title} CLI path`}
+                  aria-label={formatMessage("Edit {provider} CLI path", {
+                    provider: title,
+                  })}
                   disabled={working}
                   onClick={() => setEditing(true)}
                 >
@@ -3481,7 +3511,7 @@ function ProvidersPage({
     const options: { value: string; label: string; icon?: ReactNode }[] = [
       {
         value: GLOBAL_PROVIDER_SCOPE,
-        label: t("MyCode app"),
+        label: t("Global"),
         icon: (
           <Globe
             className="size-3.5 shrink-0 text-content/60"
@@ -3586,9 +3616,12 @@ function ProvidersPage({
         }
         description={
           project
-            ? `These defaults apply to ${projectName(project)} only. A provider with Show in picker off is also kept out of new conversations started in this project. CLI paths remain global for MyCode.`
+            ? formatMessage(
+                "These defaults apply to {project} only. Hidden providers stay out of new conversations in this project. CLI paths remain global for MyCode.",
+                { project: projectName(project) },
+              )
             : t(
-                "Choose MyCode app or the globally installed CLI for each agent. Project overrides control model defaults separately.",
+                "A provider is listed as installed once its CLI is found. Uninstalled or hidden providers stay out of the model picker. The selected model is used for new conversations; Use by default chooses the provider. CLI paths are global for MyCode.",
               )
         }
       >
@@ -3657,11 +3690,13 @@ function UsageDisplaySettings() {
   const showRemainingUsage = useShowRemainingUsage();
   const maskEmails = useMaskEmails();
   return (
-    <Group title="Usage and privacy">
+    <Group title={t("Usage and privacy")}>
       <Row
         id="show-remaining-usage"
-        label="Show remaining usage"
-        description="Fill usage meters with what is left in each limit instead of what has been used."
+        label={t("Show remaining usage")}
+        description={t(
+          "Fill usage meters with what is left in each limit instead of what has been used.",
+        )}
       >
         <Toggle
           label={t("Show remaining usage")}
@@ -3671,8 +3706,10 @@ function UsageDisplaySettings() {
       </Row>
       <Row
         id="mask-emails"
-        label="Mask account emails"
-        description="Blur account emails in Settings and the usage popover until you click one, so they stay out of screenshots."
+        label={t("Mask account emails")}
+        description={t(
+          "Blur account emails in Settings and the usage popover until you click one, so they stay out of screenshots.",
+        )}
       >
         <Toggle
           label={t("Mask account emails")}
@@ -3747,12 +3784,17 @@ function ProviderAccountsSettings() {
   const removeAccount = async (account: ProviderAccount) => {
     if (account.isDefault || working) return;
     const confirmed = await ask(
-      `Remove “${t(account.label)}”? Its stored credentials will be deleted and any running turns for this account will stop. Existing conversations stay in history, but cannot continue until you switch accounts.`,
+      formatMessage(
+        "Remove “{name}”? Stored credentials will be deleted and running turns for this account will stop. Existing conversations stay in history; switch accounts to continue.",
+        { name: account.label },
+      ),
       {
-        title: `Remove ${HARNESS_TITLE[account.provider]} account`,
+        title: formatMessage("Remove {provider} account", {
+          provider: HARNESS_TITLE[account.provider],
+        }),
         kind: "warning",
-        okLabel: "Remove account",
-        cancelLabel: "Cancel",
+        okLabel: t("Remove account"),
+        cancelLabel: t("Cancel"),
       },
     );
     if (!confirmed) return;
@@ -3789,8 +3831,10 @@ function ProviderAccountsSettings() {
   return (
     <Group
       id="provider-accounts"
-      title="Accounts"
-      description="Create isolated sign-ins for providers that support account profiles. Account switching stays available from the usage control in the footer."
+      title={t("Accounts")}
+      description={t(
+        "Create isolated sign-ins for providers that support account profiles. Account switching stays available from the usage control in the footer.",
+      )}
       action={<AccountUsageRefresh usage={usage} />}
     >
       {PROVIDER_ACCOUNT_PROVIDERS.map((provider) => {
@@ -3983,7 +4027,10 @@ function ProviderAccountEditor({
             value={editor.label}
             disabled={working}
             placeholder={t("Work or Personal")}
-            aria-label={`${adding ? "New" : "Rename"} ${HARNESS_TITLE[editor.provider]} account`}
+            aria-label={formatMessage(
+              adding ? "New {provider} account" : "Rename {provider} account",
+              { provider: HARNESS_TITLE[editor.provider] },
+            )}
             onChange={(event) => onLabel(event.target.value)}
             className="h-full w-full bg-transparent px-2.5 text-[12px] text-content outline-none placeholder:text-content/25 disabled:opacity-50"
           />
@@ -4075,11 +4122,10 @@ function ProviderRow({
   return (
     <Row
       label={
-        <span className="flex flex-wrap items-center gap-2">
+        <span className="flex items-center gap-2">
           <HarnessIcon harness={harness} className="size-4 shrink-0" />
           {HARNESS_TITLE[harness]}
           <ProviderBinaryControl provider={harness} />
-          <ManagedCLIControls provider={harness} />
           {isDefault ? (
             <span className="rounded-full bg-content/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-content/60">
               {t("Default")}
@@ -4098,6 +4144,7 @@ function ProviderRow({
           : harnessUnavailableHint(harness)
       }
     >
+      <ManagedCLIControls provider={harness} />
       {current ? (
         <Dropdown
           label={formatMessage("{provider} model", {
@@ -4349,15 +4396,23 @@ function MonosPage() {
         <Row
           id="monos-enabled"
           label={t("Show monos")}
-          description={t("Agents of your own on the project rail. Each works on the projects you give it, remembers what matters and picks up habits it runs on its own. Turn this off to hide them.")}
+          description={t(
+            "Agents of your own on the project rail. Each works on the projects you give it, remembers what matters and picks up habits it runs on its own. Turn this off to hide them.",
+          )}
         >
-          <Toggle label={t("Show monos")} on={enabled} onChange={saveMonosEnabled} />
+          <Toggle
+            label={t("Show monos")}
+            on={enabled}
+            onChange={saveMonosEnabled}
+          />
         </Row>
         {(IS_MAC || IS_WIN) && (
           <Row
             id="mono-menu-bar-icon"
             label={t("Menu bar icon")}
-            description={t("Chat with a Mono or open the quick composer from the macOS menu bar. Turn this off to hide the icon.")}
+            description={t(
+              "Chat with a Mono or open the quick composer from the macOS menu bar. Turn this off to hide the icon.",
+            )}
           >
             <Toggle
               label={t("Menu bar icon")}
@@ -4370,7 +4425,9 @@ function MonosPage() {
       <Group
         id="mono-list"
         title={t("Your monos")}
-        description={t("Choose whether new sessions started by each Mono appear in the sidebar. Hidden sessions remain saved and can be opened from the Mono's chat. Add a Mono with the plus on the rail and choose its projects from its details.")}
+        description={t(
+          "Choose whether new sessions started by each Mono appear in the sidebar. Hidden sessions remain saved and can be opened from the Mono's chat. Add a Mono with the plus on the rail and choose its projects from its details.",
+        )}
       >
         {monos.length ? (
           monos.map((mono) => <MonoRow key={mono.id} mono={mono} />)
@@ -4401,7 +4458,9 @@ function MonoRow({ mono }: { mono: Mono }) {
       }
       description={
         look.projects.length
-          ? formatMessage("Works on {projects}", {projects: monoProjectsPhrase(look.projects)})
+          ? formatMessage("Works on {projects}", {
+              projects: monoProjectsPhrase(look.projects),
+            })
           : t("No projects yet")
       }
     >
@@ -4409,7 +4468,9 @@ function MonoRow({ mono }: { mono: Mono }) {
         {t("Show Mono spawned session on the sidebar")}
       </span>
       <Toggle
-        label={formatMessage("Show sessions started by {name} in sidebar", {name:look.name})}
+        label={formatMessage("Show sessions started by {name} in sidebar", {
+          name: look.name,
+        })}
         on={mono.showStartedSessionsInSidebar !== false}
         onChange={(on) =>
           updateMono(mono.id, (entry) => ({
@@ -4420,8 +4481,13 @@ function MonoRow({ mono }: { mono: Mono }) {
       />
       <ConfirmReset
         label={t("Reset Mono")}
-        title={formatMessage("Reset {name} to its defaults?", {name:look.name})}
-        body={formatMessage("Its soul goes back to the default and its name to {name}. Changes to its soul cannot be recovered.", {name:defaultMonoName(look.mascot)})}
+        title={formatMessage("Reset {name} to its defaults?", {
+          name: look.name,
+        })}
+        body={formatMessage(
+          "Its soul goes back to the default and its name to {name}. Changes to its soul cannot be recovered.",
+          { name: defaultMonoName(look.mascot) },
+        )}
         kept={t("Its conversation, projects, memory and habits will be kept.")}
         failure={t("Could not reset the Mono.")}
         onConfirm={() => resetMonoDefaults(mono.id)}
@@ -4431,7 +4497,9 @@ function MonoRow({ mono }: { mono: Mono }) {
             ref={ref}
             type="button"
             title={t("Reset to defaults")}
-            aria-label={formatMessage("Reset {name} to defaults", {name:look.name})}
+            aria-label={formatMessage("Reset {name} to defaults", {
+              name: look.name,
+            })}
             onClick={open}
             className="grid size-7 place-items-center rounded-md text-content/40 transition-transform duration-150 hover:bg-content/10 hover:text-content active:scale-[0.96]"
           >
@@ -4495,7 +4563,9 @@ function Group({
     >
       <div className="flex items-end gap-4 pb-2.5">
         <div className="min-w-0 flex-1">
-          <h2 className="text-[13px] font-semibold text-content">{title}</h2>
+          <h2 className="text-[13px] font-semibold text-content">
+            {typeof title === "string" ? t(title) : title}
+          </h2>
           {description ? (
             <p className="mt-1 text-[12px] leading-relaxed text-content/45">
               {t(description)}
@@ -4540,7 +4610,9 @@ function Row({
       }`}
     >
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-medium text-content">{label}</div>
+        <div className="text-[13px] font-medium text-content">
+          {typeof label === "string" ? t(label) : label}
+        </div>
         {description ? (
           <p className="mt-1 text-[12px] leading-relaxed text-content/45">
             {t(description)}
@@ -4570,7 +4642,7 @@ function Segmented<T extends string>({
   return (
     <div
       role="radiogroup"
-      aria-label={label}
+      aria-label={t(label)}
       className="inline-grid max-w-full shrink-0 gap-0.5 rounded-md border border-content/10 p-0.5 text-[12px]"
       style={{
         gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,

@@ -768,12 +768,12 @@ export function QuickComposer({ onShown }: { onShown: () => void }) {
               ref={listRef}
               id="quick-composer-commands"
               role="listbox"
-              aria-label="Commands"
+              aria-label={t("Commands")}
               className="shrink-0 border-t border-stroke p-2"
             >
               {commandOptions.length === 0 ? (
                 <p className="px-2 py-2 text-[12px] text-content/45">
-                  No matching commands
+                  {t("No matching commands")}
                 </p>
               ) : (
                 commandOptions.map((command, index) => (

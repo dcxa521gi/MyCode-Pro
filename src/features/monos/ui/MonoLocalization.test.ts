@@ -6,6 +6,7 @@ import { setLanguage } from "../../../shared/i18n";
 import { MonoHeader } from "./MonoHeader";
 import { MonoStatus } from "./MonoStatus";
 import { defaultSoul, monoTurn } from "../model/monoFiles";
+import { defaultMonoName, monoLook } from "../model/mono";
 import { habitScheduleLabel } from "../model/monoHabits";
 
 afterEach(() => {
@@ -70,4 +71,21 @@ it("localizes resident-agent status, project greeting, schedule and new instruct
     await act(async () => root.unmount());
     container.remove();
   }
+});
+
+it("localizes default resident names without changing custom names", () => {
+  setLanguage("zh-CN");
+  expect(defaultMonoName("invader")).toBe("小星际");
+  expect(defaultMonoName("ghost")).toBe("小幽灵");
+  expect(
+    monoLook({
+      id: "mono-n",
+      mascot: "cat",
+      color: "#abc",
+      projects: [],
+      name: "My assistant",
+    }).name,
+  ).toBe("My assistant");
+  setLanguage("en");
+  expect(defaultMonoName("invader")).toBe("MonoInvader");
 });

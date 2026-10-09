@@ -12,10 +12,10 @@ import { when } from "./HabitPage";
 import { AutoTextarea, PageHeader, Property, Section } from "./monoPanelParts";
 
 const KINDS = [
-  { value: "daily", label: t("Daily") },
-  { value: "weekdays", label: t("Weekdays") },
-  { value: "weekly", label: t("Weekly") },
-  { value: "hourly", label: t("Hourly") },
+  { value: "daily", label: "Daily" },
+  { value: "weekdays", label: "Weekdays" },
+  { value: "weekly", label: "Weekly" },
+  { value: "hourly", label: "Hourly" },
 ] as const;
 
 const DAYS = AUTOMATION_WEEKDAYS.map((label, value) => ({
@@ -149,7 +149,7 @@ function ScheduleFields({
       <SearchableSelect
         label={t("Repeats")}
         value={kind}
-        options={KINDS}
+        options={KINDS.map((option) => ({ ...option, label: t(option.label) }))}
         variant="pill"
         searchable={false}
         onChange={(value) =>
@@ -165,7 +165,10 @@ function ScheduleFields({
           <SearchableSelect
             label={t("Day")}
             value={String(schedule.dayOfWeek)}
-            options={DAYS}
+            options={DAYS.map((option) => ({
+              ...option,
+              label: t(option.label),
+            }))}
             variant="pill"
             searchable={false}
             onChange={(value) =>

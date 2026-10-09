@@ -239,7 +239,7 @@ export function CheckRepairForm({
               id={`${listId}-${index}`}
               type="button"
               role="option"
-              aria-label={session.title || "Untitled chat"}
+              aria-label={session.title || t("Untitled chat")}
               aria-selected={selected}
               disabled={busy}
               data-active={index === active}
@@ -254,9 +254,9 @@ export function CheckRepairForm({
               />
               <span
                 className="min-w-0 flex-1 truncate"
-                title={session.title || "Untitled chat"}
+                title={session.title || t("Untitled chat")}
               >
-                {session.title || "Untitled chat"}
+                {session.title || t("Untitled chat")}
               </span>
               {selected ? (
                 <Check

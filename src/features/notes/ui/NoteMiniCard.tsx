@@ -54,7 +54,7 @@ export function NoteMiniCard({ card, onDismiss, embedded = false }: Props) {
           </span>
         </span>
         <span className="mt-1 line-clamp-1 text-[13px] font-semibold leading-snug text-content">
-          {card.title || "Untitled"}
+          {card.title || t("Untitled")}
         </span>
         {!embedded && project ? (
           <span className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] text-content/45">

@@ -160,7 +160,7 @@ export function SidebarWorktreeSwitcher({
         ref={anchor}
         type="button"
         data-tauri-drag-region="false"
-        aria-label="Switch working copy"
+        aria-label={t("Switch working copy")}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-busy={pending || creating}
@@ -202,19 +202,19 @@ export function SidebarWorktreeSwitcher({
             if (!creating) closePicker();
           }}
           role="dialog"
-          aria-label="Working copies"
+          aria-label={t("Working copies")}
           className="flex flex-col overflow-hidden"
         >
           <label className="flex h-11 shrink-0 items-center gap-2.5 border-b border-stroke px-3 text-content/45 focus-within:text-content/70">
             <Search className="size-4 shrink-0" strokeWidth={1.75} />
-            <span className="sr-only">Search working copies</span>
+            <span className="sr-only">{t("Search working copies")}</span>
             <input
               ref={search}
               value={query}
               disabled={creating}
               autoComplete="off"
               spellCheck={false}
-              placeholder="Search or create a worktree..."
+              placeholder={t("Search or create a worktree...")}
               onChange={(event) => {
                 setQuery(event.target.value);
                 setActive(0);
@@ -245,14 +245,13 @@ export function SidebarWorktreeSwitcher({
           </label>
           <div
             role="listbox"
-            aria-label="Working copies"
+            aria-label={t("Working copies")}
             className="min-h-0 flex-1 overflow-y-auto overscroll-none p-1.5"
           >
             {!data && !error ? (
               <div className="flex items-center gap-2 p-2 text-[12px] text-content/50">
                 <Loader className="size-3.5 animate-spin" />
-                Loading working copies…
-              </div>
+                {t("Loading working copies…")}</div>
             ) : null}
             {rows.map((tree, index) => {
               const selected = tree.isMain
@@ -295,8 +294,7 @@ export function SidebarWorktreeSwitcher({
             })}
             {data && rows.length === 0 ? (
               <p className="px-2.5 py-5 text-center text-[12px] text-content/45">
-                No matching working copies
-              </p>
+                {t("No matching working copies")}</p>
             ) : null}
           </div>
           {creationError || switchError || error ? (
@@ -319,7 +317,7 @@ export function SidebarWorktreeSwitcher({
                   <Plus className="size-4 shrink-0" strokeWidth={1.75} />
                 )}
                 <span className="min-w-0 truncate">
-                  Create worktree {createName}
+                  {t("Create worktree")}{createName}
                 </span>
               </button>
             </div>

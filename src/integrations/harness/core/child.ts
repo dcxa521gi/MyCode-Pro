@@ -1,9 +1,12 @@
 import { invoke as tauriInvoke } from "@tauri-apps/api/core";
 import { listen as tauriListen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
+  applyProviderBinaryPath,
   runtimeProviderBinaryPath,
   type ConfigurableBinaryProvider,
 } from "../../../features/providers/model/providerBinaryPaths";
+import { formatMessage, translate as t } from "../../../shared/i18n";
+import { compareCliVersions } from "../../../features/providers/model/cliVersion";
 
 /** Process I/O is supplied by the desktop or a headless host. Provider
  * protocols never need to know which process owns their children. */
@@ -551,16 +554,35 @@ export function inspectHarnessBinary(
   });
 }
 
-/** Runs the CLI's own self-update against the binary MonoCode uses. */
+/** Update the active CLI; Windows returns a verified application-local copy. */
 export async function updateHarnessCli(
   provider: ConfigurableBinaryProvider,
+  expectedVersion?: string,
 ): Promise<void> {
   const resolved = await resolveHarnessBinary(provider);
-  await invoke("harness_update", {
+  const installedPath = await invoke<string | null>("harness_update", {
     command: resolved.path,
     binaryProvider: provider,
     binaryPath: runtimeProviderBinaryPath(provider),
   });
+  if (installedPath) {
+    const verified = await inspectHarnessBinary(provider, installedPath);
+    if (!verified.version)
+      throw Error(verified.error || t("CLI returned no valid version."));
+    if (expectedVersion) {
+      const comparison = compareCliVersions(verified.version, expectedVersion);
+      if (comparison === null || comparison > 0)
+        throw Error(
+          formatMessage("Installed CLI did not reach version {version}.", {
+            version: expectedVersion,
+          }),
+        );
+    }
+    if (!(await applyProviderBinaryPath(provider, installedPath)))
+      throw Error(t("Could not save the binary path."));
+    localStorage.setItem("mycode.appCliPath." + provider, installedPath);
+    localStorage.setItem("mycode.cliScope." + provider, "app");
+  }
 }
 
 export function execChild(

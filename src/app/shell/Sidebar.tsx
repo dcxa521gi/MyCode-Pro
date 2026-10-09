@@ -1688,8 +1688,7 @@ function SidebarComponent({
           />
         ) : (
           <span className="min-w-0 truncate text-sm font-medium leading-tight">
-            Workspace
-          </span>
+            {t("Workspace")}</span>
         )}
       </div>
       <WorkspaceTitleActions onSearch={onGoToFile} onNew={onNew} />
@@ -1857,8 +1856,7 @@ function SidebarComponent({
                   </p>
                 ) : remoteProject && !remote.machine ? (
                   <p className="px-3 py-2 text-[12px] text-content/45">
-                    This project’s machine isn’t connected on this computer.
-                  </p>
+                    {t("This project’s machine isn’t connected on this computer.")}</p>
                 ) : (
                   <SessionsEmpty message="Sessions you start will show up here" />
                 )
@@ -2443,7 +2441,7 @@ function SidebarProjectPicker({
         ) : null}
         {onOpenInbox ? (
           <IconButton
-            label={inboxUnseen ? "Inbox, new items" : t("Inbox")}
+            label={inboxUnseen ? t("Inbox, new items") : t("Inbox")}
             active={inboxActive}
             onClick={onOpenInbox}
             onOpenContextMenu={(x, y) => {
@@ -2661,7 +2659,7 @@ function CompactProjectRail({
           onClick={action(searchActive, onSearch)}
         />
         <CompactRailAction
-          label={inboxUnseen ? "Inbox, new items" : t("Inbox")}
+          label={inboxUnseen ? t("Inbox, new items") : t("Inbox")}
           icon={Inbox}
           active={inboxActive}
           dot={inboxUnseen}
@@ -3247,22 +3245,22 @@ const SessionCard = memo(function SessionCard({
       {needsApproval ? (
         <>
           <CircleAlert className="size-3" strokeWidth={1.75} />
-          <span>{orchestration ? "Needs input" : "Need approval"}</span>
+          <span>{orchestration ? t("Needs input") : t("Need approval")}</span>
         </>
       ) : busy ? (
         <>
           <TerminalSpinner className="inline-block w-3 select-none text-center text-[11px] leading-none text-accent" />
-          <span>Working...</span>
+          <span>{t("Working...")}</span>
         </>
       ) : done ? (
         <>
           <Check className="size-3" strokeWidth={2.25} />
-          <span>Done</span>
+          <span>{t("Done")}</span>
         </>
       ) : draft ? (
         <>
           <CircleDashed className="size-3" strokeWidth={1.75} />
-          <span>Draft</span>
+          <span>{t("Draft")}</span>
         </>
       ) : (
         <span>{time}</span>
@@ -3677,11 +3675,9 @@ const SessionCard = memo(function SessionCard({
         >
           <div className="flex items-center justify-between gap-3">
             <span className="text-[11px] font-semibold text-content/85">
-              Subagents
-            </span>
+              {t("Subagents")}</span>
             <span className="shrink-0 text-[10px] tabular-nums text-content/45">
-              {orchestrationDone}/{orchestration.tasks.length} done
-            </span>
+              {orchestrationDone}/{orchestration.tasks.length} {t("done")}</span>
           </div>
           <div className="mt-1.5 flex flex-col gap-0.5">
             {orchestration.tasks.map((task) => {

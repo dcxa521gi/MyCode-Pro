@@ -1,3 +1,4 @@
+import { translate as t } from "../../../shared/i18n";
 import { translate as uiTranslate } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
@@ -57,6 +58,8 @@ import { IS_MAC, IS_WIN } from "../../../platform/tauri/platform";
 import { InboxMedia } from "../../inbox/ui/InboxMedia";
 import { rehypeHardBreaks } from "./hardBreaks";
 import { rehypeWordFade, usePacedText, useWordFading } from "./wordFade";
+import { isFenceBlock, parseStreamingMarkdown } from "./streamingMarkdown";
+import { HighlightedCodeBlock } from "./HighlightedCodeBlock";
 
 const MERMAID_BASE_CONFIG = {
   startOnLoad: false,
@@ -133,6 +136,7 @@ const FileOpenContext = createContext<{
 }>({});
 
 const RemoteMediaContext = createContext(false);
+const MarkdownFadeContext = createContext(false);
 
 const REVEAL_LABEL = IS_MAC
   ? "Reveal in Finder"
@@ -391,8 +395,7 @@ function MarkdownCode({
         <span className="markdown-code-fallback-label">{fence.language}</span>
       ) : null}
       <CodeCopyButton code={code} />
-      <CodeBlock
-        className={className}
+      <HighlightedCodeBlock
         code={code}
         isIncomplete={incomplete}
         language={highlightLanguageFor(fence.language)}
@@ -517,7 +520,14 @@ const MARKDOWN_COMPONENTS = {
  * comes from the block inside it.
  */
 function DirectionalBlock({ dir, ...props }: BlockProps) {
-  const block = <Block {...props} />;
+  const fading = useContext(MarkdownFadeContext);
+  // Streamdown retains a parsed prose tree after the fade plugin changes.
+  // Remount prose to remove its word spans, but keep literal fences mounted:
+  // rebuilding all their highlighted tokens at fade-end causes a long frame.
+  const fence = isFenceBlock(props.content);
+  const block = (
+    <Block key={fence ? "code" : fading ? "fade" : "plain"} {...props} />
+  );
   return dir ? (
     <div dir={dir} className="agent-markdown-block">
       {block}
@@ -632,22 +642,23 @@ export const AgentMarkdown = memo(function AgentMarkdown({
     <RemoteMediaContext.Provider value={remoteMedia}>
       <FileOpenContext.Provider value={fileOpen}>
         <>
-          <Streamdown
-            // Streamdown keeps a parsed tree while the text is unchanged, so
-            // the plugin swap has to remount it once the fade is over.
-            key={fading ? "fade" : "plain"}
-            BlockComponent={DirectionalBlock}
-            className={`agent-markdown min-w-0 font-sans text-sm leading-6 ${fading ? "word-fading" : ""} ${className ?? ""}`}
-            components={MARKDOWN_COMPONENTS}
-            controls={false}
-            dir="auto"
-            isAnimating={!!streaming || paced.revealing}
-            plugins={MARKDOWN_PLUGINS}
-            remarkPlugins={remarkPlugins}
-            rehypePlugins={rehypePlugins}
-          >
-            {paced.text}
-          </Streamdown>
+          <MarkdownFadeContext.Provider value={fading}>
+            <Streamdown
+              BlockComponent={DirectionalBlock}
+              className={`agent-markdown min-w-0 font-sans text-sm leading-6 ${fading ? "word-fading" : ""} ${className ?? ""}`}
+              components={MARKDOWN_COMPONENTS}
+              controls={false}
+              dir="auto"
+              isAnimating={!!streaming || paced.revealing}
+              parseIncompleteMarkdown={false}
+              parseMarkdownIntoBlocksFn={parseStreamingMarkdown}
+              plugins={MARKDOWN_PLUGINS}
+              remarkPlugins={remarkPlugins}
+              rehypePlugins={rehypePlugins}
+            >
+              {paced.text}
+            </Streamdown>
+          </MarkdownFadeContext.Provider>
           {fileMenu ? (
             <ExplorerMenu
               x={fileMenu.x}
@@ -692,7 +703,7 @@ export const MarkdownPreview = memo(function MarkdownPreview({
       ref={lockOverscroll}
       tabIndex={0}
       role="region"
-      aria-label="Markdown preview"
+      aria-label={t("Markdown preview")}
       className="markdown-preview h-full overflow-y-auto overscroll-none [overflow-anchor:none]"
     >
       <div className="px-6 py-8">
@@ -721,7 +732,7 @@ export const MarkdownSource = memo(function MarkdownSource({
       ref={lockOverscroll}
       tabIndex={0}
       role="region"
-      aria-label="Markdown source"
+      aria-label={t("Markdown source")}
       className="markdown-preview h-full overflow-y-auto overscroll-none [overflow-anchor:none]"
     >
       <pre className="min-h-full min-w-0 whitespace-pre-wrap wrap-break-word px-4 py-3 font-mono text-[13px] leading-5 text-content/85">

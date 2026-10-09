@@ -216,7 +216,7 @@ export function LinkedWorkItemUpdateNotice({
                     </span>
                   </span>
                   <span className="mt-0.5 line-clamp-2 block text-[12px] leading-relaxed text-content/65">
-                    {entry.text || "No message"}
+                    {entry.text || t("No message")}
                   </span>
                 </span>
               </button>

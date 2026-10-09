@@ -1,7 +1,9 @@
 import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { useTranslation } from "../../../shared/i18n";
+import { formatMessage, useTranslation } from "../../../shared/i18n";
+import { compareCliVersions } from "../model/cliVersion";
+import { cliErrorMessage } from "../model/cliErrors";
 import {
   applyProviderBinaryPath,
   loadProviderBinaryPath,
@@ -28,6 +30,21 @@ export function ManagedCLIControls({
   const [scope, setScope] = useState(
     () => localStorage.getItem("mycode.cliScope." + provider) || "app",
   );
+  useEffect(() => {
+    let timer: number | undefined;
+    const syncScope = () => {
+      // Path activation emits before the updater records its selected scope.
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        setScope(localStorage.getItem("mycode.cliScope." + provider) || "app");
+      }, 0);
+    };
+    window.addEventListener("mycode-cli-paths-changed", syncScope);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("mycode-cli-paths-changed", syncScope);
+    };
+  }, [provider]);
   const switchScope = async (next: string) => {
     if (busy || next === scope) return;
     setBusy(true);
@@ -73,9 +90,21 @@ export function ManagedCLIControls({
         const path = await invoke<string>("managed_cli_install", { provider });
         const verified = await inspectHarnessBinary(provider, path);
         if (!verified.version)
-          throw Error(verified.error || "CLI returned no valid version.");
+          throw Error(verified.error || t("CLI returned no valid version."));
+        if (version.latest) {
+          const comparison = compareCliVersions(
+            verified.version,
+            version.latest,
+          );
+          if (comparison === null || comparison > 0)
+            throw Error(
+              formatMessage("Installed CLI did not reach version {version}.", {
+                version: version.latest,
+              }),
+            );
+        }
         if (!(await applyProviderBinaryPath(provider, path)))
-          throw Error("Could not save the binary path.");
+          throw Error(t("Could not save the binary path."));
         localStorage.setItem("mycode.appCliPath." + provider, path);
         localStorage.setItem("mycode.cliScope." + provider, "app");
         setScope("app");
@@ -88,7 +117,7 @@ export function ManagedCLIControls({
         await checkCLIVersion(provider, true);
       }
     } catch (error) {
-      setStatus(`${t("CLI operation failed.")} ${String(error)}`);
+      setStatus(`${t("CLI operation failed.")} ${cliErrorMessage(error)}`);
     } finally {
       setBusy(false);
     }

@@ -1,3 +1,4 @@
+import { translate as t } from "../../shared/i18n";
 import { translate as uiTranslate } from "../../shared/i18n";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -602,7 +603,7 @@ export function useProjectMenu({
           gap={0}
           width={280}
           role="dialog"
-          aria-label="Mute project notifications"
+          aria-label={t("Mute project notifications")}
           onDismiss={closeNotificationMenu}
           className="space-y-1 overflow-y-auto p-3"
         >

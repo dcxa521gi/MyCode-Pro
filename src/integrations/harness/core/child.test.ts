@@ -53,6 +53,89 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+describe("application CLI updates", () => {
+  it("verifies and activates the installer path instead of probing the old CLI", async () => {
+    vi.stubGlobal("localStorage", { getItem: () => null, setItem: vi.fn() });
+    vi.stubGlobal("window", {
+      __TAURI_INTERNALS__: {},
+      dispatchEvent: vi.fn(),
+    });
+    const path = "C:/MyCode CLI/codex.cmd";
+    mocks.invoke.mockImplementation(async (command, args) => {
+      if (command === "harness_resolve_codex")
+        return { path: "C:/old/codex.exe" };
+      if (command === "harness_update") return path;
+      if (command === "harness_resolve_configured")
+        return { path: args.binaryPath };
+      if (command === "harness_exec") return "codex-cli 0.162.0";
+      if (command === "managed_cli_save_path") return undefined;
+      throw Error(command);
+    });
+    const { updateHarnessCli } = await loadChild();
+    await updateHarnessCli("codex");
+    expect(mocks.invoke).toHaveBeenCalledWith(
+      "harness_exec",
+      expect.objectContaining({ command: path, binaryPath: path }),
+    );
+    expect(mocks.invoke).toHaveBeenCalledWith("managed_cli_save_path", {
+      provider: "codex",
+      path,
+    });
+  });
+
+  it("never activates an installer path whose version probe failed", async () => {
+    vi.stubGlobal("localStorage", { getItem: () => null, setItem: vi.fn() });
+    vi.stubGlobal("window", {
+      __TAURI_INTERNALS__: {},
+      dispatchEvent: vi.fn(),
+    });
+    mocks.invoke.mockImplementation(async (command, args) => {
+      if (command === "harness_resolve_codex")
+        return { path: "C:/old/codex.exe" };
+      if (command === "harness_update") return "C:/new/codex.cmd";
+      if (command === "harness_resolve_configured")
+        return { path: args.binaryPath };
+      if (command === "harness_exec") throw Error("Executable cannot start");
+      throw Error(command);
+    });
+    const { updateHarnessCli } = await loadChild();
+    await expect(updateHarnessCli("codex")).rejects.toThrow(
+      "Executable cannot start",
+    );
+    expect(
+      mocks.invoke.mock.calls.some(
+        ([command]) => command === "managed_cli_save_path",
+      ),
+    ).toBe(false);
+  });
+
+  it("does not activate a stale version returned by an apparently successful installer", async () => {
+    vi.stubGlobal("localStorage", { getItem: () => null, setItem: vi.fn() });
+    vi.stubGlobal("window", {
+      __TAURI_INTERNALS__: {},
+      dispatchEvent: vi.fn(),
+    });
+    mocks.invoke.mockImplementation(async (command, args) => {
+      if (command === "harness_resolve_codex")
+        return { path: "C:/old/codex.exe" };
+      if (command === "harness_update") return "C:/new/codex.cmd";
+      if (command === "harness_resolve_configured")
+        return { path: args.binaryPath };
+      if (command === "harness_exec") return "codex-cli 0.161.0";
+      throw Error(command);
+    });
+    const { updateHarnessCli } = await loadChild();
+    await expect(updateHarnessCli("codex", "0.162.0")).rejects.toThrow(
+      "0.162.0",
+    );
+    expect(
+      mocks.invoke.mock.calls.some(
+        ([command]) => command === "managed_cli_save_path",
+      ),
+    ).toBe(false);
+  });
+});
+
 describe("isCurrentChildExit", () => {
   it("matches only the live child's pid", async () => {
     installResolvedListeners();
@@ -69,7 +152,9 @@ describe("child bridge", () => {
     mocks.listen.mockImplementation(
       (name: string, handler: (event: { payload: never }) => void) => {
         mocks.handlers.set(name, handler);
-        return name === "harness-stdout" ? pending.promise : Promise.resolve(vi.fn());
+        return name === "harness-stdout"
+          ? pending.promise
+          : Promise.resolve(vi.fn());
       },
     );
     const child = await loadChild();
@@ -128,7 +213,12 @@ describe("child bridge", () => {
     const onExit = vi.fn();
     child.watchChild("probe", vi.fn(), onExit);
 
-    const spawning = child.spawnChild("probe", "pi", ["--mode", "rpc"], "/repo");
+    const spawning = child.spawnChild(
+      "probe",
+      "pi",
+      ["--mode", "rpc"],
+      "/repo",
+    );
     mocks.handlers.get("harness-exit")?.({
       payload: { sessionId: "probe", code: 1, pid: 42 } as never,
     });
@@ -182,10 +272,13 @@ describe("child bridge", () => {
       ],
     ] as const) {
       await resolve();
-      expect(mocks.invoke).toHaveBeenLastCalledWith("harness_resolve_configured", {
-        provider,
-        binaryPath,
-      });
+      expect(mocks.invoke).toHaveBeenLastCalledWith(
+        "harness_resolve_configured",
+        {
+          provider,
+          binaryPath,
+        },
+      );
     }
 
     await child.execChild("/resolved", ["--version"], undefined, "opencode");

@@ -1,3 +1,4 @@
+import { translate as t } from "../../../shared/i18n";
 import { translate as uiTranslate } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import {
@@ -269,7 +270,20 @@ function explorerItems(
           },
         ]
       : []),
-    ...(!target.isDir && /\.(html?|svg)$/i.test(target.path) ? [{kind:"item" as const,id:"internal-browser",label:uiTranslate("Open in built-in browser")},{kind:"item" as const,id:"external-browser",label:uiTranslate("Open in external browser")}] : []),
+    ...(!target.isDir && /\.(html?|svg)$/i.test(target.path)
+      ? [
+          {
+            kind: "item" as const,
+            id: "internal-browser",
+            label: uiTranslate("Open in built-in browser"),
+          },
+          {
+            kind: "item" as const,
+            id: "external-browser",
+            label: uiTranslate("Open in external browser"),
+          },
+        ]
+      : []),
     { kind: "item", id: "reveal", label: REVEAL_LABEL },
   ];
 }
@@ -712,7 +726,12 @@ export const FileTree = memo(function FileTree({
         return;
       case "internal-browser":
       case "external-browser":
-        window.dispatchEvent(new CustomEvent("mycode:preview-file",{detail:{path:target.path,external:id === "external-browser"}})); return;
+        window.dispatchEvent(
+          new CustomEvent("mycode:preview-file", {
+            detail: { path: target.path, external: id === "external-browser" },
+          }),
+        );
+        return;
       case "reveal":
         await run(() => revealPath(target.path));
         return;
@@ -1046,14 +1065,14 @@ export const FileTree = memo(function FileTree({
           className="flex h-9 shrink-0 items-center gap-px overflow-visible border-b border-stroke px-2"
           onContextMenu={(e) => e.stopPropagation()}
         >
-          <HeaderIcon label="New File" onClick={() => startCreate(false)}>
+          <HeaderIcon label={t("New File")} onClick={() => startCreate(false)}>
             <FilePlus className="size-3.5" strokeWidth={1.75} />
           </HeaderIcon>
-          <HeaderIcon label="New Folder" onClick={() => startCreate(true)}>
+          <HeaderIcon label={t("New Folder")} onClick={() => startCreate(true)}>
             <FolderPlus className="size-3.5" strokeWidth={1.75} />
           </HeaderIcon>
           <HeaderIcon
-            label="Collapse All"
+            label={t("Collapse All")}
             onClick={() => {
               setCreating(null);
               setRenaming(null);

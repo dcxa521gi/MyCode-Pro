@@ -1,3 +1,4 @@
+import { translate as t } from "../../shared/i18n";
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw } from "../../shared/ui/icons";
 import { HarnessIcon } from "../../features/sessions/ui/HarnessIcon";
@@ -27,7 +28,7 @@ export function PiUsage({ model, now }: { model?: string; now: number }) {
         }
       >
         <HarnessIcon harness="pi" className="size-3 shrink-0" />
-        <span>pi · Usage unavailable</span>
+        <span>{t("pi · Usage unavailable")}</span>
       </span>
     );
   }
@@ -99,8 +100,8 @@ function PiProviderUsage({
       />
       <button
         type="button"
-        aria-label="Refresh Pi usage"
-        title="Refresh Pi usage"
+        aria-label={t("Refresh Pi usage")}
+        title={t("Refresh Pi usage")}
         disabled={fetching}
         onClick={() => refreshRef.current(true)}
         className="grid size-6 shrink-0 place-items-center rounded text-content/40 hover:bg-content/10 hover:text-content disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-accent"

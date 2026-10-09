@@ -1,3 +1,4 @@
+import { translate as t } from "../../../shared/i18n";
 import { useEffect, useState } from "react";
 import { readBinaryFile } from "../../../platform/tauri/fs";
 import { formatFileSize, sniffImageMime } from "../../files/model/filePreview";
@@ -41,16 +42,14 @@ export function GeneratedImage({ image }: { image: GeneratedImageMeta }) {
   if (state.status === "loading") {
     return (
       <div className="px-4 py-3 text-xs text-content/45" role="status">
-        Loading generated image…
-      </div>
+        {t("Loading generated image…")}</div>
     );
   }
 
   if (state.status === "error") {
     return (
       <div className="px-4 py-3 text-xs text-content/50" role="alert">
-        Could not open generated image.
-      </div>
+        {t("Could not open generated image.")}</div>
     );
   }
 

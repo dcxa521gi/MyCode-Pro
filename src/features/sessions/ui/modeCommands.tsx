@@ -1,3 +1,4 @@
+import { translate as t } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import {
   AiIdea,
@@ -28,14 +29,22 @@ export const MODE_COMMAND_STYLES: Record<string, ModeCommandStyle> = {
     Icon: AiIdea,
     className: "text-yellow-700 dark:text-yellow-200/90",
     pill: {
-      label: "Plan",
-      title: "Plan mode",
+      get label() {
+        return t("Plan");
+      },
+      get title() {
+        return t("Plan mode");
+      },
       className:
         "bg-yellow-300/12 text-yellow-700 hover:bg-yellow-300/18 dark:text-yellow-200/90",
     },
     menu: {
-      label: "Plan mode",
-      description: "Review a plan before building",
+      get label() {
+        return t("Plan mode");
+      },
+      get description() {
+        return t("Review a plan before building");
+      },
       iconClassName: "text-yellow-300/80",
     },
   },
@@ -43,14 +52,22 @@ export const MODE_COMMAND_STYLES: Record<string, ModeCommandStyle> = {
     Icon: CursorMagicSelection,
     className: "text-sky-700 dark:text-sky-200/90",
     pill: {
-      label: "Operator",
-      title: "Operator",
+      get label() {
+        return t("Operator");
+      },
+      get title() {
+        return t("Operator");
+      },
       className:
         "bg-sky-500/15 font-medium text-sky-700 hover:bg-sky-500/20 dark:bg-sky-400/10 dark:text-sky-200/90 dark:hover:bg-sky-400/15",
     },
     menu: {
-      label: "Operator",
-      description: "Give this thread access to MonoCode",
+      get label() {
+        return t("Operator");
+      },
+      get description() {
+        return t("Give this thread access to MyCode");
+      },
       iconClassName: "text-sky-300/80",
     },
   },
@@ -58,14 +75,22 @@ export const MODE_COMMAND_STYLES: Record<string, ModeCommandStyle> = {
     Icon: Share,
     className: "text-fuchsia-700 dark:text-fuchsia-200/90",
     pill: {
-      label: "Orchestrator",
-      title: "Orchestrator mode",
+      get label() {
+        return t("Orchestrator");
+      },
+      get title() {
+        return t("Orchestrator mode");
+      },
       className:
         "bg-fuchsia-500/15 font-medium text-fuchsia-700 hover:bg-fuchsia-500/20 dark:bg-fuchsia-400/10 dark:text-fuchsia-200/90 dark:hover:bg-fuchsia-400/15",
     },
     menu: {
-      label: "Orchestrator",
-      description: "Plan and coordinate agent work",
+      get label() {
+        return t("Orchestrator");
+      },
+      get description() {
+        return t("Plan and coordinate agent work");
+      },
       iconClassName: "text-fuchsia-300/65",
     },
   },
@@ -73,14 +98,22 @@ export const MODE_COMMAND_STYLES: Record<string, ModeCommandStyle> = {
     Icon: CircleDashed,
     className: "text-content/70",
     pill: {
-      label: "Draft",
-      title: "Draft mode",
+      get label() {
+        return t("Draft");
+      },
+      get title() {
+        return t("Draft mode");
+      },
       className:
         "border border-dashed border-content/25 bg-content/5 text-content/70 hover:bg-content/10 hover:text-content",
     },
     menu: {
-      label: "Draft",
-      description: "Save this message without starting the agent",
+      get label() {
+        return t("Draft");
+      },
+      get description() {
+        return t("Save this message without starting the agent");
+      },
       iconClassName: "text-content/60",
     },
   },
@@ -158,7 +191,7 @@ export function ModeCommandPill({
   return (
     <button
       type="button"
-      title={t(`Turn off ${pill.title}`)}
+      title={t("Turn off {mode}").replace("{mode}", pill.title)}
       aria-label={t(`Turn off ${pill.title}`)}
       onMouseDown={(event) => event.preventDefault()}
       onClick={onClear}

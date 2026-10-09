@@ -749,7 +749,7 @@ export function BtwSheet({
                           ? `Delete “${label}”`
                           : "Discard new question"
                       }
-                      title={tab.thread ? t("Delete") : "Discard"}
+                      title={tab.thread ? t("Delete") : t("Discard")}
                       onClick={() => btw.closeTab(tab)}
                       className={`mr-1 grid size-5 shrink-0 place-items-center rounded text-content/40 transition-opacity hover:bg-content/10 hover:text-content focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-accent ${
                         selected ? "" : "opacity-0 group-hover:opacity-100"

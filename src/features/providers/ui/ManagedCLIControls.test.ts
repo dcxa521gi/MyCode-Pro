@@ -74,6 +74,18 @@ const button = (text: string) =>
   [...container.querySelectorAll("button")].find(
     (b) => b.textContent?.trim() === text,
   )!;
+it("reflects an update notification's scope change while settings remain open", async () => {
+  localStorage.setItem("mycode.cliScope.codex", "global");
+  await render();
+  expect(container.textContent).toContain("Global (this computer)");
+  await act(async () => {
+    window.dispatchEvent(new Event("mycode-cli-paths-changed"));
+    localStorage.setItem("mycode.cliScope.codex", "app");
+    await new Promise((resolve) => window.setTimeout(resolve, 10));
+  });
+  expect(container.textContent).toContain("MyCode app");
+  expect(container.textContent).not.toContain("Global (this computer)");
+});
 it("installs missing CLIs, then shows a disabled current-version action", async () => {
   installed = undefined;
   await render();
@@ -125,4 +137,16 @@ it("does not activate an installed binary that fails version verification", asyn
   expect(localStorage.getItem("mycode.appCliPath.codex")).toBeNull();
   expect(button("Update").disabled).toBe(false);
   expect(container.textContent).toContain("broken executable");
+});
+it("keeps the previous active path when the installed copy is still outdated", async () => {
+  latest = "1.1.0";
+  await render();
+  vi.mocked(inspectHarnessBinary).mockResolvedValueOnce({
+    path: "/app/codex",
+    version: "1.0.0",
+  });
+  await act(async () => button("Update").click());
+  expect(applyProviderBinaryPath).not.toHaveBeenCalled();
+  expect(localStorage.getItem("mycode.appCliPath.codex")).toBeNull();
+  expect(container.textContent).toContain("1.1.0");
 });

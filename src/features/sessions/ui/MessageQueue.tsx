@@ -80,7 +80,7 @@ export function MessageQueue({
                 ? t("A message couldn't be sent")
                 : variant === "messages"
                   ? "Messages paused"
-                  : "Queue paused because you interrupted"}
+                  : t("Queue paused because you interrupted")}
             </span>
             <button
               type="button"

@@ -1,3 +1,4 @@
+import { translate as t } from "../../../shared/i18n";
 import { translateActivity } from "../../../shared/i18n/activity";
 import { getLocale } from "../../../shared/i18n";
 import { useShowThinking } from "../../settings/model/showThinking";
@@ -945,7 +946,7 @@ function AgentTranscriptComponent({
                 onReturnToLatest();
               }}
             >
-              Back to latest messages
+              {t("Back to latest messages")}
             </button>
           </div>
         ) : null}
@@ -1271,15 +1272,14 @@ function AgentTranscriptComponent({
                   workExpanded={activeWorkTurnId === turnId}
                   searchCurrent={
                     turn.some((block) => block.id === searchCurrent) &&
-                    !items.some(
-                      (item) =>
-                        item.type === "block"
-                          ? item.block.id === searchCurrent
-                          : item.blocks.some(
-                              (block) =>
-                                block.id === searchCurrent &&
-                                needsApproval(block),
-                            ),
+                    !items.some((item) =>
+                      item.type === "block"
+                        ? item.block.id === searchCurrent
+                        : item.blocks.some(
+                            (block) =>
+                              block.id === searchCurrent &&
+                              needsApproval(block),
+                          ),
                     )
                   }
                 />
@@ -2378,7 +2378,7 @@ function UserMessageBlock({
             onClick={() => onRetryMessage(block.id)}
             className="shrink-0 rounded px-1 py-0.5 text-content/70 hover:bg-content/8"
           >
-            {delivery.status === "failed" ? "Retry" : "Resume"}
+            {delivery.status === "failed" ? t("Retry") : t("Resume")}
           </button>
         ) : null}
       </div>
@@ -2514,7 +2514,7 @@ function UserMessageBlock({
                   className="mt-1 rounded px-1 py-0.5 text-xs text-content/60 hover:bg-content/8 hover:text-content"
                   onClick={toggle}
                 >
-                  {expanded ? "Show less" : "Show more"}
+                  {expanded ? t("Show less") : t("Show more")}
                 </button>
               ) : null}
               {block.ciContext ? (
@@ -2524,11 +2524,12 @@ function UserMessageBlock({
                 >
                   <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 rounded text-xs text-content/50 transition-colors hover:text-content/80 focus-visible:outline focus-visible:outline-1 focus-visible:outline-content/40 [&::-webkit-details-marker]:hidden">
                     <ChevronRight className="size-3 shrink-0 transition-transform group-open/ci:rotate-90" />
-                    <span>CI context</span>
+                    <span>{t("CI context")}</span>
                   </summary>
                   <p className="mt-2 text-xs text-content/50">
-                    CI instructions and failure details included with this
-                    request.
+                    {t(
+                      "CI instructions and failure details included with this request.",
+                    )}
                   </p>
                   <pre className="mt-2 max-h-72 min-w-0 overflow-auto overscroll-contain rounded-md bg-content/5 p-2.5 font-mono text-[11px] leading-relaxed whitespace-pre-wrap break-words text-content/70">
                     {block.ciContext}
@@ -2539,27 +2540,27 @@ function UserMessageBlock({
                 <div className="mt-2 flex items-center justify-between gap-4 border-t border-dashed border-content/20 pt-2">
                   <span className="flex items-center gap-1.5 text-xs text-content/50">
                     <CircleDashed className="size-3.5" strokeWidth={1.75} />
-                    Draft
+                    {t("Draft")}
                   </span>
                   <span className="flex items-center gap-1">
                     <button
                       type="button"
-                      title="Remove draft"
-                      aria-label="Remove draft"
+                      title={t("Remove draft")}
+                      aria-label={t("Remove draft")}
                       onClick={() => onRemoveDraft?.(block)}
                       className="flex h-7 items-center gap-1.5 rounded-md px-2 text-xs text-content/55 hover:bg-content/10 hover:text-content"
                     >
                       <Trash2 className="size-3.5" strokeWidth={1.75} />
-                      Remove
+                      {t("Remove")}
                     </button>
                     <button
                       type="button"
-                      title="Send draft"
-                      aria-label="Send draft"
+                      title={t("Send draft")}
+                      aria-label={t("Send draft")}
                       onClick={() => onSendDraft?.(block)}
                       className="primary-action flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-transform duration-150 active:scale-[0.97]"
                     >
-                      Send
+                      {t("Send")}
                       <ArrowUp className="size-3.5" strokeWidth={2.25} />
                     </button>
                   </span>
@@ -3059,7 +3060,10 @@ function MonoTurnHeader({
     () => blocks.filter((block) => !block.internal && !block.draft),
     [blocks],
   );
-  let status = useMemo(() => monoWorkStatus(activity, active), [activity, active]);
+  let status = useMemo(
+    () => monoWorkStatus(activity, active),
+    [activity, active],
+  );
   if (active && waitingForAnswers && !activity.some(needsApproval)) {
     status = { ...status, key: "question", label: "Waiting for answers…" };
   } else if (active && backgroundTasks?.length && status.kind === "think") {
@@ -3218,7 +3222,7 @@ export function MonoActivityTrail({
   }
   return (
     <ol
-      aria-label="Activity in chronological order"
+      aria-label={t("Activity in chronological order")}
       className="flex min-w-0 flex-col gap-3"
     >
       {segments.map((segment) => {
@@ -4095,7 +4099,8 @@ function ActivityThinkingRow({
             bare ? pulse : ""
           }`}
         >
-          {text}
+          {/* Open, the body starts with the paragraph the summary came from. */}
+          {open ? t("Thinking") : text}
         </span>
       </button>
       {open ? (

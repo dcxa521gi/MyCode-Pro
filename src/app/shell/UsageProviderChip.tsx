@@ -24,7 +24,10 @@ import {
   projectMascot,
 } from "../../features/projects/model/projectMascots";
 import { projectKey, projectName } from "../../shared/lib/paths";
-import { HARNESS_TITLE, type HarnessId } from "../../features/sessions/model/session";
+import {
+  HARNESS_TITLE,
+  type HarnessId,
+} from "../../features/sessions/model/session";
 import {
   loadTabGroupColors,
   loadTabGroupCustomColors,
@@ -371,9 +374,7 @@ export function UsageProviderChip({
                     </p>
                   ) : null}
                   {canManageAccounts ? (
-                    <div
-                      className="pointer-events-none relative mt-1 -ml-1 inline-flex max-w-full items-center gap-1 rounded px-1 py-0.5 text-[10px] text-content/55"
-                    >
+                    <div className="pointer-events-none relative mt-1 -ml-1 inline-flex max-w-full items-center gap-1 rounded px-1 py-0.5 text-[10px] text-content/55">
                       {/* Keep account switching separate from email revelation. */}
                       <button
                         type="button"
@@ -663,7 +664,7 @@ function SwitchSuggestion({
     <section className="mt-2 flex items-center gap-2.5 rounded-lg bg-content/[0.045] px-3 py-2.5 ring-1 ring-inset ring-content/[0.06]">
       <div className="min-w-0 flex-1">
         <p className="text-[10px] leading-4 text-content/45">
-          {exhausted ? "Out of usage" : "Running low"} · switch to
+          {exhausted ? "Out of usage" : "Running low"} {t("· switch to")}
         </p>
         <p className="mt-0.5 flex min-w-0 items-center gap-2 text-[11px]">
           <span className="min-w-0 truncate font-medium">{account.label}</span>
@@ -678,7 +679,7 @@ function SwitchSuggestion({
         className="h-7 shrink-0 rounded-md bg-content px-2.5 text-[11px] font-medium text-background-base transition-transform duration-150 hover:bg-content/85 active:scale-[0.97]"
         onClick={onSwitch}
       >
-        Switch
+        {t("Switch")}
       </button>
     </section>
   );

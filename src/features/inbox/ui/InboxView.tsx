@@ -1,3 +1,4 @@
+import { translate as t } from "../../../shared/i18n";
 import { GitCodeInbox } from "./GitCodeInbox";
 import { getLocale as uiLocale } from "../../../shared/i18n";
 import { translate as uiTranslate } from "../../../shared/i18n";
@@ -3301,7 +3302,7 @@ function InboxProjectPicker({
       >
         {selected ? <InboxProjectMark project={selected} /> : null}
         <span className="min-w-0 truncate">
-          {selected?.name ?? "Choose project"}
+          {selected?.name ?? t("Choose project")}
         </span>
         <ChevronDown
           className="size-3 shrink-0 text-content/45"

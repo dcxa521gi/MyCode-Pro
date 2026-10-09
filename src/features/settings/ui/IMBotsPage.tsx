@@ -257,7 +257,7 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
               }
             >
               <option value="feishu">飞书</option>
-              <option value="lark">Lark</option>
+              <option value="lark">{t("Lark")}</option>
             </SettingsDropdown>
           </label>
         )}

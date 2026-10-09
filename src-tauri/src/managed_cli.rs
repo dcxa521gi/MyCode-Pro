@@ -516,12 +516,12 @@ fn install_cli(app: &AppHandle, provider: &str) -> Result<String, String> {
     }
     let (pkg, bin) = package(&provider)?;
     let runtime = runtime_dir(&app)?;
-    let prefix = app
+    let cli_root = app
         .path()
         .app_data_dir()
         .map_err(|e| e.to_string())?
-        .join("cli")
-        .join(&provider);
+        .join("cli");
+    let prefix = npm_install_prefix(&cli_root, &provider);
     fs::create_dir_all(&prefix).map_err(|e| e.to_string())?;
     let log_path = prefix.join("install.log");
     let log = fs::File::create(&log_path).map_err(|e| e.to_string())?;
@@ -623,6 +623,17 @@ fn install_cli(app: &AppHandle, provider: &str) -> Result<String, String> {
     Ok(path.to_string_lossy().into())
 }
 
+fn npm_install_prefix(cli_root: &std::path::Path, provider: &str) -> PathBuf {
+    // An existing session can hold its native executable open on Windows.
+    // Never overwrite its prefix: installation and verification happen in a
+    // fresh directory, and only the caller switches the selected binary.
+    // Previous installations and user-selected paths remain untouched.
+    cli_root
+        .join(provider)
+        .join("installs")
+        .join(uuid::Uuid::new_v4().to_string())
+}
+
 #[cfg(windows)]
 fn install_hermes(app: &AppHandle) -> Result<String, String> {
     let root = app
@@ -708,6 +719,42 @@ fn install_hermes(app: &AppHandle) -> Result<String, String> {
 #[cfg(all(test, windows))]
 mod runtime_path_tests {
     use super::*;
+    use std::os::windows::fs::OpenOptionsExt;
+
+    #[test]
+    fn npm_update_does_not_overwrite_a_locked_previous_installation() {
+        let root = std::env::temp_dir().join(format!("mycode-cli-update-{}", uuid::Uuid::new_v4()));
+        let old_prefix = root.join("codex");
+        fs::create_dir_all(&old_prefix).unwrap();
+        let old_binary = old_prefix.join("codex.cmd");
+        fs::write(&old_binary, b"old version, used by a running session").unwrap();
+        let held = fs::OpenOptions::new()
+            .read(true)
+            .share_mode(1)
+            .open(&old_binary)
+            .unwrap();
+        assert!(fs::write(&old_binary, b"overwritten").is_err());
+        let updated_prefix = npm_install_prefix(&root, "codex");
+        assert_ne!(
+            updated_prefix, old_prefix,
+            "npm must not target the live prefix"
+        );
+        fs::create_dir_all(&updated_prefix).unwrap();
+        let new_binary = updated_prefix.join("codex.cmd");
+        fs::write(&new_binary, b"new version").unwrap();
+        assert_eq!(
+            fs::read(&old_binary).unwrap(),
+            b"old version, used by a running session"
+        );
+        assert_eq!(fs::read(&new_binary).unwrap(), b"new version");
+        assert_ne!(
+            npm_install_prefix(&root, "codex"),
+            updated_prefix,
+            "each attempt must have an independent destination"
+        );
+        drop(held);
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn node_receives_regular_drive_and_unc_paths() {
         assert_eq!(

@@ -90,7 +90,7 @@ export function useProjectIndex(root: string | undefined): {
 }
 
 function confirmNative(message: string): Promise<boolean> {
-  return ask(message, { title: "MonoCode", kind: "warning" });
+  return ask(message, { title: "MyCode", kind: "warning" });
 }
 
 function fail(error: unknown) {
@@ -221,7 +221,7 @@ export function MonoProjectCommit({
             value0: name,
           }),
       {
-        title: "MonoCode",
+        title: "MyCode",
         kind: "warning",
         okLabel: untracked ? t("Delete") : t("Discard"),
       },
@@ -432,7 +432,7 @@ export function MonoProjectCommit({
             placeholder={formatMessage("Message ({value0}↩ to commit)", {
               value0: MOD,
             })}
-            disabled={(!!busy && busy !== "generate") || selected.length === 0}
+            disabled={!!busy && busy !== "generate"}
             onChange={(event) => setMessage(event.target.value)}
             onKeyDown={(event) => {
               if (

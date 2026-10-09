@@ -202,7 +202,7 @@ export function MonoSessionsPanel({
                       aria-hidden
                       className={`size-1.5 rounded-full ${status === "Working" ? "animate-pulse bg-[var(--mono-color)]" : status === "Needs input" ? "bg-amber-500/70" : "bg-content/30"}`}
                     />
-                    {opening === launch.sessionId ? t("Opening…") : status}
+                    {opening === launch.sessionId ? t("Opening…") : t(status)}
                   </p>
                 </div>
                 <ChevronRight

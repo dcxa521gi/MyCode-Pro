@@ -55,9 +55,9 @@ function duration(ms: number): string {
 }
 
 const OUTCOME: Record<HabitRun["outcome"], { label: string; dot: string }> = {
-  posted: { label: t("Messaged you"), dot: "bg-[var(--mono-color)]" },
-  quiet: { label: t("Nothing to report"), dot: "bg-content/25" },
-  failed: { label: t("Couldn't finish"), dot: "bg-red-500/70" },
+  posted: { label: "Messaged you", dot: "bg-[var(--mono-color)]" },
+  quiet: { label: "Nothing to report", dot: "bg-content/25" },
+  failed: { label: "Couldn't finish", dot: "bg-red-500/70" },
 };
 
 /** One habit up close: what it does, when, and how its recent runs went. */
@@ -223,7 +223,7 @@ function RunRow({ run, cwd }: { run: HabitRun; cwd: string }) {
       >
         <span className={`size-2 shrink-0 rounded-full ${outcome.dot}`} />
         <span className="min-w-0 flex-1 truncate text-content/85">
-          {outcome.label}
+          {t(outcome.label)}
         </span>
         <span className="shrink-0 tabular-nums text-content/40">
           {when(run.at)}

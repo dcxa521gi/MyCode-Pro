@@ -33,6 +33,7 @@ import {
   type FloatingMonoView,
 } from "../model/floatingMono";
 import { MonoComposer } from "./MonoComposer";
+import { MonoStatusDot } from "./MonoRailMascot";
 import { MonoStatus } from "./MonoStatus";
 import { MONO_PAGE_TURNS } from "../../sessions/data/sessionStore";
 
@@ -215,8 +216,8 @@ export function FloatingMonoChat({ onShown }: { onShown: () => void }) {
           ) : null}
           <button
             type="button"
-            aria-label={t("Open in MonoCode")}
-            title={t("Open in MonoCode")}
+            aria-label={t("Open in MyCode")}
+            title={t("Open in MyCode")}
             disabled={loading}
             className={BUTTON}
             onClick={() => void action({ kind: "reveal" })}
@@ -347,6 +348,11 @@ function MonoRail({
                 className="pointer-events-none size-7"
               />
             </button>
+            <MonoStatusDot
+              status={mono.status}
+              color={mono.color}
+              className="pointer-events-none top-0.5 right-2.5 size-2"
+            />
           </div>
         );
       })}
@@ -478,7 +484,7 @@ function FloatingConversation({
             className="text-accent hover:underline"
             onClick={() => void action({ kind: "reveal" })}
           >
-            {t("Change model in MonoCode")}
+            {t("Change model in MyCode")}
           </button>
         </div>
       ) : null}
@@ -608,8 +614,8 @@ function ArtifactSheet({
           ) : null}
           <button
             type="button"
-            aria-label={t("Open in MonoCode")}
-            title={t("Open in MonoCode")}
+            aria-label={t("Open in MyCode")}
+            title={t("Open in MyCode")}
             className={BUTTON}
             onClick={() => void action({ kind: "openArtifact", id })}
           >

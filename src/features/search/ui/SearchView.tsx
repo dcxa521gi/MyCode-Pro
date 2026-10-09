@@ -401,8 +401,7 @@ export function SearchView({
   const noResults = !empty && hits.length === 0 && !loading;
   const limitNotice = truncated ? (
     <p className="px-2.5 py-1 text-[11px] text-content/45">
-      Results limited to the first matches
-    </p>
+      {t("Results limited to the first matches")}</p>
   ) : null;
 
   return (

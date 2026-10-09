@@ -1,3 +1,4 @@
+import { translate as t } from "../../../shared/i18n";
 import { modelContextWindow } from "../model/models";
 import { GripVertical, X } from "../../../shared/ui/icons";
 import {
@@ -837,7 +838,7 @@ const LocalSessionPane = memo(function LocalSessionPane({
           <button
             type="button"
             title={`Close Pane (${MOD}W)`}
-            aria-label="Close pane"
+            aria-label={t("Close pane")}
             data-no-drag
             className="grid size-5 shrink-0 place-items-center rounded text-content/50 hover:bg-content/10 hover:text-content"
             onPointerDown={(e) => e.stopPropagation()}

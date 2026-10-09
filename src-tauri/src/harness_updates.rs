@@ -2,11 +2,12 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use serde_json::Value;
+use tauri::AppHandle;
 
 use crate::harness::{exec_output, is_resolved_harness_binary};
 
 const REGISTRY_URL: &str = "https://registry.npmjs.org";
-const USER_AGENT: &str = "MonoCode";
+const USER_AGENT: &str = "MyCode";
 const HTTP_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Only harnesses whose releases are published to npm. The rest ship through
@@ -21,8 +22,8 @@ fn npm_package(provider: &str) -> Option<&'static str> {
     }
 }
 
-/// Each CLI's own updater, which knows how it was installed (native, npm,
-/// Homebrew) better than MonoCode could guess from the binary path.
+/// Non-Windows CLIs use their own updater, which knows how it was installed
+/// (native, npm, Homebrew). Windows uses MyCode's bundled installer below.
 fn update_args(provider: &str) -> Option<&'static [&'static str]> {
     match provider {
         "claude" => Some(&["update"]),
@@ -67,15 +68,15 @@ pub async fn harness_latest_version(provider: String) -> Result<String, String> 
     .map_err(|e| e.to_string())?
 }
 
-/// Runs the harness's self-update against the binary MonoCode resolved for
-/// it. stdin is closed, so an updater that stops to ask fails instead of
-/// hanging.
+/// Returns a new application-local path on Windows, or updates the resolved
+/// binary in place on other platforms. stdin is closed for both installers.
 #[tauri::command]
 pub async fn harness_update(
+    app: AppHandle,
     command: String,
     binary_provider: String,
     binary_path: Option<String>,
-) -> Result<(), String> {
+) -> Result<Option<String>, String> {
     let args: Vec<String> = update_args(&binary_provider)
         .ok_or_else(|| format!("No updater for harness: {binary_provider}"))?
         .iter()
@@ -85,14 +86,25 @@ pub async fn harness_update(
         if !is_resolved_harness_binary(&command, Some(&binary_provider), binary_path.as_deref()) {
             return Err("harness_update: not a resolved harness CLI".to_string());
         }
+        // Windows self-updaters can invoke a missing global npm command, or
+        // update a global installation while MyCode still uses its private
+        // copy. Use the bundled Node/npm installer and return the exact path
+        // for the caller to verify and activate. Global installs are untouched.
+        if uses_application_installer(&binary_provider, cfg!(windows)) {
+            return crate::managed_cli::managed_cli_install(app, binary_provider).map(Some);
+        }
         let output = exec_output(&command, &args, None, UPDATE_TIMEOUT)?;
         if output.status.success() {
-            return Ok(());
+            return Ok(None);
         }
         Err(update_failure(&output.stdout, &output.stderr))
     })
     .await
     .map_err(|e| e.to_string())?
+}
+
+fn uses_application_installer(provider: &str, windows: bool) -> bool {
+    windows && npm_package(provider).is_some()
 }
 
 /// Updaters print their reason to either stream; the last line is the one
@@ -122,6 +134,15 @@ mod tests {
     use serde_json::json;
 
     #[test]
+    fn windows_updates_use_the_bundled_installer_without_global_npm() {
+        assert!(uses_application_installer("claude", true));
+        assert!(uses_application_installer("codex", true));
+        assert!(uses_application_installer("opencode", true));
+        assert!(!uses_application_installer("claude", false));
+        assert!(!uses_application_installer("../../evil", true));
+    }
+
+    #[test]
     fn maps_only_npm_published_harnesses() {
         assert_eq!(npm_package("claude"), Some("@anthropic-ai/claude-code"));
         assert_eq!(npm_package("pi"), Some("@earendil-works/pi-coding-agent"));
@@ -130,7 +151,7 @@ mod tests {
     }
 
     #[test]
-    fn updates_only_through_each_cli_own_updater() {
+    fn non_windows_update_arguments_use_each_cli_own_updater() {
         assert_eq!(update_args("pi"), Some(&["update", "--self"][..]));
         assert_eq!(update_args("opencode"), Some(&["upgrade"][..]));
         assert_eq!(update_args("cursor"), None);

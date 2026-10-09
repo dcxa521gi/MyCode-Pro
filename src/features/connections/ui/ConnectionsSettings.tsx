@@ -1,4 +1,4 @@
-import { translate as t } from "../../../shared/i18n";
+import { translate as t, formatMessage } from "../../../shared/i18n";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef, useState } from "react";
 import { Internet, Loader, Plus, Trash2 } from "../../../shared/ui/icons";
@@ -78,13 +78,18 @@ export function ConnectionsSettings() {
             setPort("");
             setNotice(
               updatingMachine
-                ? `${next.machine.name} was updated and reconnected.`
-                : `${next.machine.name} is connected. To work on it, click + next to Projects in the project rail and choose Open folder on a machine.`,
+                ? formatMessage("{name} was updated and reconnected.", {
+                    name: next.machine.name,
+                  })
+                : formatMessage(
+                    "{name} is connected. To work on it, click + next to Projects in the project rail and choose Open folder on a machine.",
+                    { name: next.machine.name },
+                  ),
             );
             setUpdatingMachine(undefined);
             setStatus((current) => ({
               ...current,
-              [next.machine!.id]: "Connected",
+              [next.machine!.id]: t("Connected"),
             }));
             refreshRemoteMachines();
           }
@@ -228,8 +233,14 @@ export function ConnectionsSettings() {
       setRemoving(undefined);
       setNotice(
         revoke
-          ? `${machine.name} was removed and this desktop's access was revoked. The host and its sessions keep running.`
-          : `${machine.name} was removed from this desktop. The host and its sessions keep running, and it still accepts this desktop's credential.`,
+          ? formatMessage(
+              "{name} was removed and this desktop's access was revoked. The host and its sessions keep running.",
+              { name: machine.name },
+            )
+          : formatMessage(
+              "{name} was removed from this desktop. The host and its sessions keep running, and it still accepts this desktop's credential.",
+              { name: machine.name },
+            ),
       );
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
@@ -280,7 +291,7 @@ export function ConnectionsSettings() {
                       : machine.endpoint}
                   </div>
                   <div className="mt-1 text-[12px] text-content/50">
-                    {status[machine.id] ?? "Checking connection…"}
+                    {t(status[machine.id] ?? "Checking connection…")}
                   </div>
                   {machine.ssh && needsUpdate[machine.id] ? (
                     <div className="mt-1 text-[11px] text-content/45">
@@ -316,7 +327,9 @@ export function ConnectionsSettings() {
                 <button
                   disabled={busy || revoking}
                   className="rounded p-2 text-content/40 hover:bg-selection hover:text-content disabled:opacity-40"
-                  aria-label={`Remove ${machine.name}`}
+                  aria-label={formatMessage("Remove {name}", {
+                    name: machine.name,
+                  })}
                   title={t("Remove connection…")}
                   onClick={() => {
                     setError("");
@@ -329,7 +342,9 @@ export function ConnectionsSettings() {
               {removing === machine.id && (
                 <div
                   role="group"
-                  aria-label={`Confirm removing ${machine.name}`}
+                  aria-label={formatMessage("Confirm removing {name}", {
+                    name: machine.name,
+                  })}
                   className="flex flex-col gap-3 border-t border-stroke bg-content/3 px-4 py-4 text-[12px] leading-relaxed text-content/60"
                 >
                   <p className="text-[13px] font-medium text-content">
@@ -485,7 +500,7 @@ export function ConnectionsSettings() {
               {t("Cancel")}
             </button>
             <button className={button} disabled={busy || !target.trim()}>
-              {busy ? "Connecting…" : "Connect"}
+              {busy ? t("Connecting…") : t("Connect")}
             </button>
           </div>
         </form>
@@ -498,7 +513,7 @@ export function ConnectionsSettings() {
         >
           <div className="flex items-center gap-2 text-[13px]">
             <Loader className="size-4 animate-spin" />
-            {job?.message ?? "Starting connection…"}
+            {t(job?.message ?? "Starting connection…")}
           </div>
           {job?.prompt && (
             <form
@@ -509,7 +524,7 @@ export function ConnectionsSettings() {
               }}
             >
               <p className="whitespace-pre-wrap break-words text-[12px] leading-relaxed text-content/70">
-                {job.prompt.message}
+                {t(job.prompt.message)}
               </p>
               {!job.prompt.confirm && (
                 <input
@@ -526,7 +541,9 @@ export function ConnectionsSettings() {
               )}
               <div className="flex gap-2">
                 <button className={button} disabled={answering}>
-                  {job.prompt.confirm ? "Trust host and continue" : "Continue"}
+                  {job.prompt.confirm
+                    ? t("Trust host and continue")
+                    : t("Continue")}
                 </button>
                 {job.prompt.confirm && (
                   <button
@@ -560,7 +577,7 @@ export function ConnectionsSettings() {
           role="alert"
           className="whitespace-pre-wrap break-words rounded-lg bg-red-500/5 p-3 text-[12px] leading-relaxed text-red-400"
         >
-          {error}
+          {t(error)}
         </p>
       )}
       {notice && (

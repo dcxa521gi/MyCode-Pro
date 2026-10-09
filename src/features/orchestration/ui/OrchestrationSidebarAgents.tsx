@@ -267,7 +267,7 @@ export function OrchestrationSidebarAgents({
           </p>
           {resumeBlocker && (
             <p className="px-0.5 text-[11px] leading-relaxed text-amber-400">
-              {resumeBlocker.title || "Another conversation"}{" "}
+              {resumeBlocker.title || t("Another conversation")}{" "}
               {t("is still running in this project.")}
             </p>
           )}

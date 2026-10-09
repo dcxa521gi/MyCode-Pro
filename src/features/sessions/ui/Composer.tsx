@@ -211,6 +211,7 @@ import {
   type McpSettingsSnapshot,
 } from "../../settings/model/mcpSettingsCache";
 import type { LastTurnRecall } from "../model/editLastTurn";
+import { useComposerAutocorrect } from "../../settings/model/displayPrefs";
 
 type Props = {
   enabled?: boolean;
@@ -585,6 +586,7 @@ export function Composer({
   const [mentionActive, setMentionActive] = useState(0);
   const [resendEdited, setResendEdited] = useState(false);
   const [runnerEnabled, setRunnerEnabled] = useState(loadComposerRunner);
+  const autocorrect = useComposerAutocorrect();
   const [runnerLive, setRunnerLive] = useState(
     () => busy && loadComposerRunner(),
   );
@@ -2230,7 +2232,8 @@ export function Composer({
               data-composer-empty={navigationEmpty ? "true" : undefined}
               style={{ textIndent: modeIndent }}
               rows={1}
-              spellCheck
+              spellCheck={autocorrect}
+              autoCorrect={autocorrect ? "on" : "off"}
               defaultValue={mountDraft}
               placeholder={t(
                 worktreeRemoved
@@ -2330,7 +2333,7 @@ export function Composer({
                       </span>
                       <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
                         {attachmentsSupported
-                          ? "Attach files or images"
+                          ? t("Attach files or images")
                           : remote && !remoteFeatures?.attachments
                             ? "Update this machine’s host to attach files"
                             : `${HARNESS_TITLE[harness]} does not support attachments`}
@@ -2355,9 +2358,11 @@ export function Composer({
                     >
                       <AiIdea className="mt-0.5 size-4 shrink-0 text-yellow-300/80" />
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[13px]">Plan mode</span>
+                        <span className="block text-[13px]">
+                          {t("Plan mode")}
+                        </span>
                         <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
-                          Review a plan before building
+                          {t("Review a plan before building")}
                         </span>
                       </span>
                       {planActive ? (
@@ -2385,9 +2390,11 @@ export function Composer({
                     >
                       <CursorMagicSelection className="mt-0.5 size-4 shrink-0 text-sky-300/80" />
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[13px]">Operator</span>
+                        <span className="block text-[13px]">
+                          {t("Operator")}
+                        </span>
                         <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
-                          Give this thread access to MonoCode
+                          {t("Give this thread access to MyCode")}
                         </span>
                       </span>
                       {operatorActive ? (

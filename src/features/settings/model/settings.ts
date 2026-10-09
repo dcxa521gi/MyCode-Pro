@@ -108,7 +108,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     group: "agents",
     label: "Providers",
     description:
-      "Provider accounts, agent CLIs MyCode can drive, and the model new sessions start with.",
+      "Model providers, connection credentials and models available to your agents.",
     keywords:
       "account sign in login model harness claude codex gemini cli default hooks",
   },
@@ -261,7 +261,12 @@ export type SettingsEntry = {
 };
 
 export const SETTINGS_INDEX: SettingsEntry[] = [
-  { id:"language", section:"general", label:"Display language", keywords:"language locale 简体中文 中文 语言 English" },
+  {
+    id: "language",
+    section: "general",
+    label: "Display language",
+    keywords: "language locale 简体中文 中文 语言 English",
+  },
   {
     id: "remote-machines",
     section: "connections",
@@ -280,7 +285,16 @@ export const SETTINGS_INDEX: SettingsEntry[] = [
     label: "Show monos",
     keywords: "mono agent rail hide",
   },
-  ...(IS_MAC || IS_WIN ? [{id:"mono-menu-bar-icon",section:"monos" as const,label:"Menu bar icon",keywords:"tray mono agent floating chat 托盘 浮窗"}] : []),
+  ...(IS_MAC || IS_WIN
+    ? [
+        {
+          id: "mono-menu-bar-icon",
+          section: "monos" as const,
+          label: "Menu bar icon",
+          keywords: "tray mono agent floating chat 托盘 浮窗",
+        },
+      ]
+    : []),
   {
     id: "mono-list",
     section: "monos",
@@ -459,6 +473,12 @@ export const SETTINGS_INDEX: SettingsEntry[] = [
     label: "Model controls",
     keywords:
       "effort thinking reasoning fast service tier model picker composer",
+  },
+  {
+    id: "composer-autocorrect",
+    section: "chat",
+    label: "Autocorrect",
+    keywords: "spelling spell check autocorrect typo macos composer",
   },
   {
     id: "composer-mascot",

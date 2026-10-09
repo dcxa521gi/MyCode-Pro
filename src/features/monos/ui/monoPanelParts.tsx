@@ -18,6 +18,7 @@ import { normalizeHex } from "../../../shared/lib/colorUtils";
 import { Popover } from "../../../shared/ui/Popover";
 import { PixelMascot } from "../../projects/ui/PixelMascot";
 import { MarkdownSourceEditor } from "../../sessions/ui/MarkdownSourceEditor";
+import { playCue } from "../../settings/model/sounds";
 import {
   MEMORY_MAX_BYTES,
   MEMORY_MAX_LINES,
@@ -96,6 +97,56 @@ export function Property({
   );
 }
 
+/** A setting that is on or off: its name and what it does, then a switch. */
+export function SwitchRow({
+  label,
+  description,
+  on,
+  onChange,
+  disabled = false,
+}: {
+  label: string;
+  /** Clamped to one line under the label; the full text is its tooltip. */
+  description: string;
+  on: boolean;
+  onChange: (on: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div
+      title={description}
+      className={`flex items-center gap-3 px-3 py-2 ${disabled ? "opacity-40" : ""}`}
+    >
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-[13px] leading-5 text-content/90">{label}</span>
+        <span className="line-clamp-1 text-[12px] leading-5 text-content/40">
+          {description}
+        </span>
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-label={label}
+        aria-checked={on}
+        disabled={disabled}
+        onClick={() => {
+          onChange(!on);
+          playCue("switch");
+        }}
+        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed ${
+          on ? "bg-accent" : "bg-content/20"
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 size-4 rounded-full bg-white transition-[left] ${
+            on ? "left-4.5" : "left-0.5"
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
 export function Hint({ children }: { children: ReactNode }) {
   return (
     <p className="mt-2 px-2 text-[11px] leading-4 text-content/35">
@@ -155,7 +206,7 @@ export function MascotPicker({
             role="radio"
             aria-checked={selected}
             aria-label={name}
-            title={name.charAt(0).toUpperCase() + name.slice(1)}
+            title={t(name.charAt(0).toUpperCase() + name.slice(1))}
             onClick={() => onPick(name)}
             className={`grid h-8 min-w-0 place-items-center rounded-md ${
               selected

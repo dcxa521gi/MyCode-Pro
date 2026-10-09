@@ -1,4 +1,4 @@
-import { translate as t } from "../../../shared/i18n";
+import { translate as t, formatMessage } from "../../../shared/i18n";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { SessionPaneProps } from "../../sessions/ui/SessionPane";
 import type {
@@ -148,10 +148,14 @@ export function RemoteSession({
       <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
         <p className="text-[13px] text-content/60">
           {!project
-            ? "This project’s machine details are missing. Add the project again from the project rail."
+            ? t(
+                "This project’s machine details are missing. Add the project again from the project rail.",
+              )
             : loaded
-              ? "The machine for this project isn’t connected on this computer."
-              : "Connecting to the machine…"}
+              ? t(
+                  "The machine for this project isn’t connected on this computer.",
+                )
+              : t("Connecting to the machine…")}
         </p>
         {project && loaded ? (
           <button
@@ -1007,7 +1011,7 @@ function ConnectedRemoteSession({
           ...(listed ?? {
             id,
             harness,
-            name: id ? id.replace(/^[a-z]+:/, "") : "Loading models…",
+            name: id ? id.replace(/^[a-z]+:/, "") : t("Loading models…"),
             nativeId: id.replace(/^[a-z]+:/, ""),
           }),
           settings: controls.settings,
@@ -1125,16 +1129,21 @@ function ConnectedRemoteSession({
   const notice =
     pending && !sending
       ? {
-          text: "Waiting for the host to confirm your request.",
+          text: t("Waiting for the host to confirm your request."),
           detail: error,
-          action: { label: "Retry", run: () => void retryPending() },
+          action: { label: t("Retry"), run: () => void retryPending() },
         }
       : starting?.failed
         ? {
-            text: `Couldn’t ${starting.draft ? "save the draft" : "send the message"} on ${machine.name}.`,
+            text: formatMessage(
+              starting.draft
+                ? "Couldn’t save the draft on {name}."
+                : "Couldn’t send the message on {name}.",
+              { name: machine.name },
+            ),
             detail: error,
             action: {
-              label: "Try again",
+              label: t("Try again"),
               run: () => {
                 const turn = { ...starting, failed: false };
                 setStarting(turn);
@@ -1161,14 +1170,16 @@ function ConnectedRemoteSession({
         : error
           ? {
               text: error,
-              action: { label: "Dismiss", run: () => setError("") },
+              action: { label: t("Dismiss"), run: () => setError("") },
             }
           : catalogProblem
             ? {
-                text: `Couldn’t load models from ${machine.name}.`,
+                text: formatMessage("Couldn’t load models from {name}.", {
+                  name: machine.name,
+                }),
                 detail: catalogProblem,
                 action: {
-                  label: "Retry",
+                  label: t("Retry"),
                   run: () => setCatalogRefresh((value) => value + 1),
                 },
               }
@@ -1392,7 +1403,7 @@ function ConnectedRemoteSession({
             {notice.action ? (
               <button
                 type="button"
-                disabled={!online && notice.action.label !== "Dismiss"}
+                disabled={!online && notice.action.label !== t("Dismiss")}
                 className="shrink-0 rounded-md px-2 py-1 text-content/70 hover:bg-content/8 hover:text-content disabled:opacity-40"
                 onClick={notice.action.run}
               >

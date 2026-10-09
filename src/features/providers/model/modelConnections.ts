@@ -1,3 +1,4 @@
+import { translate } from "../../../shared/i18n";
 import { setConnectionModels } from "../../sessions/model/models";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -30,7 +31,7 @@ export type LocalAIConfig = {
   aboutYou?: string;
   memoryEnabled?: boolean;
   activeMemory?: boolean;
-  collectedMemories?: Record<string,string[]>;
+  collectedMemories?: Record<string, string[]>;
   projectMemories: Record<string, string>;
   mcpServers: Record<string, unknown> | null;
 };
@@ -39,6 +40,26 @@ export const loadLocalAIConfig = async () => {
   setConnectionModels(config.connections);
   return config;
 };
+
+/** Display branding without rewriting saved names, IDs, endpoints or credentials. */
+export function connectionDisplayName(
+  connection: Pick<ModelConnection, "name" | "baseUrl">,
+): string {
+  if (
+    connection.baseUrl.startsWith("https://tokendance.space/") &&
+    /^TokenDance\s*[·•-]\s*Partner$/i.test(connection.name)
+  ) {
+    return translate("TokenDance") === "TokenDance"
+      ? connection.name
+      : `${translate("TokenDance")} · ${translate("Partner provider")}`;
+  }
+  return connection.baseUrl.startsWith("https://tokendance.space/")
+    ? translate(connection.name).replace(
+        /TokenDance/gi,
+        translate("TokenDance"),
+      )
+    : translate(connection.name);
+}
 
 /** Endpoint templates only; model IDs are supplied by the user's own account. */
 export const CONNECTION_PRESETS = [
@@ -169,9 +190,21 @@ export const CONNECTION_PRESETS = [
     api: "openai-completions",
   },
   { name: "Custom endpoint", baseUrl: "", api: "openai-completions" },
-  { name: "NVIDIA NIM", baseUrl: "https://integrate.api.nvidia.com/v1", api: "openai-completions" },
-  { name: "Hugging Face", baseUrl: "https://router.huggingface.co/v1", api: "openai-completions" },
-  { name: "Vercel AI Gateway", baseUrl: "https://ai-gateway.vercel.sh/v1", api: "openai-completions" },
+  {
+    name: "NVIDIA NIM",
+    baseUrl: "https://integrate.api.nvidia.com/v1",
+    api: "openai-completions",
+  },
+  {
+    name: "Hugging Face",
+    baseUrl: "https://router.huggingface.co/v1",
+    api: "openai-completions",
+  },
+  {
+    name: "Vercel AI Gateway",
+    baseUrl: "https://ai-gateway.vercel.sh/v1",
+    api: "openai-completions",
+  },
 ] as const;
 
 export type ConnectionPreset = (typeof CONNECTION_PRESETS)[number];

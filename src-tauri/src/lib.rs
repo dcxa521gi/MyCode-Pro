@@ -26,7 +26,6 @@ mod external_editor;
 mod fs;
 mod gitcode;
 mod gitlab;
-mod groups;
 mod harness;
 mod harness_updates;
 mod im_bridge;
@@ -68,6 +67,8 @@ mod task_import;
 mod task_import_cursor_cli;
 mod task_import_external;
 mod tokendance;
+#[cfg(target_os = "macos")]
+mod trackpad_zoom;
 #[cfg(target_os = "windows")]
 mod tray;
 mod usage_history;
@@ -231,6 +232,15 @@ fn set_dock_badge(
 }
 
 #[tauri::command]
+fn set_trackpad_zoom_enabled(
+    #[allow(unused_variables)] window: tauri::WebviewWindow,
+    #[allow(unused_variables)] enabled: bool,
+) {
+    #[cfg(target_os = "macos")]
+    trackpad_zoom::set_enabled(&window, enabled);
+}
+
+#[tauri::command]
 fn open_new_window(app: tauri::AppHandle) -> Result<(), String> {
     window::open_new_window(&app)
 }
@@ -333,8 +343,6 @@ pub fn run() {
             default_cwd,
             home_dir,
             default_workspace,
-            groups::groups_list,
-            groups::groups_save,
             cache_location::cache_location,
             cache_location::cache_set_location,
             cache_location::workspace_set_location,
@@ -611,6 +619,8 @@ pub fn run() {
             mono::mono_read,
             mono::mono_save,
             checkpoint::session_checkpoint_ensure,
+            checkpoint::session_checkpoint_begin_turn,
+            checkpoint::session_checkpoint_finish_turn,
             checkpoint::session_checkpoint_prepare,
             checkpoint::session_checkpoint_capture,
             checkpoint::session_checkpoint_status,
@@ -623,6 +633,7 @@ pub fn run() {
             set_traffic_lights_visible,
             set_window_background_blur,
             set_dock_badge,
+            set_trackpad_zoom_enabled,
             #[cfg(target_os = "macos")]
             menu::keybindings_set_overrides,
             #[cfg(target_os = "macos")]

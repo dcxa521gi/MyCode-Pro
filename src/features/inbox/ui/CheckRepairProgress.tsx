@@ -438,7 +438,7 @@ function RepairCard({
           <p>
             {t("Latest PR commit:")}{" "}
             <span className="font-mono">
-              {view.checks?.headOid.slice(0, 7) || "Unavailable"}
+              {view.checks?.headOid.slice(0, 7) || t("Unavailable")}
             </span>
             {t(". Results appear in the checks below.")}
           </p>

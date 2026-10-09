@@ -30,12 +30,6 @@ import {
 } from "../features/sessions/model/draftCache";
 import { BrowserDock } from "../features/files/ui/BrowserDock";
 import { defaultWorkspace } from "../platform/tauri/workspace";
-import {
-  connectGroupRunner,
-  loadGroups,
-  startGroupScheduler,
-} from "../features/groups/model/groups";
-import { GroupChats } from "../features/groups/ui/GroupChats";
 import { CLIUpdateNotice } from "../features/providers/ui/CLIUpdateNotice";
 import { findModel } from "../features/sessions/model/models";
 import { CliReadyDialog } from "../features/providers/ui/CliReadyDialog";
@@ -381,6 +375,7 @@ import {
 } from "../features/sessions/model/editLastTurn";
 import {
   beginSessionTurn,
+  finishSessionTurn,
   applySessionCheckpoint,
   captureSessionCheckpoint,
   forgetSessionCheckpoint,
@@ -432,7 +427,19 @@ import {
   rememberProjectLocation,
   synchronizeProjectLocation,
 } from "../features/projects/model/projectLocation";
-import { archiveProject, forgetProject, lastProjectPath, loadRecents, isLocalProject, looksLikeProject, normalizeProjectPath, projectRailItems, rememberProject, replaceProjectPath, sameProjectPath } from "../features/projects/model/recents";
+import {
+  archiveProject,
+  forgetProject,
+  lastProjectPath,
+  loadRecents,
+  isLocalProject,
+  looksLikeProject,
+  normalizeProjectPath,
+  projectRailItems,
+  rememberProject,
+  replaceProjectPath,
+  sameProjectPath,
+} from "../features/projects/model/recents";
 import {
   applyDetachPaneToTab,
   applyPlaceTabOnPane,
@@ -1282,7 +1289,6 @@ function Workspace({
     useState<CollapsedProjectRailMode>(loadCollapsedProjectRailMode);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [standaloneTools, setStandaloneTools] = useState(false);
-  const [groupsOpen, setGroupsOpen] = useState(false);
   const settingsReturnViewRef = useRef({
     search: false,
     inbox: false,
@@ -1687,10 +1693,12 @@ function Workspace({
       turnGen.current.set(sessionId, (turnGen.current.get(sessionId) ?? 0) + 1);
       flushHarnessEvents();
       await Promise.all(
-        sessionChildHarnesses(open).map((harness) =>
-          cancelHarnessTurn(harness, sessionId).catch(() => undefined),
-        ),
+        sessionChildHarnesses(open).map(async (harness) => {
+          await cancelHarnessTurn(harness, sessionId).catch(() => undefined);
+          await stopHarnessSession(harness, sessionId);
+        }),
       );
+      await finishSessionTurn(sessionId, sessionWorkCwd(open));
       flushHarnessEvents();
       return sessionsRef.current.find((session) => session.id === sessionId);
     },
@@ -2519,7 +2527,6 @@ function Workspace({
       paneId?: string,
       reason: "session" | "workspace" = "session",
     ) => {
-      setGroupsOpen(false);
       setSettingsOpen(false);
       setStandaloneTools(false);
       closeMonoView();
@@ -2666,7 +2673,13 @@ function Workspace({
   }, []);
 
   const [newTaskOpen, setNewTaskOpen] = useState(false);
-  useEffect(()=> {let stop:(()=>void)|undefined;void listen("mycode:open-new-task",()=>setNewTaskOpen(true)).then(fn=>stop=fn);return()=>stop?.();},[]);
+  useEffect(() => {
+    let stop: (() => void) | undefined;
+    void listen("mycode:open-new-task", () => setNewTaskOpen(true)).then(
+      (fn) => (stop = fn),
+    );
+    return () => stop?.();
+  }, []);
   const createWorkspaceTab = useCallback(
     (cwd: string, focus?: WorktreeFocus) => {
       const session = {
@@ -2684,7 +2697,6 @@ function Workspace({
   );
 
   const onNew = useCallback(() => {
-    setGroupsOpen(false);
     setSettingsOpen(false);
     setStandaloneTools(false);
     const tab = tabsRef.current.find((t) => t.id === activeTabIdRef.current);
@@ -2711,7 +2723,6 @@ function Workspace({
   const [, setHomeOpen] = useState(false);
   const createWorkspaceTask = useCallback(
     (cwd: string, harness: HarnessId, model: string) => {
-      setGroupsOpen(false);
       setSettingsOpen(false);
       setStandaloneTools(false);
       setHomeOpen(false);
@@ -4320,7 +4331,6 @@ function Workspace({
       sessionId,
     );
     if (!tab) return false;
-    setGroupsOpen(false);
     setSettingsOpen(false);
     setStandaloneTools(false);
     loadedSessionCache.current.delete(sessionId);
@@ -4714,7 +4724,7 @@ function Workspace({
       setAutomationsViewOpen(false);
       lastMonoIdRef.current = monoId;
       const session = await ensureMonoSession(monoId, {
-        home: () => invoke<string>("mono_workspace", {mono:monoId}),
+        home: () => invoke<string>("mono_workspace", { mono: monoId }),
         load: ensureOpenSession,
         create: (path) => newDefaultSession(path),
         add: (created) => {
@@ -4827,7 +4837,6 @@ function Workspace({
 
   const onSelectHistorySession = useCallback(
     async (sessionId: string) => {
-      setGroupsOpen(false);
       setSettingsOpen(false);
       setStandaloneTools(false);
       workspaceNavigation.cancel();
@@ -4874,7 +4883,6 @@ function Workspace({
   );
 
   const onHome = useCallback(() => {
-    setGroupsOpen(false);
     setSettingsOpen(false);
     setSearchViewOpen(false);
     setInboxViewOpen(false);
@@ -4921,7 +4929,6 @@ function Workspace({
       setInboxViewOpen(false);
       setNotesViewOpen(false);
       setAutomationsViewOpen(false);
-      setGroupsOpen(false);
       setSettingsOpen(false);
       setFilePickerOpen(false);
       setSidebarTab("sessions", session.cwd);
@@ -6088,8 +6095,6 @@ function Workspace({
       });
       const last = steps[steps.length - 1];
       if (!last) return;
-
-      setGroupsOpen(false);
       setSettingsOpen(false);
       setStandaloneTools(false);
       // After the early return, not before it. `pickFolders` hands back an
@@ -6630,12 +6635,7 @@ function Workspace({
       setSessions((prev) =>
         prev.map((s) => {
           if (s.id !== sessionId) return s;
-          let next = withHarnessChoice(
-            s,
-            harness,
-            resolved.id,
-            modelSettings,
-          );
+          let next = withHarnessChoice(s, harness, resolved.id, modelSettings);
           if (
             s.model !== resolved.id &&
             ["hermes", "minimax"].includes(harness) &&
@@ -7819,13 +7819,23 @@ function Workspace({
           });
         };
 
+        const checkpointTurnId =
+          !current.inboxAsk && !orchestrator.forSession(sessionId)
+            ? await beginSessionTurn(sessionId, workCwd)
+            : undefined;
+        if (turnGen.current.get(sessionId) !== gen) {
+          if (checkpointTurnId) {
+            await finishSessionTurn(sessionId, workCwd, {
+              turnId: checkpointTurnId,
+            });
+          }
+          return;
+        }
         if (!current.inboxAsk && !orchestrator.forSession(sessionId)) {
-          await beginSessionTurn(sessionId, workCwd).catch(() => undefined);
           await beginTurnRecovery(sessionId, workCwd, recoveryId).catch(
             () => undefined,
           );
         }
-        if (turnGen.current.get(sessionId) !== gen) return;
         let buildSucceeded = false;
         try {
           const prepared = await prepareAttachments(attachments, workCwd);
@@ -8085,6 +8095,18 @@ function Workspace({
           }
           providerFailureSeen = true;
         } finally {
+          // A failed provider can leave its process writing after the event
+          // stream ends. Stop it before recording the final workspace state.
+          if (providerFailureSeen && turnGen.current.get(sessionId) === gen) {
+            await stopHarnessSession(current.harness, sessionId).catch(
+              () => undefined,
+            );
+          }
+          if (checkpointTurnId) {
+            await finishSessionTurn(sessionId, workCwd, {
+              turnId: checkpointTurnId,
+            });
+          }
           if (turnGen.current.get(sessionId) !== gen) return;
           flushHarnessEvents();
           controlOutcome = {
@@ -8097,14 +8119,6 @@ function Workspace({
             text: controlText.trim(),
             ...(providerFailureSeen ? { error: controlOutcome.error } : {}),
           };
-          // A failed provider can leave its process alive with a dead event
-          // stream or poisoned turn state. Park it now; the next prompt will
-          // reconnect and resume through a fresh transport.
-          if (providerFailureSeen) {
-            await stopHarnessSession(current.harness, sessionId).catch(
-              () => undefined,
-            );
-          }
           await flushSessionCheckpoint(sessionId);
           setSessions((prev) =>
             prev.map((s) => {
@@ -10335,10 +10349,19 @@ function Workspace({
       turnGen.current.set(sessionId, (turnGen.current.get(sessionId) ?? 0) + 1);
       flushHarnessEvents();
       const cancelling = Promise.all(
-        (session ? sessionChildHarnesses(session) : []).map((id) =>
-          cancelHarnessTurn(id, sessionId),
-        ),
+        (session ? sessionChildHarnesses(session) : []).map(async (id) => {
+          try {
+            await cancelHarnessTurn(id, sessionId);
+          } finally {
+            await stopHarnessSession(id, sessionId);
+          }
+        }),
       );
+      const checkpointFinished = session
+        ? finishSessionTurn(sessionId, sessionWorkCwd(session), {
+            after: cancelling.catch(() => undefined),
+          })
+        : Promise.resolve();
       void cancelling.catch(console.error);
       setSessions((prev) =>
         prev.map((s) => {
@@ -10372,7 +10395,7 @@ function Workspace({
       } else {
         notifyReviewChanged(sessionId);
       }
-      return cancelling;
+      return Promise.all([cancelling, checkpointFinished]);
     },
     [flushHarnessEvents],
   );
@@ -11513,6 +11536,14 @@ function Workspace({
                   projects: mono.projects,
                   showStartedSessionsInSidebar:
                     mono.showStartedSessionsInSidebar,
+                  ...(mono.useSidebarFolders
+                    ? {
+                        folder: {
+                          name: monoLook(mono).name,
+                          color: mono.color,
+                        },
+                      }
+                    : {}),
                 }
               );
             },
@@ -11929,7 +11960,6 @@ function Workspace({
     workspaceNavigation.cancel();
     startTransition(() => {
       setFilePickerOpen(false);
-      setGroupsOpen(false);
       setSettingsOpen(false);
       setInboxViewOpen(false);
       setNotesViewOpen(false);
@@ -11947,7 +11977,6 @@ function Workspace({
     workspaceNavigation.cancel();
     startTransition(() => {
       setFilePickerOpen(false);
-      setGroupsOpen(false);
       setSettingsOpen(false);
       setSearchViewOpen(false);
       setNotesViewOpen(false);
@@ -11961,7 +11990,6 @@ function Workspace({
       const request = linkedWorkItemPanelRequest.current + 1;
       linkedWorkItemPanelRequest.current = request;
       setFilePickerOpen(false);
-      setGroupsOpen(false);
       setSettingsOpen(false);
       setSearchViewOpen(false);
       setNotesViewOpen(false);
@@ -12065,7 +12093,6 @@ function Workspace({
     if (!loadNotesEnabled()) return;
     startTransition(() => {
       setFilePickerOpen(false);
-      setGroupsOpen(false);
       setSettingsOpen(false);
       setSearchViewOpen(false);
       setInboxViewOpen(false);
@@ -12082,7 +12109,6 @@ function Workspace({
     workspaceNavigation.cancel();
     startTransition(() => {
       setFilePickerOpen(false);
-      setGroupsOpen(false);
       setSettingsOpen(false);
       setSearchViewOpen(false);
       setInboxViewOpen(false);
@@ -12104,7 +12130,6 @@ function Workspace({
       setSearchViewOpen(false);
       setInboxViewOpen(false);
       setNotesViewOpen(false);
-      setGroupsOpen(false);
       setSettingsOpen(false);
       setFilePickerOpen(false);
       setSidebarTab("sessions", session.cwd);
@@ -12117,7 +12142,6 @@ function Workspace({
 
   const openSettings = useCallback(
     (section?: SettingsSectionId, anchor?: SettingsAnchor) => {
-      setGroupsOpen(false);
       workspaceNavigation.cancel();
       if (!settingsOpenRef.current) {
         settingsReturnViewRef.current = {
@@ -12145,110 +12169,6 @@ function Workspace({
     [],
   );
 
-  useEffect(() => {
-    const open = () => {
-      setSettingsOpen(false);
-      setSearchViewOpen(false);
-      setInboxViewOpen(false);
-      setNotesViewOpen(false);
-      setAutomationsViewOpen(false);
-      setHomeOpen(false);
-      setGroupsOpen(true);
-    };
-    window.addEventListener("mycode:open-groups", open);
-    void loadGroups().catch(() => {});
-    const stop = startGroupScheduler();
-    return () => {
-      window.removeEventListener("mycode:open-groups", open);
-      stop();
-    };
-  }, []);
-  useEffect(() => {
-    connectGroupRunner(
-      ({ group, member, prompt, execute, signal }) =>
-        new Promise((resolve, reject) => {
-          if (signal.aborted) {
-            reject(new Error("Cancelled"));
-            return;
-          }
-          const cwd = `${group.cwd.replace(/\\/g, "/")}/.mycode/groups/${group.id}/workspace`;
-          const session = newSession(
-            member.harness,
-            cwd,
-            member.model,
-            "supervised",
-          );
-          session.title = `${group.name} · ${member.name}`;
-          session.modelSettings = {
-            ...session.modelSettings,
-            mycodeGroup: "true",
-          };
-          sessionsRef.current = [...sessionsRef.current, session];
-          setSessions(sessionsRef.current);
-          const abort = () => {
-            onStop(session.id);
-            reject(new Error("Cancelled"));
-          };
-          signal.addEventListener("abort", abort, { once: true });
-          const accepted = submitSession(session.id, prompt, [], {
-            intent: execute ? "build" : "plan",
-            onSettled: (outcome) => {
-              signal.removeEventListener("abort", abort);
-              if (outcome.status !== "completed") {
-                reject(new Error(outcome.error || outcome.status));
-                return;
-              }
-              setTimeout(() => {
-                const blocks =
-                  sessionsRef.current.find((s) => s.id === session.id)
-                    ?.blocks || [];
-                const measured = blocks.filter(
-                  (b) =>
-                    b.turnMetrics?.inputTokens != null ||
-                    b.turnMetrics?.outputTokens != null,
-                );
-                resolve({
-                  text:
-                    outcome.text ||
-                    blocks
-                      .filter(
-                        (b) => b.role === "assistant" || b.role === "plan",
-                      )
-                      .map((b) => b.text)
-                      .join("\n"),
-                  tokens: measured.length
-                    ? measured.reduce(
-                        (n, b) =>
-                          n +
-                          (b.turnMetrics?.inputTokens || 0) +
-                          (b.turnMetrics?.outputTokens || 0),
-                        0,
-                      )
-                    : undefined,
-                });
-              }, 0);
-            },
-          });
-          void Promise.resolve(accepted)
-            .then((ok) => {
-              if (!ok) {
-                signal.removeEventListener("abort", abort);
-                reject(
-                  new Error(
-                    "Could not start this agent. Check CLI installation and model access.",
-                  ),
-                );
-              }
-            })
-            .catch((error) => {
-              signal.removeEventListener("abort", abort);
-              reject(error);
-            });
-        }),
-    );
-    return () => connectGroupRunner(undefined);
-  }, [submitSession, onStop]);
-
   const onOpenSettings = useCallback(() => {
     setStandaloneTools(false);
     openSettings();
@@ -12259,7 +12179,6 @@ function Workspace({
       if (section !== "skills" && section !== "im-bots") return;
       openSettings();
       setSettingsSection(section);
-      setGroupsOpen(false);
       setStandaloneTools(true);
     };
     window.addEventListener("mycode:open-tools", openTools);
@@ -12317,7 +12236,6 @@ function Workspace({
     setInboxViewOpen(returnView.inbox);
     setNotesViewOpen(returnView.notes && loadNotesEnabled());
     setAutomationsViewOpen(returnView.automations);
-    setGroupsOpen(false);
     setSettingsOpen(false);
   }, []);
 
@@ -12328,7 +12246,6 @@ function Workspace({
 
   const onOpenArchivedSession = useCallback(
     (sessionId: string) => {
-      setGroupsOpen(false);
       setSettingsOpen(false);
       void onSelectHistorySession(sessionId);
     },
@@ -12375,7 +12292,6 @@ function Workspace({
 
   const onRailForward = useCallback(() => {
     setSearchViewOpen(false);
-    setGroupsOpen(false);
     setSettingsOpen(false);
     setInboxViewOpen(false);
     setNotesViewOpen(false);
@@ -12612,6 +12528,9 @@ function Workspace({
       // A rebound zoom chord may be Option-only, so it is resolved outside the
       // Cmd/Ctrl guard that only the browser-standard defaults need.
       const zoom = resolveZoomKeybinding(e);
+      // An image preview under the pointer zooms the image instead; its own
+      // listener runs next.
+      if (zoom && document.querySelector("[data-image-zoom]")) return;
       if (zoom) {
         e.preventDefault();
         e.stopPropagation();
@@ -12971,12 +12890,10 @@ function Workspace({
     [],
   );
 
-
-
   useFloatingMono(sessions, monosSnap, monosEnabled, {
     open: (monoId) =>
       ensureMonoSession(monoId, {
-        home: () => invoke<string>("mono_workspace", {mono:monoId}),
+        home: () => invoke<string>("mono_workspace", { mono: monoId }),
         load: ensureOpenSession,
         create: newDefaultSession,
         add: (created) => {
@@ -13161,7 +13078,6 @@ function Workspace({
   }, [monosSnap, sessions, unseenFinishedIds]);
 
   const chromeSurfaceOpen =
-    groupsOpen ||
     searchViewOpen ||
     settingsOpen ||
     inboxViewOpen ||
@@ -13284,7 +13200,6 @@ function Workspace({
               canGoBack={
                 !!monoViewId ||
                 tabVisitNav.canBack ||
-                groupsOpen ||
                 searchViewOpen ||
                 settingsOpen ||
                 inboxViewOpen ||
@@ -13354,7 +13269,7 @@ function Workspace({
               inboxUnseen={inboxUnseen}
               linkedSessionUpdateIds={linkedSessionUpdateIds}
               settingsOpen={settingsOpen && !standaloneTools}
-              workspaceHidden={(standaloneTools && settingsOpen) || groupsOpen}
+              workspaceHidden={standaloneTools && settingsOpen}
               settingsSection={settingsSection}
               onOpenSettings={onOpenSettings}
               onOpenNotificationSettings={onOpenNotificationSettings}
@@ -13366,12 +13281,8 @@ function Workspace({
             />
 
             <div className="body-glass flex min-h-0 min-w-0 flex-1 flex-col">
-              {groupsOpen && (
-                <GroupChats onClose={() => setGroupsOpen(false)} />
-              )}
               <div
                 className={
-                  groupsOpen ||
                   searchViewOpen ||
                   settingsOpen ||
                   inboxViewOpen ||
@@ -13381,7 +13292,6 @@ function Workspace({
                     : "flex min-h-0 min-w-0 flex-1 flex-col"
                 }
                 aria-hidden={
-                  groupsOpen ||
                   searchViewOpen ||
                   settingsOpen ||
                   inboxViewOpen ||
@@ -13389,7 +13299,6 @@ function Workspace({
                   automationsViewOpen
                 }
                 inert={
-                  groupsOpen ||
                   searchViewOpen ||
                   settingsOpen ||
                   inboxViewOpen ||
@@ -13779,13 +13688,13 @@ function Workspace({
                   onCollapsedProjectRailModeChange={setCollapsedProjectRailMode}
                 />
               ) : null}
-              {groupsOpen ||
-              searchViewOpen ||
+              {searchViewOpen ||
               inboxViewOpen ||
               notesViewOpen ||
               automationsViewOpen ||
               settingsOpen ||
-              monoCovers || (active && isRemoteProjectPath(active.cwd)) ? null : (
+              monoCovers ||
+              (active && isRemoteProjectPath(active.cwd)) ? null : (
                 <UsageFooter
                   providers={usageProviders}
                   session={usageSession}

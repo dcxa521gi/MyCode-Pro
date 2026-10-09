@@ -9,11 +9,12 @@ import { formatTokenCount } from "../../../shared/lib/tokenCount";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { useTranslation } from "../../../shared/i18n";
+import { useTranslation, formatMessage } from "../../../shared/i18n";
 import { SecondaryButton } from "../../../shared/ui/SecondaryButton";
 import { refreshPiCatalog } from "../../../integrations/harness/providers/pi/piCatalog";
 import {
   CONNECTION_PRESETS,
+  connectionDisplayName,
   loadLocalAIConfig,
   type ModelConnection,
   type ModelMetadata,
@@ -120,13 +121,15 @@ export function ModelConnections({
       setDiscovering(false);
     };
   }, [draft?.id, draft?.name, draft?.baseUrl, draft?.api, key, discoveryRetry]);
-  const reload = async () => {
+  const reload = async (preferredId?: string) => {
     const connections = (await loadLocalAIConfig()).connections;
     setItems(connections);
     setSelectedId((current) =>
-      connections.some((c) => c.id === current)
-        ? current
-        : connections[0]?.id || null,
+      connections.some((c) => c.id === preferredId)
+        ? preferredId!
+        : connections.some((c) => c.id === current)
+          ? current
+          : connections[0]?.id || null,
     );
   };
   useEffect(() => {
@@ -221,11 +224,11 @@ export function ModelConnections({
           "Official models require this CLI’s own login or API credentials and quota. MyCode does not share a Codex subscription with other agents.",
         )}
       </p>
-      <div className="flex items-center justify-between gap-4 rounded-xl bg-accent/10 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-content/10 bg-content/[0.03] px-4 py-3.5">
         <div>
-          <strong>TokenDance</strong>
+          <strong className="text-sm">{t("TokenDance")}</strong>
           <p className="mt-1 text-xs text-content/60">
-            {t("Partner provider")}
+            {t("Partner provider")} · {t("Browser authorization")}
           </p>
         </div>
         <SecondaryButton
@@ -240,8 +243,8 @@ export function ModelConnections({
           {t("Connect")}
         </SecondaryButton>
       </div>
-      <div className="grid min-h-[440px] overflow-hidden rounded-2xl bg-content/[0.025] lg:grid-cols-[220px_minmax(0,1fr)]">
-        <div className="space-y-2 border-r border-content/5 p-3">
+      <div className="overflow-hidden rounded-xl border border-content/10 bg-content/[0.03]">
+        <div className="divide-y divide-content/5">
           {items.map((item) => (
             <div
               key={item.id}
@@ -264,31 +267,47 @@ export function ModelConnections({
                   setDraft(null);
                 }
               }}
-              className={`cursor-pointer space-y-2 rounded-xl px-3 py-3 text-sm ${selectedId === item.id ? "bg-accent/10" : "bg-content/[0.04] hover:bg-content/10"}`}
+              className={`flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3.5 text-sm transition-colors ${selectedId === item.id ? "bg-content/[0.055]" : "hover:bg-content/[0.04]"}`}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-2.5">
                 <span
                   aria-hidden="true"
                   className={`size-2 shrink-0 rounded-full ${item.enabled ? "bg-emerald-500" : "bg-content/20"}`}
                 />
-                <strong className="min-w-0 flex-1 truncate" title={item.name}>
-                  {item.name}
-                </strong>
+                <div className="min-w-0 flex-1">
+                  <strong
+                    className="block truncate"
+                    title={connectionDisplayName(item)}
+                  >
+                    {connectionDisplayName(item)}
+                  </strong>
+                  <span className="mt-0.5 block truncate text-[11px] text-content/40">
+                    {item.baseUrl}
+                  </span>
+                </div>
                 <span className="shrink-0 text-xs text-content/45">
-                  {item.models.length}
+                  {formatMessage("{count} models", {
+                    count: item.models.length,
+                  })}
                 </span>
               </div>
-              <p className="text-xs text-content/50">
-                {formatTokenCount(usage[item.id] || 0)} Token
-              </p>
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="text-xs tabular-nums text-content/45">
+                  {formatTokenCount(usage[item.id] || 0)} Token
+                </span>
+                <SecondaryButton disabled={busy} onClick={() => edit(item)}>
+                  {t("Edit")}
+                </SecondaryButton>
+              </div>
             </div>
           ))}
-          <SecondaryButton
-            disabled={busy}
-            onClick={() => setChoosingProvider(true)}
-          >
-            {t("Add provider")}
-          </SecondaryButton>
+          {!items.length && (
+            <p className="px-4 py-8 text-center text-sm text-content/45">
+              {t(
+                "No providers configured. Add a provider to choose its models.",
+              )}
+            </p>
+          )}
         </div>
         <div className="min-w-0">
           {!draft &&
@@ -297,9 +316,11 @@ export function ModelConnections({
               const item = items.find((item) => item.id === selectedId);
               return (
                 item && (
-                  <section className="rounded-xl bg-content/[0.025] p-5">
+                  <section className="border-t border-content/10 bg-content/[0.015] p-4">
                     <div className="mb-5 space-y-3 border-b border-content/10 pb-4">
-                      <h3 className="font-semibold">{item.name}</h3>
+                      <h3 className="font-semibold">
+                        {connectionDisplayName(item)}
+                      </h3>
                       <p className="break-all text-xs text-content/50">
                         {item.baseUrl}
                       </p>
@@ -453,7 +474,7 @@ export function ModelConnections({
                     });
                     setKey("");
                     setDraft(null);
-                    await reload();
+                    await reload(draft.id);
                     await refreshPiCatalog();
                     setStatus(
                       "Connection saved. Start a new conversation to use it.",
@@ -463,7 +484,7 @@ export function ModelConnections({
               >
                 <div className="flex items-center justify-between gap-3 rounded-lg bg-content/5 p-3">
                   <span className="text-sm font-medium">
-                    {draft.name || t("Custom endpoint")}
+                    {connectionDisplayName(draft) || t("Custom endpoint")}
                   </span>
                   <SecondaryButton
                     type="button"
@@ -491,7 +512,7 @@ export function ModelConnections({
                       aria-label={t("Name")}
                       required
                       className={inputClass}
-                      value={draft.name}
+                      value={connectionDisplayName(draft)}
                       onChange={(e) =>
                         setDraft({ ...draft, name: e.target.value })
                       }
@@ -572,9 +593,11 @@ export function ModelConnections({
                     <div className="rounded-xl bg-accent/5 p-3 space-y-2">
                       <p className="text-sm font-medium">
                         {draft.baseUrl.includes("openrouter.ai") ? (
-                          "OpenRouter · OAuth"
+                          t("OpenRouter · OAuth")
                         ) : (
-                          <>TokenDance · {t("Partner provider")}</>
+                          <>
+                            {t("TokenDance")} · {t("Partner provider")}
+                          </>
                         )}
                       </p>
                       <p className="text-xs text-content/60">
