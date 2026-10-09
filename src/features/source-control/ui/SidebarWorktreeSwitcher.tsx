@@ -317,7 +317,7 @@ export function SidebarWorktreeSwitcher({
                   <Plus className="size-4 shrink-0" strokeWidth={1.75} />
                 )}
                 <span className="min-w-0 truncate">
-                  {t("Create worktree")}{createName}
+                  {t("Create worktree")} {createName}
                 </span>
               </button>
             </div>

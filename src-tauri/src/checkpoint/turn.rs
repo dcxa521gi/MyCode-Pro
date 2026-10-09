@@ -169,14 +169,22 @@ impl CheckpointStore {
         if !self.root.exists() {
             return Ok(active);
         }
+        // Reviews persist JS-style paths. On Windows their `//?/C:/` prefix
+        // differs from canonical `\\?\C:\` Path components, even for the same
+        // directory. Compare filesystem identities in the same representation
+        // so overlapping turns cannot be mistaken for independent workspaces.
+        let root = std::fs::canonicalize(root).map_err(|e| e.to_string())?;
         for entry in std::fs::read_dir(&self.root).map_err(|e| e.to_string())? {
             let entry = entry.map_err(|e| e.to_string())?;
             if entry.file_name() == except {
                 continue;
             }
             if let Some(review) = read_review(&entry.path())? {
-                let other = Path::new(&review.cwd);
-                if review.active.is_some() && (root.starts_with(other) || other.starts_with(root)) {
+                if review.active.is_none() {
+                    continue;
+                }
+                let other = std::fs::canonicalize(&review.cwd).map_err(|e| e.to_string())?;
+                if root.starts_with(&other) || other.starts_with(&root) {
                     active.push((entry.path(), review));
                 }
             }

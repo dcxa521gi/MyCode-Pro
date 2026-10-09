@@ -122,6 +122,16 @@ fn overlapping_turns_keep_exact_diffs_but_cannot_restore_shared_work() {
     f.write("a.txt", "top\n\nbottom\n");
     f.store.begin_turn("a", f.cwd(), "first").unwrap();
     f.store.begin_turn("b", f.cwd(), "second").unwrap();
+    for id in ["a", "b"] {
+        assert!(
+            read_review(&f.store.session_dir(id))
+                .unwrap()
+                .unwrap()
+                .active
+                .unwrap()
+                .shared
+        );
+    }
     f.write("a.txt", "top edited by a\n\nbottom edited by b\n");
     f.store.finish_turn("a", f.cwd(), "first").unwrap();
     f.store.finish_turn("b", f.cwd(), "second").unwrap();
@@ -139,6 +149,22 @@ fn overlapping_turns_keep_exact_diffs_but_cannot_restore_shared_work() {
             "top edited by a\n\nbottom edited by b\n"
         );
     }
+}
+
+#[test]
+fn detects_active_turns_from_native_and_persisted_workspace_paths() {
+    let f = Fixture::new();
+    f.store.begin_turn("a", f.cwd(), "first").unwrap();
+    let native = std::fs::canonicalize(&f.repo).unwrap();
+    let persisted = path_to_js(&native);
+    assert_eq!(f.store.active_turns(&native, "b").unwrap().len(), 1);
+    assert_eq!(
+        f.store
+            .active_turns(Path::new(&persisted), "b")
+            .unwrap()
+            .len(),
+        1
+    );
 }
 
 #[test]

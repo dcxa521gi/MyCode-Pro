@@ -46,7 +46,20 @@ fn read_headers(reader: &mut impl Read) -> Option<String> {
     let mut chunk = [0_u8; 1024];
     while request.len() < 8192 && std::time::Instant::now() < deadline {
         let available = chunk.len().min(8192 - request.len());
-        let n = reader.read(&mut chunk[..available]).ok()?;
+        let n = match reader.read(&mut chunk[..available]) {
+            Ok(n) => n,
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    std::io::ErrorKind::Interrupted
+                        | std::io::ErrorKind::WouldBlock
+                        | std::io::ErrorKind::TimedOut
+                ) =>
+            {
+                continue;
+            }
+            Err(_) => return None,
+        };
         if n == 0 {
             return None;
         }
@@ -186,6 +199,29 @@ mod tests {
         assert_eq!(read_headers(&mut reader).unwrap().as_bytes(), input);
         assert!(read_headers(&mut std::io::Cursor::new(b"GET / HTTP/1.1\r\n")).is_none());
         assert!(read_headers(&mut std::io::Cursor::new(vec![b'x'; 8193])).is_none());
+    }
+
+    #[test]
+    fn headers_wait_through_a_short_socket_timeout_before_the_deadline() {
+        struct Delayed {
+            timed_out: bool,
+            data: std::io::Cursor<Vec<u8>>,
+        }
+        impl Read for Delayed {
+            fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+                if !self.timed_out {
+                    self.timed_out = true;
+                    return Err(std::io::ErrorKind::TimedOut.into());
+                }
+                self.data.read(buffer)
+            }
+        }
+        let request = b"GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n";
+        let mut delayed = Delayed {
+            timed_out: false,
+            data: std::io::Cursor::new(request.to_vec()),
+        };
+        assert_eq!(read_headers(&mut delayed).unwrap().as_bytes(), request);
     }
 
     #[test]

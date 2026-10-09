@@ -56,10 +56,11 @@ test("resident sidebar and Connections switch Chinese and English while mounted"
   });
   await expect(page.getByText("常驻智能体", { exact: true })).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "添加设备", exact: true }),
+    page.getByRole("button", { name: "添加电脑", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "添加设备", exact: true }).click();
+  await page.getByRole("button", { name: "添加电脑", exact: true }).click();
   await expect(page.getByText("通过 SSH 连接", { exact: true })).toBeVisible();
+  await expect(page.getByText("通过 SSH 连接", { exact: true })).toHaveCSS("font-size", "14px");
   await page.locator("[data-switch-language]").click();
   await expect(page.getByText("Monos", { exact: true })).toBeVisible();
   await page.screenshot({path:"build/0191-connections-en.png",fullPage:true});

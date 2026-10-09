@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { createElement } from "react";
+import { act, createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -59,7 +59,8 @@ describe("transcript first paint", () => {
     );
     expect(renderedTurns()).toBe(3);
 
-    await vi.waitFor(() => expect(renderedTurns()).toBe(20));
+    await act(async () => {});
+    expect(renderedTurns()).toBe(20);
     expect(container.textContent).toContain("Load earlier messages");
   });
 
@@ -79,7 +80,8 @@ describe("transcript first paint", () => {
       get: () => renderedTurns() * 100,
     });
 
-    await vi.waitFor(() => expect(renderedTurns()).toBe(20));
+    await act(async () => {});
+    expect(renderedTurns()).toBe(20);
     expect(scroller.scrollTop).toBe(2000);
   });
 
