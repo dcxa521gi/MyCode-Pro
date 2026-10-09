@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { IS_MAC } from "./platform";
 
 type MagnifyHandler = (delta: number) => void;
 
@@ -16,11 +17,14 @@ let unlisten: Promise<UnlistenFn> | null = null;
  * only way a surface sees one on macOS.
  */
 export function claimTrackpadMagnify(onMagnify: MagnifyHandler): () => void {
+  if (!IS_MAC || typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) {
+    return () => {};
+  }
   claims.push(onMagnify);
   if (claims.length === 1) {
     unlisten = listen<number>("trackpad_magnify", (event) => {
       claims[claims.length - 1]?.(event.payload);
-    });
+    }).catch(() => () => {});
     void invoke("set_trackpad_zoom_enabled", { enabled: true }).catch(
       console.error,
     );

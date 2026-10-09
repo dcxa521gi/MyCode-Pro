@@ -1335,3 +1335,11 @@ First public release. macOS (Apple Silicon) only.
 [0.1.2]: https://github.com/hardbeat920/monocode/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/hardbeat920/monocode/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/hardbeat920/monocode/releases/tag/v0.1.0
+## [0.19.1] - 2026-10-09
+
+- 完整融合 MonoCode 至 `fe5c10e`：任务检查点审阅、智能体侧栏偏好、输入自动纠错、浮动栏状态、图片缩放及流式渲染修复。
+- 修复 Windows CLI 更新路径：使用内置 Node/npm 安装到独立目录，校验版本后激活，保留旧文件和凭据。
+- 补齐简体中文菜单、连接页、智能体、设置和更新反馈；智能体上下文统一 MyCode 品牌。
+- 恢复上游紧凑 CLI/服务商列表，保留自定义模型；TokenDance 中文显示更名为词元跳动。
+- 移除群聊入口、页面和自动调度，保留已有数据。完整基线及验收记录见 `docs/mycode-0.19.1.md`。
+
