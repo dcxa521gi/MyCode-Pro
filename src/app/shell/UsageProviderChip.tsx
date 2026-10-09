@@ -1,3 +1,4 @@
+import { providerAccountDisplayLabel } from "../../features/providers/model/providerAccounts";
 import { translate as t } from "../../shared/i18n";
 import {
   getLocale as uiLocale,
@@ -568,14 +569,16 @@ function ProviderAccountPicker({
               <button
                 type="button"
                 aria-pressed={selected}
-                aria-label={account.label}
+                aria-label={providerAccountDisplayLabel(account)}
                 aria-describedby={`${statusId}-${account.id}`}
                 className="pointer-events-auto absolute inset-0 rounded-lg hover:bg-content/[0.04] focus-visible:outline-2 focus-visible:outline-accent"
                 onClick={() => onSelect(account.id)}
               />
               <span className="min-w-0 flex-1 py-0.5">
                 <span className="flex min-w-0 items-baseline gap-1.5">
-                  <span className="shrink-0 truncate">{t(account.label)}</span>
+                  <span className="shrink-0 truncate">
+                    {providerAccountDisplayLabel(account)}
+                  </span>
                   <ProviderAccountSubtitle
                     identity={identity}
                     className="text-[10px] text-content/35"
@@ -667,7 +670,9 @@ function SwitchSuggestion({
           {exhausted ? "Out of usage" : "Running low"} {t("· switch to")}
         </p>
         <p className="mt-0.5 flex min-w-0 items-center gap-2 text-[11px]">
-          <span className="min-w-0 truncate font-medium">{account.label}</span>
+          <span className="min-w-0 truncate font-medium">
+            {providerAccountDisplayLabel(account)}
+          </span>
           <AccountStatusLabel
             status={accountStatus(limits, now)}
             className="text-[10px]"
@@ -1134,7 +1139,7 @@ function EmptyUsageState({
       </p>
       {limits.error ? (
         <p className="mx-auto mt-1 max-w-[15rem] text-[10px] leading-4 text-content/40">
-          {limits.error}
+          {t(limits.error)}
         </p>
       ) : null}
     </div>

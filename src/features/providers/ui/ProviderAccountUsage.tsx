@@ -13,6 +13,7 @@ import type {
 } from "../model/accountUsage";
 import { RefreshCw } from "../../../shared/ui/icons";
 import { useShowRemainingUsage } from "../../settings/model/displayPrefs";
+import { useTranslation } from "../../../shared/i18n";
 
 const STATUS_DOT: Record<AccountStatusTone, string> = {
   ready: "bg-emerald-400",
@@ -38,10 +39,15 @@ export function AccountStatusLabel({
   status: AccountStatus;
   className?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <span
       className={`inline-flex min-w-0 items-center gap-1.5 ${className}`}
-      title={status.detail ? `${status.label} · ${status.detail}` : status.label}
+      title={
+        status.detail
+          ? `${t(status.label)} · ${t(status.detail)}`
+          : t(status.label)
+      }
     >
       <span
         className={`size-1.5 shrink-0 rounded-full ${STATUS_DOT[status.tone]}`}
@@ -50,11 +56,11 @@ export function AccountStatusLabel({
       <span
         className={`${status.tone === "unknown" ? "min-w-0 truncate" : "shrink-0"} ${STATUS_TEXT[status.tone]}`}
       >
-        {status.label}
+        {t(status.label)}
       </span>
       {status.detail ? (
         <span className="min-w-0 truncate text-content/40">
-          {status.detail}
+          {t(status.detail)}
         </span>
       ) : null}
     </span>

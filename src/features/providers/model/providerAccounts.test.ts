@@ -1,9 +1,11 @@
+import { setLanguage } from "../../../shared/i18n";
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_PROVIDER_ACCOUNT_ID,
   newProviderAccount,
   providerAccountLabel,
+  providerAccountDisplayLabel,
   providerAccountExists,
   providerAccounts,
   removeProviderAccount,
@@ -17,7 +19,37 @@ beforeEach(() => {
   localStorage.clear();
 });
 
+afterEach(() => setLanguage("en"));
+
 describe("provider accounts", () => {
+  it("updates the built-in display label when language changes without changing account data", () => {
+    const account = providerAccounts("codex")[0];
+    expect(providerAccountDisplayLabel(account)).toBe("Default account");
+    setLanguage("zh-CN");
+    expect(providerAccountDisplayLabel(account)).toBe("默认账号");
+    expect(account.id).toBe(DEFAULT_PROVIDER_ACCOUNT_ID);
+    expect(account.label).toBe("Default account");
+    setLanguage("en");
+    expect(providerAccountDisplayLabel(account)).toBe("Default account");
+  });
+
+  it("keeps custom labels unchanged in both languages", () => {
+    const custom = {
+      id: "account-work",
+      provider: "codex" as const,
+      label: "Work account",
+    };
+    const renamed = {
+      ...custom,
+      id: DEFAULT_PROVIDER_ACCOUNT_ID,
+      isDefault: true,
+    };
+    for (const locale of ["en", "zh-CN"] as const) {
+      setLanguage(locale);
+      expect(providerAccountDisplayLabel(custom)).toBe("Work account");
+      expect(providerAccountDisplayLabel(renamed)).toBe("Work account");
+    }
+  });
   it("always exposes the provider-owned default account", () => {
     expect(providerAccounts("claude")).toEqual([
       {

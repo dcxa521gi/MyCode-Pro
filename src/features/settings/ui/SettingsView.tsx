@@ -1,3 +1,4 @@
+import { providerAccountDisplayLabel } from "../../providers/model/providerAccounts";
 import { DevelopmentToolsPage } from "./DevelopmentToolsPage";
 import { MobileSettings } from "./MobileSettings";
 import { TaskPowerSettings } from "./TaskPowerSettings";
@@ -3900,7 +3901,7 @@ function ProviderAccountsSettings() {
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 items-center gap-1.5">
                         <span className="truncate text-[12px] text-content/85">
-                          {account.label}
+                          {providerAccountDisplayLabel(account)}
                         </span>
                         {orgTag ? (
                           <span className="max-w-[8rem] shrink-0 truncate rounded bg-content/[0.07] px-1 text-[9px] leading-4 text-content/50">
@@ -3917,8 +3918,8 @@ function ProviderAccountsSettings() {
                           identity={identity}
                           fallback={
                             account.isDefault
-                              ? "Provider CLI profile"
-                              : "Isolated profile"
+                              ? t("Provider CLI profile")
+                              : t("Isolated profile")
                           }
                           className="truncate text-content/30"
                         />

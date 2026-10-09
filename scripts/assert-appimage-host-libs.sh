@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Fail if a MonoCode AppImage still ships bundled shared libraries or the
+# Fail if a MyCode AppImage still ships bundled shared libraries or the
 # linuxdeploy GTK hook. Used by CI and the release linux job after
 # scripts/repack-appimage.sh has rewritten the Tauri bundle.
 #
-# Usage: scripts/assert-appimage-host-libs.sh [path/to/MonoCode_x.y.z_amd64.AppImage]
+# Usage: scripts/assert-appimage-host-libs.sh [path/to/MyCode_x.y.z_amd64.AppImage]
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -34,6 +34,12 @@ trap 'rm -rf "$work"' EXIT
 chmod +x "$appimage"
 (cd "$work" && APPIMAGE_EXTRACT_AND_RUN=1 "$appimage" --appimage-extract >/dev/null)
 root="$work/squashfs-root"
+
+if [[ ! -x "$root/AppRun" ]] ||
+   { [[ ! -x "$root/usr/bin/MyCode" ]] && [[ ! -x "$root/usr/bin/mycode" ]] && [[ ! -x "$root/usr/bin/monocode" ]]; }; then
+  echo "AppImage is missing its executable entry point (MyCode, mycode or monocode)" >&2
+  exit 1
+fi
 
 webkit="$(find "$root" -name 'libwebkit2gtk-4.1.so.0' -print -quit)"
 if [[ -n "$webkit" ]]; then

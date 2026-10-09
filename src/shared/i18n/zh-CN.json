@@ -29,8 +29,8 @@
   "Retry auto-detect": "重新自动检测",
   "A provider is listed as installed once its CLI is found on your PATH. Uninstalled CLIs stay listed but are left out of the model picker, as are installed ones with Show in picker off. The model beside a provider is what its new conversations start with; Use by default picks the provider itself. CLI paths are global for MyCode and apply to every project.": "在 PATH 中找到 CLI 后，服务商显示为已安装。未安装或关闭“在选择器中显示”的服务商不会出现在模型选择器中。服务商旁的模型用于新建会话，“设为默认”则选择默认服务商。CLI 路径全局生效，适用于所有项目。",
   "Run the hooks configured in your settings.json files — PreToolUse command rewrites, blocks, notifications, and the rest — just as the Claude Code CLI would. Turn this off if a hook is misbehaving and you need the session back. Takes effect on the next turn.": "像 Claude Code CLI 一样运行 settings.json 中配置的钩子，包括 PreToolUse 命令改写、拦截和通知。若钩子异常，可关闭此选项恢复会话，下次交互生效。",
-  "Provider CLI profile": "服务商 CLI 配置",
-  "Isolated profile": "独立配置",
+  "Provider CLI profile": "CLI 默认账号配置",
+  "Isolated profile": "独立账号配置",
   "Waiting for browser…": "等待浏览器…",
   "Sign in and add": "登录并添加",
   "Use by default": "设为默认",
@@ -2563,5 +2563,6 @@
   "CLI installation timed out": "CLI 安装超时",
   "Could not start the application installer": "无法启动应用内安装程序",
   "Installed CLI executable was not found": "未找到已安装的 CLI 可执行文件",
-  "Turn off {mode}": "关闭 {mode}"
+  "Turn off {mode}": "关闭 {mode}",
+  "Codex CLI not found": "未找到 Codex CLI"
 }

@@ -1,4 +1,5 @@
 import { pathKey } from "../../../shared/lib/paths";
+import { translate } from "../../../shared/i18n";
 import type { HarnessId } from "../../sessions/model/session";
 
 const ACCOUNTS_KEY = "monocode.providerAccounts.v1";
@@ -40,6 +41,13 @@ export type ProviderAccount = {
   label: string;
   isDefault?: boolean;
 };
+
+/** Translate the built-in label at display time; saved user labels stay intact. */
+export function providerAccountDisplayLabel(account: ProviderAccount): string {
+  return account.isDefault && account.label === DEFAULT_PROVIDER_ACCOUNT_LABEL
+    ? translate(DEFAULT_PROVIDER_ACCOUNT_LABEL)
+    : account.label;
+}
 
 type StoredAccounts = Partial<
   Record<ProviderAccountProvider, ProviderAccount[]>

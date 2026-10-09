@@ -82,7 +82,7 @@ jobs:
         id: packaging
         run: |
           set -euo pipefail
-          pattern='^(scripts/repack-appimage\.sh|scripts/assert-appimage-host-libs\.sh|scripts/install-linux-deps-debian\.sh|package\.json|package-lock\.json|Cargo\.lock|src-tauri/tauri\.conf\.json|src-tauri/tauri\.linux\.conf\.json|src-tauri/Cargo\.toml|\.github/workflows/(ci|release)\.yml)$'
+          pattern='^(scripts/repack-appimage\.sh|scripts/assert-appimage-host-libs\.sh|scripts/test-appimage-repack\.sh|scripts/install-linux-deps-debian\.sh|package\.json|package-lock\.json|Cargo\.lock|src-tauri/tauri\.conf\.json|src-tauri/tauri\.linux\.conf\.json|src-tauri/Cargo\.toml|\.github/workflows/(ci|release)\.yml)$'
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             base="${{ github.event.pull_request.base.sha }}"
           else
@@ -105,6 +105,9 @@ jobs:
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "Packaging files unchanged; skipping AppImage build."
           fi
+
+      - name: Test AppImage repacking with MyCode and legacy layouts
+        run: bash scripts/test-appimage-repack.sh
 
       - uses: actions/setup-node@v4
         if: steps.packaging.outputs.run == 'true'

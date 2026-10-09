@@ -14,13 +14,15 @@ export function ProviderAccountSubtitle({
   const { t } = useTranslation();
   if (!identity?.plan && !identity?.email) {
     return fallback ? (
-      <span className={`min-w-0 ${className}`}>{fallback}</span>
+      <span className={`min-w-0 ${className}`}>{t(fallback)}</span>
     ) : null;
   }
 
   return (
     <span className={`inline-flex min-w-0 items-baseline gap-1 ${className}`}>
-      {identity.plan ? <span className="shrink-0">{t(identity.plan)}</span> : null}
+      {identity.plan ? (
+        <span className="shrink-0">{t(identity.plan)}</span>
+      ) : null}
       {identity.plan && identity.email ? <span aria-hidden>·</span> : null}
       {identity.email ? (
         <PrivateEmail key={identity.email} email={identity.email} />

@@ -12,6 +12,7 @@ import {
 import { savePinnedProjects } from "../model/recents";
 import { ProjectRail } from "../../../app/shell/ProjectRail";
 import { useProjectDiffStats } from "../../source-control/hooks/useProjectDiffStats";
+import { setLanguage } from "../../../shared/i18n";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: vi.fn(async () => null),
@@ -25,6 +26,7 @@ let container: HTMLDivElement;
 let root: Root;
 
 beforeEach(() => {
+  setLanguage("en");
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.mocked(useProjectDiffStats).mockClear();
   localStorage.clear();
@@ -35,6 +37,7 @@ beforeEach(() => {
 
 afterEach(() => {
   act(() => root.unmount());
+  setLanguage("en");
   container.remove();
   vi.unstubAllGlobals();
 });
@@ -103,7 +106,7 @@ it("renders assigned projects in persistent collapsible groups", async () => {
   expect(groupRow.classList).toContain("project-reorder-item");
   expect(groupRow.classList).toContain("h-8");
   expect(groupRow.classList).toContain("px-2");
-  expect(button("Client work group options").className).toBe(
+  expect(button("Client work · Group options").className).toBe(
     container.querySelector<HTMLButtonElement>(
       'button[aria-label="Project options"]',
     )!.className,
@@ -195,7 +198,7 @@ it("creates, styles, assigns, and deletes a group from the rail", async () => {
   });
   expect(button("Side projects, 1 project")).toBeDefined();
 
-  act(() => button("Side projects group options").click());
+  act(() => button("Side projects · Group options").click());
   act(() => button("Mascot ghost").click());
   expect(loadProjectGroups()[0].mascot).toBe("ghost");
   act(() => button("Delete group").click());
@@ -206,4 +209,22 @@ it("creates, styles, assigns, and deletes a group from the rail", async () => {
   expect(
     document.querySelector('button[aria-label="New project group"]'),
   ).toBeNull();
+});
+
+it("keeps the same project group options action when switching to Chinese", async () => {
+  saveProjectGroups([
+    { id: "clients", name: "Client work", collapsed: false, colorIndex: 4 },
+  ]);
+  saveProjectGroupAssignments({ [pathKey("/work/client")]: "clients" });
+  await renderRail();
+  const options = button("Client work · Group options");
+
+  act(() => setLanguage("zh-CN"));
+  await renderRail();
+  expect(button("Client work · 分组选项")).toBe(options);
+  act(() => options.click());
+  act(() => button("删除分组").click());
+  expect(loadProjectGroups()).toEqual([]);
+  expect(loadProjectGroupAssignments()).toEqual({});
+  expect(button("client")).toBeDefined();
 });

@@ -16,7 +16,7 @@ set -euo pipefail
 # ever enabled, the .AppImage.sig Tauri writes is for the pre-repack file and
 # must be regenerated after this script, or the updater will reject the image.
 #
-# Usage: scripts/repack-appimage.sh [path/to/MonoCode_x.y.z_amd64.AppImage]
+# Usage: scripts/repack-appimage.sh [path/to/MyCode_x.y.z_amd64.AppImage]
 
 APPIMAGETOOL_VERSION="1.9.1"
 APPIMAGETOOL_SHA256="ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0"
@@ -76,8 +76,15 @@ head -c "$offset" "$appimage" > "$work/runtime"
 (cd "$work" && APPIMAGE_EXTRACT_AND_RUN=1 "$appimage" --appimage-extract >/dev/null)
 appdir="$work/squashfs-root"
 
-if [[ ! -x "$appdir/usr/bin/monocode" ]]; then
-  echo "Unexpected AppImage layout: usr/bin/monocode is missing" >&2
+binary=
+for candidate in MyCode mycode monocode; do
+  if [[ -x "$appdir/usr/bin/$candidate" ]]; then
+    binary="$candidate"
+    break
+  fi
+done
+if [[ -z "$binary" ]]; then
+  echo "Unexpected AppImage layout: MyCode executable is missing under usr/bin (MyCode, mycode or monocode)" >&2
   exit 1
 fi
 
@@ -86,9 +93,9 @@ fi
 # and points GStreamer/GTK/GIO module paths into the bundle.
 rm -rf "$appdir/usr/lib" "$appdir/apprun-hooks" "$appdir/AppRun.wrapped" "$appdir/AppRun"
 
-cat > "$appdir/AppRun" <<'APPRUN'
-#!/bin/sh
-# MonoCode AppImage entry point. The AppImage uses the host's WebKitGTK stack.
+printf '#!/bin/sh\nAPP_BINARY=%s\n' "$binary" > "$appdir/AppRun"
+cat >> "$appdir/AppRun" <<'APPRUN'
+# MyCode AppImage entry point. The AppImage uses the host's WebKitGTK stack.
 HERE="$(dirname "$(readlink -f "$0")")"
 
 webkit_ok=
@@ -107,14 +114,14 @@ if [ -z "$webkit_ok" ]; then
   # WebKit lives in the Nix store instead of /usr/lib. The dynamic linker
   # still finds it when the package is installed.
   cat >&2 <<'EOF'
-MonoCode needs WebKitGTK 4.1 on the host. If startup fails, install it:
+MyCode needs WebKitGTK 4.1 on the host. If startup fails, install it:
   Debian/Ubuntu: sudo apt install libwebkit2gtk-4.1-0
   Fedora:        sudo dnf install webkit2gtk4.1
   Arch:          sudo pacman -S webkit2gtk-4.1
 EOF
 fi
 
-exec "$HERE/usr/bin/monocode" "$@"
+exec "$HERE/usr/bin/$APP_BINARY" "$@"
 APPRUN
 chmod +x "$appdir/AppRun"
 

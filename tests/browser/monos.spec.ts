@@ -48,7 +48,7 @@ test("resident agent exposes English controls and reads document links", async (
 
 test("resident sidebar and Connections switch Chinese and English while mounted", async ({
   page,
-}) => {
+}, testInfo) => {
   test.setTimeout(180_000);
   await page.goto("/tests/browser/connections.html", {
     waitUntil: "domcontentloaded",
@@ -60,15 +60,31 @@ test("resident sidebar and Connections switch Chinese and English while mounted"
   ).toBeVisible();
   await page.getByRole("button", { name: "添加电脑", exact: true }).click();
   await expect(page.getByText("通过 SSH 连接", { exact: true })).toBeVisible();
-  await expect(page.getByText("通过 SSH 连接", { exact: true })).toHaveCSS("font-size", "14px");
+  if (testInfo.project.name === "chromium")
+    await expect(page.getByText("通过 SSH 连接", { exact: true })).toHaveCSS(
+      "font-size",
+      "14px",
+    );
   await page.locator("[data-switch-language]").click();
   await expect(page.getByText("Monos", { exact: true })).toBeVisible();
-  await page.screenshot({path:"build/0191-connections-en.png",fullPage:true});
+  await page.screenshot({
+    path:
+      testInfo.project.name === "webkit"
+        ? "build/0191-connections-webkit-en.png"
+        : "build/0191-connections-en.png",
+    fullPage: true,
+  });
   await expect(
     page.getByText("Connect through SSH", { exact: true }),
   ).toBeVisible();
   await page.locator("[data-switch-language]").click();
   await expect(page.getByText("常驻智能体", { exact: true })).toBeVisible();
   await expect(page.getByText("通过 SSH 连接", { exact: true })).toBeVisible();
-  await page.screenshot({path:"build/0191-connections-zh.png",fullPage:true});
+  await page.screenshot({
+    path:
+      testInfo.project.name === "webkit"
+        ? "build/0191-connections-webkit-zh.png"
+        : "build/0191-connections-zh.png",
+    fullPage: true,
+  });
 });
