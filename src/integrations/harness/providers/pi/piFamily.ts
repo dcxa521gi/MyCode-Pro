@@ -1,5 +1,6 @@
 import { PiTurnUsage } from "./piUsage";
 import { findModel } from "../../../../features/sessions/model/models";
+import { TurnNotReadyError } from "../../core/types";
 import { nativeModelId } from "../../../../features/sessions/model/models";
 import { taskListFromToolInput } from "../../../../features/sessions/model/taskList";
 import { normalizeProjectPath } from "../../../../features/projects/model/recents";
@@ -326,7 +327,7 @@ export async function steerTurn(
   input: SteerTurnInput,
 ): Promise<void> {
   const live = stateFor(flavor).liveByThread.get(input.sessionId);
-  if (!live?.activeTurn) throw new Error("No active turn to steer");
+  if (!live?.activeTurn) throw new TurnNotReadyError("No active turn to steer");
   const message = input.text.trim();
   const buildCommand =
     flavor.id === "omp" && message.startsWith("/")
@@ -1197,6 +1198,19 @@ async function applyModel(
       }
     }
   }
+
+  if (
+    flavor.id === "pi" &&
+    parsePiModelRef(live.nativeModel) &&
+    input.model !== `pi:${live.nativeModel}` &&
+    stateFor(flavor).liveByThread.get(input.sessionId) === live &&
+    !live.muteUpdates
+  ) {
+    live.onEvent({
+      type: "session.configChanged",
+      model: `pi:${live.nativeModel}`,
+    });
+  }
 }
 
 function bindState(
@@ -1218,7 +1232,7 @@ function bindState(
   const model = asRecord(asRecord(data)?.model);
   const provider = stringField(model, "provider");
   const modelId = stringField(model, "id");
-  if (provider && modelId && !live.nativeModel) {
+  if (provider && modelId && (flavor.id === "pi" || !live.nativeModel)) {
     live.nativeModel = piNativeId(provider, modelId);
   }
   const fastModeEnabled = asRecord(data)?.fastModeEnabled;

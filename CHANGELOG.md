@@ -1,11 +1,14 @@
 # Changelog
 
-## [0.19.0] - 2026-10-08
+## [0.19.0] - 2026-10-09
 
-- 核对 MonoCode v0.9.0/main、Cindy 和 Synara，优先整合兼容的会话滚动、流式性能、Codex 异步问题、Git/终端、技能索引、目录刷新和弹窗修复。
-- CLI 安装/更新根据检测结果显示“安装”“更新”或灰色“无新版”；发现新版显示更新图标，点击直接应用内更新，失败可重试。
-- 启动提示与设置共用版本状态，支持语义、预发行和日期版本，安装后验证二进制并重新检测；保留凭据与会话。
-- 参考 Synara 修复技能嵌套元数据覆盖顶层名称/简介。三上游基线、实际整合与未移植项见 `docs/mycode-0.19.0.md`。
+- 重新完整融合 MonoCode v0.10.0/main：常驻智能体、角色与长期记忆、习惯任务、任务委派与完成回报、浮动聊天、文档产出物和 Codex 专属存储。
+- Windows 增加托盘智能体入口与浮动聊天；新增主窗口和浮窗的活动、关联任务、产出物、项目变更与提交面板。
+- 接入 OpenCode 2.x 的服务、模型目录、事件、审批、问题、压缩、取消与恢复；桌面会话采用受管独立进程，融合 MyCode 自定义模型及本地工具授权，保留 1.x。
+- 合入上下文约 80% 时的智能体会话轮换、最长一小时的习惯执行、文件树键盘导航、活动展开、远程会话恢复和 Windows Codex 目录联接修复。
+- 合入 Linux 系统 WebKitGTK 打包策略和 AppImage 更新能力；MyCode 的正式与预发行更新查询保持隔离。
+- 新增功能支持简体中文；常驻聊天保留引用块、发送快捷键、编号续写，保留 MyCode 群聊、IM、手机连接、登录、存储和现有 CLI 安装/更新状态。
+- 三上游基线、整合结果和验证记录见 `docs/mycode-0.19.0-complete.md`；此前未融合项已补齐，本次重新交付同版本安装包。
 
 ## [0.18.0] - 2026-10-05
 
@@ -1258,7 +1261,18 @@ First public release. macOS (Apple Silicon) only.
 - Updater endpoint and minisign public key are injected at release time rather than committed, so forks do not inherit the maintainer's update channel.
 - macOS release builds sign with `APPLE_SIGNING_IDENTITY` via a config overlay; the committed default remains ad-hoc `-` for community builds.
 
-[Unreleased]: https://github.com/hardbeat920/monocode/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/hardbeat920/monocode/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/hardbeat920/monocode/compare/v0.9.0...v0.10.0
+[0.9.0]: https://github.com/hardbeat920/monocode/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/hardbeat920/monocode/compare/v0.7.1...v0.8.0
+[0.7.1]: https://github.com/hardbeat920/monocode/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/hardbeat920/monocode/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/hardbeat920/monocode/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/hardbeat920/monocode/compare/v0.4.3...v0.5.0
+[0.4.3]: https://github.com/hardbeat920/monocode/compare/v0.4.2...v0.4.3
+[0.4.1]: https://github.com/hardbeat920/monocode/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/hardbeat920/monocode/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/hardbeat920/monocode/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/hardbeat920/monocode/compare/v0.1.56...v0.2.0
 [0.1.56]: https://github.com/hardbeat920/monocode/compare/v0.1.55...v0.1.56
 [0.1.55]: https://github.com/hardbeat920/monocode/compare/v0.1.54...v0.1.55

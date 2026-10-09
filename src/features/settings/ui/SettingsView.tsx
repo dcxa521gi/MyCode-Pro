@@ -17,6 +17,7 @@ import { useWorkspaceSide, setWorkspaceSide } from "../model/workspaceSide";
 import { getLocale as uiLocale } from "../../../shared/i18n";
 import {
   useTranslation,
+  translate as t,
   formatMessage,
   type LanguagePreference,
 } from "../../../shared/i18n";
@@ -29,6 +30,7 @@ import { ManagedCLIControls } from "../../providers/ui/ManagedCLIControls";
 import { LocalCapabilitiesPage } from "./LocalCapabilitiesPage";
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { ConnectionsSettings } from "../../connections/ui/ConnectionsSettings";
 import { ask } from "@tauri-apps/plugin-dialog";
 import {
   ArrowDownCircle,
@@ -127,8 +129,10 @@ import {
   saveSidebarOpacity,
   saveThemeHue,
   saveThemeSaturation,
+  isLightScheme,
   saveTranscriptLayout,
   saveTranscriptAnchor,
+  syncNativeGlass,
   TRANSCRIPT_ANCHOR_CHANGE_EVENT,
   loadShowExcludedFiles,
   saveShowExcludedFiles,
@@ -216,7 +220,7 @@ import {
   projectName,
 } from "../../../shared/lib/paths";
 import { revealPath } from "../../../platform/tauri/fs";
-import { IS_MAC, IS_WIN } from "../../../platform/tauri/platform";
+import { IS_LINUX, IS_MAC, IS_WIN } from "../../../platform/tauri/platform";
 import {
   loadArchivedProjects,
   looksLikeProject,
@@ -263,6 +267,17 @@ import {
   useShowRemainingUsage,
 } from "../model/displayPrefs";
 import {
+  accountStatus,
+  accountUsageKey,
+  useProviderAccountUsage,
+} from "../../providers/model/accountUsage";
+import { clearCachedRateLimits } from "../../providers/model/rateLimitsCache";
+import {
+  AccountStatusLabel,
+  AccountUsageMeters,
+  AccountUsageRefresh,
+} from "../../providers/ui/ProviderAccountUsage";
+import {
   loadSessionSidebarFilters,
   saveSessionSidebarFilters,
 } from "../../sessions/model/sessionFilters";
@@ -306,6 +321,19 @@ import {
 import { useTabGroupLogos } from "../../projects/hooks/useTabGroupLogos";
 import { ProjectLogoIcon } from "../../projects/ui/ProjectLogoIcon";
 import { ProjectMascot } from "../../projects/ui/ProjectMascot";
+import { PixelMascot } from "../../projects/ui/PixelMascot";
+import {
+  defaultMonoName,
+  listMonos,
+  monoLook,
+  monoProjectsPhrase,
+  monosSnapshot,
+  subscribeMonos,
+  updateMono,
+  type Mono,
+} from "../../monos/model/mono";
+import { resetMonoDefaults } from "../../monos/model/monoFiles";
+import { ConfirmReset } from "../../monos/ui/ConfirmReset";
 import {
   filterKeybindings,
   currentKeybindings,
@@ -321,7 +349,11 @@ import {
   loadLiveAgentsEnabled,
   loadModelControls,
   loadNotesEnabled,
+  loadMonosEnabled,
+  loadMonoMenuBarIcon,
   loadKeybindingOverrides,
+  saveMonoMenuBarIcon,
+  subscribeMonoMenuBarIcon,
   loadQuickComposerEnabled,
   loadQuickComposerShortcut,
   loadTabAnimationsEnabled,
@@ -337,6 +369,8 @@ import {
   saveLiveAgentsEnabled,
   saveModelControls,
   saveNotesEnabled,
+  saveMonosEnabled,
+  subscribeMonosEnabled,
   saveKeybindingOverride,
   validateKeybindingShortcut,
   saveQuickComposerEnabled,
@@ -377,6 +411,7 @@ import {
 import {
   installPendingUpdate,
   launchPendingInstaller,
+  packageManagedInstall,
   readAppVersion,
   runUpdateFlow,
   type UpdaterSnapshot,
@@ -571,6 +606,7 @@ export function SettingsView({
                   <TaskPowerSettings />
                 </>
               ) : null}
+              {section === "connections" ? <ConnectionsSettings /> : null}
               {section === "appearance" ? (
                 <AppearancePage appearance={appearance} />
               ) : null}
@@ -583,6 +619,7 @@ export function SettingsView({
                 <LocalCapabilitiesPage key={cwd} cwd={cwd} />
               ) : null}
               {section === "keybindings" ? <KeybindingsPage /> : null}
+              {section === "monos" ? <MonosPage /> : null}
               {section === "mcp" ? (
                 <McpSettings cwd={cwd} recents={recents} />
               ) : null}
@@ -1924,10 +1961,16 @@ function UpdateRow({
 
   useEffect(() => {
     let cancelled = false;
-    void readAppVersion().then((currentVersion) => {
-      if (cancelled) return;
-      setSnapshot((current) => ({ ...current, currentVersion }));
-    });
+    void Promise.all([readAppVersion(), packageManagedInstall()]).then(
+      ([currentVersion, packageManaged]) => {
+        if (cancelled) return;
+        setSnapshot((current) => ({
+          ...current,
+          currentVersion,
+          packageManaged: packageManaged ?? undefined,
+        }));
+      },
+    );
     return () => {
       cancelled = true;
     };
@@ -2100,6 +2143,7 @@ function useAppearanceSettings(
     applyBodyGlass(next);
     saveBodyGlass(next);
     setBodyGlass(next);
+    if (IS_LINUX) syncNativeGlass(isLightScheme() ? "light" : "dark");
   }, []);
 
   const onShowExcludedFiles = useCallback((next: boolean) => {
@@ -3198,6 +3242,9 @@ function ProviderBinaryControl({
         aria-haspopup="dialog"
         title={`${title} CLI path${restartRequired ? " — restart required" : ""}`}
         onClick={() => {
+          if (!open && !inspection && !working && !error) {
+            void inspect(loadProviderBinaryPath(provider));
+          }
           setOpen((value) => !value);
           setEditing(false);
         }}
@@ -3715,6 +3762,7 @@ function ProviderAccountsSettings() {
     try {
       await removeProviderAccountCredentials(account.provider, account.id);
       removeProviderAccount(account.provider, account.id);
+      clearCachedRateLimits(account.provider, account.id);
       if (
         editor?.provider === account.provider &&
         editor.accountId === account.id
@@ -3736,14 +3784,14 @@ function ProviderAccountsSettings() {
     PROVIDER_ACCOUNT_PROVIDERS.flatMap(providerAccounts),
     version,
   );
+  const usage = useProviderAccountUsage(version);
 
   return (
     <Group
       id="provider-accounts"
-      title={t("Accounts")}
-      description={t(
-        "Create isolated sign-ins for providers that support account profiles. Account switching stays available from the usage control in the footer.",
-      )}
+      title="Accounts"
+      description="Create isolated sign-ins for providers that support account profiles. Account switching stays available from the usage control in the footer."
+      action={<AccountUsageRefresh usage={usage} />}
     >
       {PROVIDER_ACCOUNT_PROVIDERS.map((provider) => {
         const accounts = providerAccounts(provider);
@@ -3786,6 +3834,7 @@ function ProviderAccountsSettings() {
                 const removing = working === `remove:${provider}:${account.id}`;
                 const identity = identities[identityKey(account)];
                 const orgTag = identityOrganizationTag(identity);
+                const limits = usage.usage[accountUsageKey(account)];
                 return editing ? (
                   <ProviderAccountEditor
                     key={account.id}
@@ -3815,18 +3864,24 @@ function ProviderAccountsSettings() {
                           </span>
                         ) : null}
                       </div>
-                      <div className="mt-0.5 truncate text-[10px] text-content/35">
+                      <div className="mt-0.5 flex min-w-0 items-center gap-2.5 text-[10px]">
+                        <AccountStatusLabel
+                          status={accountStatus(limits, usage.now)}
+                          className="shrink-0"
+                        />
                         <ProviderAccountSubtitle
                           identity={identity}
-                          fallback={t(
+                          fallback={
                             account.isDefault
                               ? "Provider CLI profile"
-                              : "Isolated profile",
-                          )}
+                              : "Isolated profile"
+                          }
+                          className="truncate text-content/30"
                         />
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1">
+                    <AccountUsageMeters limits={limits} now={usage.now} />
+                    <div className="flex w-24 shrink-0 items-center justify-end gap-1">
                       {account.isDefault ? (
                         <span className="mr-1 text-[10px] font-medium uppercase tracking-wide text-content/30">
                           {t("Default")}
@@ -4271,6 +4326,121 @@ function formatDate(value: number): string {
   } catch {
     return "";
   }
+}
+
+/** Monos on or off, and each Mono the user has. */
+function MonosPage() {
+  const enabled = useSyncExternalStore(
+    subscribeMonosEnabled,
+    loadMonosEnabled,
+    () => true,
+  );
+  const menuBarIcon = useSyncExternalStore(
+    subscribeMonoMenuBarIcon,
+    loadMonoMenuBarIcon,
+    () => true,
+  );
+  const snapshot = useSyncExternalStore(subscribeMonos, monosSnapshot);
+  const monos = useMemo(() => listMonos(), [snapshot]);
+
+  return (
+    <>
+      <Group title={t("Monos")}>
+        <Row
+          id="monos-enabled"
+          label={t("Show monos")}
+          description={t("Agents of your own on the project rail. Each works on the projects you give it, remembers what matters and picks up habits it runs on its own. Turn this off to hide them.")}
+        >
+          <Toggle label={t("Show monos")} on={enabled} onChange={saveMonosEnabled} />
+        </Row>
+        {(IS_MAC || IS_WIN) && (
+          <Row
+            id="mono-menu-bar-icon"
+            label={t("Menu bar icon")}
+            description={t("Chat with a Mono or open the quick composer from the macOS menu bar. Turn this off to hide the icon.")}
+          >
+            <Toggle
+              label={t("Menu bar icon")}
+              on={menuBarIcon}
+              onChange={saveMonoMenuBarIcon}
+            />
+          </Row>
+        )}
+      </Group>
+      <Group
+        id="mono-list"
+        title={t("Your monos")}
+        description={t("Choose whether new sessions started by each Mono appear in the sidebar. Hidden sessions remain saved and can be opened from the Mono's chat. Add a Mono with the plus on the rail and choose its projects from its details.")}
+      >
+        {monos.length ? (
+          monos.map((mono) => <MonoRow key={mono.id} mono={mono} />)
+        ) : (
+          <p className="px-4 py-3.5 text-[12px] text-content/45">
+            {t("No monos yet.")}
+          </p>
+        )}
+      </Group>
+    </>
+  );
+}
+
+function MonoRow({ mono }: { mono: Mono }) {
+  const look = monoLook(mono);
+  return (
+    <Row
+      label={
+        <span className="flex min-w-0 items-center gap-2">
+          <PixelMascot
+            name={look.mascot}
+            color={look.color}
+            still
+            className="size-4 shrink-0"
+          />
+          <span className="truncate">{look.name}</span>
+        </span>
+      }
+      description={
+        look.projects.length
+          ? formatMessage("Works on {projects}", {projects: monoProjectsPhrase(look.projects)})
+          : t("No projects yet")
+      }
+    >
+      <span className="text-[12px] leading-5 text-content/50">
+        {t("Show Mono spawned session on the sidebar")}
+      </span>
+      <Toggle
+        label={formatMessage("Show sessions started by {name} in sidebar", {name:look.name})}
+        on={mono.showStartedSessionsInSidebar !== false}
+        onChange={(on) =>
+          updateMono(mono.id, (entry) => ({
+            ...entry,
+            showStartedSessionsInSidebar: on,
+          }))
+        }
+      />
+      <ConfirmReset
+        label={t("Reset Mono")}
+        title={formatMessage("Reset {name} to its defaults?", {name:look.name})}
+        body={formatMessage("Its soul goes back to the default and its name to {name}. Changes to its soul cannot be recovered.", {name:defaultMonoName(look.mascot)})}
+        kept={t("Its conversation, projects, memory and habits will be kept.")}
+        failure={t("Could not reset the Mono.")}
+        onConfirm={() => resetMonoDefaults(mono.id)}
+      >
+        {(open, ref) => (
+          <button
+            ref={ref}
+            type="button"
+            title={t("Reset to defaults")}
+            aria-label={formatMessage("Reset {name} to defaults", {name:look.name})}
+            onClick={open}
+            className="grid size-7 place-items-center rounded-md text-content/40 transition-transform duration-150 hover:bg-content/10 hover:text-content active:scale-[0.96]"
+          >
+            <RotateCcw className="size-3.5" strokeWidth={1.75} />
+          </button>
+        )}
+      </ConfirmReset>
+    </Row>
+  );
 }
 
 function PageHeader({

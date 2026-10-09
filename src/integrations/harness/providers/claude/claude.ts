@@ -1,4 +1,5 @@
 import { findModel } from "../../../../features/sessions/model/models";
+import { TurnNotReadyError } from "../../core/types";
 import { nativeModelId } from "../../../../features/sessions/model/models";
 import { sameProviderAccountId } from "../../../../features/providers/model/providerAccounts";
 import type {
@@ -283,7 +284,7 @@ export async function compactClaudeContext(
 
 export async function steerClaudeTurn(input: SteerTurnInput): Promise<void> {
   const live = liveByThread.get(input.sessionId);
-  if (!live?.activeTurn) throw new Error("No active turn to steer");
+  if (!live?.activeTurn) throw new TurnNotReadyError("No active turn to steer");
 
   const message = buildClaudeUserMessage({
     text: input.text,
@@ -606,6 +607,7 @@ async function runTurn(live: Live, input: SendTurnInput): Promise<void> {
 
   try {
     await writeJson(input.sessionId, message);
+    input.onAccepted?.();
     settlePendingTurn(live);
     await turnPromise;
   } catch (error) {

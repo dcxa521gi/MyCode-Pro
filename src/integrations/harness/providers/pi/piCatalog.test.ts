@@ -32,7 +32,7 @@ vi.mock("./piClient", () => ({
     request = mocks.request;
   },
 }));
-import { refreshPiCatalog } from "./piCatalog";
+import { discoverOmpModels, discoverPiModels } from "./piCatalog";
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -44,12 +44,12 @@ afterEach(() => {
 });
 
 it("loads Pi extensions when discovering package-provided models", async () => {
-  await refreshPiCatalog();
+  await discoverPiModels("/workspace");
   expect(mocks.spawnChild).toHaveBeenCalledWith(
     expect.any(String),
     "/fake/pi",
     ["--mode", "rpc", "--no-session"],
-    "/home/test",
+    "/workspace",
     undefined,
     "pi",
   );
@@ -59,8 +59,20 @@ it("loads Pi extensions when discovering package-provided models", async () => {
   );
 });
 
+it("preserves extension isolation for omp catalog probes", async () => {
+  await discoverOmpModels("/workspace");
+  expect(mocks.spawnChild).toHaveBeenCalledWith(
+    expect.any(String),
+    "/fake/pi",
+    expect.arrayContaining(["--no-extensions"]),
+    "/workspace",
+    undefined,
+    "omp",
+  );
+});
+
 it("clears the outer discovery timeout after a successful probe", async () => {
-  await refreshPiCatalog();
+  await discoverPiModels("/workspace");
   expect(vi.getTimerCount()).toBe(0);
   expect(mocks.killChild).toHaveBeenCalled();
 });

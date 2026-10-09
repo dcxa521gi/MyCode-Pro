@@ -1,9 +1,85 @@
-import { invoke } from "@tauri-apps/api/core";
-import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { invoke as tauriInvoke } from "@tauri-apps/api/core";
+import { listen as tauriListen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
   runtimeProviderBinaryPath,
   type ConfigurableBinaryProvider,
 } from "../../../features/providers/model/providerBinaryPaths";
+
+/** Process I/O is supplied by the desktop or a headless host. Provider
+ * protocols never need to know which process owns their children. */
+export interface ChildBackend {
+  invoke<T>(command: string, args?: Record<string, unknown>): Promise<T>;
+  listen<T>(
+    event: string,
+    handler: (event: { payload: T }) => void,
+  ): Promise<UnlistenFn>;
+}
+
+let backend: ChildBackend | undefined;
+
+export function configureChildBackend(next: ChildBackend): void {
+  if (bridge || users)
+    throw new Error("Configure the child backend before starting the bridge");
+  backend = next;
+}
+
+export function hasHeadlessChildBackend(): boolean {
+  return backend !== undefined;
+}
+
+/** Provider-owned transcript files are read on the machine running the child. */
+export function readHarnessTextFile(path: string): Promise<string> {
+  return invoke<string>(backend ? "harness_read_text_file" : "read_text_file", {
+    path,
+  });
+}
+
+export function prepareMonoCodexStore(
+  providerAccountId?: string,
+  threadId?: string,
+): Promise<{ home: string; hasThread: boolean }> {
+  return invoke("codex_mono_store_prepare", { providerAccountId, threadId });
+}
+
+export function copyMonoCodexThreads(
+  providerAccountId: string | undefined,
+  threadId: string,
+  paths: string[],
+  sqliteHome?: string,
+): Promise<void> {
+  return invoke("codex_mono_store_copy", {
+    providerAccountId,
+    threadId,
+    paths,
+    sqliteHome,
+  });
+}
+
+export function restoreMonoCodexAgentState(
+  providerAccountId: string | undefined,
+  threadId: string,
+): Promise<void> {
+  return invoke("codex_mono_store_restore_agent_state", {
+    providerAccountId,
+    threadId,
+  });
+}
+
+function invoke<T>(
+  command: string,
+  args?: Record<string, unknown>,
+): Promise<T> {
+  return backend
+    ? backend.invoke<T>(command, args)
+    : tauriInvoke<T>(command, args);
+}
+
+function listen<T>(
+  event: string,
+  handler: (event: { payload: T }) => void,
+): Promise<UnlistenFn> {
+  return backend ? backend.listen(event, handler) : tauriListen(event, handler);
+}
 
 type LinePayload = { sessionId: string; line: string };
 type ExitPayload = { sessionId: string; code: number | null; pid?: number };
@@ -255,6 +331,8 @@ export async function spawnChild(
   binaryProvider?: ConfigurableBinaryProvider,
   modelConnection?: string,
   selectedModel?: string,
+  codexStore?: "mono",
+  opencodeV2?: { password: string },
 ): Promise<void> {
   livePid.delete(sessionId);
   pendingExit.delete(sessionId);
@@ -272,6 +350,8 @@ export async function spawnChild(
     account,
     binaryProvider,
     binaryPath,
+    ...(codexStore ? { codexStore } : {}),
+    ...(opencodeV2 ? { opencodeV2 } : {}),
   });
   if (typeof pid !== "number" || pid <= 0) return;
   livePid.set(sessionId, pid);
@@ -471,12 +551,25 @@ export function inspectHarnessBinary(
   });
 }
 
+/** Runs the CLI's own self-update against the binary MonoCode uses. */
+export async function updateHarnessCli(
+  provider: ConfigurableBinaryProvider,
+): Promise<void> {
+  const resolved = await resolveHarnessBinary(provider);
+  await invoke("harness_update", {
+    command: resolved.path,
+    binaryProvider: provider,
+    binaryPath: runtimeProviderBinaryPath(provider),
+  });
+}
+
 export function execChild(
   command: string,
   args: string[],
   cwd?: string,
   binaryProvider?: ConfigurableBinaryProvider,
   binaryPathOverride?: string | null,
+  modelContext?: { connectionId?: string; model?: string; sessionId?: string },
 ): Promise<string> {
   const binaryPath =
     binaryPathOverride === undefined && binaryProvider
@@ -488,5 +581,6 @@ export function execChild(
     cwd,
     binaryProvider,
     binaryPath,
+    ...(modelContext ? { modelContext } : {}),
   });
 }

@@ -1,4 +1,4 @@
-import { getLocale as uiLocale } from "../../../shared/i18n";
+import { getLocale as uiLocale, formatMessage, translate } from "../../../shared/i18n";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type { HarnessId, RuntimeMode } from "../../sessions/model/session";
@@ -341,11 +341,11 @@ export function automationScheduleLabel(
 ): string {
   const time = formatClock(automation.time);
   if (automation.scheduleKind === "hourly") {
-    return `Hourly at :${String(automation.minute).padStart(2, "0")}`;
+    return formatMessage("Hourly at :{minute}", {minute:String(automation.minute).padStart(2,"0")});
   }
-  if (automation.scheduleKind === "daily") return `Daily at ${time}`;
-  if (automation.scheduleKind === "weekdays") return `Weekdays at ${time}`;
-  return `${AUTOMATION_WEEKDAYS[automation.dayOfWeek] ?? "Weekly"} at ${time}`;
+  if (automation.scheduleKind === "daily") return formatMessage("Daily at {time}", {time});
+  if (automation.scheduleKind === "weekdays") return formatMessage("Weekdays at {time}", {time});
+  return formatMessage("{day} at {time}", {day:translate(AUTOMATION_WEEKDAYS[automation.dayOfWeek] ?? "Weekly"), time});
 }
 
 export function newAutomationDraft(

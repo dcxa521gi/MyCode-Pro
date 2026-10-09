@@ -1,3 +1,4 @@
+import { translate as t } from "../../../shared/i18n";
 import { translate as uiTranslate } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import { RefreshCw, Search } from "../../../shared/ui/icons";
@@ -15,11 +16,14 @@ import {
   peekProjectFiles,
   rankProjectFiles,
   recentOpenedFiles,
+  rememberOpenedFile,
   type RankedFile,
 } from "../model/fileIndex";
 import { LAYER } from "../../../shared/lib/layers";
 import { fuzzyMatch, type FuzzyHit } from "../../../shared/lib/fuzzy";
-import { looksLikeProject } from "../../projects/model/recents";
+import {
+  looksLikeProject,
+} from "../../projects/model/recents";
 import type { OpenFileFn } from "../../search/model/search";
 import { useLockOverscroll } from "../../../shared/hooks/useLockOverscroll";
 import { FileTypeIcon } from "./FileTypeIcon";
@@ -65,14 +69,14 @@ export function FilePicker({
   onRunAction,
   onClose,
 }: Props) {
-  const { t } = useTranslation();
+  const peekFiles = () => peekProjectFiles(cwd);
   const search = useRef<HTMLInputElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const [query, setQuery] = useState(initialQuery);
   const [active, setActive] = useState(0);
-  const [files, setFiles] = useState(() => peekProjectFiles(cwd) ?? []);
-  const [loading, setLoading] = useState(() => peekProjectFiles(cwd) == null);
+  const [files, setFiles] = useState(() => peekFiles() ?? []);
+  const [loading, setLoading] = useState(() => peekFiles() == null);
   const [error, setError] = useState<string | null>(null);
 
   const recents = useMemo(() => {
@@ -113,15 +117,16 @@ export function FilePicker({
     setQuery(initialQuery);
     setActive(0);
     setError(null);
-    const cached = peekProjectFiles(cwd);
+    const searchable = looksLikeProject(cwd);
+    const cached = peekFiles();
     if (cached) {
       setFiles(cached);
       setLoading(false);
     } else {
       setFiles([]);
-      setLoading(looksLikeProject(cwd));
+      setLoading(searchable);
     }
-    if (!looksLikeProject(cwd)) {
+    if (!searchable) {
       setLoading(false);
       return;
     }
@@ -168,6 +173,7 @@ export function FilePicker({
   if (!open) return null;
 
   const pick = (file: RankedFile) => {
+    rememberOpenedFile(cwd, file.path);
     onOpenFile(file.path, undefined, { exact: true });
     onClose();
   };

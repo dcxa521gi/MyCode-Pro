@@ -1,3 +1,5 @@
+import * as linuxUpdater from "./linuxUpdater";
+import { IS_LINUX } from "../../platform/tauri/platform";
 import { getVersion } from "@tauri-apps/api/app";
 import { message } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
@@ -25,6 +27,7 @@ export type UpdaterSnapshot = {
   progress?: number;
   error?: string;
   notes?: string;
+  packageManaged?: linuxUpdater.PackageManagedInstall;
 };
 let pendingUpdate: GitHubRelease | null = null;
 export async function readAppVersion(): Promise<string> {
@@ -35,10 +38,13 @@ export async function readAppVersion(): Promise<string> {
   }
 }
 export async function probeForUpdate(): Promise<GitHubRelease | null> {
-  const [release, current] = await Promise.all([
-    fetchRelease(),
-    readAppVersion(),
-  ]);
+  if (IS_LINUX && (await packageManagedInstall())) return null;
+  const current = await readAppVersion();
+  const release = await fetchRelease(
+    undefined,
+    undefined,
+    current.includes("-") ? "beta" : "stable",
+  );
   pendingUpdate =
     compareVersions(release.version, current) > 0 ? release : null;
   if (pendingUpdate) announceUpdateAvailable(release.version);
@@ -49,6 +55,18 @@ export async function runUpdateFlow(
   onProgress?: (snapshot: UpdaterSnapshot) => void,
 ): Promise<UpdaterSnapshot> {
   const currentVersion = await readAppVersion();
+  const packageManaged = IS_LINUX ? await packageManagedInstall() : null;
+  if (packageManaged) {
+    const snapshot: UpdaterSnapshot = {
+      phase: "idle",
+      currentVersion,
+      packageManaged,
+    };
+    onProgress?.(snapshot);
+    if (manual)
+      await message(packageManagerHint(packageManaged), { title: "MyCode" });
+    return snapshot;
+  }
   onProgress?.({ phase: "checking", currentVersion });
   try {
     const update = await probeForUpdate();
@@ -148,3 +166,6 @@ export function installPendingUpdate(
   });
   return download;
 }
+
+export const packageManagedInstall = linuxUpdater.packageManagedInstall;
+export const packageManagerHint = linuxUpdater.packageManagerHint;

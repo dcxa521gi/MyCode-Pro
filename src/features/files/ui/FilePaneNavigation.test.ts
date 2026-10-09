@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import "./FileEditor";
 import { EditorView } from "@codemirror/view";
 import { act, createElement, type ComponentProps } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -80,11 +81,12 @@ describe("file pane source navigation", () => {
       editorNavigation: { path, line, column: 2, token: 1 },
     };
     await act(async () => root.render(createElement(FilePane, paneProps)));
-    await act(async () =>
-      vi.waitFor(() =>
-        expect(container.querySelector(".cm-editor")).not.toBeNull(),
-      ),
-    );
+    await vi.waitFor(async () => {
+      await act(async () => {
+        await vi.dynamicImportSettled();
+      });
+      expect(container.querySelector(".cm-editor")).not.toBeNull();
+    }, { timeout: 10_000 });
     return EditorView.findFromDOM(
       container.querySelector<HTMLElement>(".cm-editor")!,
     )!;
@@ -137,7 +139,9 @@ describe("file pane source navigation", () => {
   });
 
   it("reapplies the requested location when a pending file reload adds its line", async () => {
-    invoke.mockResolvedValueOnce("first line");
+    // Watcher stat calls can arrive before the initial read on slower runners.
+    // Model the file itself instead of whichever IPC call happens to run next.
+    disk.content = "first line";
     const view = await render("/repo/growing.txt", 3);
     await act(async () =>
       vi.waitFor(() => {
@@ -146,6 +150,7 @@ describe("file pane source navigation", () => {
       }),
     );
     await act(async () => {
+      disk.content = "first line\nsecond line\nthird line";
       invalidateWatchedFiles(["/repo/growing.txt"]);
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
@@ -213,7 +218,7 @@ describe("file pane source navigation", () => {
     "cancels a clamped pending navigation on %s before its line arrives",
     async (interaction) => {
       const path = `/repo/pending-${interaction}.txt`;
-      invoke.mockResolvedValueOnce("first line");
+      disk.content = "first line";
       const view = await render(path, 3);
       await act(async () =>
         vi.waitFor(() => expect(view.state.selection.main.head).toBe(1)),

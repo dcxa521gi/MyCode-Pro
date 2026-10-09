@@ -155,7 +155,7 @@ export function surfaceTabPresentation(
     const staged = file.changeKind === "staged";
     return {
       name: staged ? "Staged Changes" : "Changes",
-      get label() { return uiTranslate(staged ? "Staged Changes" : "Changes"); },
+      label: staged ? "Staged Changes" : "Changes",
       iconName: "CHANGES",
       tooltip: staged ? "Staged changes" : "Working tree changes",
     };

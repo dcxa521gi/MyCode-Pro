@@ -35,10 +35,10 @@ function refreshCatalog(flavor: PiFlavor): Promise<void> {
   return run;
 }
 
-async function discoverModels(flavor: PiFlavor) {
+async function discoverModels(flavor: PiFlavor, workingDirectory?: string) {
   const { path } = await flavor.resolveBinary();
-  const cwd = await homeDir();
-  const probeId = flavor.probeChildId;
+  const cwd = workingDirectory ?? (await homeDir());
+  const probeId = `${flavor.probeChildId}-${crypto.randomUUID()}`;
   const rpc = new PiRpc(probeId, () => undefined, flavor.label);
 
   const stop = async () => {
@@ -77,7 +77,7 @@ async function discoverModels(flavor: PiFlavor) {
     ]);
     return modelsFromRpcData(flavor, response.data);
   } finally {
-    clearTimeout(timeout);
+    if (timeout) clearTimeout(timeout);
     await stop();
   }
 }
@@ -88,4 +88,12 @@ export function refreshPiCatalog(): Promise<void> {
 
 export function refreshOmpCatalog(): Promise<void> {
   return refreshCatalog(OMP_FLAVOR);
+}
+
+export function discoverPiModels(workingDirectory: string) {
+  return discoverModels(PI_FLAVOR, workingDirectory);
+}
+
+export function discoverOmpModels(workingDirectory: string) {
+  return discoverModels(OMP_FLAVOR, workingDirectory);
 }

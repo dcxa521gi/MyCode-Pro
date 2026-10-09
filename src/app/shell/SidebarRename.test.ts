@@ -5,8 +5,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { formatSessionTitle } from "../../features/sessions/model/session";
 import { formatReminderTime } from "../../features/sessions/model/sessionReminders";
 import { Sidebar } from "./Sidebar";
-import { loadSessionFolders } from "../../features/sessions/model/sessionFolders";
+import {
+  loadSessionFolders,
+  saveSessionFolders,
+} from "../../features/sessions/model/sessionFolders";
 import { useProjectDiffStats } from "../../features/source-control/hooks/useProjectDiffStats";
+import { copyText } from "../../platform/tauri/clipboard";
+import {
+  createMono,
+  saveMonoSessionId,
+} from "../../features/monos/model/mono";
 
 // Keep native services out of these menu/input interaction tests.
 vi.mock("../../features/source-control/hooks/useProjectDiffStats", () => ({
@@ -82,6 +90,7 @@ function startRename() {
 
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  vi.mocked(copyText).mockReset().mockResolvedValue(undefined);
   vi.mocked(useProjectDiffStats).mockReturnValue(null);
   const stored = new Map<string, string>();
   vi.stubGlobal("localStorage", {
@@ -142,24 +151,42 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it("routes sidebar new task to projects, workspace plus to a session, and logo to home", () => {
-  props.onSelectProject = vi.fn();
-  props.onOpenProject = vi.fn();
-  props.onNew = vi.fn();
-  props.onHome = vi.fn();
-  props.projectRailOpen = true;
+it("leaves the resident agent and its description out of the session list", () => {
+  saveMonoSessionId(createMono(["/workspace/project"]).id, "resident");
+  props.sessions = [
+    ...props.sessions,
+    {
+      ...props.sessions[0],
+      id: "resident",
+      title: "Resident agent description",
+    },
+  ];
   act(() => render());
-  const task = container.querySelector<HTMLButtonElement>('button[aria-label="New task"]')!;
-  expect(task).not.toBeNull();
-  act(() => task.click());
-  expect(props.onOpenProject).toHaveBeenCalledTimes(1);
-  expect(props.onNew).not.toHaveBeenCalled();
-  const plus = container.querySelector<HTMLButtonElement>('button[aria-label^="New session ("]')!;
-  expect(plus).not.toBeNull();
-  act(() => plus.click());
-  expect(props.onNew).toHaveBeenCalledTimes(1);
-  act(() => container.querySelector<HTMLButtonElement>('[data-mycode-home]')!.click());
-  expect(props.onHome).toHaveBeenCalledTimes(1);
+  expect(card()).not.toBeNull();
+  expect(container.querySelector('[data-session-card="resident"]')).toBeNull();
+  expect(container.querySelector("[data-mono]")).toBeNull();
+  expect(container.textContent).not.toContain("Resident agent description");
+});
+
+it("omits hidden Mono launches from history, open sessions and folders", () => {
+  const hidden = {
+    ...props.sessions[0],
+    id: "hidden-launch",
+    title: "Mono background work",
+    sidebarHidden: true,
+  };
+  props.sessions = [...props.sessions, hidden];
+  props.openSessions = [hidden];
+  saveSessionFolders("/workspace/project", [
+    { id: "folder", name: "Work", sessionIds: [hidden.id], collapsed: false },
+  ]);
+  act(() => render());
+  expect(card()).not.toBeNull();
+  expect(container.querySelector('[data-session-card="hidden-launch"]')).toBeNull();
+  expect(container.textContent).not.toContain(hidden.title);
+  props.sessions = props.sessions.filter((session) => session.id !== hidden.id);
+  act(() => render());
+  expect(container.querySelector('[data-session-card="hidden-launch"]')).toBeNull();
 });
 
 describe("project rail visibility", () => {
@@ -235,6 +262,56 @@ describe("worktree explorer visibility", () => {
       container.querySelector<HTMLElement>("[data-explorer-cwd]")!.dataset
         .explorerCwd,
     ).toBe("/worktrees/second");
+  });
+});
+
+describe.each([false, true])("Mono rail selection (compact: %s)", (compact) => {
+  it.each([
+    ["Inbox", "inboxActive", "onOpenInbox"],
+    ["Notes", "notesActive", "onOpenNotes"],
+    ["Automations", "automationsActive", "onOpenAutomations"],
+    ["Search", "searchActive", "onSearch"],
+  ] as const)("selects only %s while it covers a Mono", async (label, active, open) => {
+    const mono = createMono();
+    props = {
+      ...props,
+      projectRailOpen: !compact,
+      compactProjectRail: compact,
+      onSelectProject: vi.fn(),
+      onOpenProject: vi.fn(),
+      monoViewActive: true,
+      monos: {
+        activeId: mono.id,
+        states: new Map(),
+        onOpen: vi.fn(),
+        onCreate: vi.fn(),
+        onDelete: vi.fn(),
+      },
+      [open]: () => {
+        props = { ...props, [active]: true };
+        render();
+      },
+    };
+    await act(async () => render());
+    const monoSelected = () => compact
+      ? container.querySelector('[aria-label^="Switch project"]')!
+          .getAttribute("aria-label")!.includes("current mono")
+      : !!container.querySelector('[data-mono-rail] [aria-current="true"]');
+    expect(monoSelected()).toBe(true);
+
+    await act(async () =>
+      container.querySelector<HTMLButtonElement>(`button[aria-label^="${label}"]`)!.click(),
+    );
+    expect(container.querySelector(`button[aria-label^="${label}"]`)!.classList)
+      .toContain("bg-selection");
+    expect(monoSelected()).toBe(false);
+    expect(container.querySelector('[data-mono-rail] [data-selected="true"]')).toBeNull();
+    expect(props.monos?.activeId).toBe(mono.id);
+
+    // Back reveals the same conversation and restores its rail selection.
+    props = { ...props, [active]: false };
+    await act(async () => render());
+    expect(monoSelected()).toBe(true);
   });
 });
 
@@ -521,6 +598,69 @@ describe("sidebar session multiselection", () => {
       "session-1",
       "session-3",
     ]);
+  });
+});
+
+describe("sidebar session IDs", () => {
+  function openCopyIdMenu(sessionId: string) {
+    act(() => {
+      container
+        .querySelector(`[data-session-card="${sessionId}"]`)!
+        .dispatchEvent(
+          new MouseEvent("contextmenu", { bubbles: true, cancelable: true }),
+        );
+    });
+    const trigger = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'),
+    ).find((item) => item.textContent === "Copy session ID")!;
+    expect(trigger.getAttribute("aria-haspopup")).toBe("menu");
+    act(() => trigger.click());
+    return document.querySelector<HTMLElement>(
+      '[role="menu"][aria-label="Copy session ID"]',
+    )!;
+  }
+
+  it("copies either ID from the right-clicked session", async () => {
+    props.sessions = [
+      { ...props.sessions[0], providerSessionId: "harness-session-1" },
+      {
+        ...props.sessions[0],
+        id: "session-2",
+        providerSessionId: "harness-session-2",
+        updatedAt: props.sessions[0].updatedAt - 1,
+      },
+    ];
+    act(() => render());
+    const harnessMenu = openCopyIdMenu("session-2");
+    const copyHarnessId = Array.from(
+      harnessMenu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'),
+    ).find((item) => item.textContent === "Harness session ID")!;
+    expect(copyHarnessId.disabled).toBe(false);
+    await act(async () => copyHarnessId.click());
+    expect(copyText).toHaveBeenNthCalledWith(1, "harness-session-2");
+
+    const monocodeMenu = openCopyIdMenu("session-2");
+    const copyMonoCodeId = Array.from(
+      monocodeMenu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'),
+    ).find((item) => item.textContent === "MyCode session ID")!;
+    expect(copyMonoCodeId.disabled).toBe(false);
+    await act(async () => copyMonoCodeId.click());
+    expect(copyText).toHaveBeenNthCalledWith(2, "session-2");
+  });
+
+  it("keeps the MonoCode ID available before the harness supplies an ID", async () => {
+    act(() => render());
+    const copyMenu = openCopyIdMenu("session-1");
+    const copyHarnessId = Array.from(
+      copyMenu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'),
+    ).find((item) => item.textContent === "Harness session ID")!;
+    const copyMonoCodeId = Array.from(
+      copyMenu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'),
+    ).find((item) => item.textContent === "MyCode session ID")!;
+    expect(copyHarnessId.disabled).toBe(true);
+    expect(copyMonoCodeId.disabled).toBe(false);
+    await act(async () => copyMonoCodeId.click());
+    expect(copyText).toHaveBeenCalledExactlyOnceWith("session-1");
   });
 });
 

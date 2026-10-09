@@ -16,4 +16,5 @@ describe("fork update configuration", () => {
     expect(config.bundle.createUpdaterArtifacts).toBe(false);
     expect(config.plugins.updater.endpoints).toEqual([]);
   });
+
 });

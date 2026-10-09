@@ -1,5 +1,5 @@
-import { useTranslation } from "../../../shared/i18n";
-import { useEffect, useMemo, useState } from "react";
+import { translate as t } from "../../../shared/i18n";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Loader } from "../../../shared/ui/icons";
 import {
   sessionCheckpointFileDiff,
@@ -15,6 +15,8 @@ type Props = {
   cwd: string;
   sessionId: string;
   focusPath?: string;
+  /** Limit the review to these session file paths. */
+  paths?: readonly string[];
 };
 
 type LoadedDiff = {
@@ -27,8 +29,16 @@ type LoadedDiff = {
 const DIFF_LOAD_CONCURRENCY = 4;
 
 /** Read-only review of the exact before/after snapshots owned by one session. */
-export function SessionChangesDiff({ cwd, sessionId, focusPath }: Props) {
-  const { t } = useTranslation();
+export function SessionChangesDiff({
+  cwd,
+  sessionId,
+  focusPath,
+  paths,
+}: Props) {
+  const scope = paths?.join("\n");
+  // Only the load order uses the focus; moving it must not restart the load.
+  const focusRef = useRef(focusPath);
+  focusRef.current = focusPath;
   const [files, setFiles] = useState<CheckpointFile[] | null>(null);
   const [diffs, setDiffs] = useState<Map<string, LoadedDiff>>(new Map());
   const [error, setError] = useState<string | null>(null);
@@ -49,10 +59,14 @@ export function SessionChangesDiff({ cwd, sessionId, focusPath }: Props) {
       void sessionCheckpointStatus(sessionId, cwd)
         .then(async (status) => {
           if (disposed || current !== generation) return;
-          setFiles(status.files);
+          const allowed = scope == null ? null : new Set(scope.split("\n"));
+          const scoped = allowed
+            ? status.files.filter((file) => allowed.has(file.path))
+            : status.files;
+          setFiles(scoped);
           setError(null);
           await forEachConcurrent(
-            prioritizeFile(status.files, focusPath),
+            prioritizeFile(scoped, focusRef.current),
             DIFF_LOAD_CONCURRENCY,
             async (file) => {
               let loaded: LoadedDiff;
@@ -104,7 +118,7 @@ export function SessionChangesDiff({ cwd, sessionId, focusPath }: Props) {
       disposed = true;
       unsubscribe();
     };
-  }, [cwd, focusPath, sessionId]);
+  }, [cwd, sessionId, scope]);
 
   const models = useMemo<UnifiedDiffFileModel[]>(() => {
     if (!files) return [];

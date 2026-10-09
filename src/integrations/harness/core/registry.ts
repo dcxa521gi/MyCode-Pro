@@ -1,4 +1,3 @@
-import { isHarnessAuthError, loginHarness, supportsHarnessLogin } from "./auth";
 import { ensureCliReady } from "../../../features/providers/model/cliReady";
 import {
   findModel,
@@ -44,6 +43,9 @@ export type TextPromptInput = {
   providerAccountId?: string;
   model?: string;
   modelSettings?: Record<string, string>;
+  /** Codex defaults to unsaved threads; false allows resumable side questions. */
+  ephemeral?: boolean;
+  codexStore?: "mono";
   threadId?: string;
   onThreadId?: (threadId: string) => void;
   intent?: TurnIntent;
@@ -254,87 +256,13 @@ export function sendHarnessTurn(input: SendTurnInput & { harness: HarnessId }) {
       });
     activeTurnSessions.add(input.sessionId);
     try {
-      if (controlled && input.modelSettings?.mycodeGroup !== "true")
-        await invoke("local_ai_remember", {
-          cwd: input.cwd,
-          text: input.text,
-        }).catch(() => {});
-      const memory = controlled
-        ? await invoke<string>("local_ai_memory", {
-            cwd: input.cwd,
-            includeMemory: input.modelSettings?.mycodeGroup !== "true",
-          })
-        : "";
-      let toolPaths: Record<string, string> = {};
-      try {
-        toolPaths = JSON.parse(
-          localStorage.getItem("mycode.developmentTools") ?? "{}",
-        );
-      } catch {
-        /* Optional UI configuration. */
-      }
-      const developerTools = controlled
-        ? await invoke<string>("development_context", {
-            cwd: input.cwd,
-            paths: toolPaths,
-          }).catch(() => "")
-        : "";
-      const references = controlled
-        ? await invoke<string>("session_reference_context", {
-            text: input.text,
-            currentId: input.sessionId,
-          })
-        : "";
-      let needsLogin = false;
-      const routed = {
+      await adapter.sendTurn({
         ...input,
-        onEvent: (event: HarnessEvent) => {
-          if (
-            !id &&
-            ((event.type === "session.error" &&
-              isHarnessAuthError(event.message)) ||
-              (event.type === "message.delta" &&
-                /^\s*Not logged in\s*[·—-]\s*Please run \/login\s*$/i.test(
-                  event.text,
-                )))
-          )
-            needsLogin = true;
-          input.onEvent(
-            event.type === "session.error"
-              ? { ...event, message: modelFailureMessage(event.message, !!id) }
-              : event,
-          );
+        onAccepted: () => {
+          input.onEvent({ type: "turn.ready" });
+          input.onAccepted?.();
         },
-      };
-      routed.text = `${routed.text}\n\n[MyCode task tracking] For work with multiple steps, use your native plan/todo tool when available. Otherwise publish a section titled "Task plan" with Markdown checklist items. Update the same checklist as work progresses: [ ] pending, [~] in progress, [x] completed, [-] cancelled. Only mark items completed when actually finished. Follow the user's selected language. Do not add a plan for a simple answer. [End of task tracking]`;
-      const send = () =>
-        adapter.sendTurn(
-          memory?.trim() || references?.trim() || developerTools?.trim()
-            ? {
-                ...routed,
-                text: `[MyCode local memory — user-maintained context]\n${memory}\n[End of local memory]\n${references}\n${developerTools}\n${routed.text}`,
-              }
-            : routed,
-        );
-      try {
-        await send();
-      } catch (error) {
-        if (!id && isHarnessAuthError(String(error))) needsLogin = true;
-        if (!needsLogin || !supportsHarnessLogin(input.harness)) throw error;
-      }
-      if (needsLogin && !id && supportsHarnessLogin(input.harness)) {
-        input.onEvent({ type: "status", text: "Opening browser sign-in…" });
-        await loginHarness(input.harness, input.providerAccountId);
-        await adapter.stopSession(input.sessionId);
-        await send();
-      }
-    } catch (error) {
-      throw new Error(
-        modelFailureMessage(
-          error instanceof Error ? error.message : String(error),
-          !!id,
-        ),
-      );
+      });
     } finally {
       activeTurnSessions.delete(input.sessionId);
       if (controlled)
@@ -493,6 +421,7 @@ export function bindHarnessSession(
  * Boot used to refresh every adapter; that spawned unused CLIs (Pi with
  * extensions can sit at ~1GB) even when the workspace never touched them.
  */
+/** `force` re-reads a catalog that already loaded, e.g. after a CLI update. */
 export async function refreshHarnessCatalogs(
   ids: Iterable<HarnessId>,
   options?: { force?: boolean },

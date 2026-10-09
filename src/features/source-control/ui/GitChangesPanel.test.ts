@@ -3,6 +3,10 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@tauri-apps/plugin-opener", () => ({
+  openUrl: vi.fn(async () => {}),
+}));
+
 const { invalidateWatchedFiles } = vi.hoisted(() => ({
   invalidateWatchedFiles: vi.fn(),
 }));
@@ -23,6 +27,7 @@ vi.mock("../../../platform/tauri/fs", () => ({
   gitUnstageFile: vi.fn(async () => {}),
   gitDiscardFile: vi.fn(async () => {}),
   gitPrCreate: vi.fn(async () => ""),
+  gitRangeContext: vi.fn(),
   notifyGitChanged: vi.fn(),
   subscribeGitChanged: () => () => {},
   basename: (path: string) => path.split("/").pop() ?? path,
@@ -82,7 +87,8 @@ let container: HTMLDivElement;
 let root: Root;
 
 beforeEach(() => {
-  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  // Keep delayed file invalidations from reaching the next test's mocks.
+  vi.useFakeTimers();
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal(
     "ResizeObserver",
@@ -398,6 +404,10 @@ describe("GitChangesPanel folder actions", () => {
     )!;
     await act(async () => stage.click());
 
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(150);
+    });
+
     expect(alert).toHaveBeenCalledWith("Git index is locked");
     expect(stage.disabled).toBe(false);
     expect(invalidateWatchedFiles).not.toHaveBeenCalled();
@@ -444,5 +454,49 @@ describe("GitChangesPanel pull action", () => {
 
     expect(gitPull).toHaveBeenCalledWith("/repo");
     expect(invalidateWatchedFiles).toHaveBeenCalled();
+  });
+});
+
+describe("GitChangesPanel remote pull request", () => {
+  it("creates it from the host Git range without calling a local harness", async () => {
+    const cwd = "remote://machine/home/user/repo";
+    vi.mocked(gitDiffIndex).mockResolvedValue(
+      index({
+        remote: "origin",
+        upstream: "origin/feature/pull",
+        ahead: 1,
+        aheadOfDefault: 1,
+      }),
+    );
+    vi.mocked(gitRangeContext).mockResolvedValue({
+      base: "main",
+      head: "feature/pull",
+      commitSummary: "abc123 Fix remote flow\ndef456 Add coverage",
+      diffSummary: "2 files changed, 4 insertions(+)\n",
+      diffPatch: "",
+    });
+    vi.mocked(gitPrCreate).mockResolvedValue("https://example.test/pull/42");
+    await renderPanel(cwd);
+
+    const button = [
+      ...container.querySelectorAll<HTMLButtonElement>("button"),
+    ].find((candidate) => candidate.textContent?.trim() === "Create PR");
+    expect(button?.disabled).toBe(false);
+    await act(async () => {
+      button!.click();
+      await Promise.resolve();
+    });
+
+    expect(gitPush).toHaveBeenCalledWith(cwd);
+    expect(gitRangeContext).toHaveBeenCalledWith(cwd);
+    expect(generatePrContent).not.toHaveBeenCalled();
+    expect(gitPrCreate).toHaveBeenCalledWith(
+      cwd,
+      "Fix remote flow",
+      expect.stringContaining("## Changes\n\n2 files changed"),
+      "main",
+      "feature/pull",
+    );
+    expect(openUrl).toHaveBeenCalledWith("https://example.test/pull/42");
   });
 });

@@ -156,12 +156,13 @@ it("adds a standard mcpServers entry to the selected provider and project", asyn
       .click(),
   );
   expect(document.body.textContent).toContain("Add MCP server");
-  const provider = document.body.querySelector<HTMLElement>(
-    '[role="radiogroup"][aria-label="Provider"]',
+  const provider = document.body.querySelector<HTMLButtonElement>(
+    '[aria-label="Provider: Claude Code"]',
   )!;
-  const cursor = Array.from(
-    provider.querySelectorAll<HTMLButtonElement>("button"),
-  ).find((button) => button.textContent === "Cursor")!;
+  await act(async () => provider.click());
+  const cursor = [
+    ...document.body.querySelectorAll<HTMLButtonElement>('[role="option"]'),
+  ].find((button) => button.textContent === "Cursor")!;
   await act(async () => cursor.click());
   const config = document.body.querySelector<HTMLTextAreaElement>("textarea")!;
   const json =
@@ -197,24 +198,27 @@ it("navigates provider choices with arrow keys", async () => {
       .querySelector<HTMLButtonElement>('[aria-label="Add MCP server"]')!
       .click(),
   );
-  const control = document.body.querySelector<HTMLElement>(
-    '[role="radiogroup"][aria-label="Provider"]',
-  )!;
-  const options = control.querySelectorAll<HTMLButtonElement>("button");
-  options[0].focus();
   await act(async () =>
-    options[0].dispatchEvent(
+    document.body
+      .querySelector<HTMLButtonElement>('[aria-label="Provider: Claude Code"]')!
+      .click(),
+  );
+  const list = document.body.querySelector<HTMLElement>(
+    '[role="listbox"][aria-label="Provider"]',
+  )!;
+  const options = list.querySelectorAll<HTMLButtonElement>('[role="option"]');
+  await act(async () =>
+    list.dispatchEvent(
       new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
     ),
   );
-  expect(document.activeElement).toBe(options[1]);
-  expect(options[1].getAttribute("aria-checked")).toBe("true");
+  expect(document.activeElement).toBe(options[0]);
   await act(async () =>
-    options[1].dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Home", bubbles: true }),
+    options[0].dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }),
     ),
   );
-  expect(document.activeElement).toBe(options[0]);
+  expect(document.activeElement).toBe(options[options.length - 1]);
 });
 
 it("hides Sign in when a server has no known transport", async () => {

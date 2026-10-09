@@ -1,3 +1,5 @@
+import { getLocale } from "../../../shared/i18n";
+import { OFFICE_SKILLS, officeSkillBody } from "./officeSkills";
 import {
   createPath,
   homeDir,
@@ -7,13 +9,8 @@ import {
   type DiscoveredSkill,
 } from "../../../platform/tauri/fs";
 import { invalidateProjectFiles } from "../../files/model/fileIndex";
-import { OFFICE_SKILLS, officeSkillBody } from "./officeSkills";
-import { getLocale } from "../../../shared/i18n";
 import { joinPath } from "../../../shared/lib/paths";
-import {
-  looksLikeProject,
-  normalizeProjectPath,
-} from "../../projects/model/recents";
+import { isLocalProject, normalizeProjectPath } from "../../projects/model/recents";
 import { isMarkdownBlockquotePosition } from "../../sessions/model/quoteDraft";
 import type { HarnessId } from "../../sessions/model/session";
 import { getHarness } from "../../../integrations/harness/core/registry";
@@ -546,7 +543,7 @@ export async function createBlankSkill(input: {
     throw new Error("Use a lowercase name with letters, numbers, and hyphens.");
   }
   const root =
-    input.scope === "user" || !looksLikeProject(input.cwd)
+    input.scope === "user" || !isLocalProject(input.cwd)
       ? await homeDir()
       : input.cwd;
   const relative = `.agents/skills/${name}`;

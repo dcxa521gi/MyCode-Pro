@@ -1,4 +1,7 @@
-import { appendUser, applyHarnessEvents } from "../../../integrations/harness/core/apply";
+import {
+  appendUser,
+  applyHarnessEvents,
+} from "../../../integrations/harness/core/apply";
 import { describe, expect, it } from "vitest";
 import { mapCodexNotification } from "../../../integrations/harness/providers/codex/codexProtocol";
 import { toolCallLabel } from "../model/transcriptActivity";
@@ -14,7 +17,58 @@ import {
   isPersistableId,
   persistFingerprint,
   sanitizeSessionForPersist,
+  shouldPersistSession,
 } from "./sessionStore";
+
+it("persists sidebar visibility without making the session ephemeral", () => {
+  const session = newSession("codex", "/tmp");
+  session.blocks = [{ id: "u", role: "user", text: "Review" }];
+  const hidden = { ...session, sidebarHidden: true };
+  expect(shouldPersistSession(hidden)).toBe(true);
+  expect(sanitizeSessionForPersist(hidden).sidebarHidden).toBe(true);
+  expect(persistFingerprint(hidden)).not.toBe(persistFingerprint(session));
+});
+
+it("fingerprints queued message edits, ordering, errors and pause state", () => {
+  const session = newSession("codex", "/tmp");
+  const first = { id: "first", text: "One", attachments: [] };
+  const second = { id: "second", text: "Two", attachments: [] };
+  session.queuedMessages = [first, second];
+  const original = persistFingerprint(session);
+  expect(
+    persistFingerprint({
+      ...session,
+      queuedMessages: [...session.queuedMessages],
+    }),
+  ).toBe(original);
+  expect(persistFingerprint({ ...session, queueStatus: "paused" })).not.toBe(
+    original,
+  );
+  expect(
+    persistFingerprint({ ...session, queuedMessages: [second, first] }),
+  ).not.toBe(original);
+  expect(
+    persistFingerprint({
+      ...session,
+      queuedMessages: [{ ...first, error: "Offline" }, second],
+    }),
+  ).not.toBe(original);
+  expect(
+    persistFingerprint({
+      ...session,
+      queuedMessages: [{ ...first, text: "Edited" }, second],
+    }),
+  ).not.toBe(original);
+  expect(persistFingerprint({ ...session, queuedMessages: [second] })).not.toBe(
+    original,
+  );
+});
+
+it("keeps host-owned transcripts out of local session storage", () => {
+  const session = newSession("codex", "remote://env/home/me/repo");
+  session.blocks = [{ id: "turn", role: "user", text: "Continue" }];
+  expect(shouldPersistSession(session)).toBe(false);
+});
 
 describe("Claude Shell row recovery", () => {
   it("restores only matching placeholder rows and preserves tool output", () => {
@@ -126,7 +180,10 @@ describe("Codex Shell row recovery", () => {
         title: "Find files",
         status: "failed",
         detail: "exit 1",
-        preview: { kind: "shell", title: "rg --files -g AGENTS.md -g '!node_modules'" },
+        preview: {
+          kind: "shell",
+          title: "rg --files -g AGENTS.md -g '!node_modules'",
+        },
       },
     });
     expect(repaired[1]).toBe(blocks[1]);
@@ -162,11 +219,18 @@ describe("Codex Shell row recovery", () => {
       status: "inProgress",
       command: `/usr/bin/zsh -lc "rg --files -g AGENTS.md -g '"'"'!node_modules'"'"'"`,
       commandActions: [
-        { type: "listFiles", command: "rg --files -g AGENTS.md -g '!node_modules'", path: null },
+        {
+          type: "listFiles",
+          command: "rg --files -g AGENTS.md -g '!node_modules'",
+          path: null,
+        },
       ],
     };
     let live = newSession("codex", "/home/me/proj");
-    live = applyHarnessEvents(live, mapCodexNotification("item/started", { item }).events);
+    live = applyHarnessEvents(
+      live,
+      mapCodexNotification("item/started", { item }).events,
+    );
     const liveRow = live.blocks[0];
 
     // The same row as the buggy build saved it. No recovered map: the command
@@ -278,6 +342,37 @@ describe("persisting a subagent's trail", () => {
 });
 
 describe("sanitizeSessionForPersist", () => {
+  it("persists accepted Mono launches on user turns and fingerprints their addition", () => {
+    const session = newSession("codex", "/repo");
+    session.blocks = [{ id: "user", role: "user", text: "Review" }];
+    const before = persistFingerprint(session);
+    const launch = {
+      sessionId: "app-review",
+      cwd: "/repo",
+      title: "Review",
+      harness: "codex" as const,
+      model: "gpt-6",
+    };
+    session.blocks = [
+      { ...session.blocks[0], monoSpawnedSessions: [launch] },
+      {
+        id: "reply",
+        role: "assistant",
+        text: "Started",
+        monoSpawnedSessions: [launch],
+      },
+    ];
+    const saved = sanitizeSessionForPersist(session);
+    expect(saved.blocks[0].monoSpawnedSessions).toEqual([launch]);
+    expect(saved.blocks[1].monoSpawnedSessions).toBeUndefined();
+    expect(persistFingerprint(session)).not.toBe(before);
+    expect(
+      sanitizeSessionForPersist({
+        ...session,
+        blocks: JSON.parse(JSON.stringify(saved.blocks)),
+      }).blocks,
+    ).toEqual(saved.blocks);
+  });
   it("keeps the stripped /operator turn marker for later turns", () => {
     const submitted = appendUser(
       newSession("codex", "/repo"),
@@ -334,6 +429,60 @@ describe("sanitizeSessionForPersist", () => {
       { id: "sent", role: "user", text: "Start here" },
       { id: "reply", role: "assistant", text: "Done" },
       { id: "draft", role: "user", text: "Explore this", draft: true },
+    ]);
+  });
+
+  it("persists generated image metadata without binary payloads", () => {
+    const session = newSession("codex", "/repo");
+    session.blocks = [
+      { id: "u", role: "user", text: "Draw this" },
+      {
+        id: "image",
+        role: "image",
+        text: "",
+        image: {
+          path: "/app-data/generated-images/image.png",
+          name: "generated-image",
+          mimeType: "image/png",
+          size: 8,
+          alt: "A clean product photo",
+        },
+      },
+    ];
+
+    expect(sanitizeSessionForPersist(session).blocks[1]).toEqual({
+      id: "image",
+      role: "image",
+      text: "",
+      image: {
+        path: "/app-data/generated-images/image.png",
+        name: "generated-image",
+        mimeType: "image/png",
+        size: 8,
+        alt: "A clean product photo",
+      },
+    });
+  });
+
+  it("drops malformed generated image metadata", () => {
+    const session = newSession("codex", "/repo");
+    session.blocks = [
+      { id: "u", role: "user", text: "Draw this" },
+      {
+        id: "image",
+        role: "image",
+        text: "",
+        image: {
+          path: "",
+          name: "generated-image",
+          mimeType: "image/png",
+          size: 0,
+        },
+      },
+    ];
+
+    expect(sanitizeSessionForPersist(session).blocks).toEqual([
+      { id: "u", role: "user", text: "Draw this" },
     ]);
   });
 

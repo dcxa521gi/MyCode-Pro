@@ -5,14 +5,14 @@ import { afterEach, expect, it, vi } from "vitest";
 import { ComposerRunner } from "./ComposerRunner";
 
 afterEach(() => {
-  vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 it("keeps animating through transcript changes without measuring layout each frame", () => {
-  vi.spyOn(performance, "now").mockReturnValue(1000);
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("matchMedia", () => ({ matches: false }));
+  vi.spyOn(performance, "now").mockReturnValue(1000);
   let frame: FrameRequestCallback | null = null;
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
     frame = callback;
@@ -45,7 +45,7 @@ it("keeps animating through transcript changes without measuring layout each fra
         }),
       ),
     );
-    const startedAt = performance.now();
+    const startedAt = 1000;
     for (let i = 1; i <= 5; i++) {
       box.append(document.createElement("span"));
       act(() => frame?.(startedAt + i * 16));

@@ -1,0 +1,13 @@
+<!doctype html>
+<html><head><meta charset="UTF-8"><title>MyCode resident agent UI verification</title></head>
+<body><div id="root" style="height:100vh"></div>
+<script>
+const callbacks=new Map();let nextCallback=1;
+window.__TAURI_INTERNALS__={
+ metadata:{currentWindow:{label:"main"},currentWebview:{label:"main"}},
+ invoke:async(command)=>command.includes("listen")?0:command.includes("provider_binary")?{}:null,
+ transformCallback:(callback)=>{const id=nextCallback++;callbacks.set(id,callback);return id;},
+ unregisterCallback:(id)=>callbacks.delete(id),
+ convertFileSrc:(path)=>path,
+};
+</script><script type="module" src="./monos.tsx"></script></body></html>

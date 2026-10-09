@@ -268,16 +268,28 @@ describe("UsageProviderChip", () => {
     limits.weekly!.usedPercent = 100;
     act(() => root.render(createElement(UsageProviderChip, { limits, now })));
 
+    expect(
+      button("Codex usage details")
+        .querySelector(".w-8 > span")
+        ?.getAttribute("style"),
+    ).toBe("width: 0%;");
     await act(async () => button("Codex usage details").click());
-    const dialog = document.querySelector('[role="dialog"]')!;
-    const session = dialog.querySelector(
+
+    const dialog = document.querySelector('[role="dialog"]');
+    const sessionBar = dialog?.querySelector(
       '[aria-label="5-hour limit remaining"]',
     );
-    const weekly = dialog.querySelector(
+    const weeklyBar = dialog?.querySelector(
       '[aria-label="Weekly limit remaining"]',
     );
-    expect(session?.getAttribute("aria-valuenow")).toBe("100");
-    expect(weekly?.getAttribute("aria-valuenow")).toBe("0");
+    expect(sessionBar?.getAttribute("aria-valuenow")).toBe("100");
+    expect(sessionBar?.querySelector("span")?.getAttribute("style")).toBe(
+      "width: 100%;",
+    );
+    expect(weeklyBar?.getAttribute("aria-valuenow")).toBe("0");
+    expect(weeklyBar?.querySelector("span")?.getAttribute("style")).toBe(
+      "width: 0%;",
+    );
   });
 
   it("switches between named accounts from the usage popover", async () => {
@@ -308,6 +320,15 @@ describe("UsageProviderChip", () => {
     await act(async () => button("Switch Codex account").click());
     expect(document.body.textContent).toContain("Codex accounts");
     expect(document.body.textContent).toContain("Default account");
+    const accountRow = button("Default account").parentElement!;
+    const accountBar = accountRow.querySelector(
+      '[aria-label="5h limit remaining"]',
+    );
+    expect(accountRow.textContent).toContain("58% left");
+    expect(accountBar?.getAttribute("aria-valuenow")).toBe("58");
+    expect(accountBar?.querySelector("span")?.getAttribute("style")).toBe(
+      "width: 58%;",
+    );
     await act(async () => button("Work").click());
 
     expect(onSelectAccount).toHaveBeenCalledWith("account-work");

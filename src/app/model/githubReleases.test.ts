@@ -10,16 +10,14 @@ describe("GitHub release metadata", () => {
     expect(() => compareVersions("untrusted", "1.0.0")).toThrow();
   });
   it("only queries our repository and constructs its own download URL", async () => {
-    const fetcher = vi
-      .fn()
-      .mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          tag_name: "v0.5.0",
-          body: "说明",
-          html_url: "https://untrusted.example/",
-        }),
-      });
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        tag_name: "v0.5.0",
+        body: "说明",
+        html_url: "https://untrusted.example/",
+      }),
+    });
     vi.stubGlobal("fetch", fetcher);
     const release = await fetchRelease("0.5.0");
     expect(fetcher.mock.calls[0][0]).toBe(
@@ -43,5 +41,31 @@ describe("GitHub release metadata", () => {
     );
     await expect(fetchRelease()).rejects.toThrow("403");
     await expect(fetchRelease("0.5.0")).rejects.toThrow("mismatch");
+  });
+
+  it("keeps stable checks separate from beta candidates in this fork", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ tag_name: "v0.19.0", prerelease: false }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          { tag_name: "v0.19.0", prerelease: false },
+          { tag_name: "v0.20.0-beta.2", prerelease: true },
+          { tag_name: "v9.0.0", draft: true },
+        ],
+      });
+    vi.stubGlobal("fetch", fetcher);
+    expect((await fetchRelease()).version).toBe("0.19.0");
+    expect((await fetchRelease(undefined, undefined, "beta")).version).toBe(
+      "0.20.0-beta.2",
+    );
+    expect(fetcher.mock.calls.map(([url]) => url)).toEqual([
+      "https://api.github.com/repos/dcxa521gi/MyCode-Pro/releases/latest",
+      "https://api.github.com/repos/dcxa521gi/MyCode-Pro/releases?per_page=20",
+    ]);
   });
 });

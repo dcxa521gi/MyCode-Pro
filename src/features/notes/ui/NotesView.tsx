@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+import { MarkdownSourceHighlight } from "../../sessions/ui/AgentMarkdown";
 import { useTranslation } from "../../../shared/i18n";
 import {
   LoaderCircle,
@@ -9,7 +11,6 @@ import {
 } from "../../../shared/ui/icons";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import {
-  Fragment,
   useCallback,
   useEffect,
   useMemo,
@@ -63,10 +64,8 @@ import {
   resolveTabGroupLogo,
   resolveTabGroupMascot,
 } from "../../workspace/model/tabGroups";
-import {
-  AgentMarkdown,
-  MarkdownSourceHighlight,
-} from "../../sessions/ui/AgentMarkdown";
+import { AgentMarkdown } from "../../sessions/ui/AgentMarkdown";
+import { MarkdownSourceEditor } from "../../sessions/ui/MarkdownSourceEditor";
 
 const MIN_WIDTH = 240;
 const MAX_WIDTH = 420;
@@ -1000,7 +999,7 @@ function NoteEditor({
             </div>
           ) : null}
           {mode === "source" ? (
-            <NoteSource
+            <MarkdownSourceEditor
               textareaRef={sourceFieldRef}
               autoFocus={blank}
               value={body}
@@ -1020,7 +1019,7 @@ function NoteEditor({
   );
 }
 
-function NoteSource({
+export function NoteSource({
   value,
   onChange,
   textareaRef,

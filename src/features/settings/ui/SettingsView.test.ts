@@ -1,3 +1,6 @@
+import { clearCachedRateLimits, setCachedRateLimits } from "../../providers/model/rateLimitsCache";
+import { saveMaskEmails, saveShowRemainingUsage } from "../model/displayPrefs";
+import { createMono, findMono, monoLook, updateMono } from "../../monos/model/mono";
 import { initializeProviderBinaryPaths } from "../../providers/model/providerBinaryPaths";
 // @vitest-environment happy-dom
 import { act, createElement, type ComponentProps } from "react";
@@ -134,6 +137,8 @@ it("switches languages without remounting settings and supports Chinese search",
 afterEach(async () => {
   await act(async () => root.unmount());
   container.remove();
+  setLanguage("en");
+  clearCachedRateLimits();
   localStorage.clear();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
@@ -141,6 +146,147 @@ afterEach(async () => {
 });
 
 describe("settings pages", () => {
+  it("saves each Mono's session visibility and restores it when settings reopen", async () => {
+    const mono = createMono();
+    const other = createMono();
+    const toggle = (id: string) =>
+      container.querySelector<HTMLButtonElement>(
+        `[role="switch"][aria-label="Show sessions started by ${monoLook(findMono(id)!).name} in sidebar"]`,
+      )!;
+    await render("monos");
+    expect(toggle(mono.id).getAttribute("aria-checked")).toBe("true");
+    expect(toggle(other.id).getAttribute("aria-checked")).toBe("true");
+    await act(async () => toggle(mono.id).click());
+    expect(toggle(mono.id).getAttribute("aria-checked")).toBe("false");
+    expect(findMono(mono.id)?.showStartedSessionsInSidebar).toBe(false);
+    expect(toggle(other.id).getAttribute("aria-checked")).toBe("true");
+    await render("general");
+    await render("monos");
+    expect(toggle(mono.id).getAttribute("aria-checked")).toBe("false");
+    await act(async () => updateMono(mono.id, (entry) => ({
+      ...entry,
+      showStartedSessionsInSidebar: true,
+    })));
+    expect(toggle(mono.id).getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("blurs account emails by default and hides them when settings reopen", async () => {
+    vi.mocked(invoke).mockImplementation(async (command, args) => {
+      if (command === "provider_account_identity") {
+        const { provider } = args as { provider: string };
+        return { email: `${provider}@example.com`, plan: "Pro" };
+      }
+      return undefined;
+    });
+    await render("providers-cli");
+
+    const emails = container.querySelectorAll<HTMLButtonElement>(
+      '[aria-label="Reveal email"]',
+    );
+    expect(emails).toHaveLength(2);
+    expect(
+      [...emails].every((email) =>
+        email.querySelector("span")?.className.includes("blur-[5px]"),
+      ),
+    ).toBe(true);
+    expect(container.textContent).toContain("Pro");
+    await act(async () => emails[0].click());
+    expect(emails[0].getAttribute("aria-label")).toBe("Hide email");
+    expect(emails[0].querySelector("span")?.className).not.toContain("blur");
+    expect(emails[1].getAttribute("aria-label")).toBe("Reveal email");
+    await act(async () => emails[0].click());
+    expect(emails[0].getAttribute("aria-label")).toBe("Reveal email");
+
+    await act(async () => emails[0].click());
+    await render("general");
+    await render("providers-cli");
+    expect(container.querySelector('[aria-label="Hide email"]')).toBeNull();
+    expect(
+      container.querySelectorAll('[aria-label="Reveal email"]'),
+    ).toHaveLength(2);
+  });
+
+  it("shows used usage and plain emails until the options are turned on", async () => {
+    saveMaskEmails(false);
+    vi.mocked(invoke).mockImplementation(async (command) =>
+      command === "provider_account_identity"
+        ? { email: "user@example.com", plan: "Pro" }
+        : undefined,
+    );
+    setCachedRateLimits("claude", "default", {
+      provider: "claude",
+      session: {
+        usedPercent: 23,
+        windowMinutes: 300,
+        resetsAt: Date.now() + 3_600_000,
+      },
+      weekly: null,
+      monthly: null,
+      resetCredits: null,
+      updatedAt: Date.now(),
+      error: null,
+      status: "ok",
+    });
+
+    await render("providers-cli");
+
+    const used = container.querySelector('[aria-label="5h limit used"]');
+    expect(used?.getAttribute("aria-valuenow")).toBe("23");
+    expect(used?.querySelector("span")?.getAttribute("style")).toBe(
+      "width: 23%;",
+    );
+    expect(container.textContent).toContain("user@example.com");
+    expect(container.querySelector('[aria-label="Reveal email"]')).toBeNull();
+
+    await act(async () =>
+      container
+        .querySelector<HTMLButtonElement>(
+          '[aria-label="Show remaining usage"]',
+        )!
+        .click(),
+    );
+    await act(async () =>
+      container
+        .querySelector<HTMLButtonElement>('[aria-label="Mask account emails"]')!
+        .click(),
+    );
+
+    const remaining = container.querySelector(
+      '[aria-label="5h limit remaining"]',
+    );
+    expect(remaining?.getAttribute("aria-valuenow")).toBe("77");
+    expect(
+      container.querySelectorAll('[aria-label="Reveal email"]').length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("shows account usage bars as remaining capacity", async () => {
+    saveShowRemainingUsage(true);
+    setCachedRateLimits("claude", "default", {
+      provider: "claude",
+      session: {
+        usedPercent: 23,
+        windowMinutes: 300,
+        resetsAt: Date.now() + 3_600_000,
+      },
+      weekly: null,
+      monthly: null,
+      resetCredits: null,
+      updatedAt: Date.now(),
+      error: null,
+      status: "ok",
+    });
+
+    await render("providers-cli");
+
+    const bar = container.querySelector('[aria-label="5h limit remaining"]');
+    expect(bar?.getAttribute("aria-valuenow")).toBe("77");
+    expect(bar?.querySelector("span")?.getAttribute("style")).toBe(
+      "width: 77%;",
+    );
+    expect(bar?.parentElement?.textContent).toContain("77% left");
+  });
+
   it("shows background effect choices above scope when artwork is available", async () => {
     localStorage.setItem(
       "monocode.chatBackgroundPath",
@@ -434,7 +580,7 @@ describe("settings pages", () => {
     )!;
     expect(retry).not.toBeNull();
     await act(async () => retry.click());
-    expect(invoke).toHaveBeenCalledWith("harness_resolve_codex");
+    expect(invoke).toHaveBeenCalledWith("harness_resolve_codex", undefined);
   });
 
   it("reopens, scrolls to, focuses and highlights the same project on a repeated notification settings request", async () => {

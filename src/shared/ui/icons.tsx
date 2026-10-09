@@ -17,6 +17,7 @@ import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import ArrowTurnForwardIcon from "@hugeicons/core-free-icons/ArrowTurnForwardIcon";
 import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
 import BotIcon from "@hugeicons/core-free-icons/BotIcon";
+import GhostIcon from "@hugeicons/core-free-icons/GhostIcon";
 import AiIdeaIcon from "@hugeicons/core-free-icons/AiIdeaIcon";
 import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import CaseSensitiveIcon from "@hugeicons/core-free-icons/CaseSensitiveIcon";
@@ -35,6 +36,7 @@ import CommentAdd01Icon from "@hugeicons/core-free-icons/CommentAdd01Icon";
 import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
 import CursorMagicSelection04Icon from "@hugeicons/core-free-icons/CursorMagicSelection04Icon";
+import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
 import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
 import DragDropVerticalIcon from "@hugeicons/core-free-icons/DragDropVerticalIcon";
 import File01Icon from "@hugeicons/core-free-icons/File01Icon";
@@ -56,11 +58,13 @@ import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestC
 import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
 import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import GlobeIcon from "@hugeicons/core-free-icons/GlobeIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
 import HelpCircleIcon from "@hugeicons/core-free-icons/HelpCircleIcon";
 import ImageAdd01Icon from "@hugeicons/core-free-icons/ImageAdd01Icon";
 import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
 import NotificationOff01Icon from "@hugeicons/core-free-icons/NotificationOff01Icon";
 import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
+import LayoutAlignLeftIcon from "@hugeicons/core-free-icons/LayoutAlignLeftIcon";
 import LayoutAlignRightIcon from "@hugeicons/core-free-icons/LayoutAlignRightIcon";
 import LayoutBottomIcon from "@hugeicons/core-free-icons/LayoutBottomIcon";
 import LayoutTopIcon from "@hugeicons/core-free-icons/LayoutTopIcon";
@@ -161,6 +165,7 @@ export const ArrowDownCircle = wrap(CircleArrowDown01Icon, "ArrowDownCircle");
 export const ArrowLeft = wrap(ArrowLeft01Icon, "ArrowLeft");
 export const ArrowUp = wrap(ArrowUp01Icon, "ArrowUp");
 export const Bot = wrap(BotIcon, "Bot");
+export const Ghost = wrap(GhostIcon, "Ghost");
 export const AiIdea = wrap(AiIdeaIcon, "AiIdea");
 export const CaseSensitive = wrap(CaseSensitiveIcon, "CaseSensitive");
 export const Chatting = wrap(Chatting01Icon, "Chatting");
@@ -185,6 +190,7 @@ export const CursorMagicSelection = wrap(
   CursorMagicSelection04Icon,
   "CursorMagicSelection",
 );
+export const DashboardSquare = wrap(DashboardSquare01Icon, "DashboardSquare");
 export const ExternalLink = wrap(LinkSquare02Icon, "ExternalLink");
 export const File = wrap(File01Icon, "File");
 export const FileDiff = wrap(FileDiffIcon, "FileDiff");
@@ -216,6 +222,7 @@ export const GitPullRequestDraft = wrap(
 );
 export const GripVertical = wrap(DragDropVerticalIcon, "GripVertical");
 export const Globe = wrap(GlobeIcon, "Globe");
+export const Internet = wrap(InternetIcon, "Internet");
 export const ImagePlus = wrap(ImageAdd01Icon, "ImagePlus");
 export const Inbox = wrap(InboxIcon, "Inbox");
 export const BellOff = wrap(NotificationOff01Icon, "BellOff");
@@ -237,6 +244,8 @@ export const Pause = wrap(PauseIcon, "Pause");
 export const PanelBottom = wrap(LayoutBottomIcon, "PanelBottom");
 export const PanelLeft = wrap(LayoutAlignRightIcon, "PanelLeft");
 export const PanelRight = wrap(SidebarRight01Icon, "PanelRight");
+/** `PanelLeft` mirrored, for panels docked on the right. */
+export const PanelRightToggle = wrap(LayoutAlignLeftIcon, "PanelRightToggle");
 export const PanelTop = wrap(LayoutTopIcon, "PanelTop");
 export const PenLine = wrap(PencilEdit01Icon, "PenLine");
 export const Pencil = wrap(PencilEdit02Icon, "Pencil");

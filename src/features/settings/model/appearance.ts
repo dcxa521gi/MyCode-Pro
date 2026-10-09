@@ -1,6 +1,6 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
-import { isHexColor } from "../../../shared/lib/colorUtils";
-import { HAS_NATIVE_GLASS, IS_MAC } from "../../../platform/tauri/platform";
+import { hslToRgb, isHexColor, type Rgb } from "../../../shared/lib/colorUtils";
+import { IS_LINUX, IS_MAC } from "../../../platform/tauri/platform";
 import { readFlag, writeFlag } from "./storageFlags";
 import { applyUiScale, loadUiScale } from "./uiScale";
 import {
@@ -34,6 +34,8 @@ const DIFF_PALETTE_KEY = "monocode.diffPalette";
 const SHOW_EXCLUDED_FILES_KEY = "monocode.showExcludedFiles";
 let chatBackgroundRevision = Date.now();
 let nativeGlassReady = false;
+let glassFadeTimer: number | undefined;
+let glassSyncGeneration = 0;
 
 export const CHAT_BACKGROUND_PATH_CHANGE_EVENT =
   "monocode:chat-background-path-change";
@@ -137,7 +139,7 @@ export const PROJECT_RAIL_WIDTH_MIN = 180;
 export const PROJECT_RAIL_WIDTH_MAX = 360;
 export const PROJECT_RAIL_WIDTH_DEFAULT = 200;
 
-export const BODY_GLASS_DEFAULT = true;
+export const BODY_GLASS_DEFAULT = !IS_LINUX;
 
 export const CHAT_BACKGROUND_OPACITY_MIN = 0.05;
 export const CHAT_BACKGROUND_OPACITY_MAX = 0.65;
@@ -285,6 +287,7 @@ export function applyThemeDarkLightness(value: number) {
     "--theme-dark-lightness",
     `${next}%`,
   );
+  refreshNativeTint();
   return next;
 }
 
@@ -298,15 +301,12 @@ export function applyThemeTint(hue: number, saturation: number) {
     "--theme-saturation",
     `${nextSaturation}%`,
   );
+  refreshNativeTint();
   return { hue: nextHue, saturation: nextSaturation };
 }
 
 export function initAppearance() {
   document.documentElement.classList.toggle("is-mac", IS_MAC);
-  document.documentElement.classList.toggle(
-    "has-native-glass",
-    HAS_NATIVE_GLASS,
-  );
   applyAccentColor(loadAccentColor());
   applyThemeTint(loadThemeHue(), loadThemeSaturation());
   applyThemeDarkLightness(loadThemeDarkLightness());
@@ -378,8 +378,96 @@ export function applyThemePreference(value: ThemePreference): ColorScheme {
   return next;
 }
 
-function syncNativeGlass(scheme: ColorScheme) {
-  void invoke("set_window_glass_enabled", { enabled: scheme === "dark" });
+/** The page colour, also used by the native macOS glass tint. */
+function opaqueWindowBackground(): Rgb {
+  const style = getComputedStyle(document.documentElement);
+  const read = (name: string, fallback: number) => {
+    const value = Number.parseFloat(style.getPropertyValue(name));
+    return Number.isFinite(value) ? value : fallback;
+  };
+  return hslToRgb(
+    read("--theme-hue", THEME_HUE_DEFAULT),
+    read("--theme-saturation", THEME_SATURATION_DEFAULT),
+    read("--background-lightness", THEME_DARK_LIGHTNESS_DEFAULT),
+  );
+}
+
+/** Compose both shared CSS tints into the native fill, including the shell's
+ * base tint, so the steady page and a newly exposed resize edge match. */
+function nativeWindowOpacity(): number {
+  const style = getComputedStyle(document.documentElement);
+  const glass = clamp(
+    Number.parseFloat(style.getPropertyValue("--sidebar-opacity")) ||
+      SIDEBAR_OPACITY_DEFAULT,
+    SIDEBAR_OPACITY_MIN,
+    SIDEBAR_OPACITY_MAX,
+  );
+  const storedBase = Number.parseFloat(
+    style.getPropertyValue("--window-background-opacity"),
+  );
+  const base = Number.isFinite(storedBase) ? clamp(storedBase, 0, 1) : 0.4;
+  return base + glass * (1 - base);
+}
+
+/** How long the page takes to reach opaque, from the same token the CSS uses. */
+function glassFadeMs(): number {
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue("--motion-feedback-duration")
+    .trim();
+  const milliseconds = parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
+  return Number.isFinite(milliseconds) ? Math.max(0, milliseconds) : 0;
+}
+
+/**
+ * `has-native-glass` follows the window, not the platform: Linux can turn glass
+ * off in dark mode too. Whichever side moves second has to wait for the other,
+ * or one of them shows through the gap - so entering glass settles the window
+ * first, and leaving it fades the page first. A call that a newer one has
+ * overtaken is dropped rather than left to settle last.
+ */
+export function syncNativeGlass(scheme: ColorScheme) {
+  const enabled = scheme === "dark" && (!IS_LINUX || loadBodyGlass());
+  const root = document.documentElement;
+  const generation = ++glassSyncGeneration;
+  const setWindow = () =>
+    invoke<boolean>("set_window_glass_enabled", {
+      enabled,
+      background: opaqueWindowBackground(),
+      ...(IS_MAC ? { opacity: nativeWindowOpacity() } : {}),
+    }).catch(() => {});
+
+  if (glassFadeTimer !== undefined) {
+    window.clearTimeout(glassFadeTimer);
+    glassFadeTimer = undefined;
+  }
+
+  if (enabled) {
+    void setWindow().then((nativeTint) => {
+      if (generation === glassSyncGeneration) {
+        // An older native host or browser preview has no native tint. Keep
+        // the CSS tint unless the window confirms it supplied one. If a
+        // later update fails, retain the tint already applied by AppKit.
+        if (IS_MAC && nativeTint === true) {
+          root.classList.add("has-native-glass-tint");
+        }
+        root.classList.add("has-native-glass");
+      }
+    });
+    return;
+  }
+
+  root.classList.remove("has-native-glass", "has-native-glass-tint");
+  glassFadeTimer = window.setTimeout(() => {
+    glassFadeTimer = undefined;
+    void setWindow();
+  }, glassFadeMs());
+}
+
+/** Settings update the native colour too, once the launch cover has painted. */
+function refreshNativeTint() {
+  if (nativeGlassReady && IS_MAC) {
+    syncNativeGlass(isLightScheme() ? "light" : "dark");
+  }
 }
 
 /** Applies native transparency once the opaque launch cover can be removed. */
@@ -416,6 +504,7 @@ export function saveSidebarOpacity(value: number) {
 export function applySidebarOpacity(value: number) {
   const next = clamp(value, SIDEBAR_OPACITY_MIN, SIDEBAR_OPACITY_MAX);
   document.documentElement.style.setProperty("--sidebar-opacity", String(next));
+  refreshNativeTint();
   return next;
 }
 

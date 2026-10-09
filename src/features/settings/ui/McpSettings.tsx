@@ -1,5 +1,3 @@
-import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
-import { translate as t } from "../../../shared/i18n";
 import { invoke } from "@tauri-apps/api/core";
 import { ask } from "@tauri-apps/plugin-dialog";
 import {
@@ -16,7 +14,16 @@ import { HarnessIcon } from "../../sessions/ui/HarnessIcon";
 import { SearchableProjectPicker } from "../../projects/ui/SearchableProjectPicker";
 import type { RecentProject } from "../../projects/model/recents";
 import { Modal } from "../../../shared/ui/Modal";
-import { Globe, Plus, RefreshCw, ListFilter } from "../../../shared/ui/icons";
+import { Popover } from "../../../shared/ui/Popover";
+import { LAYER } from "../../../shared/lib/layers";
+import {
+  Globe,
+  Plus,
+  RefreshCw,
+  ChevronDown,
+  ListFilter,
+  Check,
+} from "../../../shared/ui/icons";
 import { MCP_PROVIDER_LABELS, type McpConnection } from "../model/mcp";
 import {
   getCachedMcpSettings,
@@ -65,20 +72,89 @@ function McpPicker<T extends string>({
   options: { value: T; label: string; icon?: ReactNode }[];
   onChange: (value: T) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const anchor = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const selected = options.find((option) => option.value === value);
   return (
-    <div className="min-w-0 space-y-1">
-      <span className="text-xs text-content/65">{t(label)}</span>
-      <SettingsOptions
-        aria-label={t(label)}
-        value={value}
-        onChange={(event) => onChange(event.target.value as T)}
+    <div ref={anchor} className="relative min-w-0">
+      <span className="text-xs text-content/65">{label}</span>
+      <button
+        ref={trigger}
+        type="button"
+        aria-label={`${label}: ${selected?.label ?? value}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        className="mt-1 flex h-8 w-full items-center gap-2 rounded-md border border-content/10 bg-content/5 px-2 text-left text-[12px] text-content outline-none hover:border-content/20 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
       >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {t(option.label)}
-          </option>
-        ))}
-      </SettingsOptions>
+        {selected?.icon}
+        <span className="min-w-0 flex-1 truncate">
+          {selected?.label ?? value}
+        </span>
+        <ChevronDown
+          className={`size-3.5 shrink-0 text-content/50 transition-transform ${open ? "rotate-180" : ""}`}
+          strokeWidth={1.75}
+        />
+      </button>
+      {open ? (
+        <Popover
+          anchor={anchor}
+          side="bottom"
+          align="start"
+          width={240}
+          maxHeight={320}
+          layer={LAYER.dialogPopover}
+          autoFocus
+          onDismiss={() => setOpen(false)}
+          role="listbox"
+          aria-label={label}
+          data-dialog-popover
+          onKeyDown={(event) => {
+            if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+            event.preventDefault();
+            const choices = Array.from(
+              event.currentTarget.querySelectorAll<HTMLButtonElement>(
+                '[role="option"]',
+              ),
+            );
+            if (choices.length === 0) return;
+            const current = choices.indexOf(
+              document.activeElement as HTMLButtonElement,
+            );
+            const direction = event.key === "ArrowDown" ? 1 : -1;
+            const next =
+              current < 0
+                ? direction === 1
+                  ? 0
+                  : choices.length - 1
+                : (current + direction + choices.length) % choices.length;
+            choices[next].focus();
+          }}
+          className="overflow-y-auto overscroll-contain p-1"
+        >
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="option"
+              aria-selected={value === option.value}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+                trigger.current?.focus();
+              }}
+              className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] focus-visible:outline-2 focus-visible:outline-accent ${value === option.value ? "bg-selection text-content" : "text-content hover:bg-content/5"}`}
+            >
+              {option.icon}
+              <span className="min-w-0 flex-1 truncate">{option.label}</span>
+              {value === option.value ? (
+                <Check className="size-3.5 shrink-0" />
+              ) : null}
+            </button>
+          ))}
+        </Popover>
+      ) : null}
     </div>
   );
 }
@@ -128,17 +204,15 @@ function AddServerModal({
 
   return (
     <Modal
-      title={t("Add MCP server")}
-      description={t(
-        "Paste a server configuration and choose where to add it.",
-      )}
+      title="Add MCP server"
+      description="Paste a server configuration and choose where to add it."
       onClose={onClose}
       fitViewport
     >
       <form onSubmit={(event) => void add(event)} className="space-y-4 p-4">
         <div className="grid gap-3 sm:grid-cols-2">
           <McpPicker
-            label={t("Provider")}
+            label="Provider"
             value={provider}
             options={PROVIDERS.map((option) => ({
               value: option,
@@ -151,7 +225,7 @@ function AddServerModal({
             }}
           />
           <McpPicker
-            label={t("Scope")}
+            label="Scope"
             value={scope}
             options={SCOPES[provider].map((option) => ({
               value: option,
@@ -174,7 +248,7 @@ function AddServerModal({
           />
         </label>
         <label className="block text-xs text-content/65">
-          {t("JSON configuration")}
+          JSON configuration
           <textarea
             required
             value={config}
@@ -196,7 +270,7 @@ function AddServerModal({
             role="alert"
             className="rounded-md border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-400"
           >
-            {t(error)}
+            {error}
           </p>
         ) : null}
         <div className="flex justify-end gap-2">
@@ -205,14 +279,14 @@ function AddServerModal({
             onClick={onClose}
             className="rounded-md border border-stroke px-3 py-1.5 text-xs hover:bg-content/5"
           >
-            {t("Cancel")}
+            Cancel
           </button>
           <button
             type="submit"
             disabled={busy}
             className="rounded-md border border-stroke px-3 py-1.5 text-xs hover:bg-content/5 disabled:opacity-50"
           >
-            {busy ? t("Adding…") : t("Add server")}
+            {busy ? "Adding…" : "Add server"}
           </button>
         </div>
       </form>
@@ -344,14 +418,9 @@ function McpConnections({
       ? server.scope
       : (removeScopes[server.name] ?? "local");
     if (
-      !(await ask(
-        t("Remove {server} from {scope} scope?")
-          .replace("{server}", server.name)
-          .replace("{scope}", t(selectedScope)),
-        {
-          title: t("Remove MCP server"),
-        },
-      ))
+      !(await ask(`Remove ${server.name} from ${selectedScope} scope?`, {
+        title: "Remove MCP server",
+      }))
     )
       return;
     setBusy(server.name);
@@ -379,13 +448,12 @@ function McpConnections({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-sm font-semibold">{t("MCP connections")}</h2>
+            <h2 className="text-sm font-semibold">MCP connections</h2>
             {projectPicker}
           </div>
           <p className="mt-1 text-xs text-content/55">
-            {t(
-              "Configured servers for the selected project and your provider accounts.",
-            )}
+            Configured servers for the selected project and your provider
+            accounts.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -395,23 +463,21 @@ function McpConnections({
             disabled={loading || busy !== null}
             className="flex items-center gap-1.5 rounded-md border border-stroke px-3 py-1.5 text-xs hover:bg-content/5 disabled:opacity-50"
           >
-            <RefreshCw
-              className={`size-3.5 ${loading ? "animate-spin motion-reduce:animate-none" : ""}`}
-            />
-            {t("Refresh")}
+            <RefreshCw className="size-3.5" />
+            Refresh
           </button>
           <button
             type="button"
             aria-label={
               showAllProviders
-                ? t("Show available providers")
-                : t("Show all providers")
+                ? "Show available providers"
+                : "Show all providers"
             }
             aria-pressed={showAllProviders}
             title={
               showAllProviders
-                ? t("Showing all providers")
-                : t("Showing available providers")
+                ? "Showing all providers"
+                : "Showing available providers"
             }
             onClick={() => setShowAllProviders(!showAllProviders)}
             className={`grid size-7 place-items-center rounded-md border border-content/10 hover:bg-content/5 ${showAllProviders ? "bg-selection text-content" : "text-content/55"}`}
@@ -420,7 +486,7 @@ function McpConnections({
           </button>
           <button
             type="button"
-            aria-label={t("Add MCP server")}
+            aria-label="Add MCP server"
             onClick={() => setAddOpen(true)}
             className="grid size-7 place-items-center rounded-md border border-stroke hover:bg-content/5"
           >
@@ -431,7 +497,7 @@ function McpConnections({
       <div
         role="group"
         className="inline-flex max-w-full flex-wrap gap-0.5 rounded-md border border-content/10 p-0.5 text-[12px]"
-        aria-label={t("Filter MCP servers by provider")}
+        aria-label="Filter MCP servers by provider"
       >
         {(["all", ...filterProviders] as const).map((provider) => (
           <button
@@ -446,7 +512,7 @@ function McpConnections({
             ) : (
               <ProviderIcon provider={provider} />
             )}
-            {provider === "all" ? t("All") : MCP_PROVIDER_LABELS[provider]}
+            {provider === "all" ? "All" : MCP_PROVIDER_LABELS[provider]}
             <span className="opacity-60">
               {provider === "all"
                 ? servers.length
@@ -461,7 +527,7 @@ function McpConnections({
           role="alert"
           className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-400"
         >
-          {t(error)}
+          {error}
         </p>
       ) : null}
       {claudeError && (filter === "all" || filter === "claude") ? (
@@ -470,10 +536,10 @@ function McpConnections({
         </p>
       ) : null}
       {loading ? (
-        <p className="text-sm text-content/55">{t("Checking servers…")}</p>
+        <p className="text-sm text-content/55">Checking servers…</p>
       ) : visible.length === 0 ? (
         <p className="text-sm text-content/55">
-          {t("No MCP servers configured for this provider.")}
+          No MCP servers configured for this provider.
         </p>
       ) : (
         <div className="overflow-hidden rounded-xl border border-content/10 bg-content/3">
@@ -491,7 +557,7 @@ function McpConnections({
                 </div>
                 <div className="mt-1 text-[12px] leading-relaxed text-content/45">
                   {MCP_PROVIDER_LABELS[server.provider]} · {server.scope} ·{" "}
-                  {server.transport || "MCP"} · {t(server.status)}
+                  {server.transport || "MCP"} · {server.status}
                 </div>
                 {server.configPath ? (
                   <div
@@ -511,7 +577,7 @@ function McpConnections({
                   onClick={() => void login(server)}
                   className="rounded-md border border-stroke px-2 py-1 text-xs hover:bg-content/5 disabled:opacity-50"
                 >
-                  {t("Sign in")}
+                  Sign in
                 </button>
               ) : null}
               {server.provider === "claude" ? (
@@ -519,7 +585,7 @@ function McpConnections({
                   {!server.configPath ? (
                     <label className="text-xs text-content/55">
                       Scope{" "}
-                      <SettingsOptions
+                      <select
                         aria-label={`Scope to remove ${server.name} from`}
                         value={removeScopes[server.name] ?? "local"}
                         onChange={(event) =>
@@ -530,10 +596,10 @@ function McpConnections({
                         }
                         className="rounded border border-stroke bg-background-base px-1 py-1 text-content"
                       >
-                        <option value="local">{t("Local")}</option>
-                        <option value="project">{t("Project")}</option>
-                        <option value="user">{t("User")}</option>
-                      </SettingsOptions>
+                        <option value="local">Local</option>
+                        <option value="project">Project</option>
+                        <option value="user">User</option>
+                      </select>
                     </label>
                   ) : null}
                   <button
@@ -542,7 +608,7 @@ function McpConnections({
                     onClick={() => void remove(server)}
                     className="rounded-md border border-stroke px-2 py-1 text-xs hover:bg-content/5 disabled:opacity-50"
                   >
-                    {t("Remove")}
+                    Remove
                   </button>
                 </>
               ) : (
@@ -555,7 +621,7 @@ function McpConnections({
                   }
                   className="rounded-md border border-stroke px-2 py-1 text-xs hover:bg-content/5"
                 >
-                  {t("Show config")}
+                  Show config
                 </button>
               )}
             </div>

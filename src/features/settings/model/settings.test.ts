@@ -603,6 +603,7 @@ describe("settings navigation", () => {
     ]);
     expect(groups.flatMap((group) => group.sections.map((s) => s.id))).toEqual([
       "general",
+      "connections",
       "appearance",
       "keybindings",
       "voice",
@@ -615,6 +616,7 @@ describe("settings navigation", () => {
       "local-ai",
       "mcp",
       "skills",
+      "monos",
       "task-import",
       "inbox",
       "archive",

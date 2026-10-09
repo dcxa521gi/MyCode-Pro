@@ -5,7 +5,9 @@ import {
   Bot,
   Inbox,
   FolderTree,
+  Ghost,
   Globe,
+  Internet,
   Keyboard,
   MessageSquare,
   Palette,
@@ -20,11 +22,11 @@ import {
 } from "../../features/settings/model/settings";
 
 const SECTION_ICONS: Record<SettingsSectionId, IconComponent> = {
+  voice: SlidersHorizontal, computer: SlidersHorizontal,
   mobile: MessageSquare,
   development: FolderTree,
   general: SlidersHorizontal,
-  voice: MessageSquare,
-  computer: Bot,
+  connections: Internet,
   appearance: Palette,
   keybindings: Keyboard,
   chat: MessageSquare,
@@ -37,6 +39,7 @@ const SECTION_ICONS: Record<SettingsSectionId, IconComponent> = {
   "local-ai": Sparkles,
   mcp: Globe,
   skills: Sparkles,
+  monos: Ghost,
   inbox: Inbox,
   worktrees: FolderTree,
   archive: Archive,

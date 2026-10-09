@@ -27,6 +27,9 @@ else
   exit 1
 fi
 
+# Bound mirror retries so a stalled download cannot consume the whole CI job.
+APT_NETWORK=(-o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30)
+
 # The conditional expansions also support empty arrays with nounset on Bash 3.
 ${SUDO[@]+"${SUDO[@]}"} apt-get "${APT_NETWORK[@]}" ${APT_SOURCES[@]+"${APT_SOURCES[@]}"} update
 ${SUDO[@]+"${SUDO[@]}"} env DEBIAN_FRONTEND=noninteractive apt-get "${APT_NETWORK[@]}" ${APT_SOURCES[@]+"${APT_SOURCES[@]}"} install -y \

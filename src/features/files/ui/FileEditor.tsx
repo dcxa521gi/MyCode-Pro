@@ -546,7 +546,7 @@ export function FileEditor({
   );
 }
 
-function CodeMirrorEditor({
+export function CodeMirrorEditor({
   path,
   commentPath,
   value,
@@ -560,6 +560,7 @@ function CodeMirrorEditor({
   canAutosave,
   onStageGit,
   onDocChange,
+  formatOnSave = true,
 }: {
   path: string;
   commentPath: string;
@@ -574,6 +575,7 @@ function CodeMirrorEditor({
   canAutosave: () => boolean;
   onStageGit?: (contents: string) => Promise<void>;
   onDocChange?: (content: string) => void;
+  formatOnSave?: boolean;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -710,7 +712,7 @@ function CodeMirrorEditor({
       const generation = ++saveGeneration;
       void (async () => {
         const before = view.state.doc.toString();
-        if (loadFormatOnSave()) {
+        if (formatOnSave && loadFormatOnSave()) {
           const result = await formatText(
             path,
             before,
@@ -842,6 +844,9 @@ function CodeMirrorEditor({
           blur: () => {
             pendingNavigationRef.current = null;
           },
+          focusout: () => {
+            pendingNavigationRef.current = null;
+          },
         }),
         showDiff
           ? EditorView.updateListener.of((update) => {
@@ -855,6 +860,11 @@ function CodeMirrorEditor({
     savedDocumentRef.current = view.state.doc;
     dirtyRef.current = false;
     viewRef.current = view;
+    const onExternalFocus = (event: FocusEvent) => {
+      if (event.target instanceof Node && !view.dom.contains(event.target))
+        pendingNavigationRef.current = null;
+    };
+    document.addEventListener("focusin", onExternalFocus);
     lockOverscroll(view.scrollDOM as HTMLDivElement);
     if (showDiff) {
       if (gitOriginalRef.current) {
@@ -882,13 +892,14 @@ function CodeMirrorEditor({
       window.clearTimeout(autosaveTimer);
       onErrorCountChangeRef.current(0);
       lockOverscroll(null);
+      document.removeEventListener("focusin", onExternalFocus);
       viewRef.current = null;
       savedDocumentRef.current = null;
       setChunkNav(null);
       setSelectionTarget(null);
       view.destroy();
     };
-  }, [lockOverscroll, path, showDiff, syncChunkNav]);
+  }, [formatOnSave, lockOverscroll, path, showDiff, syncChunkNav]);
 
   useEffect(() => {
     const view = viewRef.current;

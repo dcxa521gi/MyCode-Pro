@@ -8,8 +8,12 @@ import {
   type ReactNode,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { looksLikeProject } from "../../projects/model/recents";
-import { isValidSkillName, slugSkillName, type Skill } from "../model/skills";
+import { isLocalProject } from "../../projects/model/recents";
+import {
+  isValidSkillName,
+  slugSkillName,
+  type Skill,
+} from "../model/skills";
 import { useLockOverscroll } from "../../../shared/hooks/useLockOverscroll";
 
 type Props = {
@@ -220,7 +224,7 @@ export function CreateSkillForm({
 }): ReactNode {
   const { t } = useTranslation();
   const input = useRef<HTMLInputElement>(null);
-  const project = looksLikeProject(cwd);
+  const project = isLocalProject(cwd);
   const [name, setName] = useState(() => slugSkillName(query));
   const [scope, setScope] = useState<"project" | "user">(
     project ? "project" : "user",

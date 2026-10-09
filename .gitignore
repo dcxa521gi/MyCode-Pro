@@ -64,3 +64,5 @@ android/.gradle/
 android/**/build/
 android/local.properties
 relay/.env
+# Local document preview mockup
+/work/mono-document-preview.html

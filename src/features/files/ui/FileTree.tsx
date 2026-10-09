@@ -48,6 +48,7 @@ import {
   subscribeDirsChanged,
 } from "../model/fileTree";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
+import { REMOTE_PATH_PREFIX } from "../../../shared/lib/remotePaths";
 import { dragPointToClient } from "../../../shared/lib/dragPoint";
 import {
   basename,
@@ -61,7 +62,7 @@ import {
   type FsEntry,
 } from "../../../platform/tauri/fs";
 import { displayPath, parentPath, rebasePath } from "../../../shared/lib/paths";
-import { IS_MAC, IS_WIN, MOD } from "../../../platform/tauri/platform";
+import { IS_MAC, IS_WIN, MOD, SHIFT } from "../../../platform/tauri/platform";
 import type { OpenFileFn } from "../../search/model/search";
 import type { GitStatusMap } from "../../source-control/hooks/useGitFileStatuses";
 import {
@@ -161,6 +162,13 @@ async function copyText(text: string) {
   }
 }
 
+/** Non-Latin layouts put the local letter in `key`, so fall back to the physical key. */
+function shortcutLetter(e: ReactKeyboardEvent): string {
+  const key = e.key.toLowerCase();
+  if (/^[a-z]$/.test(key)) return key;
+  return /^Key[A-Z]$/.test(e.code) ? e.code.slice(3).toLowerCase() : key;
+}
+
 function explorerItems(
   target: MenuTarget,
   clip: Clip | null,
@@ -225,17 +233,10 @@ function explorerItems(
     {
       kind: "item",
       id: "copy-path",
-      get label() {
-        return uiTranslate("Copy Path");
-      },
+      label: "Copy Path",
+      shortcut: `${MOD}${SHIFT}C`,
     },
-    {
-      kind: "item",
-      id: "copy-relative-path",
-      get label() {
-        return uiTranslate("Copy Relative Path");
-      },
-    },
+    { kind: "item", id: "copy-relative-path", label: "Copy Relative Path" },
     { kind: "sep" },
     {
       kind: "item",
@@ -740,19 +741,150 @@ export const FileTree = memo(function FileTree({
     openMenu({ path: cwd, isDir: true, isRoot: true }, e.clientX, e.clientY);
   };
 
+  const visibleRows = () =>
+    Array.from(
+      rootRef.current?.querySelectorAll<HTMLElement>(
+        "[data-explorer-root], [role='treeitem']",
+      ) ?? [],
+    );
+
+  const focusRow = (row: HTMLElement | undefined) => {
+    if (!row) return;
+    onSelect(row.title);
+    row.focus({ preventScroll: true });
+    row.scrollIntoView?.({ block: "nearest" });
+  };
+
+  const typeahead = useRef({ text: "", at: 0 });
+
+  // VS Code-style list navigation. Rows are read from the DOM so the order
+  // always matches what's rendered (folders first, excluded files hidden).
+  const onNavigationKey = (
+    e: ReactKeyboardEvent<HTMLDivElement>,
+    path: string,
+    isDir: boolean,
+  ): boolean => {
+    if (e.altKey || e.ctrlKey || (e.metaKey && e.key !== "ArrowDown")) {
+      return false;
+    }
+    const rows = visibleRows();
+    const index = rows.findIndex((row) => row.title === path);
+    const open = path === cwd ? rootOpen : expanded.has(path);
+    const pageSize = () => {
+      const scroller = rootRef.current?.querySelector(".overflow-y-auto");
+      const rowHeight = rows[rows.length - 1]?.offsetHeight || 30;
+      return Math.max(
+        1,
+        Math.floor((scroller?.clientHeight ?? 0) / rowHeight) - 1,
+      );
+    };
+    const step = (delta: number) =>
+      focusRow(
+        rows[
+          index < 0
+            ? delta > 0
+              ? 0
+              : rows.length - 1
+            : Math.min(rows.length - 1, Math.max(0, index + delta))
+        ],
+      );
+    const activate = (keepFocus: boolean) => {
+      if (isDir) {
+        toggle(path);
+        return;
+      }
+      onOpenFile(path, undefined, { exact: true });
+      if (keepFocus) {
+        const row = rows[index];
+        requestAnimationFrame(() => row?.focus({ preventScroll: true }));
+      }
+    };
+
+    switch (e.key) {
+      case "ArrowDown":
+        // Cmd+Down opens, as in VS Code on macOS.
+        if (e.metaKey) activate(false);
+        else step(1);
+        return true;
+      case "ArrowUp":
+        step(-1);
+        return true;
+      case "PageDown":
+        step(pageSize());
+        return true;
+      case "PageUp":
+        step(-pageSize());
+        return true;
+      case "Home":
+        focusRow(rows[0]);
+        return true;
+      case "End":
+        focusRow(rows[rows.length - 1]);
+        return true;
+      case "ArrowRight":
+        if (!isDir) return true;
+        if (!open) toggle(path);
+        else if (rows[index + 1] && parentPath(rows[index + 1].title) === path)
+          focusRow(rows[index + 1]);
+        return true;
+      case "ArrowLeft":
+        if (isDir && open) toggle(path);
+        else if (path !== cwd)
+          focusRow(rows.find((row) => row.title === parentPath(path)));
+        return true;
+      case "Enter":
+        activate(false);
+        return true;
+      case " ":
+        activate(true);
+        return true;
+    }
+
+    // Type a name prefix to jump to the next matching row.
+    if (e.metaKey || e.key.length !== 1 || e.key === " ") return false;
+    const now = performance.now();
+    const buffer = typeahead.current;
+    buffer.text = now - buffer.at > 700 ? e.key : buffer.text + e.key;
+    buffer.at = now;
+    // Repeating one letter cycles through its matches instead of narrowing.
+    const lower = buffer.text.toLowerCase();
+    const cycling = [...lower].every((ch) => ch === lower[0]);
+    const needle = cycling ? lower[0] : lower;
+    const start = cycling ? index + 1 : Math.max(index, 0);
+    const ordered = [...rows.slice(start), ...rows.slice(0, start)];
+    const match = ordered.find(
+      (row) =>
+        row.title !== cwd &&
+        basename(row.title).toLowerCase().startsWith(needle),
+    );
+    if (match) focusRow(match);
+    return true;
+  };
+
   const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("input")) return;
     if (
       (e.target as HTMLElement).closest("button") &&
-      !(e.target as HTMLElement).closest("[role='treeitem']")
+      !(e.target as HTMLElement).closest(
+        "[role='treeitem'], [data-explorer-root]",
+      )
     ) {
       return;
     }
     const path = selectedPath ?? cwd;
     const isRoot = path === cwd;
     const isDir = isDirAt(cwd, path);
+    if (onNavigationKey(e, path, isDir)) {
+      e.preventDefault();
+      return;
+    }
     const mod = e.metaKey || e.ctrlKey;
-    const key = e.key.toLowerCase();
+    const key = shortcutLetter(e);
+    if (mod && !e.altKey && e.shiftKey && key === "c") {
+      e.preventDefault();
+      void copyText(path);
+      return;
+    }
     if (mod && !e.altKey && !e.shiftKey && key === "c") {
       if (isRoot) return;
       e.preventDefault();
@@ -847,6 +979,14 @@ export const FileTree = memo(function FileTree({
   }, []);
 
   useEffect(() => {
+    if (!cwd.startsWith(REMOTE_PATH_PREFIX)) return;
+    const timer = window.setInterval(() => {
+      if (!document.hidden) notifyDirsChanged();
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [cwd]);
+
+  useEffect(() => {
     const hit = peekDir(cwd);
     if (hit) {
       setChildren(hit);
@@ -936,6 +1076,7 @@ export const FileTree = memo(function FileTree({
         <div className="flex h-8 shrink-0 items-center">
           <button
             type="button"
+            data-explorer-root
             aria-expanded={rootOpen}
             title={cwd}
             onClick={() => {
@@ -951,7 +1092,7 @@ export const FileTree = memo(function FileTree({
                 e.clientY,
               );
             }}
-            className={`flex min-w-0 flex-1 items-center gap-1 h-full pl-2 text-left ${
+            className={`flex min-w-0 flex-1 items-center gap-1 h-full pl-2 text-left outline-none focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-accent/40 ${
               dragOverPath === cwd ? "bg-selection" : ""
             }`}
           >
@@ -1191,7 +1332,7 @@ function TreeNode({ entry, depth }: { entry: FsEntry; depth: number }) {
           }}
           onContextMenu={(e) => onItemContextMenu(entry, e)}
           style={{ paddingLeft: 8 + depth * 12 }}
-          className={`flex h-7.5 w-full cursor-default items-center gap-1 pr-2 text-left text-[14px] leading-none data-[explorer-dragging]:opacity-50 ${
+          className={`flex h-7.5 w-full cursor-default items-center gap-1 pr-2 text-left text-[14px] outline-none focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-accent/40 leading-none data-[explorer-dragging]:opacity-50 ${
             selected
               ? "bg-selection text-content"
               : "text-content hover:bg-content/5"
@@ -1233,7 +1374,7 @@ function TreeNode({ entry, depth }: { entry: FsEntry; depth: number }) {
   );
 }
 
-function NameRow({
+export function NameRow({
   depth,
   isDir,
   initial = "",

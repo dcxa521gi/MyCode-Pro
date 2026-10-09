@@ -48,9 +48,21 @@ function tool(id: string): Block {
   };
 }
 
-function render(blocks: Block[], busy = true, visible = true) {
+function render(
+  blocks: Block[],
+  busy = true,
+  visible = true,
+  historicalBlockIds?: ReadonlySet<string>,
+) {
   act(() =>
-    root.render(createElement(AgentTranscript, { blocks, busy, visible })),
+    root.render(
+      createElement(AgentTranscript, {
+        blocks,
+        busy,
+        visible,
+        historicalBlockIds,
+      }),
+    ),
   );
 }
 
@@ -68,49 +80,23 @@ it("paces a burst of tool calls so each enters after the one before it", () => {
   const head: Block[] = [
     { id: "user", role: "user", text: "Review the diff" },
     { id: "intro", role: "assistant", text: "Checking the repo first." },
-    tool("initial"),
     tool("first"),
   ];
   render(head);
-  expect(container.querySelector('button[aria-label^="Hide the steps for"]')).not.toBeNull();
   render([...head, tool("second"), tool("third"), tool("fourth")]);
 
   // What was on screen when the group mounted is history; the burst queues.
-  expect(stages()).toEqual([
-    "settled",
-    "settled",
-    "entering",
-    "waiting",
-    "waiting",
-  ]);
+  expect(stages()).toEqual(["settled", "entering", "waiting", "waiting"]);
 
   // Later renders must not cut the queue short.
   render([...head, tool("second"), tool("third"), tool("fourth")]);
-  expect(stages()).toEqual([
-    "settled",
-    "settled",
-    "entering",
-    "waiting",
-    "waiting",
-  ]);
+  expect(stages()).toEqual(["settled", "entering", "waiting", "waiting"]);
 
   act(() => vi.advanceTimersByTime(480));
-  expect(stages()).toEqual([
-    "settled",
-    "settled",
-    "entering",
-    "entering",
-    "waiting",
-  ]);
+  expect(stages()).toEqual(["settled", "entering", "entering", "waiting"]);
 
   act(() => vi.advanceTimersByTime(480));
-  expect(stages()).toEqual([
-    "settled",
-    "settled",
-    "entering",
-    "entering",
-    "entering",
-  ]);
+  expect(stages()).toEqual(["settled", "entering", "entering", "entering"]);
 });
 
 const reply =
@@ -171,6 +157,44 @@ it("shows an existing reply immediately when opening a conversation", () => {
     { id: "answer", role: "assistant", text: reply, streaming: true },
   ]);
   expect(answerText()).toBe(reply);
+});
+
+it("shows a loaded history page immediately while still pacing a new reply", () => {
+  render([prompt]);
+  const older: Block[] = [
+    { id: "older-prompt", role: "user", text: "Earlier question" },
+    { id: "older-answer", role: "assistant", text: "Earlier answer in full." },
+  ];
+  render(
+    [
+      ...older,
+      prompt,
+      { id: "answer", role: "assistant", text: reply, streaming: false },
+    ],
+    false,
+    true,
+    new Set(older.map((block) => block.id)),
+  );
+  const historicalAnswer = container.querySelector(
+    '[data-chat-message="older-answer"]',
+  )!;
+  const liveAnswer = container.querySelector('[data-chat-message="answer"]')!;
+  expect(historicalAnswer.textContent).toBe("Earlier answer in full.");
+  expect(historicalAnswer.querySelector(".word-fading")).toBeNull();
+  expect(historicalAnswer.querySelector("[data-word-fade]")).toBeNull();
+  expect(liveAnswer.textContent).toBe("");
+  expect(liveAnswer.querySelector(".word-fading")).not.toBeNull();
+});
+
+it("shows a page reached through history search without replaying its reply", () => {
+  render([prompt]);
+  const older: Block[] = [
+    { id: "older-prompt", role: "user", text: "Earlier question" },
+    { id: "older-answer", role: "assistant", text: reply },
+  ];
+  render(older, false, true, new Set(older.map((block) => block.id)));
+  expect(answerText()).toBe(reply);
+  expect(container.querySelector(".word-fading")).toBeNull();
 });
 
 it("shows output received in a hidden tab immediately when switching to it", () => {

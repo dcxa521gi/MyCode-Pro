@@ -43,12 +43,15 @@ export function compareVersions(left: string, right: string): number {
 export async function fetchRelease(
   version?: string,
   signal?: AbortSignal,
+  channel: "stable" | "beta" = "stable",
 ): Promise<GitHubRelease> {
   const endpoint = version
     ? `tags/${encodeURIComponent(`v${version.replace(/^v/, "")}`)}`
-    : "latest";
+    : channel === "beta"
+      ? "?per_page=20"
+      : "latest";
   const response = await fetch(
-    `https://api.github.com/repos/${RELEASE_REPOSITORY}/releases/${endpoint}`,
+    `https://api.github.com/repos/${RELEASE_REPOSITORY}/releases${endpoint.startsWith("?") ? endpoint : `/${endpoint}`}`,
     {
       headers: { Accept: "application/vnd.github+json" },
       signal: signal
@@ -57,8 +60,23 @@ export async function fetchRelease(
     },
   );
   if (!response.ok) throw new Error(`GitHub HTTP ${response.status}`);
-  const data = await response.json();
-  if (data.draft || data.prerelease || typeof data.tag_name !== "string")
+  const payload = await response.json();
+  const data = Array.isArray(payload)
+    ? payload
+        .filter(
+          (candidate) =>
+            !candidate.draft &&
+            typeof candidate.tag_name === "string" &&
+            /^v?\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(candidate.tag_name),
+        )
+        .sort((a, b) => compareVersions(b.tag_name, a.tag_name))[0]
+    : payload;
+  if (
+    !data ||
+    data.draft ||
+    (data.prerelease && channel !== "beta" && !version?.includes("-")) ||
+    typeof data.tag_name !== "string"
+  )
     throw new Error("Invalid release metadata");
   const releaseVersion = data.tag_name.replace(/^v/, "");
   compareVersions(releaseVersion, releaseVersion);

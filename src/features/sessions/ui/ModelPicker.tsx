@@ -1,4 +1,6 @@
-import { useTranslation, translate } from "../../../shared/i18n";
+import { isHarnessAvailable } from "../../../integrations/harness/core/availability";
+import { translate as t } from "../../../shared/i18n";
+import { translate } from "../../../shared/i18n";
 import {
   Check,
   ChevronDown,
@@ -21,16 +23,13 @@ import {
 } from "react";
 import {
   coerceModelPickerTab,
-  findModel,
   getModelSnapshot,
   getPickerVisibilitySnapshot,
   isEffortSettingId,
   loadFavoriteModels,
   loadRecentModelChoices,
-  modelsFor,
   modelPriceRank,
   sortModels,
-  resolveModel,
   saveFavoriteModels,
   showProviderInModelPicker,
   subscribeModels,
@@ -46,13 +45,10 @@ import {
 } from "../model/projectProviders";
 import {
   harnessUnavailableHint,
-  hasProbedHarnessAvailability,
-  isHarnessAvailable,
-  probeHarnessAvailability,
   subscribeHarnessAvailability,
   getHarnessAvailabilitySnapshot,
 } from "../../../integrations/harness/core/availability";
-import { refreshHarnessCatalogs } from "../../../integrations/harness/core/registry";
+import { useModelSource, type ModelSource } from "./modelSource";
 import { HARNESSES, HARNESS_TITLE, type HarnessId } from "../model/session";
 import { useLockOverscroll } from "../../../shared/hooks/useLockOverscroll";
 import { LAYER } from "../../../shared/lib/layers";
@@ -73,6 +69,12 @@ type Props = {
   /** Limit provider tabs for surfaces that only support one harness. */
   allowedHarnesses?: readonly HarnessId[];
   hotkeys?: boolean;
+  /** Which way the menus open; the composer sits low, so they open up. */
+  side?: "top" | "bottom";
+  /** `plain` drops the pill for rows like a details panel's property list. */
+  variant?: "pill" | "plain";
+  /** Action label for recovery surfaces that open the same model chooser. */
+  triggerLabel?: string;
   onChange: (harness: HarnessId, model: string) => void;
   onSettingsChange: (settings: Record<string, string>) => void;
   onClose?: () => void;
@@ -230,9 +232,12 @@ function settingValueLabel(
   );
 }
 
-function recentMenuModels(current: AgentModel): AgentModel[] {
+function recentMenuModels(
+  current: AgentModel,
+  source: ModelSource,
+): AgentModel[] {
   const models = loadRecentModelChoices().flatMap((choice) => {
-    const item = findModel(choice.model);
+    const item = source.find(choice.model);
     return item?.harness === choice.harness ? [item] : [];
   });
   if (!models.some((item) => item.id === current.id)) models.push(current);
@@ -279,11 +284,14 @@ export function ModelPicker({
   hideSettings = false,
   allowedHarnesses,
   hotkeys = false,
+  side = "top",
+  variant = "pill",
+  triggerLabel,
   onChange,
   onSettingsChange,
   onClose,
 }: Props) {
-  const { t } = useTranslation();
+  const source = useModelSource();
   const catalogVersion = useSyncExternalStore(
     subscribeModels,
     getModelSnapshot,
@@ -327,7 +335,7 @@ export function ModelPicker({
   openRef.current = open;
   recentOpenRef.current = recentMenu != null;
 
-  const current = resolveModel(harness, model);
+  const current = source.resolve(harness, model);
   currentRef.current = current;
   const settings = useMemo(() => {
     void catalogVersion;
@@ -368,13 +376,10 @@ export function ModelPicker({
       (id) =>
         (!allowedHarnesses || allowedHarnesses.includes(id)) &&
         !isProviderHidden(project, id) &&
-        showProviderInModelPicker(
-          id,
-          isHarnessAvailable(id),
-          hasProbedHarnessAvailability(),
-        ),
+        showProviderInModelPicker(id, source.available(id), source.probed()),
     );
   }, [
+    source,
     allowedHarnesses,
     availabilityVersion,
     visibilityVersion,
@@ -392,19 +397,19 @@ export function ModelPicker({
     const pool =
       visibleTab === "favorites"
         ? favorites
-            .map((id) => findModel(id))
+            .map((id) => source.find(id))
             .filter(
               (item): item is AgentModel =>
                 item != null && pickerHarnesses.includes(item.harness),
             )
-        : modelsFor(visibleTab);
+        : source.modelsFor(visibleTab);
     if (!needle) return pool;
     return pool.filter((item) =>
       `${item.name} ${HARNESS_TITLE[item.harness]} ${item.provider?.name ?? ""} ${item.provider?.id ?? ""}`
         .toLowerCase()
         .includes(needle),
     );
-  }, [catalogVersion, favorites, providerKey, query, visibleTab]);
+  }, [source, catalogVersion, favorites, providerKey, query, visibleTab]);
 
   const dismiss = (restore: boolean) => {
     setOpen(false);
@@ -424,7 +429,7 @@ export function ModelPicker({
   const openRecentMenu = () => {
     const selected = currentRef.current;
     if (!selected) return;
-    const models = recentMenuModels(selected);
+    const models = recentMenuModels(selected, source);
     const selectedIndex = models.findIndex((item) => item.id === selected.id);
     setOpen(false);
     setSubmenu(null);
@@ -450,8 +455,7 @@ export function ModelPicker({
 
   useEffect(() => {
     if (!open) return;
-    void probeHarnessAvailability();
-    void refreshHarnessCatalogs([current.harness]);
+    source.refresh([current.harness]);
     setTab(
       coerceModelPickerTab(current.harness, (id) =>
         pickerHarnesses.includes(id),
@@ -474,7 +478,7 @@ export function ModelPicker({
     if (!open || submenu?.kind !== "models" || visibleTab === "favorites") {
       return;
     }
-    void refreshHarnessCatalogs([visibleTab]);
+    source.refresh([visibleTab]);
   }, [open, submenu?.kind, visibleTab]);
 
   useEffect(() => {
@@ -544,14 +548,14 @@ export function ModelPicker({
       window.removeEventListener("keydown", onKey, true);
       window.removeEventListener("open_model_picker", onMenu);
     };
-  }, [hotkeys]);
+  }, [hotkeys, source]);
 
   const setSetting = (setting: ModelSetting, value: string) => {
     onSettingsChange({ ...values, [setting.id]: value });
   };
 
   const pickModel = (item: AgentModel) => {
-    if (!isHarnessAvailable(item.harness)) return;
+    if (!source.available(item.harness)) return;
     onChange(item.harness, item.id);
     dismiss(true);
   };
@@ -692,8 +696,12 @@ export function ModelPicker({
       <button
         ref={button}
         type="button"
-        title={`${triggerTitle} · Recent models: right-click or ${MOD}.`}
-        aria-label={`${HARNESS_TITLE[current.harness]}${
+        title={
+          triggerLabel
+            ? `${triggerLabel} · ${triggerTitle}`
+            : `${triggerTitle} · Recent models: right-click or ${MOD}.`
+        }
+        aria-label={triggerLabel ?? `${HARNESS_TITLE[current.harness]}${
           current.provider ? `, ${current.provider.name},` : ""
         } ${current.name}${
           triggerEffortLabel ? `, effort ${triggerEffortLabel}` : ""
@@ -708,16 +716,31 @@ export function ModelPicker({
           openRecentMenu();
         }}
         onClick={() => togglePicker()}
-        className={`flex h-6.5 shrink-0 items-center gap-1 rounded-md px-1.5 ${
-          open
-            ? "bg-selection text-content"
-            : "bg-selection text-content hover:bg-selection-hover"
-        }`}
+        className={
+          variant === "plain"
+            ? `-mx-1.5 flex h-7 shrink-0 items-center gap-2 rounded-md px-1.5 text-[12px] text-content/85 ${
+                open ? "bg-content/8" : "hover:bg-content/6"
+              }`
+            : `flex h-6.5 shrink-0 items-center gap-1 rounded-md px-1.5 ${
+                open
+                  ? "bg-selection text-content"
+                  : "bg-selection text-content hover:bg-selection-hover"
+              }`
+        }
       >
-        <HarnessIcon harness={current.harness} className="size-4 shrink-0" />
-        <span className="whitespace-nowrap text-[11px]">{current.name}</span>
-        {triggerEffortLabel ? (
-          <span className="shrink-0 text-[11px] text-content/50">
+        <HarnessIcon
+          harness={current.harness}
+          className={`${variant === "plain" ? "size-3.5" : "size-4"} shrink-0`}
+        />
+        <span
+          className={`whitespace-nowrap ${variant === "plain" ? "" : "text-[11px]"}`}
+        >
+          {triggerLabel ?? current.name}
+        </span>
+        {!triggerLabel && triggerEffortLabel ? (
+          <span
+            className={`shrink-0 text-content/50 ${variant === "plain" ? "" : "text-[11px]"}`}
+          >
             {triggerEffortLabel}
           </span>
         ) : null}
@@ -730,7 +753,7 @@ export function ModelPicker({
       {open && hideSettings ? (
         <ModelFlyout
           anchor={button}
-          side="top"
+          side={side}
           autoFocusSearch
           onDismiss={(reason) => dismiss(reason === "escape")}
           harnesses={pickerHarnesses}
@@ -753,7 +776,7 @@ export function ModelPicker({
         <>
           <Popover
             anchor={button}
-            side="top"
+            side={side}
             width={MENU_WIDTH}
             autoFocus
             dismissOnEscape={false}
@@ -950,7 +973,7 @@ export function ModelPicker({
       {recentMenu ? (
         <Popover
           anchor={button}
-          side="top"
+          side={side}
           width={MENU_WIDTH}
           autoFocus
           onDismiss={() => setRecentMenu(null)}
@@ -965,7 +988,7 @@ export function ModelPicker({
           {recentMenu.models.map((item, index) => {
             const selected = item.id === current.id;
             const highlighted = index === recentActive;
-            const disabled = !isHarnessAvailable(item.harness);
+            const disabled = !source.available(item.harness);
             return (
               <button
                 key={item.id}
@@ -1032,7 +1055,7 @@ export function ModelControlPills({
     getModelSnapshot,
   );
   void catalogVersion;
-  const current = resolveModel(harness, model);
+  const current = useModelSource().resolve(harness, model);
   const pills = pillSettings(current);
   const effort = pills.find(
     (setting) => setting.kind === "select" && isEffortSetting(setting),
@@ -1073,16 +1096,113 @@ export function ModelControlPills({
   );
 }
 
+/** Trigger classes for a setting control in the pill or plain look. */
+function controlClass(variant: "pill" | "plain", open = false): string {
+  return variant === "plain"
+    ? `-mx-1.5 flex h-7 min-w-0 max-w-full items-center gap-2 rounded-md px-1.5 text-[12px] text-content/85 ${
+        open ? "bg-content/8" : "hover:bg-content/6"
+      }`
+    : `flex h-6.5 max-w-28 items-center gap-1 rounded-md px-1.5 ${
+        open
+          ? "bg-selection text-content"
+          : "bg-selection text-content hover:bg-selection-hover"
+      }`;
+}
+
+/**
+ * Each model setting as its own labelled row, for property lists like a
+ * details panel. `row` lays out one label and its control.
+ */
+export function ModelSettingRows({
+  harness,
+  model,
+  values,
+  side = "top",
+  onSettingsChange,
+  row,
+}: Pick<Props, "harness" | "model" | "values" | "side" | "onSettingsChange"> & {
+  row: (setting: {
+    id: string;
+    label: string;
+    control: ReactNode;
+  }) => ReactNode;
+}) {
+  const catalogVersion = useSyncExternalStore(
+    subscribeModels,
+    getModelSnapshot,
+    getModelSnapshot,
+  );
+  void catalogVersion;
+  const current = useModelSource().resolve(harness, model);
+  return (
+    <>
+      {pillSettings(current).map((setting) => (
+        <Fragment key={setting.id}>
+          {row({
+            id: setting.id,
+            label: settingLabel(setting),
+            control:
+              setting.kind === "toggle" ? (
+                <TogglePill
+                  setting={setting}
+                  values={values}
+                  variant="plain"
+                  onSettingsChange={onSettingsChange}
+                />
+              ) : (
+                <SelectPill
+                  setting={setting}
+                  values={values}
+                  variant="plain"
+                  side={side}
+                  onSettingsChange={onSettingsChange}
+                />
+              ),
+          })}
+        </Fragment>
+      ))}
+    </>
+  );
+}
+
 function TogglePill({
   setting,
   values,
+  variant = "pill",
   onSettingsChange,
 }: {
   setting: ModelSetting;
   values: Record<string, string>;
+  variant?: "pill" | "plain";
   onSettingsChange: (settings: Record<string, string>) => void;
 }) {
   const on = settingValue(setting, values) === "true";
+  const toggle = () =>
+    onSettingsChange({ ...values, [setting.id]: on ? "false" : "true" });
+  if (variant === "plain") {
+    // A compact switch, short enough to keep its row the height of the rest.
+    return (
+      <button
+        type="button"
+        role="switch"
+        aria-label={setting.label}
+        aria-checked={on}
+        title={`${setting.label}: ${on ? "On" : "Off"}`}
+        data-model-control
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={toggle}
+        className={`relative h-4 w-7 shrink-0 rounded-full transition-colors ${
+          on ? "bg-accent" : "bg-content/20"
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 size-3 rounded-full bg-white transition-[left] ${
+            on ? "left-3.5" : "left-0.5"
+          }`}
+        />
+      </button>
+    );
+  }
   return (
     <button
       type="button"
@@ -1091,10 +1211,8 @@ function TogglePill({
       aria-pressed={on}
       data-model-control
       onMouseDown={(event) => event.preventDefault()}
-      onClick={() =>
-        onSettingsChange({ ...values, [setting.id]: on ? "false" : "true" })
-      }
-      className="flex h-6.5 max-w-28 items-center gap-1 rounded-md bg-selection px-1.5 text-content hover:bg-selection-hover"
+      onClick={toggle}
+      className={controlClass(variant)}
     >
       <span
         className={`min-w-0 truncate text-[11px] ${on ? "" : "text-content/50"}`}
@@ -1108,12 +1226,16 @@ function TogglePill({
 function SelectPill({
   setting,
   values,
+  variant = "pill",
+  side = "top",
   onSettingsChange,
   onClose,
   additionalSettings,
 }: {
   setting: ModelSetting;
   values: Record<string, string>;
+  variant?: "pill" | "plain";
+  side?: "top" | "bottom";
   onSettingsChange: (settings: Record<string, string>) => void;
   onClose?: () => void;
   additionalSettings?: ModelSetting[];
@@ -1164,18 +1286,18 @@ function SelectPill({
         data-model-control
         onMouseDown={(event) => event.preventDefault()}
         onClick={() => (open ? dismiss(true) : openPicker())}
-        className={`flex h-6.5 max-w-28 items-center gap-1 rounded-md px-1.5 ${
-          open
-            ? "bg-selection text-content"
-            : "bg-selection text-content hover:bg-selection-hover"
-        }`}
+        className={controlClass(variant, open)}
       >
         {isEffortSetting(setting) ? (
           <Gauge className="size-3.5 shrink-0" strokeWidth={1.75} />
         ) : setting.id === "serviceTier" ? (
           <Zap className="size-3.5 shrink-0" strokeWidth={1.75} />
         ) : null}
-        <span className="min-w-0 truncate text-[11px]">{valueLabel}</span>
+        <span
+          className={`min-w-0 truncate ${variant === "plain" ? "" : "text-[11px]"}`}
+        >
+          {valueLabel}
+        </span>
         <ChevronDown
           className={`size-3 shrink-0 text-content/50 ${open ? "rotate-180" : ""}`}
           strokeWidth={1.75}
@@ -1185,7 +1307,7 @@ function SelectPill({
       {open ? (
         <Popover
           anchor={button}
-          side="top"
+          side={side}
           width={SETTING_MENU_WIDTH}
           autoFocus
           onDismiss={(reason) => dismiss(reason === "escape")}
@@ -1292,7 +1414,7 @@ function ModelFlyout({
   onToggleFavorite,
 }: {
   anchor: HTMLButtonElement | { current: HTMLButtonElement | null };
-  side?: "right" | "top";
+  side?: "right" | "top" | "bottom";
   autoFocusSearch?: boolean;
   onDismiss?: (reason: "outside" | "escape") => void;
   harnesses: HarnessId[];
@@ -1309,7 +1431,7 @@ function ModelFlyout({
   onPick: (model: AgentModel) => void;
   onToggleFavorite: (id: string) => void;
 }) {
-  const { t } = useTranslation();
+  const source = useModelSource();
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
   const activeRef = useRef<HTMLButtonElement>(null);
   const groups = modelGroups(tab, models);
@@ -1481,7 +1603,7 @@ function ModelFlyout({
                   const selected = item.id === currentId;
                   const highlighted = index === active;
                   const favorited = favorites.includes(item.id);
-                  const disabled = !isHarnessAvailable(item.harness);
+                  const disabled = !source.available(item.harness);
                   // Favorites mix harnesses, so every row names its source.
                   // Provider first (OpenCode Go vs OpenCode), else harness.
                   const provenance =

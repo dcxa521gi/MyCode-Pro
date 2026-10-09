@@ -17,18 +17,12 @@ import {
   AiIdea,
   Check,
   CircleDashed,
-  CornerDownRight,
   CursorMagicSelection,
   FilePlus,
-  ListEnd,
-  Pause,
-  Pencil,
-  Play,
   Plus,
   Share,
   Square,
   StickyNote,
-  Trash2,
   X,
 } from "../../../shared/ui/icons";
 import {
@@ -43,22 +37,20 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { getCurrentWebview } from "@tauri-apps/api/webview";
 import {
   attachmentsFromFiles,
-  attachmentsFromPaths,
   filesFromClipboard,
   mergeAttachments,
   pickAttachments,
   revokeAttachment,
 } from "../model/attachments";
 import { resizeComposer } from "../model/composerResize";
-import { messageFilesFromClipboard } from "../../../platform/tauri/clipboard";
 import {
-  EXPLORER_FILE_POINTER_DRAG_EVENT,
-  type ExplorerFilePointerDragDetail,
-} from "../../../shared/lib/drag";
-import { dragPointToClient } from "../../../shared/lib/dragPoint";
+  isFileReferenceText,
+  messageFilesFromClipboard,
+  nativeClipboardAttachments,
+} from "../../../platform/tauri/clipboard";
+import { useFileDrop } from "../hooks/useFileDrop";
 import type { ContextUsage } from "../model/contextUsage";
 import {
   loadProjectFiles,
@@ -103,6 +95,11 @@ import type {
 } from "../model/userQuestion";
 import { isImeComposition } from "../../../shared/lib/keyboard";
 import {
+  captureDraft,
+  dropPastedText,
+  insertRestoredText,
+} from "../../../shared/lib/draftRestore";
+import {
   createBlankSkill,
   rankSkills,
   hasNativeCommands,
@@ -130,10 +127,11 @@ import { FileMentionPicker } from "./FileMentionPicker";
 import { McpServerPicker } from "./McpServerPicker";
 import { FileTypeIcon } from "../../files/ui/FileTypeIcon";
 import { InboxMiniCard } from "../../inbox/ui/InboxMiniCard";
-import { NoteMiniCard } from "../../notes/ui";
+import { NoteMiniCard } from "../../notes/ui/NoteMiniCard";
 import { HandoffMiniCard } from "./HandoffMiniCard";
 import { ModelControlPills, ModelPicker } from "./ModelPicker";
 import { QuestionForm } from "./QuestionForm";
+import { MessageQueue } from "./MessageQueue";
 import { SkillPicker } from "../../skills/ui/SkillPicker";
 import { pathKey, projectKey } from "../../../shared/lib/paths";
 import { consumeQuoteRequest, type QuoteRequest } from "../model/quoteDraft";
@@ -238,6 +236,9 @@ type Props = {
   hideProjectPicker?: boolean;
   hideBranchPicker?: boolean;
   hideTopBar?: boolean;
+  /** Keeps local file mentions, skills, and app modes off for host sessions. */
+  remoteSession?: boolean;
+  remoteFeatures?: { attachments: boolean; plan: boolean; draft: boolean };
   context?: ContextUsage;
   turnMetrics?: TurnMetrics;
   compactSupported?: boolean;
@@ -340,173 +341,6 @@ function ToolButton({
   );
 }
 
-function MessageQueue({
-  messages,
-  status,
-  onDelete,
-  onEdit,
-  onEditingChange,
-  onSteer,
-  onResume,
-}: {
-  messages: QueuedMessage[];
-  status?: MessageQueueStatus;
-  onDelete?: (messageId: string) => void;
-  onEdit?: (messageId: string, text: string) => void;
-  onEditingChange?: (messageId?: string) => void;
-  onSteer?: (messageId: string) => void;
-  onResume?: () => void;
-}) {
-  const { t } = useTranslation();
-  const [editingId, setEditingId] = useState<string>();
-  const [editDraft, setEditDraft] = useState("");
-  const onEditingChangeRef = useRef(onEditingChange);
-  onEditingChangeRef.current = onEditingChange;
-  const editingIdRef = useRef(editingId);
-  editingIdRef.current = editingId;
-  useEffect(() => {
-    return () => {
-      if (editingIdRef.current) onEditingChangeRef.current?.();
-    };
-  }, []);
-  if (messages.length === 0) return null;
-  const paused = status === "paused";
-
-  const startEdit = (message: QueuedMessage) => {
-    setEditingId(message.id);
-    setEditDraft(message.text);
-    onEditingChange?.(message.id);
-  };
-  const cancelEdit = () => {
-    setEditingId(undefined);
-    setEditDraft("");
-    onEditingChange?.();
-  };
-  const saveEdit = (message: QueuedMessage) => {
-    if (!editDraft.trim() && message.attachments.length === 0) return;
-    onEdit?.(message.id, editDraft);
-    setEditingId(undefined);
-    setEditDraft("");
-  };
-
-  return (
-    <div className="px-2 text-content/55" data-message-queue>
-      <div
-        className="relative z-0 rounded-t-[10px] border border-b-0 border-content/10 bg-content/3 px-2 py-1"
-        data-message-queue-card
-      >
-        {paused ? (
-          <div className="flex h-7 items-center gap-2 border-b border-stroke text-[12px]">
-            <Pause className="size-3.5" />
-            <span className="min-w-0 flex-1 truncate">
-              {t("Queue paused because you interrupted")}
-            </span>
-            <button
-              type="button"
-              onClick={onResume}
-              className="flex h-6 shrink-0 items-center gap-1.5 rounded-md px-1.5 hover:bg-content/10 hover:text-content"
-            >
-              <Play className="size-3.5" />
-              {t("Resume")}
-            </button>
-          </div>
-        ) : null}
-        {messages.map((message, index) => {
-          const editing = editingId === message.id;
-          const label =
-            message.text.trim() ||
-            `${message.attachments.length} attachment${message.attachments.length === 1 ? "" : "s"}`;
-          return (
-            <div
-              key={message.id}
-              className={`flex min-h-7 items-center gap-2 text-[12px] ${
-                index > 0 ? "border-t border-stroke" : ""
-              }`}
-            >
-              <ListEnd className="size-3.5 shrink-0" />
-              {editing ? (
-                <>
-                  <textarea
-                    autoFocus
-                    aria-label={t("Edit queued message")}
-                    value={editDraft}
-                    rows={1}
-                    onChange={(event) => setEditDraft(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (isImeComposition(event.nativeEvent)) return;
-                      if (event.key === "Escape") {
-                        event.preventDefault();
-                        cancelEdit();
-                      } else if (event.key === "Enter" && !event.shiftKey) {
-                        event.preventDefault();
-                        saveEdit(message);
-                      }
-                    }}
-                    className="min-h-6 min-w-0 flex-1 resize-none rounded-md border border-content/15 bg-content/5 px-1.5 py-0.5 text-[12px] text-content outline-none focus:border-content/30"
-                  />
-                  <button
-                    type="button"
-                    title={t("Save queued message")}
-                    aria-label={t("Save queued message")}
-                    disabled={
-                      !editDraft.trim() && message.attachments.length === 0
-                    }
-                    onClick={() => saveEdit(message)}
-                    className="grid size-6 shrink-0 place-items-center rounded-md hover:bg-content/10 hover:text-content disabled:opacity-30"
-                  >
-                    <Check className="size-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    title={t("Cancel queued message edit")}
-                    aria-label={t("Cancel queued message edit")}
-                    onClick={cancelEdit}
-                    className="grid size-6 shrink-0 place-items-center rounded-md hover:bg-content/10 hover:text-content"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span className="min-w-0 flex-1 truncate text-content/80">
-                    {label}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onSteer?.(message.id)}
-                    className="flex h-6 shrink-0 items-center gap-1.5 rounded-md px-1.5 hover:bg-content/10 hover:text-content"
-                  >
-                    <CornerDownRight className="size-3.5" />
-                    {t("Steer")}
-                  </button>
-                  <button
-                    type="button"
-                    title={t("Edit queued message")}
-                    aria-label={t("Edit queued message")}
-                    onClick={() => startEdit(message)}
-                    className="grid size-6 shrink-0 place-items-center rounded-md hover:bg-content/10 hover:text-content"
-                  >
-                    <Pencil className="size-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    title={t("Remove queued message")}
-                    aria-label={t("Remove queued message")}
-                    onClick={() => onDelete?.(message.id)}
-                    className="grid size-6 shrink-0 place-items-center rounded-md hover:bg-content/10 hover:text-content"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
-                </>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 export function Composer({
   enabled = true,
   focused,
@@ -531,6 +365,8 @@ export function Composer({
   hideProjectPicker = false,
   hideBranchPicker = false,
   hideTopBar = false,
+  remoteSession = false,
+  remoteFeatures,
   context,
   turnMetrics,
   compactSupported = false,
@@ -705,7 +541,6 @@ export function Composer({
   );
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   useProtectedAttachments(attachments);
-  const [fileDrag, setFileDrag] = useState(false);
   const [plusOpen, setPlusOpen] = useState(false);
   const [planSelected, setPlanSelected] = useState(false);
   const [operatorSelected, setOperatorSelected] = useState(false);
@@ -728,8 +563,11 @@ export function Composer({
   const mcpInsertAt = useRef<number | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createBusy, setCreateBusy] = useState(false);
+  const remote = remoteSession;
+  // Local indexes (files, skills) must never read a remote session's path.
+  const localCwd = remote ? "" : executionCwd;
   const [files, setFiles] = useState<ProjectFile[]>(
-    () => peekProjectFiles(executionCwd) ?? [],
+    () => peekProjectFiles(localCwd) ?? [],
   );
   const notesEnabled = useSyncExternalStore(
     subscribeNotesEnabled,
@@ -759,7 +597,7 @@ export function Composer({
   attachmentsRef.current = attachments;
 
   const mentionOpen =
-    mention !== null && (looksLikeProject(cwd) || notesEnabled);
+    !remote && mention !== null && (looksLikeProject(cwd) || notesEnabled);
   const navigationEmpty =
     draft.length === 0 &&
     attachments.length === 0 &&
@@ -770,41 +608,56 @@ export function Composer({
   const pickerOpen = skillPickerOpen || sessionFolderOpen || mcpPickerOpen;
   const skillCatalog = useComposerSkills({
     harness,
-    executionCwd,
+    executionCwd: localCwd,
     sessionId,
-    pickerOpen,
+    pickerOpen: pickerOpen && !remote,
   });
   const skills = skillCatalog.skills;
   const slashItems = useMemo(
-    () => [
-      SESSION_FOLDER_COMMAND,
-      MCP_COMMAND,
-      OPERATOR_COMMAND,
-      ...(hideTopBar ? [] : [ORCHESTRATOR_COMMAND]),
-      PLAN_COMMAND,
-      ...(canSaveDraft && onSaveDraft ? [DRAFT_COMMAND] : []),
-      COMPACT_COMMAND,
-      ...(supportsBtwHarness(harness) ? [BTW_COMMAND] : []),
-      ...skills.filter(
-        (skill) =>
-          ![OPERATOR_COMMAND.name, "mono", "monocode"].includes(skill.name) &&
-          (skill.kind === "native" ||
-            (skill.name !== PLAN_COMMAND.name &&
-              skill.name !== COMPACT_COMMAND.name &&
-              skill.name !== SESSION_FOLDER_COMMAND.name &&
-              skill.name !== MCP_COMMAND.name &&
-              skill.name !== ORCHESTRATOR_COMMAND.name &&
-              skill.name !== DRAFT_COMMAND.name &&
-              skill.name !== BTW_COMMAND.name)),
-      ),
+    () =>
+      remote
+        ? [...(remoteFeatures?.plan ? [PLAN_COMMAND] : []), COMPACT_COMMAND]
+        : [
+            SESSION_FOLDER_COMMAND,
+            MCP_COMMAND,
+            OPERATOR_COMMAND,
+            ...(hideTopBar ? [] : [ORCHESTRATOR_COMMAND]),
+            PLAN_COMMAND,
+            ...(canSaveDraft && onSaveDraft ? [DRAFT_COMMAND] : []),
+            COMPACT_COMMAND,
+            ...(supportsBtwHarness(harness) ? [BTW_COMMAND] : []),
+            ...skills.filter(
+              (skill) =>
+                ![OPERATOR_COMMAND.name, "mono", "monocode"].includes(
+                  skill.name,
+                ) &&
+                (skill.kind === "native" ||
+                  (skill.name !== PLAN_COMMAND.name &&
+                    skill.name !== COMPACT_COMMAND.name &&
+                    skill.name !== SESSION_FOLDER_COMMAND.name &&
+                    skill.name !== MCP_COMMAND.name &&
+                    skill.name !== ORCHESTRATOR_COMMAND.name &&
+                    skill.name !== DRAFT_COMMAND.name &&
+                    skill.name !== BTW_COMMAND.name)),
+            ),
+          ],
+    [
+      harness,
+      skills,
+      remote,
+      remoteFeatures?.plan,
+      hideTopBar,
+      canSaveDraft,
+      onSaveDraft,
     ],
-    [harness, skills, hideTopBar, canSaveDraft, onSaveDraft],
   );
   const skillLimit = hasNativeCommands(harness)
     ? Number.POSITIVE_INFINITY
     : undefined;
   const rankedSkills = rankSkills(slashItems, slash?.query ?? "", skillLimit);
-  const attachmentsSupported = harnessSupportsAttachments(harness);
+  const attachmentsSupported =
+    (!remote || !!remoteFeatures?.attachments) &&
+    harnessSupportsAttachments(harness);
   const skillNames = useMemo(
     () => new Set(slashItems.map((skill) => skill.invocation)),
     [slashItems],
@@ -925,6 +778,7 @@ export function Composer({
       const next = mergeAttachments(attachmentsRef.current, incoming);
       attachmentsRef.current = next;
       setAttachments(next);
+      setPasteError(null);
       draftRevisionRef.current += 1;
       syncHasValue(ref.current?.value ?? "", next);
       ref.current?.focus();
@@ -933,7 +787,6 @@ export function Composer({
   );
   // Native listener registration crosses several IPC hops. Keep changing
   // composer callbacks and capabilities out of its subscription dependencies.
-  const remote = /^remote:\/\//.test(executionCwd ?? cwd ?? "");
   const fileDropStateRef = useRef({
     attachmentsSupported,
     remote,
@@ -998,6 +851,7 @@ export function Composer({
       attachmentsRef.current = next;
       draftRevisionRef.current += 1;
       setAttachments(next);
+      setPasteError(null);
       syncHasValue(ref.current?.value ?? "", next);
       ref.current?.focus();
     },
@@ -1068,20 +922,21 @@ export function Composer({
     const apply = (next: ProjectFile[]) => {
       if (!cancelled) setFiles(next);
     };
-    const cached = peekProjectFiles(executionCwd);
+    const cached = peekProjectFiles(localCwd);
     apply(cached ?? []);
-    void loadProjectFiles(executionCwd, mentionOpen)
+    if (!localCwd) return;
+    void loadProjectFiles(localCwd, mentionOpen)
       .then(apply)
       .catch(() => undefined);
     const unsub = subscribeProjectFiles(() => {
-      const next = peekProjectFiles(executionCwd);
+      const next = peekProjectFiles(localCwd);
       if (next) apply(next);
     });
     return () => {
       cancelled = true;
       unsub();
     };
-  }, [executionCwd, mentionOpen]);
+  }, [localCwd, mentionOpen]);
 
   useEffect(() => {
     if (!mentionOpen || !notesEnabled) return;
@@ -1389,130 +1244,13 @@ export function Composer({
     ref.current?.focus();
   }, [disabled, focused, question, busy, focusToken]);
 
-  useEffect(() => {
-    if (!enabled || disabled) {
-      setFileDrag(false);
-      return;
-    }
-    const dropRoot = () =>
-      boxRef.current?.closest("[data-session-drop]") as HTMLElement | null;
-    let nativeDropAt = 0;
-    let cancelled = false;
-
-    const overTarget = (x: number, y: number) => {
-      const root = dropRoot();
-      if (!root) return false;
-      const rect = root.getBoundingClientRect();
-      return (
-        x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
-      );
-    };
-
-    const onDragOver = (event: DragEvent) => {
-      const data = event.dataTransfer;
-      if (!hasFiles(data)) return;
-      event.preventDefault();
-      const supported = fileDropStateRef.current.attachmentsSupported;
-      data.dropEffect = supported ? "copy" : "none";
-      setFileDrag(supported);
-    };
-    const onDragLeave = (event: DragEvent) => {
-      const root = dropRoot();
-      if (!root) return;
-      const next = event.relatedTarget as Node | null;
-      if (next && root.contains(next)) return;
-      setFileDrag(false);
-    };
-    const onDrop = (event: DragEvent) => {
-      const data = event.dataTransfer;
-      if (!hasFiles(data)) return;
-      event.preventDefault();
-      setFileDrag(false);
-      if (!fileDropStateRef.current.attachmentsSupported) return;
-      if (Date.now() - nativeDropAt < 250) return;
-      const files = filesFromClipboard(data);
-      if (files.length === 0) return;
-      readDroppedAttachments(() => attachmentsFromFiles(files));
-    };
-
-    const onExplorerFilePointerDrag = (event: Event) => {
-      if (fileDropStateRef.current.remote) return;
-      const detail = (event as CustomEvent<ExplorerFilePointerDragDetail>)
-        .detail;
-      if (!detail || detail.type === "end") {
-        setFileDrag(false);
-        return;
-      }
-      const over = overTarget(detail.x, detail.y);
-      const supported = fileDropStateRef.current.attachmentsSupported;
-      if (detail.type === "move") {
-        setFileDrag(over && supported);
-        return;
-      }
-      setFileDrag(false);
-      if (!over || !supported) return;
-      readDroppedAttachments(() => attachmentsFromPaths([detail.path]));
-    };
-
-    const root = dropRoot();
-    root?.addEventListener("dragover", onDragOver);
-    root?.addEventListener("dragleave", onDragLeave);
-    root?.addEventListener("drop", onDrop);
-    window.addEventListener(
-      EXPLORER_FILE_POINTER_DRAG_EVENT,
-      onExplorerFilePointerDrag,
-    );
-
-    let unlisten: (() => void) | undefined;
-    void getCurrentWebview()
-      .onDragDropEvent((event) => {
-        if (cancelled) return;
-        if (event.payload.type === "leave") {
-          setFileDrag(false);
-          return;
-        }
-        const { x, y } = event.payload.position;
-        const point = dragPointToClient(x, y);
-        const over = overTarget(point.x, point.y);
-        const supported = fileDropStateRef.current.attachmentsSupported;
-        if (event.payload.type === "enter" || event.payload.type === "over") {
-          setFileDrag(over && supported);
-          return;
-        }
-        if (event.payload.type !== "drop") return;
-        setFileDrag(false);
-        if (!over || !supported) return;
-        if (event.payload.paths.length === 0) {
-          setPasteError(
-            "This drag did not provide a file. Save the image, then drag the saved file here.",
-          );
-          return;
-        }
-        nativeDropAt = Date.now();
-        const paths = event.payload.paths;
-        readDroppedAttachments(() => attachmentsFromPaths(paths));
-      })
-      .then((fn) => {
-        if (cancelled) fn();
-        else unlisten = fn;
-      })
-      .catch(() => undefined);
-
-    return () => {
-      cancelled = true;
-      root?.removeEventListener("dragover", onDragOver);
-      root?.removeEventListener("dragleave", onDragLeave);
-      root?.removeEventListener("drop", onDrop);
-      window.removeEventListener(
-        EXPLORER_FILE_POINTER_DRAG_EVENT,
-        onExplorerFilePointerDrag,
-      );
-      unlisten?.();
-    };
-  }, [disabled, enabled, readDroppedAttachments]);
-  useEffect(() => {
-    if (!attachmentsSupported) setFileDrag(false);
-  }, [attachmentsSupported]);
+  const fileDrag = useFileDrop({
+    anchor: boxRef,
+    enabled: enabled && !disabled,
+    state: fileDropStateRef,
+    read: readDroppedAttachments,
+    onError: setPasteError,
+  });
   const restoreDraft = useCallback(
     (
       text: string,
@@ -1551,6 +1289,7 @@ export function Composer({
 
   const exitEditMode = useCallback(() => {
     draftRevisionRef.current += 1;
+    pasteGenerationRef.current += 1;
     if (ref.current) {
       ref.current.value = "";
       ref.current.style.height = "auto";
@@ -1616,17 +1355,22 @@ export function Composer({
   }, [editLastTurnSupported, onRecallLastTurnReady, recallLastTurn]);
 
   const submit = (value: string) => {
-    if (submitLockRef.current) return;
-    if (pasteFlightRef.current) {
-      submitLockRef.current = true;
-      const generation = pasteGenerationRef.current;
-      void pasteFlightRef.current.then(() => {
-        submitLockRef.current = false;
-        if (generation === pasteGenerationRef.current) submit(ref.current?.value ?? value);
-      });
-      return;
+    if (disabled || worktreeRemoved || submitLockRef.current) return;
+    submitLockRef.current = true;
+    void completeSubmit(value).finally(() => {
+      submitLockRef.current = false;
+    });
+  };
+  const completeSubmit = async (submittedValue: string) => {
+    let pending = pasteFlightRef.current;
+    const generation = pasteGenerationRef.current;
+    while (pending) {
+      await pending;
+      // A reset or an earlier send retired this draft while the read was out.
+      if (pasteGenerationRef.current !== generation) return;
+      pending = pasteFlightRef.current;
     }
-
+    const value = ref.current?.value ?? submittedValue;
     if (disabled || worktreeRemoved) return;
     if (isMcpCommand(value)) {
       mcpInsertAt.current = 0;
@@ -1653,6 +1397,7 @@ export function Composer({
         files,
       );
       if (accepted === false || !ref.current) return;
+      pasteGenerationRef.current += 1;
       ref.current.value = "";
       ref.current.style.height = "auto";
       setDraft("");
@@ -1673,13 +1418,14 @@ export function Composer({
     if (
       btwCommand.matched &&
       onBtwCommand &&
-      attachments.length === 0 &&
+      attachmentsRef.current.length === 0 &&
       !inboxCard &&
       !noteCard &&
       !handoffCard
     ) {
       const accepted = onBtwCommand(btwCommand.text);
       if (accepted === false) return;
+      pasteGenerationRef.current += 1;
       if (ref.current) {
         ref.current.value = "";
         ref.current.style.height = "auto";
@@ -1702,6 +1448,7 @@ export function Composer({
     if (isCompactCommand(value)) {
       if (!onCompactContext?.()) return;
       if (!ref.current) return;
+      pasteGenerationRef.current += 1;
       ref.current.value = "";
       ref.current.style.height = "auto";
       setDraft("");
@@ -1711,7 +1458,7 @@ export function Composer({
       setMention(null);
       setCreatingSkill(false);
       setCreateError(null);
-      syncHasValue("", attachments);
+      syncHasValue("", attachmentsRef.current);
       return;
     }
 
@@ -1721,7 +1468,7 @@ export function Composer({
         : value,
     );
     const orchestratorCommand =
-      !hideTopBar && !command.planning
+      !remote && !hideTopBar && !command.planning
         ? consumeOrchestratorCommand(command.text)
         : { text: command.text, matched: false };
     const text = isNativeCommandPrompt(orchestratorCommand.text, harness)
@@ -1788,6 +1535,7 @@ export function Composer({
       restoreDraft(text, files);
       return;
     }
+    pasteGenerationRef.current += 1;
     if (ref.current) {
       ref.current.value = "";
       ref.current.style.height = "auto";
@@ -1811,6 +1559,7 @@ export function Composer({
     setMention(null);
     setCreatingSkill(false);
     setCreateError(null);
+    setPasteError(null);
     syncHasValue("", []);
   };
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -2035,26 +1784,80 @@ export function Composer({
   };
 
   const onPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    setPasteError(null);
     const messageFiles = messageFilesFromClipboard(e.clipboardData);
     if (messageFiles) {
       e.preventDefault();
-      const el = e.currentTarget;
-      el.setRangeText(
-        e.clipboardData.getData("text/plain"),
-        el.selectionStart,
-        el.selectionEnd,
-        "end",
+      const generation = pasteGenerationRef.current;
+      const captured = captureDraft(e.currentTarget);
+      const text = e.clipboardData.getData("text/plain");
+      if (captured) insertRestoredText(captured, text);
+      if (!attachmentsSupported) return;
+      rememberAttachmentRead(
+        attachmentsFromFiles(messageFiles).then((pasted) => {
+          if (pasteGenerationRef.current !== generation) {
+            pasted.forEach(revokeAttachment);
+            return;
+          }
+          addAttachments(pasted);
+        }),
       );
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-      if (attachmentsSupported)
-        readDroppedAttachments(() => attachmentsFromFiles(messageFiles));
       return;
     }
     const files = filesFromClipboard(e.clipboardData);
-    if (files.length === 0) return;
+    if (files.length === 0) {
+      // A webview reports a paste as text only, so a screenshot or a file
+      // copied in a file manager arrives with nothing to attach; both live on
+      // the native clipboard.
+      if (!attachmentsSupported) return;
+      const text = e.clipboardData.getData("text/plain");
+      // Prose and whitespace alike are the webview's to insert.
+      if (text && !isFileReferenceText(text)) return;
+      // A file URI becomes a chip, so it is kept out of the draft; with no text
+      // at all the paste carried an image the webview cannot see.
+      e.preventDefault();
+      // Captured before the read crosses an IPC hop. Send and draft reset bump
+      // the generation, so a finished read cannot attach onto a draft that is gone.
+      const generation = pasteGenerationRef.current;
+      const captured = isFileReferenceText(text)
+        ? captureDraft(e.currentTarget)
+        : null;
+      rememberAttachmentRead(
+        nativeClipboardAttachments(text)
+          .then(({ files: pasted, warning }) => {
+            if (pasteGenerationRef.current !== generation) {
+              pasted.forEach(revokeAttachment);
+              return;
+            }
+            if (pasted.length) {
+              // WebKit can insert the URI after preventDefault. The chip
+              // replaces it, so the draft must not keep that text.
+              if (captured) dropPastedText(captured, text);
+              addAttachments(pasted);
+            } else if (captured) insertRestoredText(captured, text);
+            if (warning) setPasteError(warning);
+          })
+          .catch((reason: unknown) => {
+            if (pasteGenerationRef.current !== generation) return;
+            setPasteError(
+              reason instanceof Error ? reason.message : String(reason),
+            );
+          }),
+      );
+      return;
+    }
     e.preventDefault();
     if (!attachmentsSupported) return;
-    readDroppedAttachments(() => attachmentsFromFiles(files));
+    const generation = pasteGenerationRef.current;
+    rememberAttachmentRead(
+      attachmentsFromFiles(files).then((pasted) => {
+        if (pasteGenerationRef.current !== generation) {
+          pasted.forEach(revokeAttachment);
+          return;
+        }
+        addAttachments(pasted);
+      }),
+    );
   };
 
   const attachFromPicker = () => {
@@ -2281,7 +2084,7 @@ export function Composer({
           ) : null}
           {hideTopBar ? null : (
             <div className="flex min-w-0 items-center gap-2.5 overflow-hidden px-3 pt-2.5">
-              {hideProjectPicker ? null : (
+              {!remote && !hideProjectPicker ? (
                 <CwdPicker
                   cwd={cwd}
                   recents={recents}
@@ -2291,7 +2094,7 @@ export function Composer({
                   onNewTerminal={worktreeRemoved ? undefined : onNewTerminal}
                   onClose={() => ref.current?.focus()}
                 />
-              )}
+              ) : null}
               {hideBranchPicker ? null : draftWorkspace &&
                 onWorkspaceModeChange &&
                 onWorktreeBaseChange ? (
@@ -2472,6 +2275,7 @@ export function Composer({
                     ? current
                     : retained;
                 });
+                setPasteError(null);
                 if (
                   sessionFolderSelected &&
                   !consumeSessionFolderCommand(el.value).matched
@@ -2526,64 +2330,72 @@ export function Composer({
                       </span>
                       <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
                         {attachmentsSupported
-                          ? t("Attach files or images")
-                          : `${HARNESS_TITLE[harness]} does not support attachments`}
+                          ? "Attach files or images"
+                          : remote && !remoteFeatures?.attachments
+                            ? "Update this machine’s host to attach files"
+                            : `${HARNESS_TITLE[harness]} does not support attachments`}
                       </span>
                     </span>
                   </button>
-                  <button
-                    type="button"
-                    aria-pressed={planActive}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      setPlanSelected((selected) => !selected);
-                      setOperatorSelected(false);
-                      setOrchestrationSelected(false);
-                      setDraftSelected(false);
-                      setPlusOpen(false);
-                      ref.current?.focus();
-                    }}
-                    className="flex w-full items-start gap-2.5 rounded-lg px-2 py-2 text-left text-content hover:bg-content/10"
-                  >
-                    <AiIdea className="mt-0.5 size-4 shrink-0 text-yellow-300/80" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[13px]">
-                        {t("Plan mode")}
+                  {!remote || remoteFeatures?.plan ? (
+                    <button
+                      type="button"
+                      aria-pressed={planActive}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setPlanSelected(!planActive);
+                        if (planActive) clearLeadingMode(PLAN_COMMAND.name);
+                        setOperatorSelected(false);
+                        setOrchestrationSelected(false);
+                        setDraftSelected(false);
+                        setPlusOpen(false);
+                        ref.current?.focus();
+                      }}
+                      className="flex w-full items-start gap-2.5 rounded-lg px-2 py-2 text-left text-content hover:bg-content/10"
+                    >
+                      <AiIdea className="mt-0.5 size-4 shrink-0 text-yellow-300/80" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[13px]">Plan mode</span>
+                        <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
+                          Review a plan before building
+                        </span>
                       </span>
-                      <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
-                        {t("Review a plan before building")}
+                      {planActive ? (
+                        <Check className="mt-0.5 size-3.5 shrink-0 text-accent" />
+                      ) : null}
+                    </button>
+                  ) : null}
+                  {!remote ? (
+                    <button
+                      type="button"
+                      aria-pressed={operatorActive}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => {
+                        setOperatorSelected(!operatorActive);
+                        if (operatorActive) {
+                          clearLeadingMode(OPERATOR_COMMAND.name);
+                        }
+                        setPlanSelected(false);
+                        setOrchestrationSelected(false);
+                        setDraftSelected(false);
+                        setPlusOpen(false);
+                        ref.current?.focus();
+                      }}
+                      className="flex w-full items-start gap-2.5 rounded-lg px-2 py-2 text-left text-content hover:bg-content/10"
+                    >
+                      <CursorMagicSelection className="mt-0.5 size-4 shrink-0 text-sky-300/80" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[13px]">Operator</span>
+                        <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
+                          Give this thread access to MonoCode
+                        </span>
                       </span>
-                    </span>
-                    {planActive ? (
-                      <Check className="mt-0.5 size-3.5 shrink-0 text-accent" />
-                    ) : null}
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={operatorActive}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => {
-                      setOperatorSelected((selected) => !selected);
-                      setPlanSelected(false);
-                      setOrchestrationSelected(false);
-                      setDraftSelected(false);
-                      setPlusOpen(false);
-                      ref.current?.focus();
-                    }}
-                    className="flex w-full items-start gap-2.5 rounded-lg px-2 py-2 text-left text-content hover:bg-content/10"
-                  >
-                    <CursorMagicSelection className="mt-0.5 size-4 shrink-0 text-sky-300/80" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[13px]">{t("Operator")}</span>
-                      <span className="block truncate whitespace-nowrap text-[11px] leading-4 text-content/45">
-                        {t("Give this thread access to MyCode")}
-                      </span>
-                    </span>
-                    {operatorActive ? (
-                      <Check className="mt-0.5 size-3.5 shrink-0 text-sky-300/80" />
-                    ) : null}
-                  </button>
-                  {!hideTopBar && (
+                      {operatorActive ? (
+                        <Check className="mt-0.5 size-3.5 shrink-0 text-sky-300/80" />
+                      ) : null}
+                    </button>
+                  ) : null}
+                  {!remote && !hideTopBar && (
                     <button
                       type="button"
                       aria-pressed={orchestrationActive}
@@ -2819,7 +2631,7 @@ export function Composer({
             </div>
           </div>
         </div>
-        {runnerLive && runnerEnabled ? (
+        {runnerLive && runnerEnabled && !remote ? (
           <ComposerRunner
             boxRef={boxRef}
             cwd={cwd}
@@ -3007,16 +2819,5 @@ export function ComposerAction({
     >
       <ArrowUp className="size-3.5" strokeWidth={2.25} />
     </button>
-  );
-}
-
-function hasFiles(data: DataTransfer | null): data is DataTransfer {
-  if (!data) return false;
-  return (
-    data.files.length > 0 ||
-    [...data.types].some(
-      (type) => type === "Files" || type === "application/x-moz-file",
-    ) ||
-    Array.from(data.items ?? []).some((item) => item.kind === "file")
   );
 }

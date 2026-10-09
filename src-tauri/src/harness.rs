@@ -834,6 +834,8 @@ pub fn harness_spawn(
     binary_path: Option<String>,
     model_connection: Option<String>,
     selected_model: Option<String>,
+    codex_store: Option<String>,
+    opencode_v2: Option<OpenCodeV2Spawn>,
 ) -> Result<u32, String> {
     let workdir = expand_home(&cwd);
     if !workdir.is_dir() {
@@ -886,6 +888,43 @@ pub fn harness_spawn(
         selected_model.as_deref(),
         args.iter().any(|arg| arg == "--no-session-persistence"),
     )?;
+    if let Some(v2) = opencode_v2 {
+        if binary_provider.as_deref() != Some("opencode")
+            || args.first().is_none_or(|arg| arg != "serve")
+            || v2.password.len() < 32
+        {
+            return Err("Invalid private OpenCode server request".into());
+        }
+        prepare_private_opencode(
+            &app,
+            &mut cmd,
+            Some(&cwd),
+            model_connection.as_deref(),
+            Some(&session_id),
+        )?;
+        cmd.env("OPENCODE_SERVER_PASSWORD", v2.password);
+    }
+    let codex_store = match codex_store.as_deref() {
+        None => None,
+        Some("mono")
+            if binary_provider.as_deref() == Some("codex")
+                && account.as_ref().is_some_and(|a| a.provider == "codex")
+                && args.first().is_some_and(|a| a == "app-server") =>
+        {
+            let store =
+                crate::codex_mono_store::prepare(&app, account.as_ref().map(|a| a.id.as_str()))?;
+            let private_path = serde_json::to_string(&store.home).map_err(|e| e.to_string())?;
+            // Explicit config takes precedence over CODEX_SQLITE_HOME. Override
+            // both so a user's sqlite_home cannot index Monos in the Codex app.
+            cmd.env("CODEX_HOME", &store.home)
+                .env("CODEX_SQLITE_HOME", &store.home)
+                .args(["-c", &format!("sqlite_home={private_path}")]);
+            Some(Arc::new(store))
+        }
+        Some(_) => {
+            return Err("Private Mono storage is only supported for Codex app-server".into())
+        }
+    };
 
     crate::control::configure_child(&app, &session_id, &mut cmd);
     #[cfg(windows)]
@@ -944,9 +983,19 @@ pub fn harness_spawn(
 
     let stdout_app = app.clone();
     let stdout_id = session_id.clone();
+    let wait_store = codex_store.clone();
+    let stdout_store = codex_store;
     thread::spawn(move || {
         for line in BufReader::new(stdout).lines() {
             let Ok(line) = line else { break };
+            if let Some(store) = &stdout_store {
+                if line.contains("\"turn/completed\"")
+                    || line.contains("\"item/started\"")
+                    || line.contains("\"account/updated\"")
+                {
+                    store.sync_auth();
+                }
+            }
             let _ = stdout_app.emit(
                 STDOUT_EVENT,
                 HarnessLine {
@@ -977,6 +1026,9 @@ pub fn harness_spawn(
     let wait_pid = pid;
     thread::spawn(move || {
         let code = child.wait().ok().and_then(|status| status.code());
+        if let Some(store) = wait_store {
+            store.sync_auth();
+        }
         if let Some(host) = wait_app.try_state::<HarnessHost>() {
             if host.remove_if_pid(&wait_id, wait_pid).is_some() {
                 host.stop_sse(&wait_id);
@@ -1324,10 +1376,26 @@ const EXEC_ALLOWED_ARGS: &[&[&str]] = &[
     &["agent", "list"],
 ];
 
-fn exec_args_allowed(args: &[String]) -> bool {
-    EXEC_ALLOWED_ARGS
-        .iter()
-        .any(|a| a.len() == args.len() && a.iter().zip(args).all(|(x, y)| x == y))
+// OpenCode 2.x runs as a background service; other providers' CLIs may give
+// these subcommands unrelated meanings, so they stay OpenCode-only.
+const OPENCODE_EXEC_ALLOWED_ARGS: &[&[&str]] = &[
+    &["service", "status"],
+    &["service", "start"],
+    &["service", "stop"],
+    &["service", "get", "password"],
+];
+
+fn exec_args_allowed(binary_provider: Option<&str>, args: &[String]) -> bool {
+    let matches = |a: &&[&str]| a.len() == args.len() && a.iter().zip(args).all(|(x, y)| x == y);
+    EXEC_ALLOWED_ARGS.iter().any(matches)
+        || (binary_provider == Some("opencode") && OPENCODE_EXEC_ALLOWED_ARGS.iter().any(matches))
+        || (binary_provider == Some("grok")
+            && args.len() == 4
+            && args[0] == "--no-auto-update"
+            && args[1] == "sessions"
+            && args[2] == "delete"
+            && args[3].len() == 36
+            && uuid::Uuid::parse_str(&args[3]).is_ok())
 }
 
 /// Must be a path a resolver would hand back, not an arbitrary binary
@@ -1348,16 +1416,39 @@ pub(crate) fn is_resolved_harness_binary(
     resolved.is_ok_and(|path| path == Path::new(command))
 }
 
-/// One-shot capture of stdout (used for `cursor-agent --list-models`).
+#[derive(Deserialize)]
+pub struct OpenCodeV2Spawn {
+    password: String,
+}
+
+/// One-shot provider commands: catalog probes and temporary-session cleanup.
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HarnessModelContext {
+    connection_id: Option<String>,
+    model: Option<String>,
+    session_id: Option<String>,
+}
+
 #[tauri::command]
 pub async fn harness_exec(
+    app: AppHandle,
     command: String,
     args: Vec<String>,
     cwd: Option<String>,
     binary_provider: Option<String>,
     binary_path: Option<String>,
+    model_context: Option<HarnessModelContext>,
 ) -> Result<String, String> {
-    if !exec_args_allowed(&args) {
+    if args == ["service", "stop"]
+        && model_context
+            .as_ref()
+            .and_then(|context| context.session_id.as_ref())
+            .is_none()
+    {
+        return Err("Only private OpenCode services can be stopped from MyCode".into());
+    }
+    if !exec_args_allowed(binary_provider.as_deref(), &args) {
         return Err("harness_exec: unsupported arguments".into());
     }
     tauri::async_runtime::spawn_blocking(move || {
@@ -1365,7 +1456,26 @@ pub async fn harness_exec(
         {
             return Err("harness_exec: not a resolved harness CLI".to_string());
         }
-        exec_capture(&command, &args, cwd.as_deref())
+        let output = exec_configured_output(
+            &command,
+            &args,
+            cwd.as_deref(),
+            EXEC_TIMEOUT,
+            Some((
+                &app,
+                binary_provider.as_deref(),
+                model_context
+                    .as_ref()
+                    .and_then(|context| context.connection_id.as_deref()),
+                model_context
+                    .as_ref()
+                    .and_then(|context| context.model.as_deref()),
+                model_context
+                    .as_ref()
+                    .and_then(|context| context.session_id.as_deref()),
+            )),
+        )?;
+        capture_output(output)
     })
     .await
     .map_err(|e| e.to_string())?
@@ -1373,6 +1483,10 @@ pub async fn harness_exec(
 
 fn exec_capture(command: &str, args: &[String], cwd: Option<&str>) -> Result<String, String> {
     let output = exec_output(command, args, cwd, EXEC_TIMEOUT)?;
+    capture_output(output)
+}
+
+fn capture_output(output: std::process::Output) -> Result<String, String> {
     let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
     if output.status.success() || !stdout.trim().is_empty() {
         return Ok(stdout);
@@ -1389,12 +1503,57 @@ pub(crate) fn exec_output(
     cwd: Option<&str>,
     timeout: Duration,
 ) -> Result<std::process::Output, String> {
+    exec_configured_output(command, args, cwd, timeout, None)
+}
+
+type ConfiguredExecContext<'a> = (
+    &'a AppHandle,
+    Option<&'a str>,
+    Option<&'a str>,
+    Option<&'a str>,
+    Option<&'a str>,
+);
+
+fn exec_configured_output(
+    command: &str,
+    args: &[String],
+    cwd: Option<&str>,
+    timeout: Duration,
+    context: Option<ConfiguredExecContext<'_>>,
+) -> Result<std::process::Output, String> {
     let mut cmd = Command::new(command);
     cmd.args(args)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
     prepare_child(&mut cmd, command);
+    if let Some((app, provider, connection, model, session)) = context {
+        let service = args.first().is_some_and(|a| a == "service");
+        crate::local_ai::configure_child(app, &mut cmd, provider, connection, model, !service)?;
+        if service && provider == Some("opencode") {
+            let raw = cmd
+                .get_envs()
+                .find(|(key, _)| *key == "OPENCODE_CONFIG_CONTENT")
+                .and_then(|(_, value)| value)
+                .map(|value| value.to_string_lossy().into_owned());
+            if let Some(raw) = raw {
+                let value: serde_json::Value =
+                    serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+                cmd.env(
+                    "OPENCODE_CONFIG_CONTENT",
+                    serde_json::to_string(&crate::opencode_profile::config_v2(value))
+                        .map_err(|e| e.to_string())?,
+                );
+            }
+        }
+        if let Some(session) = session {
+            crate::session_store::validate_id(session, "session")?;
+            crate::control::configure_child(app, session, &mut cmd);
+        }
+        if provider == Some("opencode") && (connection.is_some() || session.is_some()) && service {
+            prepare_private_opencode(app, &mut cmd, cwd, connection, session)?;
+        }
+    }
     if let Some(dir) = cwd {
         let workdir = expand_home(dir);
         if workdir.is_dir() {
@@ -1402,7 +1561,17 @@ pub(crate) fn exec_output(
         }
     }
 
-    let child = spawn_managed(&mut cmd).map_err(|e| format!("Failed to run {command}: {e}"))?;
+    // OpenCode 2 service start deliberately detaches its daemon. A kill-on-close
+    // Windows job would otherwise kill the service when the start command exits.
+    let service_command = context
+        .is_some_and(|(_, provider, _, _, _)| provider == Some("opencode"))
+        && args.first().is_some_and(|arg| arg == "service");
+    let child = if service_command {
+        cmd.spawn()
+    } else {
+        spawn_managed(&mut cmd)
+    }
+    .map_err(|e| format!("Failed to run {command}: {e}"))?;
     let pid = child.id();
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || {
@@ -1417,6 +1586,179 @@ pub(crate) fn exec_output(
             Err(format!("{command} timed out"))
         }
     }
+}
+
+fn prepare_private_opencode(
+    app: &AppHandle,
+    cmd: &mut Command,
+    cwd: Option<&str>,
+    connection: Option<&str>,
+    session: Option<&str>,
+) -> Result<(), String> {
+    let raw = cmd
+        .get_envs()
+        .find(|(key, _)| *key == "OPENCODE_CONFIG_CONTENT")
+        .and_then(|(_, value)| value)
+        .map(|value| value.to_string_lossy().into_owned());
+    if let Some(raw) = raw {
+        let value = crate::opencode_profile::config_v2(
+            serde_json::from_str(&raw).map_err(|e| e.to_string())?,
+        );
+        cmd.env(
+            "OPENCODE_CONFIG_CONTENT",
+            serde_json::to_string(&value).map_err(|e| e.to_string())?,
+        );
+    }
+    use sha2::{Digest, Sha256};
+    let profile = format!(
+        "{:x}",
+        Sha256::digest(
+            format!(
+                "{}:{}",
+                session.unwrap_or("default"),
+                connection.unwrap_or("builtin")
+            )
+            .as_bytes()
+        )
+    );
+    let base = if let Some(cwd) = cwd {
+        crate::cache_location::project_storage(&expand_home(cwd))?
+    } else {
+        PathBuf::from(crate::cache_location::workspace(app)?).join(".mycode")
+    };
+    let home = base.join("opencode-services").join(profile);
+    std::fs::create_dir_all(&home).map_err(|e| e.to_string())?;
+    if let Ok(mut ignore) = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(home.join(".gitignore"))
+    {
+        ignore.write_all(b"*\n").map_err(|e| e.to_string())?;
+    }
+    cmd.env("OPENCODE_DB", home.join("opencode/opencode.db"));
+    #[cfg(windows)]
+    if !home.join(".private-permissions").exists() {
+        let literal = home.to_string_lossy().replace('\'', "''");
+        let script = format!(
+            "{}\nProtect-MonoCodeDirectory '{}'",
+            include_str!("../../host/windows-acl.ps1"),
+            literal
+        );
+        let shell =
+            PathBuf::from(std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into()))
+                .join("System32/WindowsPowerShell/v1.0/powershell.exe");
+        let mut protect = Command::new(shell);
+        crate::hide_window_console(&mut protect);
+        use base64::Engine;
+        let encoded = base64::engine::general_purpose::STANDARD.encode(
+            script
+                .encode_utf16()
+                .flat_map(u16::to_le_bytes)
+                .collect::<Vec<_>>(),
+        );
+        protect
+            .args([
+                "-NoLogo",
+                "-NoProfile",
+                "-NonInteractive",
+                "-EncodedCommand",
+                &encoded,
+            ])
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped());
+        let child = protect.spawn().map_err(|e| e.to_string())?;
+        let output = child.wait_with_output().map_err(|e| e.to_string())?;
+        if !output.status.success() {
+            return Err("Cannot protect private OpenCode storage".into());
+        }
+        std::fs::write(home.join(".private-permissions"), b"1").map_err(|e| e.to_string())?;
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&home, std::fs::Permissions::from_mode(0o700))
+            .map_err(|e| e.to_string())?;
+    }
+    if connection.is_none() {
+        if let Some(user_home) = crate::dirs_home() {
+            let source = std::env::var_os("XDG_DATA_HOME")
+                .map(PathBuf::from)
+                .map(|root| root.join("opencode/auth.json"))
+                .filter(|path| path.is_file())
+                .unwrap_or_else(|| {
+                    PathBuf::from(&user_home).join(".local/share/opencode/auth.json")
+                });
+            let target = home.join("opencode/auth.json");
+            if source.is_file() && !target.exists() {
+                std::fs::create_dir_all(target.parent().unwrap()).map_err(|e| e.to_string())?;
+                std::fs::copy(&source, &target).map_err(|e| e.to_string())?;
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    std::fs::set_permissions(&target, std::fs::Permissions::from_mode(0o600))
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+            let source_db = std::env::var_os("OPENCODE_DB")
+                .map(PathBuf::from)
+                .unwrap_or_else(|| source.with_file_name("opencode.db"));
+            if crate::opencode_profile::is_v2_database(&source_db) {
+                cmd.env("OPENCODE_DB", source_db);
+            }
+        }
+    }
+    let mut configuration = serde_json::json!({});
+    if let Some(user_home) = crate::dirs_home() {
+        let global_config = PathBuf::from(user_home).join(".config/opencode");
+        for name in ["opencode.json", "opencode.jsonc"] {
+            if let Ok(raw) = std::fs::read_to_string(global_config.join(name)) {
+                if let Ok(value) =
+                    serde_json::from_str::<serde_json::Value>(&crate::mcp::strip_jsonc(&raw))
+                {
+                    crate::opencode_profile::merge(
+                        &mut configuration,
+                        crate::opencode_profile::config_v2(value),
+                    );
+                }
+            }
+        }
+    }
+    let inline = cmd
+        .get_envs()
+        .find(|(key, _)| *key == "OPENCODE_CONFIG_CONTENT")
+        .and_then(|(_, value)| value)
+        .map(|v| v.to_string_lossy().into_owned());
+    if let Some(inline) = inline {
+        crate::opencode_profile::merge(
+            &mut configuration,
+            serde_json::from_str(&inline).map_err(|e| e.to_string())?,
+        );
+    }
+    crate::opencode_profile::environment_secrets(&mut configuration, cmd, "config");
+    let config_path = home.join("opencode/opencode.json");
+    std::fs::create_dir_all(config_path.parent().unwrap()).map_err(|e| e.to_string())?;
+    std::fs::write(
+        &config_path,
+        serde_json::to_vec(&configuration).map_err(|e| e.to_string())?,
+    )
+    .map_err(|e| e.to_string())?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&config_path, std::fs::Permissions::from_mode(0o600))
+            .map_err(|e| e.to_string())?;
+    }
+    cmd.env("OPENCODE_CONFIG", &config_path);
+    if let Some(cwd) = cwd {
+        crate::cache_location::configure_task(cmd, &expand_home(cwd))?;
+    }
+    // Only this child gets a private home; existing global CLI credentials stay untouched.
+    for key in ["XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME"] {
+        cmd.env(key, &home);
+    }
+    cmd.env("OPENCODE_CONFIG_DIR", home.join("opencode"));
+    Ok(())
 }
 
 const KILL_ESCALATE: Duration = Duration::from_secs(2);
@@ -3510,6 +3852,106 @@ mod tests {
 
     #[cfg(unix)]
     #[test]
+    fn mcp_commands_use_active_configured_binaries() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let root =
+            std::env::temp_dir().join(format!("monocode-mcp-binaries-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&root).unwrap();
+        let host = HarnessHost::new();
+        let mut paths = HashMap::new();
+        for (provider, filename) in [
+            ("claude", "claude"),
+            ("codex", "codex"),
+            ("cursor", "cursor-agent"),
+            ("opencode", "opencode"),
+        ] {
+            let binary = root.join(filename);
+            std::fs::write(
+                &binary,
+                format!("#!/bin/sh\nif [ \"$1\" = --version ]; then echo '{provider} 2.3.4'; else printf '%s\\n' \"$@\"; fi\n"),
+            ).unwrap();
+            std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o755)).unwrap();
+            paths.insert(provider.to_string(), binary.to_string_lossy().into_owned());
+        }
+        initialize_runtime_binary_paths(&host.runtime_binary_paths, paths.clone());
+        initialize_runtime_binary_paths(&host.runtime_binary_paths, HashMap::new());
+        let cwd = root.to_string_lossy().into_owned();
+        for (provider, path) in &paths {
+            let active = host.runtime_binary_path(provider).unwrap();
+            assert_eq!(&active, path);
+            let binary = resolve_mcp_binary(provider, Some(&active)).unwrap();
+            assert_eq!(binary, PathBuf::from(path));
+            assert_eq!(
+                mcp_command(
+                    binary,
+                    vec!["mcp".into(), "login".into(), "docs".into()],
+                    cwd.clone(),
+                    Duration::from_secs(5),
+                )
+                .unwrap(),
+                "mcp\nlogin\ndocs"
+            );
+        }
+        assert_eq!(
+            claude_mcp_command(
+                vec!["mcp".into(), "list".into()],
+                cwd.clone(),
+                Duration::from_secs(5),
+                paths.get("claude").map(String::as_str),
+            )
+            .unwrap(),
+            "mcp\nlist"
+        );
+        for provider in ["claude", "codex"] {
+            let config = serde_json::json!({"command":"node","args":["docs"]});
+            let (binary, args) = mcp_add_args(
+                provider,
+                "user",
+                "docs",
+                &config,
+                paths.get(provider).map(String::as_str),
+            )
+            .unwrap();
+            assert_eq!(binary, PathBuf::from(&paths[provider]));
+            assert_eq!(
+                &args[..3],
+                [
+                    "mcp",
+                    if provider == "claude" {
+                        "add-json"
+                    } else {
+                        "add"
+                    },
+                    "docs"
+                ]
+            );
+            add_mcp_via_cli(
+                provider,
+                "user",
+                &cwd,
+                "docs",
+                &config,
+                paths.get(provider).map(String::as_str),
+            )
+            .unwrap();
+        }
+        assert_eq!(
+            opencode_major_version(&cwd, paths.get("opencode").map(String::as_str)),
+            Ok(2)
+        );
+        assert!(resolve_mcp_binary(
+            "claude",
+            Some(&root.join("missing/claude").to_string_lossy())
+        )
+        .is_err());
+        assert!(resolve_mcp_binary("claude", paths.get("codex").map(String::as_str)).is_err());
+        assert!(resolve_mcp_binary("pi", paths.get("claude").map(String::as_str)).is_err());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
     fn configured_binary_paths_fail_closed_and_stay_exact() {
         use std::os::unix::fs::PermissionsExt;
 
@@ -3903,22 +4345,66 @@ mod exec_allowlist_tests {
 
     #[test]
     fn allows_known_catalog_args() {
-        assert!(exec_args_allowed(&args(&["--version"])));
-        assert!(exec_args_allowed(&args(&["--list-models"])));
-        assert!(exec_args_allowed(&args(&["models", "--verbose"])));
-        assert!(exec_args_allowed(&args(&["models", "--json"])));
-        assert!(exec_args_allowed(&args(&["models"])));
-        assert!(exec_args_allowed(&args(&["status", "--json"])));
-        assert!(exec_args_allowed(&args(&["agent", "list"])));
+        for provider in [None, Some("cursor"), Some("opencode")] {
+            assert!(exec_args_allowed(provider, &args(&["--version"])));
+            assert!(exec_args_allowed(provider, &args(&["--list-models"])));
+            assert!(exec_args_allowed(provider, &args(&["models", "--verbose"])));
+            assert!(exec_args_allowed(provider, &args(&["models", "--json"])));
+            assert!(exec_args_allowed(provider, &args(&["models"])));
+            assert!(exec_args_allowed(provider, &args(&["status", "--json"])));
+            assert!(exec_args_allowed(provider, &args(&["agent", "list"])));
+        }
+    }
+
+    #[test]
+    fn allows_service_args_only_for_opencode() {
+        for service in [
+            &["service", "status"][..],
+            &["service", "start"][..],
+            &["service", "stop"][..],
+            &["service", "get", "password"][..],
+        ] {
+            assert!(exec_args_allowed(Some("opencode"), &args(service)));
+            assert!(!exec_args_allowed(None, &args(service)));
+            assert!(!exec_args_allowed(Some("cursor"), &args(service)));
+        }
+    }
+
+    #[test]
+    fn allows_grok_cleanup_only_for_one_valid_session_id() {
+        let cleanup = args(&[
+            "--no-auto-update",
+            "sessions",
+            "delete",
+            "550e8400-e29b-41d4-a716-446655440000",
+        ]);
+        assert!(exec_args_allowed(Some("grok"), &cleanup));
+        for provider in [None, Some("cursor"), Some("opencode")] {
+            assert!(!exec_args_allowed(provider, &cleanup));
+        }
+        for id in ["", "--all", "../sessions", "invalid"] {
+            let mut rejected = cleanup.clone();
+            rejected[3] = id.to_string();
+            assert!(!exec_args_allowed(Some("grok"), &rejected));
+        }
+        let mut extra = cleanup;
+        extra.push("--all".to_string());
+        assert!(!exec_args_allowed(Some("grok"), &extra));
     }
 
     #[test]
     fn rejects_other_args() {
-        assert!(!exec_args_allowed(&args(&[])));
-        assert!(!exec_args_allowed(&args(&["--help"])));
-        assert!(!exec_args_allowed(&args(&["--version", "--json"])));
-        assert!(!exec_args_allowed(&args(&["-c", "id"])));
-        assert!(!exec_args_allowed(&args(&["agent", "list", "--json"])));
+        for rejected in [
+            &[][..],
+            &["--help"][..],
+            &["--version", "--json"][..],
+            &["-c", "id"][..],
+            &["agent", "list", "--json"][..],
+            &["service", "get"][..],
+            &["service", "status", "--json"][..],
+        ] {
+            assert!(!exec_args_allowed(Some("opencode"), &args(rejected)));
+        }
     }
 }
 

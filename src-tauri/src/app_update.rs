@@ -10,23 +10,43 @@ use tauri::{AppHandle, Emitter};
 
 static LOCK: Mutex<()> = Mutex::new(());
 fn installer(_app: &AppHandle, version: &str) -> Result<PathBuf, String> {
-    if version.split('.').count() != 3
-        || !version
+    let (base, prerelease) = version
+        .split_once('-')
+        .map_or((version, None), |(base, pre)| (base, Some(pre)));
+    if base.split('.').count() != 3
+        || !base
             .split('.')
             .all(|p| !p.is_empty() && p.chars().all(|c| c.is_ascii_digit()))
+        || prerelease.is_some_and(|pre| {
+            pre.is_empty()
+                || pre.len() > 40
+                || !pre
+                    .bytes()
+                    .all(|c| c.is_ascii_alphanumeric() || c == b'.' || c == b'-')
+        })
     {
         return Err("Invalid release version".into());
     }
     let dir = crate::cache_location::root().join("updates");
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    Ok(dir.join(format!("MyCode_{version}_x64-setup.exe")))
+    Ok(dir.join(if cfg!(target_os = "linux") {
+        format!(
+            "MyCode_{version}_{}.AppImage",
+            match std::env::consts::ARCH {
+                "x86_64" => "amd64",
+                arch => arch,
+            }
+        )
+    } else {
+        format!("MyCode_{version}_x64-setup.exe")
+    }))
 }
 
 #[tauri::command(async)]
 pub fn app_update_download(app: AppHandle, version: String) -> Result<(), String> {
     let _lock = LOCK.lock().map_err(|e| e.to_string())?;
-    if !cfg!(windows) {
-        return Err("In-app installation is currently supported on Windows.".into());
+    if !cfg!(any(windows, target_os = "linux")) {
+        return Err("In-app installation is supported on Windows and Linux AppImage.".into());
     }
     let target = installer(&app, &version)?;
     let agent = crate::managed_cli::download_agent();
@@ -42,14 +62,17 @@ pub fn app_update_download(app: AppHandle, version: String) -> Result<(), String
             .map_err(|e| e.to_string())?,
     )
     .map_err(|e| e.to_string())?;
-    if release["draft"] == true || release["prerelease"] == true {
+    if release["draft"] == true
+        || (release["prerelease"] == true && !version.contains('-'))
+        || release["tag_name"].as_str() != Some(&format!("v{version}"))
+    {
         return Err("Invalid release".into());
     }
     let name = target.file_name().unwrap().to_string_lossy();
     let asset = release["assets"]
         .as_array()
         .and_then(|a| a.iter().find(|v| v["name"].as_str() == Some(&name)))
-        .ok_or("Windows installer is not available")?;
+        .ok_or("Installer is not available for this platform")?;
     let digest = asset["digest"]
         .as_str()
         .and_then(|s| s.strip_prefix("sha256:"))
@@ -109,9 +132,35 @@ pub fn app_update_install(app: AppHandle, version: String) -> Result<(), String>
     if format!("{:x}", Sha256::digest(data)) != expected {
         return Err("Installer checksum mismatch".into());
     }
+    #[cfg(target_os = "linux")]
+    let target = replace_appimage(&target)?;
     let mut command = std::process::Command::new(target);
     crate::hide_window_console(&mut command);
     command.spawn().map_err(|e| e.to_string())?;
     app.exit(0);
     Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn replace_appimage(download: &std::path::Path) -> Result<PathBuf, String> {
+    use std::os::unix::fs::PermissionsExt;
+    let current = std::env::var_os("APPIMAGE").map(PathBuf::from).ok_or(
+        "Only AppImage installations can update themselves. Use your package manager for deb/rpm.",
+    )?;
+    let current = current.canonicalize().map_err(|e| e.to_string())?;
+    if !current.is_file() {
+        return Err("AppImage installation is missing".into());
+    }
+    let parent = current.parent().ok_or("Invalid AppImage installation")?;
+    let id = uuid::Uuid::new_v4();
+    let next = parent.join(format!(".mycode-update-{id}.AppImage"));
+    let backup = parent.join(format!("MyCode-previous-{id}.AppImage"));
+    fs::copy(download, &next).map_err(|e| e.to_string())?;
+    fs::set_permissions(&next, fs::Permissions::from_mode(0o755)).map_err(|e| e.to_string())?;
+    fs::rename(&current, &backup).map_err(|e| e.to_string())?;
+    if let Err(error) = fs::rename(&next, &current) {
+        let _ = fs::rename(&backup, &current);
+        return Err(error.to_string());
+    }
+    Ok(current)
 }
