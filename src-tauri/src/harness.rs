@@ -3852,7 +3852,7 @@ mod tests {
 
     #[cfg(unix)]
     #[test]
-    fn mcp_commands_use_active_configured_binaries() {
+    fn mcp_commands_use_active_configured_binaries_for_provider_probes() {
         use std::os::unix::fs::PermissionsExt;
 
         let root =
