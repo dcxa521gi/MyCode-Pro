@@ -1,4 +1,4 @@
-import { translate as t, formatMessage } from "../../../shared/i18n";
+import { translate as t, formatMessage, getLocale } from "../../../shared/i18n";
 import {
   useEffect,
   useState,
@@ -19,12 +19,12 @@ import {
   type HabitRun,
 } from "../model/monoHabits";
 
-const dayTime = new Intl.DateTimeFormat(undefined, {
+const dayTime = () => new Intl.DateTimeFormat(getLocale(), {
   weekday: "short",
   hour: "numeric",
   minute: "2-digit",
 });
-const dateTime = new Intl.DateTimeFormat(undefined, {
+const dateTime = () => new Intl.DateTimeFormat(getLocale(), {
   month: "short",
   day: "numeric",
   hour: "numeric",
@@ -36,14 +36,14 @@ export function when(at: number, now = Date.now()): string {
   const today = new Date(now);
   if (date.toDateString() === today.toDateString())
     return formatMessage("Today {value0}", {
-      value0: new Intl.DateTimeFormat(undefined, {
+      value0: new Intl.DateTimeFormat(getLocale(), {
         hour: "numeric",
         minute: "2-digit",
       }).format(at),
     });
   return now - at < 6 * 24 * 60 * 60 * 1000
-    ? dayTime.format(at)
-    : dateTime.format(at);
+    ? dayTime().format(at)
+    : dateTime().format(at);
 }
 
 function duration(ms: number): string {

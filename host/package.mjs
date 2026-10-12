@@ -9,6 +9,12 @@ import {
 } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { resolve, join } from "node:path";
+import {
+  packageDirectory,
+  runtimeDirectory,
+  canExecutePackagedRuntime,
+} from "./package-policy.mjs";
+import { writeHostTarGzip, verifyHostTarGzip } from "./package-tar.mjs";
 
 // Official Node release checksums, pinned so release builds are reproducible.
 // https://nodejs.org/dist/v24.21.0/SHASUMS256.txt
@@ -34,13 +40,17 @@ const ps = (script) =>
     [
       "-NoProfile",
       "-NonInteractive",
+      "-OutputFormat",
+      "Text",
       "-EncodedCommand",
       Buffer.from(
-        `$ErrorActionPreference = 'Stop'; ${script}`,
+        `$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue'; ${script}`,
         "utf16le",
       ).toString("base64"),
     ],
     {
+      windowsHide: true,
+      stdio: ["ignore", "pipe", "pipe"],
       // Avoid loading inherited PowerShell 7 modules in Windows PowerShell 5.1.
       env: Object.fromEntries(
         Object.entries(process.env).filter(
@@ -60,7 +70,7 @@ await mkdir(output, { recursive: true });
 await mkdir(cache, { recursive: true });
 const { version } = JSON.parse(await readFile("package.json", "utf8"));
 for (const target of targets) {
-  if (!(target in runtimes))
+  if (!Object.hasOwn(runtimes, target))
     throw new Error(`Unsupported host target: ${target}`);
   const windows = target.startsWith("win32-");
   const extension = windows ? "zip" : "tar.gz";
@@ -87,7 +97,7 @@ for (const target of targets) {
       throw new Error("Node runtime checksum mismatch");
     await writeFile(archive, bytes);
   }
-  const folder = join(output, target);
+  const folder = await packageDirectory(output, target, Object.keys(runtimes));
   await rm(folder, { recursive: true, force: true });
   await mkdir(folder, { recursive: true });
   if (windows) {
@@ -101,7 +111,10 @@ for (const target of targets) {
         join(folder, "node.exe"),
       );
       await copyFile(join(unpacked, stem, "LICENSE"), join(folder, "LICENSE"));
-      await rm(unpacked, { recursive: true, force: true });
+      await rm(await runtimeDirectory(folder), {
+        recursive: true,
+        force: true,
+      });
     } else {
       execFileSync("unzip", [
         "-q",
@@ -142,7 +155,7 @@ for (const target of targets) {
     );
     await chmod(join(folder, "monocode-host"), 0o755);
   }
-  if (target === `${process.platform}-${process.arch}`) {
+  if (canExecutePackagedRuntime(target)) {
     const executable = windows
       ? join(folder, "node.exe")
       : join(folder, "bin/node");
@@ -151,6 +164,7 @@ for (const target of targets) {
       [join(folder, "host.mjs"), "--version"],
       {
         encoding: "utf8",
+        windowsHide: true,
       },
     ).trim();
     if (actual !== version)
@@ -167,8 +181,10 @@ for (const target of targets) {
       execFileSync("zip", ["-q", "-r", join(output, filename), "."], {
         cwd: folder,
       });
-  } else
-    execFileSync("tar", ["-czf", join(output, filename), "-C", folder, "."]);
+  } else {
+    await writeHostTarGzip(folder, join(output, filename));
+    await verifyHostTarGzip(join(output, filename));
+  }
   const hash = createHash("sha256")
     .update(await readFile(join(output, filename)))
     .digest("hex");

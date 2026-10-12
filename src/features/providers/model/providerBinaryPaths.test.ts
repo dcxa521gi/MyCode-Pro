@@ -26,6 +26,26 @@ afterEach(() => {
 });
 
 describe("provider binary paths", () => {
+  it("ignores retired and unknown stored CLIs while preserving the active Devin path", async () => {
+    const stored = JSON.stringify({
+      freebuff: "/old/freebuff",
+      omp: "/old/omp",
+      devin: "/app/devin",
+      codex: "/app/codex",
+    });
+    vi.mocked(localStorage.getItem).mockImplementation(() => stored);
+    mocks.invoke.mockResolvedValue({
+      devin: "/app/devin",
+      codex: "/app/codex",
+    });
+    vi.resetModules();
+    const paths = await import("./providerBinaryPaths");
+    await paths.initializeProviderBinaryPaths();
+    expect(mocks.invoke).toHaveBeenCalledWith("harness_runtime_binary_paths", {
+      paths: { devin: "/app/devin", codex: "/app/codex" },
+    });
+    expect(paths.runtimeProviderBinaryPath("devin")).toBe("/app/devin");
+  });
   it("repairs malformed storage when saving a path", () => {
     let stored = "not json";
     vi.mocked(localStorage.getItem).mockImplementation(() => stored);

@@ -5,7 +5,9 @@ import * as appearance from "./appearance";
 
 const platform = vi.hoisted(() => ({ isWindows: true }));
 vi.mock("../../../platform/tauri/platform", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../../../platform/tauri/platform")>()),
+  ...(await importOriginal<
+    typeof import("../../../platform/tauri/platform")
+  >()),
   get IS_WIN() {
     return platform.isWindows;
   },
@@ -201,4 +203,24 @@ it("disables close-to-tray outside Windows without consulting storage", () => {
 
   expect(settings.loadCloseToTray()).toBe(false);
   expect(read).not.toHaveBeenCalled();
+});
+
+it("persists every supported idle agent limit, including None", () => {
+  expect(settings.loadIdleAgentLimit()).toBe(settings.IDLE_AGENT_LIMIT_DEFAULT);
+  for (const limit of settings.IDLE_AGENT_LIMITS) {
+    settings.saveIdleAgentLimit(limit);
+    expect(settings.loadIdleAgentLimit()).toBe(limit);
+  }
+});
+
+it("ignores invalid idle agent limits and tolerates unavailable storage", () => {
+  for (const invalid of ["-1", "4", "NaN", "true"]) {
+    localStorage.setItem("monocode.idleAgentLimit", invalid);
+    expect(settings.loadIdleAgentLimit()).toBe(
+      settings.IDLE_AGENT_LIMIT_DEFAULT,
+    );
+  }
+  vi.stubGlobal("localStorage", undefined);
+  expect(settings.loadIdleAgentLimit()).toBe(settings.IDLE_AGENT_LIMIT_DEFAULT);
+  expect(() => settings.saveIdleAgentLimit(0)).not.toThrow();
 });

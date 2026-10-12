@@ -184,7 +184,7 @@ export function MonoDetails({
     <MonoSidebar
       open={open}
       kind="details"
-      label={`${agent.name} details`}
+      label={formatMessage("{name} details", { name: agent.name })}
       color={agent.color}
       windowControls={windowControls}
     >

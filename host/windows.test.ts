@@ -32,6 +32,25 @@ const temporary = () => {
   return dir;
 };
 
+it("keeps the installed task identity while updating its human-readable branding", () => {
+  const script = windowsTaskScript(
+    {
+      directory: "C:/host",
+      port: 3774,
+      executable: "C:/node.exe",
+      entry: "C:/host/host.mjs",
+    },
+    "C:/bin",
+  );
+  expect(script).toContain('$name = "MonoCode Host-$sid"');
+  expect(script).toContain(
+    "-Description 'MyCode remote agent host for this user'",
+  );
+  expect(script).not.toContain(
+    "-Description 'MonoCode remote agent host for this user'",
+  );
+});
+
 it("runs npm provider entry points directly with literal arguments and bundled Node", async () => {
   const directory = temporary();
   const entry = join(directory, "node_modules/@openai/codex/bin/codex.js");

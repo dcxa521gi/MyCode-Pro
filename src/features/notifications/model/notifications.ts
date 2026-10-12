@@ -9,6 +9,7 @@ import {
   allowsProjectNotification,
   type NotificationSubject,
 } from "./notificationPreferences";
+import { monoReplyText } from "../../monos/model/monoReaction";
 import { knownNotificationProject } from "./notificationProjects";
 
 const KEY = "monocode.notifications";
@@ -207,7 +208,7 @@ export function notificationText(
   return {
     title,
     subtitle,
-    body: clip(reply?.text || `${harness} finished`),
+    body: clip((reply && monoReplyText(reply.text)) || `${harness} finished`),
   };
 }
 

@@ -94,8 +94,8 @@ export function MonoSettingsPage({
         </nav>
         <div className="mt-auto p-2">
           <NavRow
-            label="Settings"
-            description="Its sessions, and resetting its chat."
+            label={t("Settings")}
+            description={t("Its sessions, and resetting its chat.")}
             onClick={() => onOpen("settings")}
           />
         </div>

@@ -1,4 +1,4 @@
-import { translate as t, formatMessage } from "../../../shared/i18n";
+import { translate as t, formatMessage, getLocale } from "../../../shared/i18n";
 import { useRef, useState } from "react";
 import { isImeComposition } from "../../../shared/lib/keyboard";
 import { IconButton } from "../../../app/shell/TitleBar";
@@ -27,14 +27,14 @@ import {
   PageHeader,
 } from "./monoPanelParts";
 
-const dateFormat = new Intl.DateTimeFormat(undefined, {
+const dateFormat = () => new Intl.DateTimeFormat(getLocale(), {
   month: "short",
   day: "numeric",
 });
 
 function shortDate(date: string): string {
   const [year, month, day] = date.split("-").map(Number);
-  return dateFormat.format(new Date(year, month - 1, day));
+  return dateFormat().format(new Date(year, month - 1, day));
 }
 
 type MemoryFact = MemoryLine & { line: string };
@@ -74,7 +74,7 @@ export function SoulPage({
             file="soul"
             value={files.soul}
             hash={files.soulHash}
-            label={`${agent.name} soul`}
+            label={formatMessage("{name} soul", { name: agent.name })}
             author={agent.name}
             placeholder={t("Who it is, and what it should always keep in mind")}
           />

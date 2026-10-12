@@ -248,7 +248,7 @@ export function FloatingMonoChat({ onShown }: { onShown: () => void }) {
               />
             ) : (
               <img
-                src="/monocode.png"
+                src="/mycode-icon.png"
                 alt=""
                 className="size-18 object-contain"
               />
@@ -452,7 +452,7 @@ function FloatingConversation({
           onOpenArtifact={onOpenArtifact}
           onOpenDiff={() => void action({ kind: "reveal" })}
           onShowWork={() => void action({ kind: "reveal" })}
-          onShowSessions={() => void action({ kind: "reveal" })}
+          onOpenSession={() => void action({ kind: "reveal" })}
         />
       </div>
       {session.pendingQuestion ? (

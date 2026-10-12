@@ -54,6 +54,55 @@ afterEach(() => {
 });
 
 describe("application CLI updates", () => {
+  it("rejects obsolete Freebuff resolution before invoking native commands", async () => {
+    const { resolveHarnessBinary } = await loadChild();
+    await expect(resolveHarnessBinary("freebuff" as never)).rejects.toThrow(
+      "no longer supported",
+    );
+    expect(mocks.invoke).not.toHaveBeenCalled();
+  });
+
+  it("keeps Devin edit approvals separate from OpenCode V2 credentials", async () => {
+    mocks.invoke.mockResolvedValue(42);
+    const { spawnChild } = await loadChild();
+    await spawnChild(
+      "devin-thread",
+      "/devin",
+      ["acp"],
+      "/work",
+      undefined,
+      "devin",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
+    expect(mocks.invoke).toHaveBeenCalledWith(
+      "harness_spawn",
+      expect.objectContaining({ binaryProvider: "devin", devinAskEdits: true }),
+    );
+    expect(mocks.invoke.mock.calls[0][1]).not.toHaveProperty("opencodeV2");
+    await spawnChild(
+      "opencode-thread",
+      "/opencode",
+      ["serve"],
+      "/work",
+      undefined,
+      "opencode",
+      undefined,
+      undefined,
+      undefined,
+      { password: "fixture-only" },
+    );
+    expect(mocks.invoke).toHaveBeenLastCalledWith(
+      "harness_spawn",
+      expect.objectContaining({ opencodeV2: { password: "fixture-only" } }),
+    );
+    expect(mocks.invoke.mock.calls.at(-1)![1]).not.toHaveProperty(
+      "devinAskEdits",
+    );
+  });
   it("verifies and activates the installer path instead of probing the old CLI", async () => {
     vi.stubGlobal("localStorage", { getItem: () => null, setItem: vi.fn() });
     vi.stubGlobal("window", {
@@ -245,6 +294,7 @@ describe("child bridge", () => {
               fx: "/opt/fx/bin/fx",
               hermes: "/opt/hermes/bin/hermes",
               antigravity: "/opt/antigravity/bin/agy_acp_server.par",
+              devin: "/opt/devin/bin/devin",
             })
           : null,
     });
@@ -262,14 +312,8 @@ describe("child bridge", () => {
       ["cursor", "/opt/cursor/bin/cursor-agent", child.resolveCursorBinary],
       ["grok", "/opt/grok/bin/grok", child.resolveGrokBinary],
       ["pi", "/opt/pi/bin/pi", child.resolvePiBinary],
-      ["omp", "/opt/omp/bin/omp", child.resolveOmpBinary],
-      ["fx", "/opt/fx/bin/fx", child.resolveFxBinary],
       ["hermes", "/opt/hermes/bin/hermes", child.resolveHermesBinary],
-      [
-        "antigravity",
-        "/opt/antigravity/bin/agy_acp_server.par",
-        child.resolveAntigravityBinary,
-      ],
+      ["devin", "/opt/devin/bin/devin", child.resolveDevinBinary],
     ] as const) {
       await resolve();
       expect(mocks.invoke).toHaveBeenLastCalledWith(
@@ -374,6 +418,38 @@ describe("child bridge", () => {
     child.watchSse("mine", (data) => events.push(data));
     expect(lines).toEqual(["early"]);
     expect(events).toEqual(["early-event"]);
+    release();
+  });
+
+  it("unpacks batched stdout and SSE in order, as if sent line by line", async () => {
+    installResolvedListeners();
+    const child = await loadChild();
+    const release = await child.acquireHarnessBridge();
+    const emit = (name: string, payload: unknown) =>
+      mocks.handlers.get(name)?.({ payload: payload as never });
+    mocks.invoke.mockResolvedValue(42);
+
+    await child.spawnChild("mine", "agent", [], "/tmp");
+    await child.openHarnessSse("mine", "http://127.0.0.1:1/event");
+    emit("harness-stdout", { sessionId: "mine", lines: ["early1", "early2"] });
+    const lines: string[] = [];
+    child.watchChild(
+      "mine",
+      (line) => {
+        lines.push(line);
+        if (line === "b") child.unwatchChild("mine");
+      },
+      vi.fn(),
+    );
+    expect(lines).toEqual(["early1", "early2"]);
+    // Retiring the child mid-batch drops the rest, like later single events.
+    emit("harness-stdout", { sessionId: "mine", lines: ["a", "b", "c"] });
+    expect(lines).toEqual(["early1", "early2", "a", "b"]);
+
+    const events: string[] = [];
+    child.watchSse("mine", (data) => events.push(data));
+    emit("harness-sse", { sessionId: "mine", events: ["e1", "e2"] });
+    expect(events).toEqual(["e1", "e2"]);
     release();
   });
 

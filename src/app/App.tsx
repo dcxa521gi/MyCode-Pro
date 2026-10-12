@@ -33,7 +33,6 @@ import { defaultWorkspace } from "../platform/tauri/workspace";
 import { CLIUpdateNotice } from "../features/providers/ui/CLIUpdateNotice";
 import { findModel } from "../features/sessions/model/models";
 import { CliReadyDialog } from "../features/providers/ui/CliReadyDialog";
-import { newSessionLike } from "../features/sessions/model/session";
 import { NewTaskDialog } from "../features/sessions/ui/NewTaskDialog";
 import { importedContextPrompt } from "../features/sessions/model/importedContext";
 import { useTranslation } from "../shared/i18n";
@@ -122,6 +121,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { useStableValue } from "../shared/hooks/useStableValue";
 import { Sidebar } from "./shell/Sidebar";
 import { ApprovalToasts } from "../features/sessions/ui/ApprovalToasts";
 import { HarnessUpdateNotice } from "../features/providers/ui/HarnessUpdateNotice";
@@ -133,8 +133,11 @@ import { MonoDetails } from "../features/monos/ui/MonoDetails";
 import { MonoActivityPanel } from "../features/monos/ui/MonoActivityPanel";
 import { MonoSessionsPanel } from "../features/monos/ui/MonoSessionsPanel";
 import {
+  launchedSessionState,
   monoSpawnedSessions,
   recordMonoSpawnedSession,
+  type LaunchedSessionState,
+  type LaunchedSessionView,
 } from "../features/monos/model/monoSpawnedSessions";
 import { groupMonoTurns } from "../features/sessions/model/transcriptActivity";
 import {
@@ -330,6 +333,7 @@ import {
   steerHarnessTurn,
   startHarnessBridge,
   stopHarnessSession,
+  configureHarnessIdlePark,
   stopHarnessTextPrompts,
   stopStreaming,
   pickTextHarness,
@@ -369,6 +373,7 @@ import {
 } from "../features/sessions/model/btw";
 
 import { isEditTool } from "../integrations/harness/core/preview";
+import { sessionEditPaths } from "../features/sessions/model/checkpointEdits";
 import {
   createEditedResendAttempt,
   createEditedResendCoordinator,
@@ -453,6 +458,8 @@ import {
   focusedWorkspaceTabCwd,
 } from "../features/workspace/model/workspaceTabGroups";
 import { applyAddToChatRequest } from "../features/sessions/model/addChatToWorkspace";
+import { newWorkspaceSession } from "./model/newWorkspaceSession";
+import { resolveAutomationTarget } from "../features/automations/model/automationTarget";
 import {
   ADD_TO_CHAT_EVENT,
   type AddToChatRequest,
@@ -493,6 +500,7 @@ import {
   type RuntimeMode,
   type PlanStatus,
   type SecondOpinionMeta,
+  type MonoSpawnedSession,
   type Session,
   type UsageLimit,
   type WorkspaceMode,
@@ -545,6 +553,7 @@ import { hiddenApprovalNotices } from "../features/notifications/model/approvalT
 import { useSessionReminders } from "../features/notifications/hooks/useSessionReminders";
 import { ReminderNotices } from "../features/sessions/ui/ReminderNotices";
 import { useUnseenFinishedSessions } from "../features/sessions/hooks/useUnseenFinishedSessions";
+import { useUnseenReplyCounts } from "../features/sessions/hooks/useUnseenReplyCounts";
 import {
   loadNotificationsEnabled,
   NOTIFICATION_CLICK_EVENT,
@@ -749,6 +758,7 @@ import {
   subscribeMonosEnabled,
   loadDiffViewer,
   loadFollowUpBehavior,
+  loadIdleAgentLimit,
   loadKeybindingOverrides,
   loadSettingsSection,
   keybindingPressed,
@@ -771,6 +781,7 @@ import {
   mergeProjectHistorySummary,
   replaceProjectHistory,
   historyWithLiveSessions,
+  sameSessionSummaries,
   summaryFromSession,
 } from "../features/sessions/data/sessionHistory";
 import {
@@ -1174,6 +1185,20 @@ function Workspace({
     useState<MonoActivitySelection | null>(null);
   const [monoSessions, setMonoSessions] =
     useState<MonoActivitySelection | null>(null);
+  // A launched session shown in the sessions sidebar. It belongs to the list
+  // it was opened from, so reopening or closing that list leaves it.
+  const [monoShownSession, setMonoShownSession] = useState<{
+    from: MonoActivitySelection;
+    sessionId: string;
+  } | null>(null);
+  // Whether the shown session, rather than the Mono's chat, holds focus.
+  const [monoShownSessionFocused, setMonoShownSessionFocused] = useState(false);
+  const shownMonoSessionId =
+    monoViewId && monoSessions && monoShownSession?.from === monoSessions
+      ? monoShownSession.sessionId
+      : undefined;
+  const shownMonoSessionIdRef = useRef(shownMonoSessionId);
+  shownMonoSessionIdRef.current = shownMonoSessionId;
   const onShowMonoActivity = useCallback(
     (sessionId: string, turnId: string, blocks: Block[]) => {
       setMonoDetailsOpen(false);
@@ -1181,20 +1206,6 @@ function Workspace({
       setMonoChanges(null);
       setMonoSessions(null);
       setMonoActivity((previous) =>
-        previous?.sessionId === sessionId && previous.turnId === turnId
-          ? null
-          : { sessionId, turnId, blocks },
-      );
-    },
-    [],
-  );
-  const onShowMonoSessions = useCallback(
-    (sessionId: string, turnId: string, blocks: Block[]) => {
-      setMonoDetailsOpen(false);
-      setMonoArtifact(null);
-      setMonoChanges(null);
-      setMonoActivity(null);
-      setMonoSessions((previous) =>
         previous?.sessionId === sessionId && previous.turnId === turnId
           ? null
           : { sessionId, turnId, blocks },
@@ -1510,6 +1521,8 @@ function Workspace({
   const foregroundSurfaceRef = useRef<{
     workspaceVisible: boolean;
     standaloneSessionId?: string;
+    /** A session shown beside the Mono's chat. */
+    sideSessionId?: string;
   }>({ workspaceVisible: true });
   foregroundSurfaceRef.current = {
     workspaceVisible:
@@ -1526,6 +1539,14 @@ function Workspace({
           !automationsViewOpen &&
           !settingsOpen
         ? (monoViewId ?? undefined)
+        : undefined,
+    sideSessionId:
+      !inboxViewOpen &&
+      !searchViewOpen &&
+      !notesViewOpen &&
+      !automationsViewOpen &&
+      !settingsOpen
+        ? shownMonoSessionId
         : undefined,
   };
   const notesViewOpenRef = useRef(notesViewOpen);
@@ -1625,6 +1646,7 @@ function Workspace({
           // Standalone conversations live outside the workspace tab tree.
           return (
             foregroundSurfaceRef.current.standaloneSessionId === sessionId ||
+            foregroundSurfaceRef.current.sideSessionId === sessionId ||
             (foregroundSurfaceRef.current.workspaceVisible &&
               !!tab &&
               (leafIds(tab.layout).includes(sessionId) ||
@@ -1650,6 +1672,13 @@ function Workspace({
         },
       ),
   );
+  // Cap warm agent CLIs, sparing the conversations on screen.
+  useEffect(() => {
+    configureHarnessIdlePark({
+      limit: loadIdleAgentLimit,
+      keep: harnessEvents.isForeground,
+    });
+  }, [harnessEvents]);
   const skipForgetSessionIds = useRef(new Set<string>());
   const importedSessionsApplied = useRef(false);
   const projectLocationSyncs = useRef(
@@ -1993,7 +2022,8 @@ function Workspace({
     if (
       active?.harness === "claude" ||
       active?.harness === "codex" ||
-      active?.harness === "opencode"
+      active?.harness === "opencode" ||
+      active?.harness === "devin"
     ) {
       return [active.harness];
     }
@@ -2090,7 +2120,9 @@ function Workspace({
 
   const activeSessionId = inboxViewOpen
     ? inboxAskPortal?.sessionId
-    : (monoViewSession?.id ?? active?.id);
+    : shownMonoSessionId && monoShownSessionFocused
+      ? shownMonoSessionId
+      : (monoViewSession?.id ?? active?.id);
   const activeSessionIdRef = useRef(activeSessionId);
   activeSessionIdRef.current = activeSessionId;
 
@@ -2111,8 +2143,22 @@ function Workspace({
     busySessionIds,
     activeSessionId,
   );
+  const monoSessionIds = useMemo(
+    () =>
+      new Set(
+        listMonos().flatMap((mono) => (mono.sessionId ? [mono.sessionId] : [])),
+      ),
+    // The roster is read through its snapshot.
+    [monosSnap],
+  );
+  // How many replies each Mono has that the user has not read, for the rail.
+  const monoReplies = useUnseenReplyCounts(
+    monoSessionIds,
+    busySessionIds,
+    activeSessionId,
+  );
 
-  const liveAgents = useMemo(
+  const liveAgentRows = useMemo(
     () =>
       liveAgentsEnabled
         ? liveAgentsFromSessions(
@@ -2127,6 +2173,8 @@ function Workspace({
         : [],
     [liveAgentsEnabled, promptableSessions, unseenFinishedIds, monosSnap],
   );
+  // Rebuilt for every streamed batch; identity only moves when a row does.
+  const liveAgents = useStableValue(liveAgentRows);
 
   const hiddenApprovalToasts = useMemo(
     () =>
@@ -2203,6 +2251,7 @@ function Workspace({
     monoViewId,
     inboxViewOpen,
     inboxAskPortal?.sessionId,
+    shownMonoSessionId,
     searchViewOpen,
     notesViewOpen,
     automationsViewOpen,
@@ -2699,16 +2748,8 @@ function Workspace({
   const onNew = useCallback(() => {
     setSettingsOpen(false);
     setStandaloneTools(false);
-    const tab = tabsRef.current.find((t) => t.id === activeTabIdRef.current);
-    const seed =
-      sessionsRef.current.find((s) => s.id === tab?.focusedId) ??
-      sessionsRef.current.find((s) =>
-        sameProjectPath(s.cwd, projectCwdRef.current),
-      );
-    const cwd = seed?.cwd ?? projectCwdRef.current;
-    const session = seed ? newSessionLike(seed, cwd) : newDefaultSession(cwd);
-    if (seed?.providerAccountId)
-      session.providerAccountId = seed.providerAccountId;
+    const cwd = sidebarCwd;
+    const session = newWorkspaceSession(cwd, sessionDefaults?.runtimeMode);
     const next = newTab(session.id);
     setSearchViewOpen(false);
     setInboxViewOpen(false);
@@ -2719,7 +2760,7 @@ function Workspace({
     setActiveTabId(next.id);
     setComposerFocused(true);
     return session.id;
-  }, [appendTab]);
+  }, [appendTab, sessionDefaults?.runtimeMode, sidebarCwd]);
   const [, setHomeOpen] = useState(false);
   const createWorkspaceTask = useCallback(
     (cwd: string, harness: HarnessId, model: string) => {
@@ -4071,10 +4112,25 @@ function Workspace({
   const onFocusPane = useCallback(
     (paneId: string) => {
       if (paneId === monoViewIdRef.current) {
+        setMonoShownSessionFocused(false);
         setProjectTerminalFocused(false);
         setComposerFocused(true);
         return;
       }
+      if (paneId === shownMonoSessionIdRef.current) {
+        setMonoShownSessionFocused(true);
+        setProjectTerminalFocused(false);
+        setComposerFocused(true);
+        return;
+      }
+      // Over the Mono, only its sidebar holds panes outside the workspace: a
+      // launched session sliding away as another opens. Its late focus must
+      // not close the Mono and send that session to its project.
+      if (
+        monoViewIdRef.current &&
+        !tabsRef.current.some((tab) => leafIds(tab.layout).includes(paneId))
+      )
+        return;
       closeMonoView();
       if (
         tabsRef.current.find((tab) => tab.id === activeTabIdRef.current)
@@ -4918,6 +4974,52 @@ function Workspace({
       await onSelectHistorySession(sessionId);
     },
     [ensureOpenSession, closeMonoView, setSidebarTab, onSelectHistorySession],
+  );
+
+  // Show a launched session in the Mono's sidebar, where it can be followed,
+  // answered or stopped without leaving the chat.
+  const onShowMonoLaunchedSession = useCallback(
+    async (from: MonoActivitySelection, sessionId: string) => {
+      const session = await ensureOpenSession(sessionId);
+      if (!session) throw new Error("This session is no longer available.");
+      setMonoShownSession({ from, sessionId });
+      setMonoShownSessionFocused(true);
+      setProjectTerminalFocused(false);
+      setComposerFocused(true);
+    },
+    [ensureOpenSession],
+  );
+  // A card in the Mono's chat opens its session straight in the sidebar, with
+  // the turn's list behind it to go back to; the open card's click closes it.
+  const onOpenMonoSession = useCallback(
+    async (
+      monoSessionId: string,
+      turnId: string,
+      blocks: Block[],
+      launchedId: string,
+    ) => {
+      if (shownMonoSessionIdRef.current === launchedId) {
+        setMonoSessions(null);
+        return;
+      }
+      const from = { sessionId: monoSessionId, turnId, blocks };
+      // Load it first, then switch in one step: the sidebar goes straight
+      // from the session it shows to this one, never through the list.
+      const session = await ensureOpenSession(launchedId).catch(() => null);
+      if (monoViewIdRef.current !== monoSessionId) return;
+      setMonoDetailsOpen(false);
+      setMonoArtifact(null);
+      setMonoChanges(null);
+      setMonoActivity(null);
+      setMonoSessions(from);
+      // One that is gone leaves the list open, which says so.
+      if (!session) return;
+      setMonoShownSession({ from, sessionId: launchedId });
+      setMonoShownSessionFocused(true);
+      setProjectTerminalFocused(false);
+      setComposerFocused(true);
+    },
+    [ensureOpenSession],
   );
 
   const openReminderSession = useCallback(
@@ -7821,7 +7923,11 @@ function Workspace({
 
         const checkpointTurnId =
           !current.inboxAsk && !orchestrator.forSession(sessionId)
-            ? await beginSessionTurn(sessionId, workCwd)
+            ? await beginSessionTurn(
+                sessionId,
+                workCwd,
+                sessionEditPaths(current.blocks),
+              )
             : undefined;
         if (turnGen.current.get(sessionId) !== gen) {
           if (checkpointTurnId) {
@@ -8006,6 +8112,11 @@ function Workspace({
           const handAgent = agentPlan ? agentPlan.soul : monoFirstTurn;
           // What the app adds to the user's message rather than them.
           const appContext: string[] = [];
+          if (!rawCommand) {
+            appContext.push(
+              "<mycode_application>\nThe application you are assisting through is MyCode. Use MyCode for the current application's identity, including when older context uses the previous MonoCode name. Preserve the user's assigned nickname and personality. Identify the underlying CLI or model accurately when asked; do not present the old application name as your current product identity.\n</mycode_application>",
+            );
+          }
           if (monoRotation) {
             appContext.push(monoRotation.brief(sessionId));
           }
@@ -8031,11 +8142,12 @@ function Workspace({
           }
           // A Mono reads who it is ahead of the message, so it never takes it
           // for something the user pasted. A command must stay first.
-          if (mono && !rawCommand) sendText = monoTurn(sendText, appContext);
+          if (mono && !rawCommand)
+            sendText = monoTurn(sendText, appContext, agentLook);
           else if (appContext.length)
             sendText += `\n\n${appContext.join("\n\n")}`;
           await sendTurn(sendText);
-          if (agentFiles) {
+          if (agentFiles && !rawCommand) {
             recordAgentContext(
               sessionId,
               sessionsRef.current.find((session) => session.id === sessionId)
@@ -8381,11 +8493,13 @@ function Workspace({
           monoHabit: { id: habit.id, name: habit.name, at: Date.now() },
           ...(artifacts?.length ? { artifactCards: artifacts } : {}),
         },
-        (posted) =>
+        (posted) => {
+          monoReplies.noteReply(monoId);
           void announceSessionFinished(
             { ...posted, title: name },
             monoId === activeSessionIdRef.current,
-          ),
+          );
+        },
       ),
     // The chat shows it like any approval, and the usual approval banner
     // fires for the Mono; the answer is routed back in onApproval.
@@ -8433,6 +8547,7 @@ function Workspace({
       };
       try {
         const eventRun = run.trigger === "event";
+        const target = resolveAutomationTarget(automation);
         const linkedWorkItem =
           sourceWorkItem ?? linkedWorkItemFromAutomationEvent(run);
         let session =
@@ -8440,7 +8555,7 @@ function Workspace({
             ? sessionsRef.current.find(
                 (entry) =>
                   entry.id === automation.lastSessionId &&
-                  entry.harness === automation.harness &&
+                  entry.harness === target.harness &&
                   !entry.busy &&
                   !entry.worktreeRemoved &&
                   !automationSessionReservations.current.has(entry.id) &&
@@ -8458,15 +8573,15 @@ function Workspace({
         if (!session) {
           session = {
             ...newSession(
-              automation.harness,
+              target.harness,
               automation.cwd,
-              automation.model,
+              target.model,
               automation.runtimeMode,
-              automation.modelSettings,
+              target.modelSettings,
             ),
             title: eventRun
-              ? HARNESS_LABEL[automation.harness]
-              : formatSessionTitle(automation.harness, automation.name),
+              ? HARNESS_LABEL[target.harness]
+              : formatSessionTitle(target.harness, automation.name),
             automationId: automation.id,
             ...(linkedWorkItem ? { linkedWorkItem } : {}),
             ...(automation.workspaceMode === "worktree"
@@ -8489,8 +8604,8 @@ function Workspace({
           const stamped = {
             ...session,
             automationId: automation.id,
-            model: automation.model,
-            modelSettings: automation.modelSettings ?? {},
+            model: target.model,
+            modelSettings: target.modelSettings ?? {},
             runtimeMode: automation.runtimeMode,
             ...(linkedWorkItem ? { linkedWorkItem } : {}),
           };
@@ -8719,6 +8834,7 @@ function Workspace({
       deliveryId: string,
       placement?: AppSessionPlacement,
       onSettled?: (outcome: ControlOutcome) => void,
+      openTab?: boolean,
     ) =>
       acceptQuickLaunch(
         launch,
@@ -8789,6 +8905,7 @@ function Workspace({
             flushSync(() => onSaveDraft(id, prompt, attachments, requestId)),
         },
         placement,
+        openTab,
       ),
     [appendTab, submitSession, onSaveDraft],
   );
@@ -11173,6 +11290,22 @@ function Workspace({
           ? groupMonoTurns(source.blocks)
           : [];
         const sourceTurnId = sourceTurns[sourceTurns.length - 1]?.[0]?.id;
+        const rememberSession = (entry: MonoSpawnedSession) => {
+          if (!sourceTurnId) return;
+          const next = sessionsRef.current.map((session) =>
+            session.id === source.id
+              ? recordMonoSpawnedSession(session, sourceTurnId, entry)
+              : session,
+          );
+          if (
+            next.every(
+              (session, index) => session === sessionsRef.current[index],
+            )
+          )
+            return;
+          sessionsRef.current = next;
+          setSessions(next);
+        };
         const monitorCompletion = (
           monoId: string,
           sessionId: string,
@@ -11224,32 +11357,18 @@ function Workspace({
           {
             start: async (launch, id, placement, notifyMonoId) => {
               const rememberLaunch = () => {
-                if (!sourceTurnId) return;
                 const created =
                   sessionsRef.current.find((session) => session.id === id) ??
                   existing;
-                const next = sessionsRef.current.map((session) =>
-                  session.id === source.id
-                    ? recordMonoSpawnedSession(session, sourceTurnId, {
-                        sessionId: id,
-                        cwd: created?.cwd ?? launch.cwd,
-                        title:
-                          created?.title ?? launch.prompt.trim().slice(0, 300),
-                        harness: created?.harness ?? launch.harness,
-                        model:
-                          created?.model ??
-                          resolveModel(launch.harness, launch.model).id,
-                      })
-                    : session,
-                );
-                if (
-                  next.every(
-                    (session, index) => session === sessionsRef.current[index],
-                  )
-                )
-                  return;
-                sessionsRef.current = next;
-                setSessions(next);
+                rememberSession({
+                  sessionId: id,
+                  cwd: created?.cwd ?? launch.cwd,
+                  title: created?.title ?? launch.prompt.trim().slice(0, 300),
+                  harness: created?.harness ?? launch.harness,
+                  model:
+                    created?.model ??
+                    resolveModel(launch.harness, launch.model).id,
+                });
               };
               const open = sessionsRef.current.find(
                 (session) => session.id === id,
@@ -11290,11 +11409,14 @@ function Workspace({
                   )
                 : undefined;
               try {
+                // A Mono's sessions open from its chat, not as workspace
+                // tabs, unless it places one beside an open pane.
                 await launchQuickSessionRef.current(
                   launch,
                   id,
                   placement,
                   onSettled,
+                  !isMonoSession(source.id) || !!placement,
                 );
                 rememberLaunch();
                 onSettled?.accept();
@@ -11360,6 +11482,18 @@ function Workspace({
                 orchestrator.run(id)
               )
                 throw new Error("Session is unavailable in this project");
+              const rememberFollowUp = () => {
+                const current =
+                  sessionsRef.current.find((session) => session.id === id) ??
+                  target;
+                rememberSession({
+                  sessionId: id,
+                  cwd: current.cwd,
+                  title: current.title,
+                  harness: current.harness,
+                  model: current.model,
+                });
+              };
               const previous = target.blocks.find(
                 (block) => block.appRequestId === requestId,
               );
@@ -11370,6 +11504,7 @@ function Workspace({
                   );
                 if (previous.draft)
                   throw new Error("Request ID belongs to an unsent draft");
+                rememberFollowUp();
                 return { alreadySubmitted: true };
               }
               if (target.busy)
@@ -11405,6 +11540,7 @@ function Workspace({
                 onSettled?.discard();
                 throw new Error("Session could not accept the follow-up");
               }
+              rememberFollowUp();
               onSettled?.accept();
               return { alreadySubmitted: false };
             },
@@ -11808,7 +11944,7 @@ function Workspace({
     [history, sidebarCwd],
   );
 
-  const sidebarHistory = useMemo(
+  const sidebarHistoryRows = useMemo(
     () =>
       historyWithLiveSessions(
         history,
@@ -11832,6 +11968,10 @@ function Workspace({
       sidebarCwd,
       orchestrationRuns,
     ],
+  );
+  const sidebarHistory = useStableValue(
+    sidebarHistoryRows,
+    sameSessionSummaries,
   );
   const {
     unseen: inboxUnseen,
@@ -11874,7 +12014,7 @@ function Workspace({
     () => ciRepairSessions(history, sessions),
     [history, sessions],
   );
-  const openProjectSessions = useMemo(
+  const openProjectSessionRows = useMemo(
     () =>
       sessions
         .filter(
@@ -11895,6 +12035,10 @@ function Workspace({
           }),
         ),
     [projectBranches, sessions, sidebarCwd],
+  );
+  const openProjectSessions = useStableValue(
+    openProjectSessionRows,
+    sameSessionSummaries,
   );
 
   const onToggleSidebar = useCallback(() => {
@@ -13049,6 +13193,78 @@ function Workspace({
         windowControls={monoCovers && !IS_MAC ? <WindowControls /> : undefined}
       />
     ) : null;
+  // Status for the cards of the sessions the open Mono launched, rebuilt only
+  // when one changes state or title rather than on every streamed token. One
+  // that is no longer open cannot be running, so it reads as done.
+  const monoViewBlocks = monoViewSession?.blocks;
+  const monoLaunches = useMemo(
+    () => (monoViewBlocks ? monoSpawnedSessions(monoViewBlocks) : []),
+    [monoViewBlocks],
+  );
+  // A card names its session as the sidebar does. One that is not open has
+  // its saved title fetched, rather than the prompt it was launched with, so
+  // opening it does not rename the card.
+  const [storedLaunchTitles, setStoredLaunchTitles] = useState<
+    ReadonlyMap<string, string>
+  >(() => new Map());
+  const unopenedLaunchesKey = JSON.stringify(
+    monoLaunches.flatMap((launch) =>
+      storedLaunchTitles.has(launch.sessionId) ||
+      sessions.some((entry) => entry.id === launch.sessionId)
+        ? []
+        : [launch.sessionId],
+    ),
+  );
+  useEffect(() => {
+    const ids: string[] = JSON.parse(unopenedLaunchesKey);
+    if (ids.length === 0) return;
+    let current = true;
+    void Promise.all(ids.map((id) => getSession(id).catch(() => null))).then(
+      (stored) => {
+        if (!current) return;
+        setStoredLaunchTitles((previous) => {
+          const next = new Map(previous);
+          stored.forEach((session, index) =>
+            next.set(ids[index], session?.title ?? ""),
+          );
+          return next;
+        });
+      },
+    );
+    return () => {
+      current = false;
+    };
+  }, [unopenedLaunchesKey]);
+  const monoLaunchesKey = JSON.stringify(
+    monoLaunches.map((launch) => {
+      const live = sessions.find((entry) => entry.id === launch.sessionId);
+      return live
+        ? [launch.sessionId, launchedSessionState(live), live.title]
+        : [
+            launch.sessionId,
+            "done",
+            storedLaunchTitles.get(launch.sessionId) || launch.title,
+          ];
+    }),
+  );
+  const monoLaunchedSessions = useMemo(
+    () =>
+      new Map<string, LaunchedSessionView>(
+        (
+          JSON.parse(monoLaunchesKey) as [
+            string,
+            LaunchedSessionState,
+            string,
+          ][]
+        ).map(([id, state, title]) => [id, { state, title }]),
+      ),
+    [monoLaunchesKey],
+  );
+  const monoShownSessionPane = shownMonoSessionId
+    ? sessions.find((session) => session.id === shownMonoSessionId)
+    : undefined;
+  const monoShownSessionActive =
+    !!monoShownSessionPane && monoShownSessionFocused;
   const monoSessionsPanel =
     monoViewMono && selectedMonoSessions ? (
       <MonoSessionsPanel
@@ -13057,25 +13273,106 @@ function Workspace({
         launches={monoSpawnedSessions(selectedMonoSessions.blocks)}
         sessions={sessions}
         history={history}
-        onOpenSession={onOpenMonoLaunchedSession}
+        onOpenSession={(sessionId) =>
+          monoSessions
+            ? onShowMonoLaunchedSession(monoSessions, sessionId)
+            : undefined
+        }
+        shown={
+          monoShownSessionPane
+            ? {
+                sessionId: monoShownSessionPane.id,
+                title: sessionDisplayTitle(
+                  monoShownSessionPane.title,
+                  monoShownSessionPane.harness,
+                ),
+                pane: (
+                  <SessionPane
+                    {...sessionPaneProps}
+                    session={monoShownSessionPane}
+                    // The Mono view covers the workspace, so a review opens
+                    // beside the chat rather than in a hidden tab.
+                    onOpenDiff={onOpenMonoDiff}
+                    visible={monoCovers}
+                    focused={monoShownSessionActive && !projectTerminalFocused}
+                    inSplit={false}
+                    addToChatTarget={false}
+                    composerFocused={
+                      monoShownSessionActive &&
+                      composerFocused &&
+                      !projectTerminalFocused
+                    }
+                    composerFocusToken={composerFocusToken}
+                  />
+                ),
+              }
+            : undefined
+        }
+        onBack={() => {
+          setMonoShownSession(null);
+          setMonoShownSessionFocused(false);
+        }}
+        onOpenInWorkspace={onOpenMonoLaunchedSession}
         onClose={() => setMonoSessions(null)}
         windowControls={monoCovers && !IS_MAC ? <WindowControls /> : undefined}
       />
     ) : null;
-  const monoRail = useMemo(() => {
+  const monoRailState = useMemo(() => {
     const states = new Map<string, MonoState>();
-    const unseen = new Set<string>();
+    const unseen = new Map<string, number>();
     for (const mono of listMonos()) {
       const session = mono.sessionId
         ? sessions.find((entry) => entry.id === mono.sessionId)
         : undefined;
       if (session) states.set(mono.id, monoState(session));
-      if (mono.sessionId && unseenFinishedIds.has(mono.sessionId))
-        unseen.add(mono.id);
+      const count = mono.sessionId
+        ? monoReplies.counts.get(mono.sessionId)
+        : undefined;
+      if (count) unseen.set(mono.id, count);
     }
     return { states, unseen };
     // The roster is read through its snapshot.
-  }, [monosSnap, sessions, unseenFinishedIds]);
+  }, [monosSnap, sessions, monoReplies.counts]);
+  const monoRail = useStableValue(monoRailState);
+  const busyProjectPaths = useStableValue(
+    promptableSessions.flatMap((session) =>
+      session.busy && session.cwd ? [session.cwd] : [],
+    ),
+  );
+  const onOpenRailMono = useCallback(
+    (monoId: string) => void onOpenMono(monoId),
+    [onOpenMono],
+  );
+  const onDeleteRailMono = useCallback(
+    (monoId: string) => void onDeleteMono(monoId),
+    [onDeleteMono],
+  );
+  // The memoized sidebar only skips a streamed batch if this keeps identity.
+  const sidebarMonos = useMemo(
+    () =>
+      monosEnabled
+        ? {
+            activeId: monoViewMono?.id,
+            states: monoRail.states,
+            unseenCounts: monoRail.unseen,
+            onOpen: onOpenRailMono,
+            onCreate: onCreateMono,
+            onDelete: onDeleteRailMono,
+            // Release notes come first; the intro waits its turn.
+            introAvailable: !whatsNewVersion,
+          }
+        : undefined,
+    [
+      monosEnabled,
+      monoViewMono?.id,
+      monoRail,
+      onOpenRailMono,
+      onCreateMono,
+      onDeleteRailMono,
+      whatsNewVersion,
+    ],
+  );
+  const onDismissUpdate = useCallback(() => setUpdateNotice(null), []);
 
   const chromeSurfaceOpen =
     searchViewOpen ||
@@ -13223,29 +13520,14 @@ function Workspace({
               }
               textHarness={pickTextHarness(active?.harness)}
               recents={recents}
-              busyProjectPaths={promptableSessions.flatMap((session) =>
-                session.busy && session.cwd ? [session.cwd] : [],
-              )}
+              busyProjectPaths={busyProjectPaths}
               liveAgents={liveAgents}
               onSelectAgent={onSelectLiveAgent}
               onSelectProject={onSelectProject}
               onOpenProject={() => setNewTaskOpen(true)}
               onHome={onHome}
               onRemoveProject={onRemoveProject}
-              monos={
-                monosEnabled
-                  ? {
-                      activeId: monoViewMono?.id,
-                      states: monoRail.states,
-                      unseenIds: monoRail.unseen,
-                      onOpen: (monoId) => void onOpenMono(monoId),
-                      onCreate: onCreateMono,
-                      onDelete: (monoId) => void onDeleteMono(monoId),
-                      // Release notes come first; the intro waits its turn.
-                      introAvailable: !whatsNewVersion,
-                    }
-                  : undefined
-              }
+              monos={sidebarMonos}
               monoViewActive={monoCovers}
               onNew={onNew}
               openSessions={openProjectSessions}
@@ -13277,7 +13559,7 @@ function Workspace({
               onCloseSettings={onCloseSettings}
               updateNotice={updateNotice}
               onOpenWhatsNew={onOpenWhatsNew}
-              onDismissUpdate={() => setUpdateNotice(null)}
+              onDismissUpdate={onDismissUpdate}
             />
 
             <div className="body-glass flex min-h-0 min-w-0 flex-1 flex-col">
@@ -13481,14 +13763,17 @@ function Workspace({
                                       session={session}
                                       visible={visible}
                                       focused={
-                                        visible && !projectTerminalFocused
+                                        visible &&
+                                        !projectTerminalFocused &&
+                                        !monoShownSessionActive
                                       }
                                       inSplit={false}
                                       addToChatTarget={visible}
                                       composerFocused={
                                         visible &&
                                         composerFocused &&
-                                        !projectTerminalFocused
+                                        !projectTerminalFocused &&
+                                        !monoShownSessionActive
                                       }
                                       composerFocusToken={composerFocusToken}
                                       onShowMonoActivity={onShowMonoActivity}
@@ -13498,10 +13783,13 @@ function Workspace({
                                       monoActivityTurnId={
                                         selectedMonoActivity?.turnId
                                       }
-                                      onShowMonoSessions={onShowMonoSessions}
-                                      monoSessionsTurnId={
-                                        selectedMonoSessions?.turnId
+                                      onOpenMonoSession={onOpenMonoSession}
+                                      monoLaunchedSessions={
+                                        visible
+                                          ? monoLaunchedSessions
+                                          : undefined
                                       }
+                                      openMonoSessionId={shownMonoSessionId}
                                     />
                                   </div>
                                 );

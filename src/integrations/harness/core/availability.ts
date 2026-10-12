@@ -7,6 +7,7 @@ import {
   resolveClaudeBinary,
   resolveCodexBinary,
   resolveCursorBinary,
+  resolveDevinBinary,
   resolveFxBinary,
   resolveGrokBinary,
   resolveHermesBinary,
@@ -15,6 +16,7 @@ import {
   resolvePiBinary,
 } from "./child";
 import { isLiveHarness } from "./registry";
+import { IS_WIN } from "../../../platform/tauri/platform";
 import {
   emitHarnessAvailability,
   harnessAvailabilityProbedAt,
@@ -56,6 +58,12 @@ const CLI: Record<HarnessId, { name: string; install?: string }> = {
   mimo: { name: "MiMo Code CLI", install: "npm install -g @mimo-ai/cli" },
   zcode: { name: "ZCode CLI" },
   antigravity: { name: "Antigravity ACP server (agy_acp_server.par)" },
+  devin: {
+    name: "Devin CLI",
+    install: IS_WIN
+      ? "irm https://static.devin.ai/cli/setup.ps1 | iex"
+      : "curl -fsSL https://cli.devin.ai/install.sh | bash",
+  },
 };
 
 let inflight: Promise<void> | null = null;
@@ -175,6 +183,14 @@ export function probeHarnessAvailability(options?: {
       if (id === "antigravity") {
         try {
           await resolveAntigravityBinary();
+          return [id, true] as const;
+        } catch {
+          return [id, false] as const;
+        }
+      }
+      if (id === "devin") {
+        try {
+          await resolveDevinBinary();
           return [id, true] as const;
         } catch {
           return [id, false] as const;

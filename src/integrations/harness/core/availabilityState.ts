@@ -21,6 +21,7 @@ let availability: HarnessAvailability = {
   minimax: false,
   mimo: false,
   zcode: false,
+  devin: false,
 };
 let version = 0;
 let probedAt = 0;

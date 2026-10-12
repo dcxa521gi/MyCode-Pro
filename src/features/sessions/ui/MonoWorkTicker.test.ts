@@ -1,3 +1,4 @@
+import { setLanguage } from "../../../shared/i18n";
 // @vitest-environment happy-dom
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -27,6 +28,7 @@ const editing: MonoWorkStatus = {
 };
 
 beforeEach(() => {
+  setLanguage("en");
   vi.useFakeTimers();
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("matchMedia", () => ({ matches: false }));
@@ -38,6 +40,7 @@ beforeEach(() => {
 afterEach(() => {
   act(() => root.unmount());
   container.remove();
+  setLanguage("en");
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
@@ -97,4 +100,74 @@ it("changes immediately without a rolling animation when reduced motion is enabl
   expect(container.querySelector(".sr-only")?.textContent).toBe(thinking.label);
   expect(container.querySelector('[data-moving="true"]')).toBeNull();
   expect(container.querySelectorAll(".mono-work-ticker-row")).toHaveLength(1);
+});
+
+it("switches the same status between languages without starting a tick", () => {
+  render(running);
+  const track = container.querySelector(".mono-work-ticker-track");
+  act(() => setLanguage("zh-CN"));
+  expect(container.querySelector(".sr-only")?.textContent).toBe(
+    "正在运行命令…",
+  );
+  expect(container.querySelector(".mono-work-ticker-row")?.textContent).toBe(
+    "正在运行命令…",
+  );
+  expect(container.querySelector(".mono-work-ticker-track")).toBe(track);
+  expect(container.querySelector('[data-moving="true"]')).toBeNull();
+  expect(running.label).toBe("Running command…");
+  act(() => setLanguage("en"));
+  expect(container.querySelector(".sr-only")?.textContent).toBe(running.label);
+});
+
+it("localizes pending questions and counted background tasks while mounted", () => {
+  const waiting = {
+    key: "background",
+    label: "Waiting for 2 background tasks…",
+    kind: "think",
+    active: true,
+  } as const;
+  render(waiting);
+  act(() => setLanguage("zh-CN"));
+  expect(container.querySelector(".sr-only")?.textContent).toBe(
+    "正在等待 2 个后台任务…",
+  );
+  act(() => setLanguage("en"));
+  expect(container.querySelector(".sr-only")?.textContent).toBe(waiting.label);
+  vi.stubGlobal("matchMedia", () => ({ matches: true }));
+  render({ ...waiting, key: "question", label: "Waiting for answers…" });
+  act(() => setLanguage("zh-CN"));
+  expect(container.querySelector(".sr-only")?.textContent).toBe(
+    "正在等待回答…",
+  );
+});
+
+it("translates summary counters while preserving tool diagnostics and filenames", () => {
+  act(() => setLanguage("zh-CN"));
+  const summary = {
+    key: "summary",
+    label: "Read 3 files · Edited README.md · Ran a command · 2 notes",
+    kind: "edit",
+    active: false,
+  } as const;
+  render(summary);
+  expect(container.querySelector(".sr-only")?.textContent).toBe(
+    "已读取 3 个文件 · 已编辑 README.md · 已运行命令 · 2 条说明",
+  );
+  expect(container.querySelector(".mono-work-ticker-row")?.textContent).toBe(
+    "已读取 3 个文件 · 已编辑 README.md · 已运行命令 · 2 条说明",
+  );
+  expect(summary.label).toBe(
+    "Read 3 files · Edited README.md · Ran a command · 2 notes",
+  );
+  vi.stubGlobal("matchMedia", () => ({ matches: true }));
+  const diagnostic = {
+    ...summary,
+    key: "diagnostic",
+    label:
+      "Running user command: Permission denied for F:/My Project/input.txt",
+  };
+  render(diagnostic);
+  expect(container.querySelector(".sr-only")?.textContent).toBe(
+    diagnostic.label,
+  );
 });

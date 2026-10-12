@@ -25,6 +25,14 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:browser
+      - name: Upload browser failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-results
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
 
   check:
     strategy:
@@ -59,6 +67,7 @@ jobs:
       - run: node scripts/test-development-runtime.mjs
       - run: npm test
       - run: npm run test:host
+      - run: node --test host/package-policy.test.mjs host/package-tar.test.mjs
       - run: npx tsc --noEmit
       - run: cargo fmt --check
       - run: cargo clippy --workspace --all-targets -- -D warnings

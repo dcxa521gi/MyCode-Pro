@@ -192,6 +192,12 @@ export const MODELS: AgentModel[] = [
     name: "Configured model",
     nativeId: "",
   },
+  {
+    id: "devin:adaptive",
+    harness: "devin",
+    name: "Adaptive",
+    nativeId: "adaptive",
+  },
 ];
 
 export const DEFAULT_MODEL_ID: Record<HarnessId, string> = {
@@ -208,6 +214,7 @@ export const DEFAULT_MODEL_ID: Record<HarnessId, string> = {
   fx: "fx:zai/glm-5.2-fast",
   hermes: "hermes:default",
   antigravity: "antigravity:gemini-3.8-flash-high",
+  devin: "devin:adaptive",
 };
 
 const FAVORITES_KEY = "monocode.favoriteModels";
@@ -236,6 +243,7 @@ const HARNESS_ORDER: HarnessId[] = [
   "pi",
   "hermes",
   "mimo",
+  "devin",
 ];
 
 const EMPTY_MODELS: AgentModel[] = [];

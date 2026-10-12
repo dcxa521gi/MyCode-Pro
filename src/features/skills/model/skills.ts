@@ -10,7 +10,10 @@ import {
 } from "../../../platform/tauri/fs";
 import { invalidateProjectFiles } from "../../files/model/fileIndex";
 import { joinPath } from "../../../shared/lib/paths";
-import { isLocalProject, normalizeProjectPath } from "../../projects/model/recents";
+import {
+  isLocalProject,
+  normalizeProjectPath,
+} from "../../projects/model/recents";
 import { isMarkdownBlockquotePosition } from "../../sessions/model/quoteDraft";
 import type { HarnessId } from "../../sessions/model/session";
 import { getHarness } from "../../../integrations/harness/core/registry";
@@ -79,6 +82,7 @@ export type SkillSource =
   | "mimo"
   | "zcode"
   | "workbuddy"
+  | "devin"
   | "monocode";
 
 type SkillCommon = {

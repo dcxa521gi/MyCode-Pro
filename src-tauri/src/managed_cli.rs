@@ -86,8 +86,7 @@ pub fn managed_cli_save_path(
 ) -> Result<(), String> {
     let _lock = INSTALL_LOCK.lock().map_err(|e| e.to_string())?;
     if ![
-        "claude", "codex", "cursor", "grok", "opencode", "pi", "hermes", "minimax", "mimo",
-        "freebuff",
+        "claude", "codex", "cursor", "grok", "opencode", "pi", "hermes", "minimax", "mimo", "devin",
     ]
     .contains(&provider.as_str())
     {
@@ -155,7 +154,7 @@ pub(crate) fn system_proxy() -> Option<String> {
     None
 }
 fn package(provider: &str) -> Result<(&'static str, &'static str), String> {
-    match provider{"minimax"=>Ok(("@minimax-ai/code","mcode")),"freebuff"=>Ok(("freebuff","freebuff")),"browser"=>Ok(("@playwright/mcp","playwright-mcp")),"mimo"=>Ok(("@mimo-ai/cli","mimo")),"claude"=>Ok(("@anthropic-ai/claude-code","claude")),"codex"=>Ok(("@openai/codex","codex")),"pi"=>Ok(("@earendil-works/pi-coding-agent","pi")),"opencode"=>Ok(("opencode-ai","opencode")),_=>Err("This CLI requires its official platform installer. Configure its executable path after installation.".into())}
+    match provider { "minimax" => Ok(("@minimax-ai/code", "mcode")), "browser" => Ok(("@playwright/mcp", "playwright-mcp")), "mimo" => Ok(("@mimo-ai/cli", "mimo")), "claude" => Ok(("@anthropic-ai/claude-code", "claude")), "codex" => Ok(("@openai/codex", "codex")), "pi" => Ok(("@earendil-works/pi-coding-agent", "pi")), "opencode" => Ok(("opencode-ai", "opencode")), _ => Err("This CLI requires its official platform installer. Configure its executable path after installation.".into()) }
 }
 pub(crate) fn download_agent() -> ureq::Agent {
     let mut builder = ureq::AgentBuilder::new().timeout(std::time::Duration::from_secs(300));
@@ -187,6 +186,134 @@ fn safe_version(value: &str) -> Result<&str, String> {
     } else {
         Err("Invalid release version".into())
     }
+}
+
+struct DevinRelease {
+    version: String,
+    url: String,
+    sha256: String,
+}
+
+fn devin_target(os: &str, arch: &str) -> Result<String, String> {
+    let arch = match arch {
+        "x86_64" => "x86_64",
+        "aarch64" => "aarch64",
+        _ => return Err("This platform has no official Devin binary".into()),
+    };
+    let platform = match os {
+        "windows" => "pc-windows",
+        "macos" => "apple-darwin",
+        "linux" => "unknown-linux",
+        _ => return Err("This platform has no official Devin binary".into()),
+    };
+    Ok(format!("{arch}-{platform}"))
+}
+
+fn parse_devin_release(value: &Value, target: &str) -> Result<DevinRelease, String> {
+    let version =
+        safe_version(value["version"].as_str().ok_or("Missing CLI version")?)?.to_string();
+    let asset = &value["platforms"][target];
+    let url = asset["url"]
+        .as_str()
+        .ok_or("This platform has no official Devin binary")?;
+    let sha256 = asset["sha256"].as_str().ok_or("Missing Devin checksum")?;
+    if !url.starts_with(&format!("https://static.devin.ai/cli/{version}/"))
+        || sha256.len() != 64
+        || !sha256.bytes().all(|b| b.is_ascii_hexdigit())
+    {
+        return Err("Invalid Devin release manifest".into());
+    }
+    Ok(DevinRelease {
+        version,
+        url: url.to_string(),
+        sha256: sha256.to_ascii_lowercase(),
+    })
+}
+
+fn devin_release() -> Result<DevinRelease, String> {
+    let value: Value = serde_json::from_str(
+        &download_agent()
+            .get("https://static.devin.ai/cli/current/manifest.json")
+            .call()
+            .map_err(|_| "Could not check the official Devin release")?
+            .into_string()
+            .map_err(|e| e.to_string())?,
+    )
+    .map_err(|e| e.to_string())?;
+    parse_devin_release(
+        &value,
+        &devin_target(std::env::consts::OS, std::env::consts::ARCH)?,
+    )
+}
+
+fn install_devin(app: &AppHandle) -> Result<String, String> {
+    use sha2::{Digest, Sha256};
+    use std::io::Read;
+    let release = devin_release()?;
+    let mut bytes = Vec::new();
+    download_agent()
+        .get(&release.url)
+        .call()
+        .map_err(|_| "Could not download the official Devin release")?
+        .into_reader()
+        .take(512 * 1024 * 1024)
+        .read_to_end(&mut bytes)
+        .map_err(|e| e.to_string())?;
+    if format!("{:x}", Sha256::digest(&bytes)) != release.sha256 {
+        return Err("Devin checksum mismatch".into());
+    }
+    // Install the official archive without running setup, modifying user PATH,
+    // migrating namespaces or touching the CLI's account/config directories.
+    let root = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("cli/devin/installs")
+        .join(uuid::Uuid::new_v4().to_string());
+    fs::create_dir_all(&root).map_err(|e| e.to_string())?;
+    let archive = root.join(if cfg!(windows) {
+        "bundle.zip"
+    } else {
+        "bundle.tar.gz"
+    });
+    fs::write(&archive, bytes).map_err(|e| e.to_string())?;
+    #[cfg(windows)]
+    let mut cmd = {
+        let mut command = Command::new("powershell.exe");
+        command.args(["-NoProfile", "-NonInteractive", "-Command", "$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $env:MYCODE_DEVIN_ARCHIVE -DestinationPath $env:MYCODE_DEVIN_ROOT"])
+            .env("MYCODE_DEVIN_ARCHIVE", &archive).env("MYCODE_DEVIN_ROOT", &root);
+        command
+    };
+    #[cfg(not(windows))]
+    let mut cmd = {
+        let mut command = Command::new("tar");
+        command.arg("-xzf").arg(&archive).arg("-C").arg(&root);
+        command
+    };
+    crate::hide_window_console(&mut cmd);
+    let output = cmd
+        .output()
+        .map_err(|_| "Could not extract the Devin archive")?;
+    if !output.status.success() {
+        return Err("Could not extract the Devin archive".into());
+    }
+    let binary = root
+        .join("bin")
+        .join(if cfg!(windows) { "devin.exe" } else { "devin" });
+    if !binary.is_file() {
+        return Err("Installed CLI executable was not found".into());
+    }
+    fs::write(
+        root.join("distribution"),
+        if cfg!(windows) {
+            "irm-iex"
+        } else {
+            "curl-bash"
+        },
+    )
+    .map_err(|e| e.to_string())?;
+    fs::remove_file(archive).map_err(|e| e.to_string())?;
+    Ok(binary.to_string_lossy().into_owned())
 }
 fn install_omp(app: &AppHandle) -> Result<String, String> {
     use sha2::{Digest, Sha256};
@@ -405,6 +532,12 @@ pub fn managed_cli_latest(app: AppHandle, provider: String) -> Result<CliRelease
     if ["omp", "fx", "antigravity", "zcode"].contains(&provider.as_str()) {
         return Err("This CLI is no longer supported in MyCode".into());
     }
+    if provider == "devin" {
+        return Ok(CliRelease {
+            version: devin_release()?.version,
+            managed_path: None,
+        });
+    }
     if provider == "omp" || provider == "zcode" || provider == "hermes" {
         let repo = match provider.as_str() {
             "omp" => "can1357/oh-my-pi",
@@ -499,6 +632,9 @@ fn install_cli(app: &AppHandle, provider: &str) -> Result<String, String> {
         return Err("This CLI is no longer supported in MyCode".into());
     }
     let _lock = INSTALL_LOCK.lock().map_err(|e| e.to_string())?;
+    if provider == "devin" {
+        return install_devin(&app);
+    }
     #[cfg(windows)]
     if provider == "hermes" {
         return install_hermes(&app);
@@ -584,42 +720,7 @@ fn install_cli(app: &AppHandle, provider: &str) -> Result<String, String> {
     if !path.is_file() {
         return Err("Installed CLI executable was not found".into());
     }
-    if provider == "freebuff" {
-        // The npm package lazily downloads its native binary. Do that during
-        // installation so the first version probe/terminal launch is ready.
-        let log = fs::OpenOptions::new()
-            .append(true)
-            .open(&log_path)
-            .map_err(|e| e.to_string())?;
-        let mut cmd = Command::new(node(&app)?);
-        cmd.arg(prefix.join("node_modules/freebuff/index.js"))
-            .arg("--version")
-            .stdin(Stdio::null())
-            .stdout(Stdio::from(log.try_clone().map_err(|e| e.to_string())?))
-            .stderr(Stdio::from(log));
-        apply_network(&mut cmd);
-        apply_path(&mut cmd);
-        crate::hide_window_console(&mut cmd);
-        let mut child = cmd.spawn().map_err(|e| e.to_string())?;
-        let start = std::time::Instant::now();
-        loop {
-            if let Some(status) = child.try_wait().map_err(|e| e.to_string())? {
-                if !status.success() {
-                    return Err(format!(
-                        "Freebuff runtime download failed. Log: {}",
-                        log_path.display()
-                    ));
-                }
-                break;
-            }
-            if start.elapsed() > std::time::Duration::from_secs(600) {
-                let _ = child.kill();
-                let _ = child.wait();
-                return Err("CLI installation timed out".into());
-            }
-            std::thread::sleep(std::time::Duration::from_millis(200));
-        }
-    }
+
     Ok(path.to_string_lossy().into())
 }
 
@@ -765,5 +866,49 @@ mod runtime_path_tests {
             external_runtime_path(PathBuf::from(r"\\?\UNC\server\share\runtime")),
             PathBuf::from(r"\\server\share\runtime")
         );
+    }
+}
+
+#[cfg(test)]
+mod devin_release_tests {
+    use super::*;
+    use serde_json::json;
+    #[test]
+    fn retired_freebuff_has_no_package_installation_path() {
+        assert!(package("freebuff").is_err());
+    }
+    #[test]
+    fn maps_official_devin_platform_targets() {
+        assert_eq!(
+            devin_target("windows", "x86_64").unwrap(),
+            "x86_64-pc-windows"
+        );
+        assert_eq!(
+            devin_target("windows", "aarch64").unwrap(),
+            "aarch64-pc-windows"
+        );
+        assert_eq!(
+            devin_target("macos", "aarch64").unwrap(),
+            "aarch64-apple-darwin"
+        );
+        assert_eq!(
+            devin_target("linux", "x86_64").unwrap(),
+            "x86_64-unknown-linux"
+        );
+        assert!(devin_target("linux", "x86").is_err());
+    }
+    #[test]
+    fn verifies_official_manifest_urls_and_checksums_before_installing() {
+        let mut manifest = json!({"version":"3000.11.3","platforms":{"x86_64-pc-windows":{"url":"https://static.devin.ai/cli/3000.11.3/devin.zip","sha256":"a".repeat(64)}}});
+        let release = parse_devin_release(&manifest, "x86_64-pc-windows").unwrap();
+        assert_eq!(release.version, "3000.11.3");
+        manifest["platforms"]["x86_64-pc-windows"]["sha256"] = json!("bad digest");
+        assert!(parse_devin_release(&manifest, "x86_64-pc-windows").is_err());
+        manifest["platforms"]["x86_64-pc-windows"]["sha256"] = json!("a".repeat(64));
+        manifest["platforms"]["x86_64-pc-windows"]["url"] = json!("https://example.com/devin.zip");
+        assert!(parse_devin_release(&manifest, "x86_64-pc-windows").is_err());
+        assert!(parse_devin_release(&manifest, "unknown").is_err());
+        manifest["version"] = json!("../outside");
+        assert!(parse_devin_release(&manifest, "x86_64-pc-windows").is_err());
     }
 }

@@ -1,7 +1,7 @@
 {
   "name": "mycode-desktop",
   "private": true,
-  "version": "0.19.1",
+  "version": "0.20.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -66,6 +66,8 @@
     "cuelume": "^0.2.2",
     "dingtalk-stream": "^2.1.5",
     "discord.js": "^14.16.3",
+    "emojibase-data": "17.0.0",
+    "frimousse": "0.4.0",
     "prettier": "^3.9.6",
     "qrcode": "^1.5.4",
     "react": "^19.1.0",

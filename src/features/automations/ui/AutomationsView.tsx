@@ -1,3 +1,4 @@
+import { resolveAutomationTarget } from "../model/automationTarget";
 import { translate as uiTranslate } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import {
@@ -524,7 +525,13 @@ function AutomationCard({
   const lastRun = automation.lastRunAt
     ? formatRelativeTime(new Date(automation.lastRunAt).toISOString())
     : null;
-  const model = resolveModel(automation.harness, automation.model);
+  const { t } = useTranslation();
+  const target = resolveAutomationTarget(automation);
+  const model = resolveModel(target.harness, target.model);
+  const modelLabel =
+    automation.model.trim() || automation.modelSettings?.connectionId
+      ? t(model.name)
+      : t("Follow new conversation defaults");
   return (
     <div
       className={`group relative rounded-md border ${
@@ -575,14 +582,14 @@ function AutomationCard({
             </>
           ) : null}
           <span
-            title={model.name}
+            title={modelLabel}
             className="ml-auto flex min-w-0 max-w-28 items-center gap-1 text-content/50"
           >
             <HarnessIcon
-              harness={automation.harness}
+              harness={target.harness}
               className="size-3.5 shrink-0"
             />
-            <span className="min-w-0 truncate">{model.name}</span>
+            <span className="min-w-0 truncate">{modelLabel}</span>
           </span>
         </span>
       </button>
@@ -921,11 +928,15 @@ function AutomationEditor({
     if (kind === "time") return true;
     return providerConnected[kind];
   };
+  const followDefault =
+    !draft.model.trim() && !draft.modelSettings.connectionId;
+  const target = resolveAutomationTarget(draft);
+  const changeModelSettings = (modelSettings: Record<string, string>) =>
+    onChange({ ...draft, ...target, modelSettings });
   const valid =
     draft.name.trim().length > 0 &&
     draft.prompt.trim().length > 0 &&
-    looksLikeProject(draft.cwd) &&
-    draft.model.length > 0;
+    looksLikeProject(draft.cwd);
   const [sessionFolders, setSessionFolders] = useState(() =>
     loadSessionFolders(draft.cwd),
   );
@@ -1354,7 +1365,7 @@ function AutomationEditor({
               <div className="relative mt-3 rounded-md border border-content/10 bg-content/3 backdrop-blur-sm has-focus:border-content/20">
                 <PromptField
                   value={draft.prompt}
-                  harness={draft.harness}
+                  harness={target.harness}
                   cwd={draft.cwd}
                   onChange={(prompt) => update("prompt", prompt)}
                 />
@@ -1362,29 +1373,53 @@ function AutomationEditor({
                   <div className="flex min-w-0 flex-1 items-center overflow-x-auto">
                     <div className="flex shrink-0 items-center gap-1">
                       <ModelPicker
-                        harness={draft.harness}
-                        model={draft.model}
-                        values={draft.modelSettings}
+                        harness={target.harness}
+                        model={target.model}
+                        values={target.modelSettings ?? {}}
                         project={draft.cwd}
                         hideSettings={controlsBeside}
                         onChange={(harness, model) =>
                           onChange({ ...draft, harness, model })
                         }
-                        onSettingsChange={(modelSettings) =>
-                          update("modelSettings", modelSettings)
-                        }
+                        onSettingsChange={changeModelSettings}
                       />
+                      <label className="inline-flex cursor-pointer items-center gap-1.5 px-2 text-[11px] text-content/60">
+                        <input
+                          type="checkbox"
+                          checked={followDefault}
+                          onChange={(event) => {
+                            if (event.target.checked) {
+                              onChange({
+                                ...draft,
+                                model: "",
+                                modelSettings: {},
+                              });
+                            } else {
+                              const current = resolveAutomationTarget({
+                                ...draft,
+                                model: "",
+                                modelSettings: {},
+                              });
+                              onChange({
+                                ...draft,
+                                ...current,
+                                modelSettings: current.modelSettings ?? {},
+                              });
+                            }
+                          }}
+                          className="size-3.5 accent-accent"
+                        />
+                        {t("Follow new conversation defaults")}
+                      </label>
                       {controlsBeside ? (
                         <ModelControlPills
-                          harness={draft.harness}
-                          model={draft.model}
-                          values={draft.modelSettings}
-                          onSettingsChange={(modelSettings) =>
-                            update("modelSettings", modelSettings)
-                          }
+                          harness={target.harness}
+                          model={target.model}
+                          values={target.modelSettings ?? {}}
+                          onSettingsChange={changeModelSettings}
                         />
                       ) : null}
-                      {draft.harness !== "fx" ? (
+                      {target.harness !== "fx" ? (
                         <AccessPicker
                           value={draft.runtimeMode}
                           onChange={(runtimeMode) =>

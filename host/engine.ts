@@ -247,7 +247,12 @@ export class HostEngine {
   private switchingProjects = new Set<string>();
   private running = new Map<
     string,
-    { runId: string; done: Promise<void>; cancelled: boolean; persistenceFailed: boolean }
+    {
+      runId: string;
+      done: Promise<void>;
+      cancelled: boolean;
+      persistenceFailed: boolean;
+    }
   >();
   /** Running sessions, including streamed events not yet written to disk. */
   private live = new Map<
@@ -279,8 +284,11 @@ export class HostEngine {
           { type: "interrupted" },
         );
       }
-      if (value.session.providerSessionId)
-        this.provider(value.session.harness).bind(
+      // Old snapshots may refer to an agent removed by an upgrade. Keep their
+      // history and interrupted state, but do not restore an unavailable owner.
+      const provider = this.availableProvider(value.session.harness);
+      if (provider && value.session.providerSessionId)
+        provider.bind(
           value.session.id,
           value.session.providerSessionId,
           value.session.cwd,
@@ -319,9 +327,18 @@ export class HostEngine {
     }
   }
 
+  private availableProvider(id: string): HostProvider | undefined {
+    return Object.hasOwn(this.providers, id)
+      ? this.providers[id as RemoteProvider]
+      : undefined;
+  }
+
   private provider(id: string): HostProvider {
-    const provider = this.providers[id as RemoteProvider];
-    if (!provider) throw new Error(`${id} is not available on this host`);
+    const provider = this.availableProvider(id);
+    if (!provider)
+      throw new Error(
+        "This agent is not available on this host. Choose another agent to continue.",
+      );
     return provider;
   }
 
@@ -754,8 +771,13 @@ export class HostEngine {
           const currentBeforeRename = this.store.session(id);
           if (currentBeforeRename.autoWorktreeBranch !== temporary) return;
           const project = this.store.project(value.projectId);
-          await renameHostWorktreeBranch(project.cwd, cwd, temporary, branch,
-            () => this.store.session(id).autoWorktreeBranch === temporary);
+          await renameHostWorktreeBranch(
+            project.cwd,
+            cwd,
+            temporary,
+            branch,
+            () => this.store.session(id).autoWorktreeBranch === temporary,
+          );
           this.flush(id);
           const current = this.store.session(id);
           const saved = this.save(
@@ -783,7 +805,12 @@ export class HostEngine {
   ): void {
     const { session, runId } = value;
     const provider = this.provider(session.harness);
-    const active = { runId: runId!, done: Promise.resolve(), cancelled: false, persistenceFailed: false };
+    const active = {
+      runId: runId!,
+      done: Promise.resolve(),
+      cancelled: false,
+      persistenceFailed: false,
+    };
     this.running.set(session.id, active);
     this.live.set(session.id, { value, events: [] });
     active.done = Promise.resolve()
@@ -832,8 +859,8 @@ export class HostEngine {
             : active.persistenceFailed
               ? "Session storage failed during this turn. Inspect its work before continuing."
               : active.cancelled
-              ? "Stopped by you."
-              : error;
+                ? "Stopped by you."
+                : error;
           this.save(
             this.settled(
               latest,

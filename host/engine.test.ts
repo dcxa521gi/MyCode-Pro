@@ -61,27 +61,136 @@ function setup(harness: "codex" | "claude" = "codex") {
 }
 
 describe("headless session ownership", () => {
-  it.each(["send", "compact"] as const)("clears the old draft when a normal %s starts", async (type) => {
-    const { engine, store, turns, provider, id } = setup();
-    provider.compact = (input) => provider.send({ ...input, text: "/compact" });
-    engine.command({ type: "draft", commandId: "draft", sessionId: id, text: "Later" });
-    engine.command({ type, commandId: "next", sessionId: id, text: "New work" });
-    expect(store.session(id).session.blocks.some((block) => block.draft)).toBe(false);
-    await vi.waitFor(() => expect(turns).toHaveLength(1));
-    turns[0].finish();
-  });
+  it.each(["idle", "running"] as const)(
+    "keeps %s history for an unavailable provider without replaying or blocking startup",
+    async (status) => {
+      const { store, provider, id } = setup();
+      const current = store.session(id);
+      store.transaction(() => {
+        store.save(
+          {
+            ...current,
+            revision: current.revision + 1,
+            session: {
+              ...current.session,
+              providerSessionId: "available-owner",
+            },
+          },
+          { type: "bound" },
+        );
+        store.save(
+          {
+            ...current,
+            status,
+            runId: status === "running" ? "old-run" : undefined,
+            session: {
+              ...current.session,
+              id: "legacy-session",
+              // A persisted snapshot may name a provider removed by an upgrade.
+              harness: "removed-provider" as typeof current.session.harness,
+              providerSessionId: "legacy-owner",
+              busy: status === "running",
+              blocks: [
+                {
+                  id: "legacy-message",
+                  role: "user",
+                  text: "Keep my earlier work",
+                },
+              ],
+            },
+          },
+          { type: "accepted" },
+        );
+      });
+      let recovered: HostEngine | undefined;
+      expect(() => {
+        recovered = new HostEngine(store, { codex: provider });
+      }).not.toThrow();
+      const legacy = store.session("legacy-session");
+      expect(legacy.status).toBe(status === "running" ? "interrupted" : "idle");
+      expect(legacy.session.providerSessionId).toBe("legacy-owner");
+      expect(legacy.session.blocks[0].text).toBe("Keep my earlier work");
+      expect(provider.bind).toHaveBeenCalledWith(
+        id,
+        "available-owner",
+        current.session.cwd,
+      );
+      expect(provider.bind).not.toHaveBeenCalledWith(
+        "legacy-session",
+        "legacy-owner",
+        expect.anything(),
+      );
+      expect(provider.send).not.toHaveBeenCalled();
+      expect(() =>
+        recovered!.command({
+          type: "send",
+          commandId: "continue-legacy",
+          sessionId: "legacy-session",
+          text: "Continue",
+        }),
+      ).toThrow(
+        "This agent is not available on this host. Choose another agent to continue.",
+      );
+      expect(provider.send).not.toHaveBeenCalled();
+      expect(store.session("legacy-session")).toEqual(legacy);
+      await recovered!.close();
+    },
+  );
+
+  it.each(["send", "compact"] as const)(
+    "clears the old draft when a normal %s starts",
+    async (type) => {
+      const { engine, store, turns, provider, id } = setup();
+      provider.compact = (input) =>
+        provider.send({ ...input, text: "/compact" });
+      engine.command({
+        type: "draft",
+        commandId: "draft",
+        sessionId: id,
+        text: "Later",
+      });
+      engine.command({
+        type,
+        commandId: "next",
+        sessionId: id,
+        text: "New work",
+      });
+      expect(
+        store.session(id).session.blocks.some((block) => block.draft),
+      ).toBe(false);
+      await vi.waitFor(() => expect(turns).toHaveLength(1));
+      turns[0].finish();
+    },
+  );
 
   it("contains a persistence failure while requesting approval", async () => {
     const { engine, store, turns, provider, id } = setup();
-    engine.command({ type: "send", commandId: "approval-failure", sessionId: id, text: "Work" });
+    engine.command({
+      type: "send",
+      commandId: "approval-failure",
+      sessionId: id,
+      text: "Work",
+    });
     await vi.waitFor(() => expect(turns).toHaveLength(1));
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
-    vi.spyOn(store, "save").mockImplementationOnce(() => { throw new Error("disk full"); });
+    vi.spyOn(store, "save").mockImplementationOnce(() => {
+      throw new Error("disk full");
+    });
     try {
-      expect(() => turns[0].input.onEvent({ type: "approval.requested", requestId: 1, title: "Run?" })).not.toThrow();
+      expect(() =>
+        turns[0].input.onEvent({
+          type: "approval.requested",
+          requestId: 1,
+          title: "Run?",
+        }),
+      ).not.toThrow();
       await vi.waitFor(() => expect(provider.stop).toHaveBeenCalled());
-      await vi.waitFor(() => expect(store.session(id).status).toBe("interrupted"));
-    } finally { log.mockRestore(); }
+      await vi.waitFor(() =>
+        expect(store.session(id).status).toBe("interrupted"),
+      );
+    } finally {
+      log.mockRestore();
+    }
   });
 
   it("stores a remote draft with an uploaded file, then sends it in plan mode", async () => {
@@ -162,12 +271,28 @@ describe("headless session ownership", () => {
       name: "shot.png",
       data: image.toString("base64"),
     });
-    expect(readAttachmentChunk(store, { sessionId: id, id: fileId, offset: 0 })).toEqual({
-      offset: image.length, size: image.length, data: image.toString("base64"),
+    expect(
+      readAttachmentChunk(store, { sessionId: id, id: fileId, offset: 0 }),
+    ).toEqual({
+      offset: image.length,
+      size: image.length,
+      data: image.toString("base64"),
     });
-    const other = engine.command({ type: "create", commandId: "other-session", projectId: store.session(id).projectId,
-      harness: "claude", model: "claude:test", runtimeMode: "supervised" });
-    expect(() => readAttachmentChunk(store, { sessionId: other.sessionId, id: fileId, offset: 0 })).toThrow();
+    const other = engine.command({
+      type: "create",
+      commandId: "other-session",
+      projectId: store.session(id).projectId,
+      harness: "claude",
+      model: "claude:test",
+      runtimeMode: "supervised",
+    });
+    expect(() =>
+      readAttachmentChunk(store, {
+        sessionId: other.sessionId,
+        id: fileId,
+        offset: 0,
+      }),
+    ).toThrow();
     turns[0].finish();
   });
 
@@ -361,10 +486,9 @@ describe("headless session ownership", () => {
 
     const legacySummary = { ...store.summaries(project.id)[0] };
     delete legacySummary.providerSessionId;
-    store.db.prepare("UPDATE sessions SET summary=? WHERE id=?").run(
-      JSON.stringify(legacySummary),
-      id,
-    );
+    store.db
+      .prepare("UPDATE sessions SET summary=? WHERE id=?")
+      .run(JSON.stringify(legacySummary), id);
     expect(store.summaries(project.id)[0].providerSessionId).toBe(
       "harness-session",
     );
@@ -380,10 +504,9 @@ describe("headless session ownership", () => {
     const { directory, store, project, id } = setup();
     const legacy = { ...store.session(id) };
     delete legacy.createdAt;
-    store.db.prepare("UPDATE sessions SET snapshot=? WHERE id=?").run(
-      JSON.stringify(legacy),
-      id,
-    );
+    store.db
+      .prepare("UPDATE sessions SET snapshot=? WHERE id=?")
+      .run(JSON.stringify(legacy), id);
 
     const reopened = new HostStore(join(directory, "host.db"));
     cleanups.push(() => reopened.close());

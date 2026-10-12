@@ -1,5 +1,12 @@
 import { translate as t } from "../../../shared/i18n";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+} from "react";
 import { lazySurface } from "../../../shared/ui/lazySurface";
 import { ChevronDown, Folder, GitBranch } from "../../../shared/ui/icons";
 import {
@@ -51,7 +58,10 @@ export function MonoChangesPanel({
   onClose: () => void;
   windowControls?: ReactNode;
 }) {
-  const { projects, outside, loaded } = useSessionProjects(sessionId, cwd);
+  const { projects, outside, loaded, error } = useSessionProjects(
+    sessionId,
+    cwd,
+  );
   const [tab, setTab] = useState<MonoChangesTab>(request.tab);
   const [focusPath, setFocusPath] = useState(request.path);
   const [selectedRoot, setSelectedRoot] = useState<string | null>(null);
@@ -63,7 +73,20 @@ export function MonoChangesPanel({
         )
       : undefined) ??
     projects[0];
-  const { index, reload } = useProjectIndex(project?.root);
+  const [indexes, setIndexes] = useState<
+    ReadonlyMap<string, GitDiffIndex | null>
+  >(new Map());
+  const updateIndex = useCallback(
+    (root: string, index: GitDiffIndex | null) => {
+      setIndexes((previous) =>
+        previous.get(root) === index
+          ? previous
+          : new Map(previous).set(root, index),
+      );
+    },
+    [],
+  );
+  const index = project ? (indexes.get(project.root) ?? null) : null;
 
   useEffect(() => {
     setTab(request.tab);
@@ -151,21 +174,20 @@ export function MonoChangesPanel({
             paths={scope}
           />
         </div>
-        {project ? (
+        {projects.map((entry) => (
           <div
+            key={`${sessionId}:${cwd}:${entry.root}`}
             role="tabpanel"
             aria-label={t("Commit")}
-            hidden={tab !== "commit"}
+            hidden={tab !== "commit" || entry.root !== project?.root}
             className="absolute inset-0 flex h-full flex-col"
           >
-            <MonoProjectCommit
-              key={project.root}
+            <ProjectCommit
               sessionId={sessionId}
               cwd={cwd}
-              root={project.root}
-              files={project.files}
-              index={index}
-              reloadIndex={reload}
+              root={entry.root}
+              files={entry.files}
+              onIndex={updateIndex}
               textHarness={textHarness}
               onOpenFile={(path) => {
                 setFocusPath(path);
@@ -173,8 +195,17 @@ export function MonoChangesPanel({
               }}
             />
           </div>
-        ) : null}
+        ))}
       </div>
+      {error ? (
+        <p
+          role="alert"
+          className="shrink-0 border-t border-stroke px-4 py-2 text-[12px] text-red-400"
+        >
+          {t("Couldn’t load repositories:")}
+          {error}
+        </p>
+      ) : null}
       {loaded && !project && outside.length > 0 ? (
         <p className="shrink-0 border-t border-stroke px-4 py-2 text-[11px] text-content/45">
           {t(
@@ -184,6 +215,18 @@ export function MonoChangesPanel({
       ) : null}
     </MonoSidebar>
   );
+}
+
+/** Each checkout stays mounted so its draft, selection and actions survive a switch. */
+function ProjectCommit({
+  onIndex,
+  ...props
+}: Omit<ComponentProps<typeof MonoProjectCommit>, "index" | "reloadIndex"> & {
+  onIndex: (root: string, index: GitDiffIndex | null) => void;
+}) {
+  const { index, reload } = useProjectIndex(props.root);
+  useEffect(() => onIndex(props.root, index), [props.root, index, onIndex]);
+  return <MonoProjectCommit {...props} index={index} reloadIndex={reload} />;
 }
 
 function TabButton({
@@ -334,15 +377,22 @@ type SessionProject = { root: string; files: MonoProjectFile[] };
 function useSessionProjects(
   sessionId: string,
   cwd: string,
-): { projects: SessionProject[]; outside: string[]; loaded: boolean } {
+): {
+  projects: SessionProject[];
+  outside: string[];
+  loaded: boolean;
+  error: string | null;
+} {
   const [projects, setProjects] = useState<SessionProject[]>([]);
   const [outside, setOutside] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setProjects([]);
     setOutside([]);
     setLoaded(false);
+    setError(null);
     if (!cwd || cwd === "~") return;
     let disposed = false;
     let generation = 0;
@@ -354,6 +404,7 @@ function useSessionProjects(
             files.map((file) => file.path),
           );
           if (disposed || current !== generation) return;
+          setError(null);
           const byRoot = new Map<string, MonoProjectFile[]>();
           const loose: string[] = [];
           files.forEach((file, index) => {
@@ -380,7 +431,10 @@ function useSessionProjects(
             return next;
           });
         })
-        .catch(() => undefined)
+        .catch((caught: unknown) => {
+          if (!disposed && current === generation)
+            setError(caught instanceof Error ? caught.message : String(caught));
+        })
         .finally(() => {
           if (!disposed && current === generation) setLoaded(true);
         });
@@ -397,5 +451,5 @@ function useSessionProjects(
     };
   }, [sessionId, cwd]);
 
-  return { projects, outside, loaded };
+  return { projects, outside, loaded, error };
 }

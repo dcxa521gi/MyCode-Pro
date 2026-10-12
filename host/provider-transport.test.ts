@@ -1,24 +1,34 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   mkdtempSync,
+  mkdirSync,
   readFileSync,
   writeFileSync,
   rmSync,
   realpathSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { HostChildBackend } from "./child-backend";
 import { HostStore } from "./store";
 import { HostEngine } from "./engine";
 import { hostProviders } from "./providers";
 import { discoverCodexModels } from "../src/integrations/harness/providers/codex/codexCatalog";
 import { discoverClaudeModels } from "../src/integrations/harness/providers/claude/claudeCatalog";
-import { discoverPiModels, discoverOmpModels } from "../src/integrations/harness/providers/pi/piCatalog";
+import {
+  discoverPiModels,
+  discoverOmpModels,
+} from "../src/integrations/harness/providers/pi/piCatalog";
 import {
   acquireHarnessBridge,
   configureChildBackend,
 } from "../src/integrations/harness/core/child";
+
+const fixtureHome = vi.hoisted(() => ({ path: "" }));
+vi.mock("node:os", async (importOriginal) => {
+  const original = await importOriginal<typeof import("node:os")>();
+  return { ...original, homedir: () => fixtureHome.path };
+});
 
 // Real subprocesses exercise framing, startup, stdout delivery and teardown
 // through the existing production adapters without contacting a paid model.
@@ -29,10 +39,16 @@ const send = value => process.stdout.write(JSON.stringify(value) + '\\n');
 // applied between turns reach the provider.
 const record = value => require('node:fs').appendFileSync(require('node:path').join(__dirname, 'calls.log'), JSON.stringify(value) + '\\n');
 if (!process.argv.includes('app-server')) record({claudeArgs: process.argv.slice(2)});
+// Devin reports where \`devin auth login\` saved its key.
+if (process.argv.slice(2).join(' ') === 'auth status') {
+  process.stdout.write('Logged in.\\n  Credentials path: ' + require('node:path').join(__dirname, 'credentials.toml') + '\\n');
+  process.exit(0);
+}
 readline.createInterface({input: process.stdin}).on('line', line => {
   const request = JSON.parse(line);
   if (request.jsonrpc === '2.0') {
     if (request.id == null) return;
+    if (request.method === 'authenticate') record({authenticate: request.params});
     if (request.method === 'session/prompt') {
       send({jsonrpc: '2.0', method: 'session/update', params: {sessionId: 'fixture_acp', update: {sessionUpdate: 'agent_message_chunk', content: {type: 'text', text: 'Headless ACP completed'}}}});
       setTimeout(() => send({jsonrpc: '2.0', id: request.id, result: {stopReason: 'end_turn'}}), 30);
@@ -85,8 +101,29 @@ describe("existing providers over headless process I/O", () => {
     directory = realpathSync(
       mkdtempSync(join(tmpdir(), "monocode-provider-test-")),
     );
+    fixtureHome.path = directory;
+    const configHome = join(directory, ".config");
+    vi.stubEnv("XDG_CONFIG_HOME", configHome);
+    vi.stubEnv("APPDATA", configHome);
+    mkdirSync(join(configHome, "devin"), { recursive: true });
+    writeFileSync(
+      join(configHome, "devin", "config.json"),
+      `{
+        // Preserve the user's settings when adding supervised permissions.
+        "agent": { "model": "swe-2-high" },
+        "permissions": {
+          "allow": ["Exec(git status)"],
+          "deny": ["Write(.env*)"],
+          "ask": ["exec"]
+        }
+      }`,
+    );
     const binary = join(directory, "provider.cjs");
     writeFileSync(binary, fixture, { mode: 0o700 });
+    writeFileSync(
+      join(directory, "credentials.toml"),
+      'windsurf_api_key = "fixture-devin-key"\n',
+    );
     backend = new HostChildBackend({
       codex: binary,
       claude: binary,
@@ -97,6 +134,7 @@ describe("existing providers over headless process I/O", () => {
       fx: binary,
       hermes: binary,
       antigravity: binary,
+      devin: binary,
     });
     configureChildBackend(backend);
     release = await acquireHarnessBridge();
@@ -109,19 +147,22 @@ describe("existing providers over headless process I/O", () => {
     release?.();
     store?.close();
     if (directory) rmSync(directory, { recursive: true, force: true });
+    vi.unstubAllEnvs();
+    fixtureHome.path = "";
   });
 
   it("discovers host models in parallel without probe process collisions", async () => {
-    const [codexA, codexB, claudeA, claudeB, piA, piB, ompA, ompB] = await Promise.all([
-      discoverCodexModels(directory),
-      discoverCodexModels(directory),
-      discoverClaudeModels(directory),
-      discoverClaudeModels(directory),
-      discoverPiModels(directory),
-      discoverPiModels(directory),
-      discoverOmpModels(directory),
-      discoverOmpModels(directory),
-    ]);
+    const [codexA, codexB, claudeA, claudeB, piA, piB, ompA, ompB] =
+      await Promise.all([
+        discoverCodexModels(directory),
+        discoverCodexModels(directory),
+        discoverClaudeModels(directory),
+        discoverClaudeModels(directory),
+        discoverPiModels(directory),
+        discoverPiModels(directory),
+        discoverOmpModels(directory),
+        discoverOmpModels(directory),
+      ]);
     expect(codexA).toEqual(codexB);
     expect(codexA[0]).toMatchObject({ id: "codex:fixture-model" });
     expect(claudeA).toEqual(claudeB);
@@ -198,7 +239,7 @@ describe("existing providers over headless process I/O", () => {
     },
   );
 
-  it.each(["cursor", "grok", "hermes"] as const)(
+  it.each(["cursor", "grok", "hermes", "devin"] as const)(
     "completes a %s turn over the headless ACP transport",
     async (harness) => {
       const project = await engine.openProject(directory);
@@ -223,6 +264,36 @@ describe("existing providers over headless process I/O", () => {
       const state = store.session(sessionId).session;
       expect(state.blocks.at(-1)?.text).toContain("Headless ACP completed");
       expect(state.providerSessionId).toBe("fixture_acp");
+      if (harness === "devin") {
+        // The host reuses the key `devin auth login` left on its own disk.
+        const log = readFileSync(join(directory, "calls.log"), "utf8");
+        expect(log).toContain(
+          JSON.stringify({
+            authenticate: {
+              methodId: "devin-browser",
+              _meta: { api_key: "fixture-devin-key" },
+            },
+          }),
+        );
+        const args: string[] = log
+          .trim()
+          .split("\n")
+          .map((line) => JSON.parse(line))
+          .find((call) => call.claudeArgs?.includes("--config"))?.claudeArgs;
+        expect(args).toContain("acp");
+        const configPath = args[args.indexOf("--config") + 1];
+        expect(dirname(configPath)).toBe(
+          join(directory, ".monocode-host", "devin"),
+        );
+        expect(JSON.parse(readFileSync(configPath, "utf8"))).toEqual({
+          agent: { model: "swe-2-high" },
+          permissions: {
+            allow: ["Exec(git status)"],
+            deny: ["Write(.env*)"],
+            ask: ["exec", "Write(**)"],
+          },
+        });
+      }
     },
   );
 

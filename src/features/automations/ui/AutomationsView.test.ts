@@ -10,6 +10,7 @@ import {
   type Automation,
 } from "../model/automations";
 import { AutomationsView } from "./AutomationsView";
+import { setLanguage } from "../../../shared/i18n";
 
 const invoke = vi.hoisted(() => vi.fn());
 vi.mock("@tauri-apps/api/core", async (original) => ({
@@ -28,6 +29,7 @@ let container: HTMLDivElement;
 let root: Root;
 
 beforeEach(() => {
+  setLanguage("en");
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   const storage = new Map<string, string>();
   vi.stubGlobal("localStorage", {
@@ -95,4 +97,63 @@ it("invalidates the cached list when an automation changes", async () => {
   expect(peekAutomations()).toEqual([]);
   notifyAutomationsChanged();
   expect(peekAutomations()).toBeNull();
+});
+
+it("saves followed defaults with no old connection and can return to a concrete default", async () => {
+  let stored: Automation = {
+    ...newAutomationDraft("/work/project", "codex", "codex:default"),
+    modelSettings: { connectionId: "old-connection" },
+    id: "follow-default-test",
+    name: "Follow test",
+    prompt: "Review the project",
+    nextRunAt: 0,
+    createdAt: 1,
+    updatedAt: 1,
+  };
+  invoke.mockImplementation(async (command, args) => {
+    if (command === "automations_list") return [stored];
+    if (command === "automations_upsert") {
+      stored = { ...stored, ...args.automation };
+      return stored;
+    }
+    return [];
+  });
+  await listAutomations();
+  await act(async () =>
+    root.render(
+      createElement(AutomationsView, {
+        cwd: "/work/project",
+        recents: [],
+        onClose: vi.fn(),
+        onLaunch: vi.fn(),
+        onOpenSession: vi.fn(),
+      }),
+    ),
+  );
+  await act(async () =>
+    container
+      .querySelector<HTMLButtonElement>('[aria-label="Open Follow test"]')!
+      .click(),
+  );
+  const follow = () =>
+    [...container.querySelectorAll("label")]
+      .find((label) =>
+        label.textContent?.includes("Follow new conversation defaults"),
+      )!
+      .querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+  expect(follow().checked).toBe(false);
+  await act(async () => follow().click());
+  expect(follow().checked).toBe(true);
+  const save = () =>
+    container.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+  expect(save().disabled).toBe(false);
+  await act(async () => save().click());
+  expect(stored.model).toBe("");
+  expect(stored.modelSettings).toEqual({});
+  expect(stored.id).toBe("follow-default-test");
+  await act(async () => follow().click());
+  expect(follow().checked).toBe(false);
+  await act(async () => save().click());
+  expect(stored.model.trim()).not.toBe("");
+  expect(stored.modelSettings?.connectionId).not.toBe("old-connection");
 });

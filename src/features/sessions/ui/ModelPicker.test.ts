@@ -166,9 +166,9 @@ describe("model picker", () => {
     const modelFlyout = container.querySelector<HTMLElement>(
       '[role="dialog"][aria-label="Models"]',
     )!;
-    expect(modelFlyout.style.height).toBe("368px");
-    expect(modelFlyout.dataset.minHeight).toBe("370");
-    expect(modelFlyout.dataset.maxHeight).toBe("370");
+    expect(modelFlyout.style.height).toBe("404px");
+    expect(modelFlyout.dataset.minHeight).toBe("406");
+    expect(modelFlyout.dataset.maxHeight).toBe("406");
     expect(
       container.querySelector('[role="tablist"][aria-orientation="vertical"]'),
     ).not.toBeNull();
@@ -768,9 +768,7 @@ describe("model picker", () => {
       );
       const effortRow = [
         ...container.querySelectorAll<HTMLButtonElement>("button"),
-      ].find((button) =>
-        button.textContent?.startsWith(settingLabel),
-      )!;
+      ].find((button) => button.textContent?.startsWith(settingLabel))!;
       hover(effortRow);
 
       expect(
@@ -1239,9 +1237,7 @@ it("opens provider management from the model flyout footer", () => {
     );
     act(() =>
       container
-        .querySelector<HTMLButtonElement>(
-          'button[aria-haspopup="menu"]',
-        )!
+        .querySelector<HTMLButtonElement>('button[aria-haspopup="menu"]')!
         .click(),
     );
     hover(

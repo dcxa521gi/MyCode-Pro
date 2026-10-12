@@ -2,12 +2,15 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { UsageMeter } from "./ProviderAccountUsage";
+import { AccountUsageMeters, UsageMeter } from "./ProviderAccountUsage";
+import { setLanguage } from "../../../shared/i18n";
+import { parseDevinUsage } from "../model/rateLimits";
 
 let container: HTMLDivElement;
 let root: Root;
 
 beforeEach(() => {
+  setLanguage("en");
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   container = document.createElement("div");
   document.body.append(container);
@@ -19,6 +22,31 @@ afterEach(async () => {
   container.remove();
   localStorage.clear();
   vi.unstubAllGlobals();
+  setLanguage("en");
+});
+
+it("switches Devin daily quota and extra balance labels between both languages", async () => {
+  await act(async () =>
+    root.render(
+      createElement(AccountUsageMeters, {
+        now: Date.now(),
+        limits: parseDevinUsage({
+          dailyRemainingPercent: 75,
+          extraUsageBalanceMicros: -1_670_000,
+        }),
+      }),
+    ),
+  );
+  expect(container.textContent).toContain("Daily");
+  expect(container.textContent).toContain("Extra");
+  expect(container.textContent).toContain("$-1.67");
+  await act(async () => setLanguage("zh-CN"));
+  expect(container.textContent).toContain("每日");
+  expect(container.textContent).toContain("额外用量");
+  expect(container.textContent).not.toContain("Daily");
+  expect(container.textContent).toContain("$-1.67");
+  await act(async () => setLanguage("en"));
+  expect(container.textContent).toContain("Daily");
 });
 
 it("flips the meter when another window turns on remaining usage", async () => {

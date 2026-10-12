@@ -12,8 +12,8 @@ import {
 import { useTranslation } from "../../../shared/i18n";
 import { ArrowDownCircle, X } from "../../../shared/ui/icons";
 
-const CLI_PROVIDERS = [...HARNESSES, "freebuff"] as const;
-const CLI_TITLES = { ...HARNESS_TITLE, freebuff: "Freebuff" };
+const CLI_PROVIDERS = HARNESSES;
+const CLI_TITLES = HARNESS_TITLE;
 let startupCheck: Promise<void> | undefined;
 export function CLIUpdateNotice({ onOpen }: { onOpen: () => void }) {
   const { t } = useTranslation();
@@ -30,7 +30,8 @@ export function CLIUpdateNotice({ onOpen }: { onOpen: () => void }) {
     let stop: (() => void) | undefined;
     void listen<string>("mycode-cli-updated", (event) => {
       const provider = event.payload as (typeof CLI_PROVIDERS)[number];
-      if (CLI_PROVIDERS.includes(provider)) invalidateCLIVersion(provider);
+      if (!CLI_PROVIDERS.includes(provider)) return;
+      invalidateCLIVersion(provider);
       void probeHarnessAvailability({ force: true }).catch(() => {});
       void refreshHarnessCatalogs(HARNESSES).catch(() => {});
     })

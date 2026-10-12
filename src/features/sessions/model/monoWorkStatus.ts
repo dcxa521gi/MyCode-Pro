@@ -1,3 +1,5 @@
+import { formatMessage, getLocale, translate } from "../../../shared/i18n";
+import { translateActivity } from "../../../shared/i18n/activity";
 import { isReadTool } from "../../../integrations/harness/core/preview";
 import type { Block } from "./session";
 import {
@@ -81,4 +83,32 @@ export function monoWorkStatus(
     other: "Using tool…",
   }[kind];
   return { key: latest.id, label, kind, active: true };
+}
+
+/** Localize app-owned ticker grammar without changing the status used by animation. */
+export function monoWorkStatusLabel(status: MonoWorkStatus): string {
+  if (getLocale() !== "zh-CN") return status.label;
+  const exact = translate(status.label);
+  if (exact !== status.label) return exact;
+  if (status.key === "background") {
+    const waiting = status.label.match(/^Waiting for (\d+) background tasks…$/);
+    if (waiting)
+      return formatMessage("Waiting for {count} background tasks…", {
+        count: waiting[1],
+      });
+  }
+  // Only the model's app-generated summaries use activity grammar. A supplied
+  // tool/user diagnostic is left verbatim, even when it starts with a verb.
+  if (status.key !== "summary") return status.label;
+  return status.label
+    .split(" · ")
+    .map((part) => {
+      const failed = part.match(/^(\d+) subagents failed$/);
+      if (failed)
+        return formatMessage("{count} subagents failed", { count: failed[1] });
+      const notes = part.match(/^(\d+) notes?$/);
+      if (notes) return formatMessage("{count} notes", { count: notes[1] });
+      return translateActivity(part);
+    })
+    .join(" · ");
 }

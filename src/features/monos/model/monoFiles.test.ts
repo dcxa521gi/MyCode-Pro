@@ -243,3 +243,24 @@ it("puts what the app adds ahead of the user's message, marked as its own", () =
   );
   expect(turn.endsWith("</monocode_context>\n\nwhat is this")).toBe(true);
 });
+
+it("refreshes current product identity every turn while preserving historical persona content", () => {
+  const oldSoul =
+    "You are an adventurous MonoCode companion. Keep a playful nickname.";
+  const oldMemory = "Historical work was done in MonoCode.";
+  const context = [oldSoul, oldMemory];
+  const turn = monoTurn("Continue", context, { name: "My custom nickname" });
+  expect(turn).toContain("<mycode_identity>");
+  expect(turn).toContain("current application is MyCode");
+  expect(turn).toContain("My custom nickname");
+  expect(turn).toContain(oldSoul);
+  expect(turn).toContain(oldMemory);
+  expect(context).toEqual([oldSoul, oldMemory]);
+  expect(monoTurn("Continue", [], { name: "My custom nickname" })).toContain(
+    "current application is MyCode",
+  );
+  expect(turn).toContain("preserve custom personality");
+  expect(turn).toContain(
+    "Never edit files, memory or history merely to correct branding",
+  );
+});

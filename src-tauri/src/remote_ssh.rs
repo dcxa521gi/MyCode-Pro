@@ -70,7 +70,7 @@ impl Job {
             inner: Mutex::new(JobData {
                 view: JobView {
                     id: uuid::Uuid::new_v4().to_string(),
-                    message: "Connecting to SSH and setting up MonoCode Host…".into(),
+                    message: "Connecting to SSH and setting up MyCode Host…".into(),
                     prompt: None,
                     done: false,
                     error: None,
@@ -398,7 +398,7 @@ pub fn bootstrap_script(platform: HostPlatform) -> String {
 
 fn bootstrap_script_from_template(platform: HostPlatform, template: &str) -> String {
     let version = env!("CARGO_PKG_VERSION");
-    let url = format!("https://github.com/hardbeat920/monocode/releases/download/v{version}");
+    let url = format!("https://github.com/dcxa521gi/MyCode-Pro/releases/download/v{version}");
     match platform {
         // include_str! preserves checkout line endings, including Windows CRLF.
         HostPlatform::Unix => template
@@ -907,5 +907,18 @@ mod tests {
         job.answer(&prompt.id, "yes".into()).unwrap();
         assert_eq!(thread.join().unwrap(), Some("yes".into()));
         assert!(job.answer(&prompt.id, "yes".into()).is_err());
+    }
+}
+#[test]
+fn bootstrap_downloads_the_matching_mycode_release_and_keeps_existing_host_data() {
+    for platform in [HostPlatform::Unix, HostPlatform::Windows] {
+        let script = bootstrap_script(platform);
+        assert!(script.contains(&format!(
+            "https://github.com/dcxa521gi/MyCode-Pro/releases/download/v{}",
+            env!("CARGO_PKG_VERSION")
+        )));
+        assert!(!script.contains("hardbeat920/monocode"));
+        assert!(script.contains(".monocode-host"));
+        assert!(script.contains("monocode-host-"));
     }
 }

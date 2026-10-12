@@ -8,8 +8,19 @@ import { hostProviders } from "./providers";
 import { HARNESSES } from "../src/features/sessions/model/session";
 
 it("exposes supported remote harnesses without restoring removed CLIs", () => {
-  expect(Object.keys(hostProviders).sort()).toEqual(["claude","codex","cursor","grok","hermes","opencode","pi"]);
-  for (const provider of Object.keys(hostProviders) as (keyof typeof hostProviders)[]) {
+  expect(Object.keys(hostProviders).sort()).toEqual([
+    "claude",
+    "codex",
+    "cursor",
+    "devin",
+    "grok",
+    "hermes",
+    "opencode",
+    "pi",
+  ]);
+  for (const provider of Object.keys(
+    hostProviders,
+  ) as (keyof typeof hostProviders)[]) {
     expect(HARNESSES).toContain(provider);
     expect(isRemoteProvider(provider)).toBe(true);
     expect(hostProviders[provider]!.send).toBeTypeOf("function");

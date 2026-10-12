@@ -89,3 +89,13 @@ it("localizes default resident names without changing custom names", () => {
   setLanguage("en");
   expect(defaultMonoName("invader")).toBe("MonoInvader");
 });
+
+it("uses current Chinese product identity and keeps the configured nickname on an empty delta", () => {
+  setLanguage("zh-CN");
+  const turn = monoTurn("继续", [], { name: "我的自定义搭档" });
+  expect(turn).toContain("当前运行产品是 MyCode");
+  expect(turn).toContain("我的自定义搭档");
+  expect(turn).toContain("不是当前产品身份");
+  expect(turn).toContain("不改变用户定义的人格");
+  expect(turn).toContain("Use Simplified Chinese");
+});

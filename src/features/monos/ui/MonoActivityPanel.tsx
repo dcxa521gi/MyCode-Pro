@@ -1,4 +1,4 @@
-import { translate as t } from "../../../shared/i18n";
+import { translate as t, formatMessage } from "../../../shared/i18n";
 import type { ComponentProps, ReactNode } from "react";
 import { workSummaryLine } from "../../sessions/model/transcriptActivity";
 import { MonoActivityTrail } from "../../sessions/ui/AgentTranscript";
@@ -22,7 +22,7 @@ export function MonoActivityPanel({
     <MonoSidebar
       open
       kind="activity"
-      label={`${agent.name} activity`}
+      label={formatMessage("{name} activity", { name: agent.name })}
       color={agent.color}
       windowControls={windowControls}
     >

@@ -9,7 +9,11 @@ import {
   Wrench,
 } from "../../../shared/ui/icons";
 import { Shimmer } from "../../../shared/ui/Shimmer";
-import type { MonoWorkStatus } from "../model/monoWorkStatus";
+import {
+  monoWorkStatusLabel,
+  type MonoWorkStatus,
+} from "../model/monoWorkStatus";
+import { useTranslation } from "../../../shared/i18n";
 
 const TICK_MS = 340;
 const HOLD_MS = 850;
@@ -22,6 +26,7 @@ export function MonoWorkTicker({
   status: MonoWorkStatus;
   showIcon?: boolean;
 }) {
+  useTranslation();
   const [frame, setFrame] = useState(() => ({
     current: status,
     previous: null as MonoWorkStatus | null,
@@ -80,7 +85,7 @@ export function MonoWorkTicker({
 
   return (
     <div className="mono-work-ticker" role="status">
-      <span className="sr-only">{frame.current.label}</span>
+      <span className="sr-only">{monoWorkStatusLabel(frame.current)}</span>
       <div
         key={frame.sequence}
         className="mono-work-ticker-track"
@@ -122,11 +127,11 @@ function StatusRow({
       ) : null}
       {status.active ? (
         <Shimmer className="min-w-0 truncate font-sans text-sm" duration={1.6}>
-          {status.label}
+          {monoWorkStatusLabel(status)}
         </Shimmer>
       ) : (
         <span className="min-w-0 truncate font-sans text-sm text-content/50 transition-colors duration-200 group-hover/mono-work:text-content/80">
-          {status.label}
+          {monoWorkStatusLabel(status)}
         </span>
       )}
     </div>

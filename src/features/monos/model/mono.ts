@@ -362,7 +362,9 @@ const MONO_NAME: Record<string, string> = { mushroom: "Shroom" };
 
 /** The name a Mono goes by until the user names it: "MonoCrab", "MonoShroom". */
 export function defaultMonoName(mascot: string): string {
-  return t(`Mono${MONO_NAME[mascot] ?? mascot.charAt(0).toUpperCase() + mascot.slice(1)}`);
+  return t(
+    `Mono${MONO_NAME[mascot] ?? mascot.charAt(0).toUpperCase() + mascot.slice(1)}`,
+  );
 }
 
 /** One project a Mono works on, as the rail labels it. */
@@ -394,7 +396,8 @@ export function monoLook(mono: Mono): MonoLook {
 export function monoProjectsPhrase(projects: readonly MonoProject[]): string {
   const names = projects.map((project) => project.name);
   if (names.length <= 1) return names[0] ?? "";
-  if (getLocale() === "zh-CN") return `${names.slice(0,-1).join("、")}和${names[names.length-1]}`;
+  if (getLocale() === "zh-CN")
+    return `${names.slice(0, -1).join("、")}和${names[names.length - 1]}`;
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 

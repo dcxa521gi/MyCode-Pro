@@ -82,6 +82,7 @@ export function ProviderGallery({
                   ["cursor", "Cursor"],
                   ["minimax", "MiniMax Code"],
                   ["grok", "Grok"],
+                  ["devin", "Devin"],
                 ] as const
               )
                 .filter(([, name]) =>

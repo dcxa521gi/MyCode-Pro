@@ -13,6 +13,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { psQuote, runPowerShell } from "./windows";
 
 const exec = promisify(execFile);
 
@@ -34,10 +35,55 @@ it(
         [cli, ...args, "--data-dir", directory, "--port", String(port)],
         { timeout: process.platform === "win32" ? 45_000 : 10_000 },
       );
+    let primaryError: unknown;
+    const alive = (pid: number) => {
+      try {
+        process.kill(pid, 0);
+        return true;
+      } catch (error) {
+        return (error as NodeJS.ErrnoException).code !== "ESRCH";
+      }
+    };
+    const ownedProcesses = async (): Promise<number[]> => {
+      const matches = (command: string) =>
+        command.includes(cli) &&
+        command.includes(directory) &&
+        /\bserve\b/.test(command) &&
+        command.includes("--data-dir") &&
+        command.includes(`--port ${port}`);
+      if (process.platform === "win32") {
+        const json = await runPowerShell(
+          `$cli=${psQuote(cli)}; $dir=${psQuote(directory)}; $port=${psQuote(`--port ${port}`)}; @(Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains($cli) -and $_.CommandLine.Contains($dir) -and $_.CommandLine.Contains($port) -and $_.CommandLine -match '\\bserve\\b' } | Select-Object ProcessId,CommandLine) | ConvertTo-Json -Compress`,
+        );
+        const value = json.trim() ? JSON.parse(json) : [];
+        const rows = Array.isArray(value) ? value : [value];
+        return rows
+          .filter(
+            (row) => row.ProcessId !== process.pid && matches(row.CommandLine),
+          )
+          .map((row) => row.ProcessId);
+      }
+      const { stdout } = await exec(
+        "ps",
+        ["-ax", "-o", "pid=", "-o", "args="],
+        { timeout: 5000 },
+      );
+      return stdout.split("\n").flatMap((line) => {
+        const row = /^\s*(\d+)\s+(.*)$/.exec(line);
+        return row && Number(row[1]) !== process.pid && matches(row[2])
+          ? [Number(row[1])]
+          : [];
+      });
+    };
     try {
       // A stale legacy PID now belongs to this unrelated test process.
       writeFileSync(join(directory, "owner.lock"), String(process.pid));
       expect((await run("start")).stdout).toContain("Host started");
+      const startedPid = (
+        JSON.parse(readFileSync(join(directory, "running.json"), "utf8")) as {
+          pid: number;
+        }
+      ).pid;
       expect((await run("status")).stdout).toContain("Host is running");
       await expect(run("serve")).rejects.toThrow("A host already owns");
       const before = JSON.parse((await run("connection-info")).stdout);
@@ -80,28 +126,56 @@ it(
         expect(existsSync(join(directory, "running.json"))).toBe(false),
       );
       expect((await run("status")).stdout).toContain("Host is stopped");
+      await vi.waitFor(() => expect(alive(startedPid)).toBe(false), {
+        timeout: 10_000,
+      });
     } catch (error) {
-      if (existsSync(join(directory, "host.log"))) copyFileSync(join(directory, "host.log"), resolve("build/019-host-launcher-error.log"));
+      primaryError = error;
+      writeFileSync(
+        resolve("build/020-host-cli-primary-error.log"),
+        error instanceof Error ? (error.stack ?? error.message) : String(error),
+      );
+      if (existsSync(join(directory, "host.log")))
+        copyFileSync(
+          join(directory, "host.log"),
+          resolve("build/019-host-launcher-error.log"),
+        );
       throw error;
     } finally {
-      if (existsSync(join(directory, "running.json"))) {
-        const state = JSON.parse(
-          readFileSync(join(directory, "running.json"), "utf8"),
-        ) as { pid: number };
-        try {
-          await run("stop");
-        } catch {
-          try {
-            process.kill(state.pid, "SIGTERM");
-          } catch {
-            /* gone */
+      try {
+        // A timed-out launcher can leave a detached child before running.json
+        // is published. Match its actual command and owned fixture directory.
+        const owned = await ownedProcesses();
+        if (owned.length) {
+          await run("stop").catch(() => undefined);
+          for (const pid of owned) {
+            try {
+              await vi.waitFor(() => expect(alive(pid)).toBe(false), {
+                timeout: 5000,
+              });
+            } catch {
+              if ((await ownedProcesses()).includes(pid))
+                process.kill(pid, "SIGTERM");
+            }
+            await vi.waitFor(() => expect(alive(pid)).toBe(false), {
+              timeout: 5000,
+            });
           }
         }
-        await vi.waitFor(() =>
-          expect(existsSync(join(directory, "running.json"))).toBe(false),
-        );
+        rmSync(directory, {
+          recursive: true,
+          force: true,
+          maxRetries: 10,
+          retryDelay: 100,
+        });
+      } catch (cleanupError) {
+        if (primaryError)
+          throw new AggregateError(
+            [primaryError, cleanupError],
+            "Host test failed and fixture cleanup also failed",
+          );
+        throw cleanupError;
       }
-      rmSync(directory, { recursive: true, force: true });
     }
   },
   process.platform === "win32" ? 120_000 : 20_000,

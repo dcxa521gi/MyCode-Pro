@@ -1395,7 +1395,7 @@ function ConnectedRemoteSession({
             className="flex shrink-0 items-center gap-3 border-b border-stroke px-4 py-2 text-[12px] text-content/65"
           >
             <span className="min-w-0 flex-1 truncate" title={notice.detail}>
-              {notice.text}
+              {t(notice.text)}
               {notice.detail ? (
                 <span className="text-content/40"> {notice.detail}</span>
               ) : null}

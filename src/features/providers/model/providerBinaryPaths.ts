@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { HarnessId } from "../../sessions/model/session";
+import { HARNESSES, type HarnessId } from "../../sessions/model/session";
 
-export type ConfigurableBinaryProvider = HarnessId | "freebuff";
+export type ConfigurableBinaryProvider = HarnessId;
 
 const STORAGE_KEY = "monocode.providerBinaryPaths.v1";
 
@@ -14,7 +14,10 @@ function readProviderBinaryPaths(): StoredBinaryPaths {
       return {};
     }
     return Object.fromEntries(
-      Object.entries(value).filter(([, path]) => typeof path === "string"),
+      Object.entries(value).filter(
+        ([provider, path]) =>
+          HARNESSES.includes(provider as HarnessId) && typeof path === "string",
+      ),
     ) as StoredBinaryPaths;
   } catch {
     return {};
@@ -90,7 +93,9 @@ export async function applyProviderBinaryPath(
     if (!saveProviderBinaryPath(provider, normalized)) return false;
     if (normalized) runtimeBinaryPaths[provider] = normalized;
     else delete runtimeBinaryPaths[provider];
-    window.dispatchEvent(new CustomEvent("mycode-cli-paths-changed", {detail:{provider}}));
+    window.dispatchEvent(
+      new CustomEvent("mycode-cli-paths-changed", { detail: { provider } }),
+    );
     return true;
   } catch {
     return false;

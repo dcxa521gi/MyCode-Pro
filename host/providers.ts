@@ -5,6 +5,7 @@ import * as grok from "../src/integrations/harness/providers/grok/grok";
 import * as opencode from "../src/integrations/harness/providers/opencode/opencode";
 import * as pi from "../src/integrations/harness/providers/pi/pi";
 import * as hermes from "../src/integrations/harness/providers/hermes/hermes";
+import * as devin from "../src/integrations/harness/providers/devin/devin";
 import type {
   SendTurnInput,
   CompactContextInput,
@@ -20,12 +21,8 @@ import { generateClaudeBranchName } from "../src/integrations/harness/providers/
 import { generateCursorSessionTitle } from "../src/integrations/harness/providers/cursor/cursorTitle";
 import { generateGrokSessionTitle } from "../src/integrations/harness/providers/grok/grokTitle";
 import { generateOpenCodeSessionTitle } from "../src/integrations/harness/providers/opencode/opencodeTitle";
-import {
-  generatePiSessionTitle,
-} from "../src/integrations/harness/providers/pi/piTitle";
-import {
-  PI_FLAVOR,
-} from "../src/integrations/harness/providers/pi/piFlavor";
+import { generatePiSessionTitle } from "../src/integrations/harness/providers/pi/piTitle";
+import { PI_FLAVOR } from "../src/integrations/harness/providers/pi/piFlavor";
 import { respondQuestion as respondPiQuestion } from "../src/integrations/harness/providers/pi/piFamily";
 
 export interface HostProvider {
@@ -114,6 +111,19 @@ export const hostProviders: Partial<Record<RemoteProvider, HostProvider>> = {
     bind: hermes.bindHermesSession,
     approve: hermes.respondHermesApproval,
     answer: unsupportedQuestion,
+  },
+  devin: {
+    send: devin.sendDevinTurn,
+    compact: devin.compactDevinContext,
+    cancel: devin.cancelDevinTurn,
+    stop: devin.forgetDevinSession,
+    bind: devin.bindDevinSession,
+    approve: devin.respondDevinApproval,
+    answer: unsupportedQuestion,
+    generateTitle: ({ sessionId }) =>
+      devin
+        .waitForDevinSessionTitle(sessionId)
+        .then((title) => (title ? { title, workItem: null } : null)),
   },
 };
 
