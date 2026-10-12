@@ -111,6 +111,19 @@ export function translate(message: string, target: Locale = locale): string {
     : message;
 }
 
+/** Disambiguate app-owned labels while preserving English source text and normal fallback. */
+export function translateInContext(
+  message: string,
+  context: string,
+  target: Locale = locale,
+): string {
+  if (target !== "zh-CN") return message;
+  const key = `${context}::${message}`;
+  return Object.prototype.hasOwnProperty.call(zhCN, key)
+    ? ((zhCN as Record<string, string>)[key] ?? translate(message, target))
+    : translate(message, target);
+}
+
 export function formatMessage(
   message: string,
   values: Record<string, string | number>,

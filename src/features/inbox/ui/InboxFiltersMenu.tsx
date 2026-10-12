@@ -1,3 +1,4 @@
+import { translateInContext } from "../../../shared/i18n";
 import { translate as uiTranslate } from "../../../shared/i18n";
 import { useTranslation } from "../../../shared/i18n";
 import { Check, CircleDot, GitPullRequest } from "../../../shared/ui/icons";
@@ -185,7 +186,7 @@ export function InboxFiltersMenu({
         label={
           source === "gitlab" || source === "azuredevops"
             ? t("Needs attention")
-            : "Assigned to me"
+            : t("Assigned to me")
         }
         checked={filters.assignedToMe}
         onClick={toggleAssigned}
@@ -193,7 +194,7 @@ export function InboxFiltersMenu({
 
       <SectionLabel>{t("Status")}</SectionLabel>
       <FilterItem
-        label={t("Open")}
+        label={translateInContext("Open", "status")}
         checked={filters.status.open}
         onClick={() => toggleStatus("open")}
       />

@@ -9,6 +9,7 @@ import {
   setLanguage,
   subscribeLanguage,
   translate,
+  translateInContext,
 } from "./index";
 import zhCN from "./zh-CN.json";
 
@@ -99,5 +100,24 @@ describe("language selection", () => {
       expect(value.trim()).not.toBe("");
       expect(value).not.toMatch(/\uFFFD|\?{3,}/);
     }
+  });
+});
+
+describe("context-specific action and status semantics", () => {
+  it("distinguishes the Chinese Open action from an open inbox status", () => {
+    setLanguage("zh-CN");
+    expect(translate("Open")).toBe("打开");
+    expect(translateInContext("Open", "status")).toBe("待处理");
+    expect(translateInContext("Open", "unknown-context")).toBe("打开");
+    expect(translateInContext("Closed", "status")).toBe(translate("Closed"));
+    expect(translateInContext("Custom user label", "status")).toBe(
+      "Custom user label",
+    );
+  });
+  it("keeps the same English source label for both contexts", () => {
+    setLanguage("en");
+    expect(translate("Open")).toBe("Open");
+    expect(translateInContext("Open", "status")).toBe("Open");
+    expect(translateInContext("Unknown", "status")).toBe("Unknown");
   });
 });

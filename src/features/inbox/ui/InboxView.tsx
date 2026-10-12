@@ -1,3 +1,4 @@
+import { translateInContext } from "../../../shared/i18n";
 import { translate as t } from "../../../shared/i18n";
 import { GitCodeInbox } from "./GitCodeInbox";
 import { getLocale as uiLocale } from "../../../shared/i18n";
@@ -1597,7 +1598,7 @@ function InboxCard({
       type="button"
       title={item.title}
       aria-current={active ? "true" : undefined}
-      aria-label={`${status.label} ${kindLabel.toLowerCase()} ${inboxItemRef(
+      aria-label={`${translateInContext(status.label, "status")} ${kindLabel.toLowerCase()} ${inboxItemRef(
         item,
       )}: ${item.title}${attentionLabel ? `, ${attentionLabel}` : ""}${unseen ? ", new" : ""}${relatedSessionCount > 0 ? `, ${relatedSessionCount} related ${relatedSessionCount === 1 ? "thread" : "threads"}` : ""}`}
       onClick={onSelect}
@@ -2713,7 +2714,7 @@ export function InboxDetail({
         className={`flex shrink-0 items-center gap-1 ${statusMark.className}`}
       >
         <statusMark.Icon className="size-3.5" strokeWidth={1.75} />
-        {status}
+        {translateInContext(status, "status")}
       </span>
       {attentionLabel ? (
         <span className="shrink-0 text-accent">{attentionLabel}</span>

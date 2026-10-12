@@ -59,12 +59,31 @@ let store: HostStore;
 let engine: HostEngine;
 let backend: HostChildBackend;
 let release: () => void;
+const fixturePids = new Set<number>();
+const processAlive = (pid: number) => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code !== "ESRCH";
+  }
+};
 
 beforeAll(async () => {
   directory = mkdtempSync(join(tmpdir(), "monocode-opencode-transport-"));
   const binary = join(directory, "opencode.cjs");
   writeFileSync(binary, fixture);
   backend = new HostChildBackend({ opencode: binary });
+  const invoke = backend.invoke.bind(backend);
+  backend.invoke = async <T>(
+    command: string,
+    args: Record<string, unknown> = {},
+  ) => {
+    const result = await invoke<T>(command, args);
+    if (command === "harness_spawn" && typeof result === "number")
+      fixturePids.add(result);
+    return result;
+  };
   configureChildBackend(backend);
   release = await acquireHarnessBridge();
   store = new HostStore(join(directory, "host.db"));
@@ -74,9 +93,20 @@ beforeAll(async () => {
 afterAll(async () => {
   await engine?.close();
   await backend?.close();
+  await vi.waitFor(
+    () =>
+      expect([...fixturePids].every((pid) => !processAlive(pid))).toBe(true),
+    { timeout: 10_000 },
+  );
   release?.();
   store?.close();
-  if (directory) rmSync(directory, { recursive: true, force: true });
+  if (directory)
+    rmSync(directory, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 100,
+    });
 });
 
 it("runs an OpenCode session through the host HTTP and SSE bridge", async () => {

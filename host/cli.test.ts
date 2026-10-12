@@ -4,6 +4,7 @@ import { promisify } from "node:util";
 import { createServer, type AddressInfo } from "node:net";
 import {
   mkdtempSync,
+  mkdirSync,
   copyFileSync,
   existsSync,
   readFileSync,
@@ -12,7 +13,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { delimiter, dirname, join, resolve } from "node:path";
 import { psQuote, runPowerShell } from "./windows";
 
 const exec = promisify(execFile);
@@ -29,11 +30,31 @@ it(
     const port = (probe.address() as AddressInfo).port;
     await new Promise<void>((resolve) => probe.close(() => resolve()));
     const cli = resolve("build/host/monocode-host.mjs");
+    const fixtureProfile = join(directory, "profile");
+    mkdirSync(fixtureProfile);
+    // This lifecycle test must not scan a developer's installed CLIs or
+    // profile/config files; provider transports have their own fixtures.
+    const fixtureEnvironment = {
+      ...process.env,
+      HOME: fixtureProfile,
+      USERPROFILE: fixtureProfile,
+      APPDATA: join(fixtureProfile, "AppData/Roaming"),
+      LOCALAPPDATA: join(fixtureProfile, "AppData/Local"),
+      PATH: [
+        dirname(process.execPath),
+        ...(process.platform === "win32"
+          ? [join(process.env.SystemRoot ?? "C:/Windows", "System32")]
+          : ["/usr/bin", "/bin"]),
+      ].join(delimiter),
+    };
     const run = (...args: string[]) =>
       exec(
         process.execPath,
         [cli, ...args, "--data-dir", directory, "--port", String(port)],
-        { timeout: process.platform === "win32" ? 45_000 : 10_000 },
+        {
+          timeout: process.platform === "win32" ? 45_000 : 10_000,
+          env: fixtureEnvironment,
+        },
       );
     let primaryError: unknown;
     const alive = (pid: number) => {
@@ -56,7 +77,8 @@ it(
           `$cli=${psQuote(cli)}; $dir=${psQuote(directory)}; $port=${psQuote(`--port ${port}`)}; @(Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains($cli) -and $_.CommandLine.Contains($dir) -and $_.CommandLine.Contains($port) -and $_.CommandLine -match '\\bserve\\b' } | Select-Object ProcessId,CommandLine) | ConvertTo-Json -Compress`,
         );
         const value = json.trim() ? JSON.parse(json) : [];
-        const rows = Array.isArray(value) ? value : [value];
+        const rows =
+          value == null ? [] : Array.isArray(value) ? value : [value];
         return rows
           .filter(
             (row) => row.ProcessId !== process.pid && matches(row.CommandLine),
