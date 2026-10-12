@@ -100,6 +100,7 @@ export function EmojiPickerPopover({
       onDismiss={onDismiss}
     >
       <Picker.Root
+        locale={locale}
         data-emoji-picker=""
         resolveEmojiData={resolveData}
         columns={COLUMNS}

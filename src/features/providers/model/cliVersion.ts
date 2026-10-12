@@ -14,6 +14,17 @@ function versions(text: string): Version[] {
       })),
     );
 }
+
+/** Keep the version family the release feed uses (Hermes also prints SDK versions). */
+export function cliVersionLabel(text: string, reference = text): string | null {
+  const release = versions(reference)[0];
+  const value =
+    release &&
+    versions(text).find((version) => version.calendar === release.calendar);
+  return value
+    ? value.parts.join(".") + (value.pre ? `-${value.pre}` : "")
+    : null;
+}
 /** Positive means a newer release; null means the vendor formats cannot be compared. */
 export function compareCliVersions(
   installed: string,

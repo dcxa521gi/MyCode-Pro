@@ -34,6 +34,9 @@ vi.mock("../../../integrations/harness/core/child", () => ({
 vi.mock("../../sessions/model/models", () => ({
   isPickerProviderVisible: () => true,
 }));
+vi.mock("../model/providerBinaryPaths", () => ({
+  initializeProviderBinaryPaths: vi.fn(async () => undefined),
+}));
 const refreshHarnessCatalogs = vi.fn(async () => undefined);
 vi.mock("../../../integrations/harness/core/registry", () => ({
   refreshHarnessCatalogs: (...args: unknown[]) =>
@@ -106,6 +109,7 @@ describe("HarnessUpdateNotice", () => {
         harness: "claude",
         source: "other-window",
       });
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
     expect(refreshHarnessCatalogs).toHaveBeenCalledTimes(2);
     expect(refreshHarnessCatalogs).toHaveBeenLastCalledWith(["claude"], {

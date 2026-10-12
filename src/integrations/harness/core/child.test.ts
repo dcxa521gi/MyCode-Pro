@@ -54,6 +54,34 @@ afterEach(() => {
 });
 
 describe("application CLI updates", () => {
+  it("updates Devin through the managed archive installer rather than an unsupported self-update command", async () => {
+    vi.stubGlobal("localStorage", { getItem: () => null, setItem: vi.fn() });
+    vi.stubGlobal("window", {
+      __TAURI_INTERNALS__: {},
+      dispatchEvent: vi.fn(),
+    });
+    const path = "C:/MyCode/cli/devin/installs/new/bin/devin.exe";
+    mocks.invoke.mockImplementation(async (command, args) => {
+      if (command === "managed_cli_install") return path;
+      if (command === "harness_resolve_configured")
+        return { path: args.binaryPath };
+      if (command === "harness_exec") return "devin 3000.11.3";
+      if (command === "managed_cli_save_path") return undefined;
+      throw Error(command);
+    });
+    const { updateHarnessCli } = await loadChild();
+    await updateHarnessCli("devin", "3000.11.3");
+    expect(mocks.invoke).toHaveBeenCalledWith("managed_cli_install", {
+      provider: "devin",
+    });
+    expect(mocks.invoke).toHaveBeenCalledWith("managed_cli_save_path", {
+      provider: "devin",
+      path,
+    });
+    expect(
+      mocks.invoke.mock.calls.some(([command]) => command === "harness_update"),
+    ).toBe(false);
+  });
   it("rejects obsolete Freebuff resolution before invoking native commands", async () => {
     const { resolveHarnessBinary } = await loadChild();
     await expect(resolveHarnessBinary("freebuff" as never)).rejects.toThrow(

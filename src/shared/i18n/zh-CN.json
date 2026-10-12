@@ -2636,5 +2636,6 @@
   "Host rejected request: This agent is not available on this host. Choose another agent to continue.": "主机拒绝请求：此主机无法使用该智能体，请选择其他智能体后继续。",
   "Error: Host rejected request: This agent is not available on this host. Choose another agent to continue.": "请求失败：主机拒绝请求：此主机无法使用该智能体，请选择其他智能体后继续。",
   "Connecting to SSH and setting up MyCode Host…": "正在连接 SSH 并配置 MyCode Host…",
-  "status::Open": "待处理"
+  "status::Open": "待处理",
+  "Install CLI": "安装 CLI"
 }

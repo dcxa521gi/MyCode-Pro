@@ -30,7 +30,6 @@ import {
 } from "../features/sessions/model/draftCache";
 import { BrowserDock } from "../features/files/ui/BrowserDock";
 import { defaultWorkspace } from "../platform/tauri/workspace";
-import { CLIUpdateNotice } from "../features/providers/ui/CLIUpdateNotice";
 import { findModel } from "../features/sessions/model/models";
 import { CliReadyDialog } from "../features/providers/ui/CliReadyDialog";
 import { NewTaskDialog } from "../features/sessions/ui/NewTaskDialog";
@@ -14030,13 +14029,6 @@ function Workspace({
               onClose={() => setFilePickerOpen(false)}
             />
           ) : null}
-
-          <CLIUpdateNotice
-            onOpen={() => {
-              setStandaloneTools(false);
-              openSettings("providers-cli");
-            }}
-          />
 
           <CliReadyDialog sessions={sessions} />
           {newTaskOpen && (

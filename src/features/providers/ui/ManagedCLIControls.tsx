@@ -17,7 +17,8 @@ import {
   useCLIVersion,
 } from "../model/cliVersions";
 import { ArrowDownCircle, Loader } from "../../../shared/ui/icons";
-import { refreshPiCatalog } from "../../../integrations/harness/providers/pi/piCatalog";
+import { refreshHarnessCatalogs } from "../../../integrations/harness/core/registry";
+import { announceHarnessUpdated } from "../model/harnessUpdates";
 export function ManagedCLIControls({
   provider,
 }: {
@@ -109,9 +110,10 @@ export function ManagedCLIControls({
         localStorage.setItem("mycode.cliScope." + provider, "app");
         setScope("app");
         await probeHarnessAvailability({ force: true });
-        if (provider === "pi") await refreshPiCatalog();
+        await refreshHarnessCatalogs([provider], { force: true });
         invalidateCLIVersion(provider);
         await checkCLIVersion(provider, true);
+        void announceHarnessUpdated(provider).catch(() => undefined);
         setStatus(t("Installed in MyCode. New sessions use this version."));
       } else {
         await checkCLIVersion(provider, true);

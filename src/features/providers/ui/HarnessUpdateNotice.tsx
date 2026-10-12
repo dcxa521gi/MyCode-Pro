@@ -9,10 +9,9 @@ import {
   inspectHarnessBinary,
   updateHarnessCli,
 } from "../../../integrations/harness/core/child";
-import {
-  compareSemver,
-  parseOpenCodeVersion,
-} from "../../../integrations/harness/providers/opencode/opencodeProtocol";
+import { compareCliVersions, cliVersionLabel } from "../model/cliVersion";
+import { invalidateCLIVersion } from "../model/cliVersions";
+import { initializeProviderBinaryPaths } from "../model/providerBinaryPaths";
 import { refreshHarnessCatalogs } from "../../../integrations/harness/core/registry";
 import { LAYER } from "../../../shared/lib/layers";
 import { Check, Loader, X } from "../../../shared/ui/icons";
@@ -80,8 +79,10 @@ async function runUpdate(update: HarnessUpdate): Promise<RowState> {
   try {
     await updateHarnessCli(update.harness, update.latest);
     const after = await inspectHarnessBinary(update.harness);
-    const version = parseOpenCodeVersion(after.version ?? "");
-    if (version && compareSemver(version, update.latest) >= 0) {
+    const version = cliVersionLabel(after.version ?? "", update.latest);
+    const comparison = compareCliVersions(after.version ?? "", update.latest);
+    if (version && comparison !== null && comparison <= 0) {
+      invalidateCLIVersion(update.harness);
       await refreshHarnessCatalogs([update.harness], { force: true });
       void announceHarnessUpdated(update.harness).catch(() => undefined);
       return { status: "updated", version };
@@ -114,8 +115,15 @@ export function HarnessUpdateNotice({
   // Mounted in every window, so the window that ran the update tells the
   // others to pick up the new CLI's models too.
   useEffect(() => {
-    const unlisten = onHarnessUpdated((harness) => {
-      void refreshHarnessCatalogs([harness], { force: true });
+    const unlisten = onHarnessUpdated((harness, phase) => {
+      invalidateCLIVersion(harness);
+      // The installer emits before verification/activation. Refresh models
+      // only after the selected path was successfully activated and announced.
+      if (phase === "installed") return;
+      void initializeProviderBinaryPaths()
+        .then(() => probeHarnessAvailability({ force: true }))
+        .then(() => refreshHarnessCatalogs([harness], { force: true }))
+        .catch(() => undefined);
     }).catch(() => undefined);
     return () => {
       void unlisten.then((stop) => stop?.());
@@ -212,7 +220,12 @@ export function HarnessUpdateNotice({
             <X className="size-3" strokeWidth={2} />
           </button>
         </div>
-        <div className="divide-y divide-stroke">
+        <div
+          className="divide-y divide-stroke overflow-y-auto"
+          style={{
+            maxHeight: `max(48px, calc(100dvh - ${topOffset + 110}px))`,
+          }}
+        >
           {updates.map((update) => (
             <HarnessUpdateRow
               key={update.harness}
@@ -250,13 +263,20 @@ function HarnessUpdateRow({
           {HARNESS_TITLE[update.harness]}
         </span>
         {state.status === "updated" ? (
-          <span className="flex shrink-0 items-center gap-1 text-[11px] text-emerald-400">
+          <span className="flex min-w-0 max-w-[55%] items-center gap-1 text-[11px] text-emerald-400">
             <Check className="size-3.5" />
-            {formatMessage("Updated to {version}", { version: state.version })}
+            <span className="truncate" title={state.version}>
+              {formatMessage("Updated to {version}", {
+                version: state.version,
+              })}
+            </span>
           </span>
         ) : (
           <>
-            <span className="shrink-0 font-mono text-[11px] text-content/50">
+            <span
+              title={`${update.installed} → ${update.latest}`}
+              className="min-w-0 max-w-[45%] truncate font-mono text-[11px] text-content/50"
+            >
               {update.installed} → {update.latest}
             </span>
             <button

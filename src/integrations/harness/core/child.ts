@@ -580,12 +580,16 @@ export async function updateHarnessCli(
   provider: ConfigurableBinaryProvider,
   expectedVersion?: string,
 ): Promise<void> {
-  const resolved = await resolveHarnessBinary(provider);
-  const installedPath = await invoke<string | null>("harness_update", {
-    command: resolved.path,
-    binaryProvider: provider,
-    binaryPath: runtimeProviderBinaryPath(provider),
-  });
+  const installedPath = ["claude", "codex", "opencode", "pi"].includes(provider)
+    ? await (async () => {
+        const resolved = await resolveHarnessBinary(provider);
+        return invoke<string | null>("harness_update", {
+          command: resolved.path,
+          binaryProvider: provider,
+          binaryPath: runtimeProviderBinaryPath(provider),
+        });
+      })()
+    : await invoke<string>("managed_cli_install", { provider });
   if (installedPath) {
     const verified = await inspectHarnessBinary(provider, installedPath);
     if (!verified.version)
