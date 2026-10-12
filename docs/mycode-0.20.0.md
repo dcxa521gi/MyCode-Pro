@@ -89,6 +89,21 @@ Cindy 从 `a152497ac24d155dd46142b73dda4fa10ad08ad0` 比较至 `28afb1e98a01e5e1
 
 ## 验证与边界
 
-本地完整前端回归 505 文件、5,207 项通过；后续翻译上下文修复的 i18n 与收件箱 37 项通过。原生完整回归 626 项通过、1 项忽略，远程 Host 发布地址追加回归 9 项通过、1 项忽略；Clippy 和格式检查通过。Host 完整回归 100 项通过、14 项平台跳过。
+程序源码 `83fa29f153d14b00e87567204a6ffc52f8bc9dd3` 的 [CI 8 项任务全部通过](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/38204063194)。发行验证文档的补充不修改已验证程序。
 
-浏览器使用真实组件及正式 CSS：Emoji 中英文检索/选择/最近使用/原地语言切换/分类跳转 2 项，任务卡/滚动 6 项，视频实际解码播放/拖动进度/切换文件/隐藏时暂停 1 项均通过；本机 Vite 冷加载出现导航超时，额外以预编译真实组件完成复核。Windows 安装包最终解包与公开下载校验、最终提交 CI 结果将在发布前追加。真实账号登录/付费模型请求以及 macOS 实机操作不以模拟测试代替。常驻浮窗沿用紧凑布局，通过跳转主窗口修改模型。Git 文案生成沿用上游 Claude/Cursor/Codex/Grok/OpenCode 范围；选中文件的安全提交可用，不宣称 Devin 或所有自定义连接均支持自动生成文案。
+| 检查 | 实际结果 |
+| --- | --- |
+| 前端完整回归 | Windows、macOS、Linux 各 505 文件、5,217 项通过 |
+| 原生完整回归 | Windows 627、Linux 652、macOS 698 项通过；各 1 项明确忽略 |
+| Host 完整回归 | Windows 100 通过/14 平台跳过；Linux、macOS 各 109 通过/5 平台跳过 |
+| 浏览器 | Chromium、WebKit 共 48 项通过，含中英文 Emoji 原地切换、真实视频解码/播放/拖动/隐藏暂停及任务卡/滚动 |
+| 静态与打包 | TypeScript、Rust 格式、Clippy、AppImage 主机库、Fedora/EL10 RPM 构建及干净 RPM 安装通过 |
+| Windows 安装包 | 0.20.0，39,110,763 字节；解包与编译文件比较通过，438 个正式 JS/CSS 资源均嵌入，含懒加载 Emoji 目录；程序 app --help 与内置 Node/npm 执行通过 |
+| Host 运行包 | 六个平台包及 SHA-256 文件完整；包内容、Node 许可、Unix 执行位通过，Windows x64 实际执行版本 0.20.0；其他架构未在本机执行 |
+| CLI 补充验证 | Devin 官方 Windows ZIP 校验及隔离 --version 通过；六个额外 CLI 的官方版本源实际 GET 通过；统一更新/安装准备相关 38 项聚焦测试通过 |
+
+安装包 SHA-256：`469fdd312e96cac9173c60b7ac1859e41ecde945b376f0f1eb18cae9933f3b86`。公开下载的校验记录随发行版提供，见 verification-0.20.0.json 与 host-verification-0.20.0.json。
+
+本机 Vite 冷加载曾导航超时，额外使用预编译真实组件与正式 CSS 复核 9 项；最终标准 CI 的 Chromium/WebKit 全部通过。真实账号登录、付费模型请求、真实跨系统 SSH 主机安装及 macOS 实机界面操作未以模拟测试代替。
+
+常驻模型完整控件位于主会话，紧凑浮窗跳转主窗口修改。Git 文案生成仍沿用上游 Claude/Cursor/Codex/Grok/OpenCode 范围；选中文件安全提交可用，不宣称 Devin 或所有自定义连接均支持自动生成文案。
