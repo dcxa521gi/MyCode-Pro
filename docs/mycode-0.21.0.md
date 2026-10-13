@@ -67,3 +67,5 @@ Windows 安装包：`MyCode_0.21.0_x64-setup.exe`，39,143,658 字节，SHA-256 
 真实供应商付费请求、真实 IM 账号推送、异地网络、真实设备及签名安装未作为模拟测试通过项。浏览器 HTML 验证不等于原生 WebView IPC 实机验证。Unix FIFO 回归仅在 Unix 执行，Windows 编译不能代替。
 
 桌面发行页仅 MyCode 介绍、Windows 安装包及必要校验文件；Host 由源码构建到独立版本下载分支，不临时上传到桌面发行页。用户项目、凭据、会话及存储位置不迁移、不删除。
+
+[MyCode v0.21.0 发行页](https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.21.0)的三项附件通过产品资产规则检查。公开安装包已分段下载重组，SHA-256 为 `22aa7736233c482d978421e05e20c8c21efb2d0657a4dd3228d6de7257e7dd8b`，与本地最终安装包一致；发行标签指向源码提交 `b3fc8af60c1c6a3288521952fc62b8b3e58b329b`。
