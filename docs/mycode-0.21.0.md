@@ -58,9 +58,11 @@ Cindy：`28afb1e98a01e5e1abfc86d9ec20483bec2dcf15` → `3ea90999d01fb7071c3e83a7
 
 本地检查：TypeScript 类型检查、前端构建、Rust clippy、Rust lib 634 测试通过。前端全量 517 文件中 515 文件通过，5304 项中 5299 项通过；并行重载时 5 项超时/渲染等待，随后仅复测两个失败文件 33 项均通过。该次全量原始命令仍记录为 **未通过**，不改写成全量通过。Host 首次 22 文件中 19 通过、1 跳过、2 失败：工作区用例超时；Windows ACL 在现有属主目录用新描述符覆写时可被拒绝。后者已改为保留属主、仅替换 DACL；Windows ACL 6 项、Host 独立启动/停止及设备配对/撤销 1 项、受影响工作区 5 项分别复测通过。最终完整 Host 回归 21 文件、100 测试通过，14 项跳过。
 
+公开源码 CI [38369369624](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/38369369624) 八个作业全部通过：浏览器、Windows/macOS/Ubuntu 检查、AppImage 依赖、两种 RPM 构建及 RPM 干净安装。首轮发现的 Unix 文件权限编译错误、Windows 管理员组属主兼容问题及表情分类跳转已修复；WebKit 视频媒体管线的冷启动等待已调整。远程 Host [发布工作流](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/38364643951) 成功，六种公开下载包均逐个下载并与公开 manifest 和 `.sha256` 校验一致。
+
 真实浏览器：供应商/智能体界面中英文与深浅色定向 16 项通过；HTML 保护新增 Chromium 2 项和 WebKit 2 项通过。WebKit 在 Vite 开发服务器首次加载模块时超时，静态 fixture 预览的相同源码/原生 CSP 两项通过；不把首次失败计为通过。
 
-Windows 安装包：`MyCode_0.21.0_x64-setup.exe`，39,138,987 字节，SHA-256 `61a47e486ecd20806f3c2ec0b61bea7e6ccdc0429936eb232e9eedb1e2c1139a`。已完整解包，比对内嵌程序（仅预期 NSIS 标记 3 字节差异）与 438 个前端资源；产品版本为 0.21.0，内置 Node v22.23.2/npm 10.9.8 与程序帮助入口启动通过。签名安装、真实付费模型和真实 IM 账号未执行。
+Windows 安装包：`MyCode_0.21.0_x64-setup.exe`，39,143,658 字节，SHA-256 `22aa7736233c482d978421e05e20c8c21efb2d0657a4dd3228d6de7257e7dd8b`。已在 CI 修复后重新构建并完整解包，比对内嵌程序（仅预期 NSIS 标记 3 字节差异）与 438 个前端资源；产品版本为 0.21.0，内置 Node v22.23.2/npm 10.9.8。签名安装、真实付费模型和真实 IM 账号未执行。
 
 真实供应商付费请求、真实 IM 账号推送、异地网络、真实设备及签名安装未作为模拟测试通过项。浏览器 HTML 验证不等于原生 WebView IPC 实机验证。Unix FIFO 回归仅在 Unix 执行，Windows 编译不能代替。
 
