@@ -19,19 +19,30 @@ jobs:
         uses: actions/github-script@v7
         env:
           HOST_VERSION: ${{ inputs.version }}
+          HOST_GIT_TOKEN: ${{ github.token }}
         with:
           script: |
             const crypto = require('node:crypto');
             const version = process.env.HOST_VERSION;
             if (!/^\d+\.\d+\.\d+$/.test(version)) throw Error('Invalid version');
             const repo = context.repo;
+            const fs = require('node:fs'), path = require('node:path');
+            const {execFileSync} = require('node:child_process');
+            const folder = fs.mkdtempSync(path.join(process.env.RUNNER_TEMP, 'mycode-host-'));
+            const header = `AUTHORIZATION: basic ${Buffer.from(`x-access-token:${process.env.HOST_GIT_TOKEN}`).toString('base64')}`;
+            core.setSecret(header);
+            const env = {...process.env, GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader', GIT_CONFIG_VALUE_0: header};
+            const git = args => execFileSync('git', args, {cwd: folder, env, encoding: 'utf8'}).trim();
+            git(['init']);
+            git(['config', 'user.name', 'MyCode release maintenance']);
+            git(['config', 'user.email', 'github-actions[bot]@users.noreply.github.com']);
+            git(['remote', 'add', 'origin', `https://github.com/${repo.owner}/${repo.repo}.git`]);
             const {data: release} = await github.rest.repos.getReleaseByTag({...repo, tag: `v${version}`});
             const tree = [], files = [];
             async function blob(name, bytes) {
               const expected = crypto.createHash('sha1').update(Buffer.from(`blob ${bytes.length}\0`)).update(bytes).digest('hex');
-              const {data} = await github.rest.git.createBlob({...repo, encoding: 'base64', content: bytes.toString('base64')});
-              if (data.sha !== expected) throw Error(`Blob mismatch: ${name}`);
-              tree.push({path: name, mode: '100644', type: 'blob', sha: data.sha});
+              fs.writeFileSync(path.join(folder, name), bytes);
+              tree.push({path: name, mode: '100644', type: 'blob', sha: expected});
             }
             for (const target of ['darwin-arm64', 'darwin-x64', 'linux-arm64', 'linux-x64', 'win32-arm64', 'win32-x64']) {
               const extension = target.startsWith('win32') ? 'zip' : 'tar.gz';
@@ -66,8 +77,10 @@ jobs:
                 if (!replacement || replacement.sha !== item.sha) throw Error(`Existing version content differs: ${item.path}`);
               }
             }
-            const {data: createdTree} = await github.rest.git.createTree({...repo, tree});
-            const {data: commit} = await github.rest.git.createCommit({...repo, message: `Publish verified MyCode Host ${version} downloads`, tree: createdTree.sha, parents: existing ? [existing.object.sha] : []});
-            if (existing) await github.rest.git.updateRef({...repo, ref: branch, sha: commit.sha, force: false});
-            else await github.rest.git.createRef({...repo, ref: `refs/${branch}`, sha: commit.sha});
-            core.info(`Published MyCode Host download branch: ${commit.sha}`);
+            if (existing) git(['fetch', 'origin', `refs/${branch}`]);
+            git(['add', '--', ...tree.map(item => item.path)]);
+            const treeSha = git(['write-tree']);
+            const parents = existing ? ['-p', existing.object.sha] : [];
+            const commitSha = git(['commit-tree', treeSha, ...parents, '-m', `Publish verified MyCode Host ${version} downloads`]);
+            git(['push', 'origin', `${commitSha}:refs/${branch}`]);
+            core.info(`Published MyCode Host download branch: ${commitSha}`);
