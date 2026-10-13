@@ -398,7 +398,8 @@ pub fn bootstrap_script(platform: HostPlatform) -> String {
 
 fn bootstrap_script_from_template(platform: HostPlatform, template: &str) -> String {
     let version = env!("CARGO_PKG_VERSION");
-    let url = format!("https://raw.githubusercontent.com/dcxa521gi/MyCode-Pro/mycode-host-v{version}");
+    let url =
+        format!("https://raw.githubusercontent.com/dcxa521gi/MyCode-Pro/mycode-host-v{version}");
     match platform {
         // include_str! preserves checkout line endings, including Windows CRLF.
         HostPlatform::Unix => template
