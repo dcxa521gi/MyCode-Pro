@@ -77,3 +77,5 @@ npm run build:windows
 新增 Devin CLI、常驻智能体模型/上下文控件与中文 Emoji、视频预览、选中文件安全提交、空闲代理回收和流式显示优化。移除 Freebuff 集成，并改进 MyCode 身份提示、默认模型跟随与旧代理历史恢复。完整清单和验证边界见 [0.20.0 更新说明](docs/mycode-0.20.0.md)。
 
 上游新增的分项指南：[构建](docs/building.md)、[供应商](docs/providers.md)、[Agent 应用访问](docs/agent-access.md)。
+
+按版本追踪用户需求、上游同步、自有适配与功能替换，见 [功能来源台账](docs/mycode-feature-provenance.md)。[CSV 明细](docs/mycode-feature-provenance.csv) 可按来源和版本筛选，[JSON 数据](docs/mycode-feature-provenance.json) 用于后续维护。

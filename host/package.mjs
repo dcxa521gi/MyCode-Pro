@@ -170,7 +170,7 @@ for (const target of targets) {
     if (actual !== version)
       throw new Error("Packaged host failed its executable smoke test");
   }
-  const filename = `monocode-host-${target}.${extension}`;
+  const filename = `MyCode-host-${target}.${extension}`;
   await rm(join(output, filename), { force: true });
   if (windows) {
     if (process.platform === "win32")

@@ -398,7 +398,7 @@ pub fn bootstrap_script(platform: HostPlatform) -> String {
 
 fn bootstrap_script_from_template(platform: HostPlatform, template: &str) -> String {
     let version = env!("CARGO_PKG_VERSION");
-    let url = format!("https://github.com/dcxa521gi/MyCode-Pro/releases/download/v{version}");
+    let url = format!("https://raw.githubusercontent.com/dcxa521gi/MyCode-Pro/mycode-host-v{version}");
     match platform {
         // include_str! preserves checkout line endings, including Windows CRLF.
         HostPlatform::Unix => template
@@ -914,11 +914,11 @@ fn bootstrap_downloads_the_matching_mycode_release_and_keeps_existing_host_data(
     for platform in [HostPlatform::Unix, HostPlatform::Windows] {
         let script = bootstrap_script(platform);
         assert!(script.contains(&format!(
-            "https://github.com/dcxa521gi/MyCode-Pro/releases/download/v{}",
+            "https://raw.githubusercontent.com/dcxa521gi/MyCode-Pro/mycode-host-v{}",
             env!("CARGO_PKG_VERSION")
         )));
         assert!(!script.contains("hardbeat920/monocode"));
         assert!(script.contains(".monocode-host"));
-        assert!(script.contains("monocode-host-"));
+        assert!(script.contains("MyCode-host-"));
     }
 }

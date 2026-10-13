@@ -26,6 +26,14 @@ jobs:
           $installer = Get-ChildItem target/release/bundle/nsis/*.exe
           $hash = Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256
           "$($hash.Hash.ToLower())  $($installer.Name)" | Set-Content target/release/bundle/nsis/SHA256SUMS.txt
+      - name: Enforce MyCode installer artifact policy
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $assets = @(Get-ChildItem target/release/bundle/nsis -File | ForEach-Object { @{name=$_.Name; size=$_.Length} })
+          @{tag_name="v$version"; name="MyCode $version"; body="MyCode $version Windows installer"; assets=$assets} | ConvertTo-Json -Depth 5 | Set-Content build/release-assets.json -Encoding utf8
+          node scripts/check-release-assets.mjs build/release-assets.json
+          if ($LASTEXITCODE -ne 0) { throw 'Release artifact policy failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: mycode-windows
