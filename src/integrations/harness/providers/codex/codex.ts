@@ -1,5 +1,9 @@
 import { TurnNotReadyError } from "../../core/types";
-import { findModel, getConnectionRevision, nativeModelId } from "../../../../features/sessions/model/models";
+import {
+  findModel,
+  getConnectionRevision,
+  nativeModelId,
+} from "../../../../features/sessions/model/models";
 import { sameProviderAccountId } from "../../../../features/providers/model/providerAccounts";
 import {
   exhaustedWindowResetAt,
@@ -60,6 +64,15 @@ import type {
 
 type ApprovalOutcome = ApprovalDecision | "cancelled";
 
+export function isCodexSessionActive(sessionId: string): boolean {
+  const live = liveByThread.get(sessionId);
+  return (
+    !!live &&
+    !live.cancelled &&
+    (!!live.activeTurnId || !!live.turnDone || !!live.manualCompaction)
+  );
+}
+
 type PendingApproval = {
   rpcId: JsonRpcId;
   threadId: string;
@@ -103,6 +116,7 @@ type Live = {
   cancelled: boolean;
   muteUpdates: boolean;
   activeTurnId: string | null;
+  retiredTurnIds: Set<string>;
   turns: Promise<void>;
   /** Resolves when the current turn completes (or is cancelled). */
   turnDone: (() => void) | null;
@@ -777,6 +791,7 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
       cancelled: false,
       muteUpdates: didResume,
       activeTurnId: null,
+      retiredTurnIds: new Set(),
       turns: Promise.resolve(),
       turnDone: null,
       turnFailed: null,
@@ -958,6 +973,21 @@ function handleNotification(
   if (threadId && threadId !== live.threadId) {
     return handleSubagentNotification(live, threadId, method, params);
   }
+  // Buffered stdout may report an older outcome after a new turn starts.
+  // Such an outcome owns neither the current turn nor its approvals/questions.
+  const terminal =
+    method === "turn/completed" ||
+    method === "turn/aborted" ||
+    (method === "error" && rec?.willRetry !== true);
+  const eventTurnId =
+    stringField(rec, "turnId") ?? stringField(asRecord(rec?.turn), "id");
+  if (
+    terminal &&
+    eventTurnId &&
+    (live.retiredTurnIds.has(eventTurnId) ||
+      (live.activeTurnId && eventTurnId !== live.activeTurnId))
+  )
+    return;
   // A Codex turn is a sequence of items. Completing an agentMessage does not
   // mean the turn is over — more tools and messages can still arrive. Only
   // turn/completed (and turn/aborted) settle sendCodexTurn, which is what the
@@ -1029,6 +1059,7 @@ function handleNotification(
       live.activeTurnId = mapped.activeTurnId;
     }
     if (mapped.turnCompleted) {
+      if (eventTurnId) rememberRetiredTurn(live, eventTurnId);
       // Report the limit before the turn settles so queued follow-ups hold.
       if (live.usageLimited && !live.cancelled) {
         const resetsAt = usageLimitResetAt(live);
@@ -1306,6 +1337,7 @@ function publishCodexText(
 }
 
 function finishActiveTurn(live: Live, extraEvents: HarnessEvent[] = []): void {
+  if (live.activeTurnId) rememberRetiredTurn(live, live.activeTurnId);
   clearServerRequests(live);
   closeOpenAgentRows(live);
   live.turnEndPending = false;
@@ -1331,6 +1363,12 @@ function finishActiveTurn(live: Live, extraEvents: HarnessEvent[] = []): void {
   if (!failed) {
     live.turnEndPending = true;
   }
+}
+
+function rememberRetiredTurn(live: Live, turnId: string): void {
+  live.retiredTurnIds.add(turnId);
+  if (live.retiredTurnIds.size > 128)
+    live.retiredTurnIds.delete(live.retiredTurnIds.values().next().value!);
 }
 
 function settlePendingTurn(live: Live): void {

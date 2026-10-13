@@ -49,6 +49,7 @@ vi.mock("../../../../platform/tauri/fs", () => ({
 
 const {
   compactCodexContext,
+  isCodexSessionActive,
   bindCodexSession,
   hasLiveCodexSession,
   cancelCodexTurn,
@@ -199,9 +200,68 @@ describe("codex live turn sequence", () => {
     const { turn } = await startTurn("codex-live", { onAccepted });
 
     await waitFor(() => onAccepted.mock.calls.length === 1, "turn acceptance");
+    expect(isCodexSessionActive("codex-live")).toBe(true);
     expect(onAccepted).toHaveBeenCalledOnce();
     notify("turn/completed", { turn: { id: "turn_1", status: "completed" } });
     await turn;
+    expect(isCodexSessionActive("codex-live")).toBe(false);
+  });
+
+  it.each(["turn/completed", "turn/aborted", "error"])(
+    "keeps the current turn active after a delayed %s from an older turn",
+    async (method) => {
+      const { events, turn } = await startTurn("codex-live");
+      let settled = false;
+      void turn.then(() => {
+        settled = true;
+      });
+      notify(method, {
+        threadId: "thr_1",
+        turnId: "old_turn",
+        turn: { id: "old_turn", status: "completed" },
+        error: { message: "old failure" },
+        willRetry: false,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(settled).toBe(false);
+      expect(events.some((event) => event.type === "session.error")).toBe(
+        false,
+      );
+      notify("turn/completed", { turn: { id: "turn_1", status: "completed" } });
+      await turn;
+    },
+  );
+
+  it("ignores an already completed turn while the next turn/start reply is pending", async () => {
+    const first = await startTurn("codex-live");
+    notify("turn/completed", { turn: { id: "turn_1", status: "completed" } });
+    await first.turn;
+    sent.length = 0;
+    const next = sendCodexTurn({
+      sessionId: "codex-live",
+      cwd: "/repo",
+      model: "codex:gpt-5.4",
+      runtimeMode: "supervised",
+      text: "next",
+      onEvent: () => undefined,
+    });
+    let settled = false;
+    void next.then(() => {
+      settled = true;
+    });
+    await waitFor(
+      () => parse().some((message) => message.method === "turn/start"),
+      "next start",
+    );
+    notify("turn/completed", { turn: { id: "turn_1", status: "completed" } });
+    reply(
+      parse().find((message) => message.method === "turn/start")!.id as number,
+      { turn: { id: "turn_2", status: "inProgress" } },
+    );
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(settled).toBe(false);
+    notify("turn/completed", { turn: { id: "turn_2", status: "completed" } });
+    await next;
   });
 
   it("keeps ephemeral helper threads out of saved Codex history", async () => {

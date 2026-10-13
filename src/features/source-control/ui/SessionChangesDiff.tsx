@@ -1,5 +1,11 @@
 import { translate as t } from "../../../shared/i18n";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentProps,
+} from "react";
 import { AlertCircle, Loader } from "../../../shared/ui/icons";
 import {
   sessionCheckpointFileDiff,
@@ -17,6 +23,8 @@ type Props = {
   focusPath?: string;
   /** Limit the review to these session file paths. */
   paths?: readonly string[];
+  /** Which files start open; the focused one always does. */
+  initialExpansion?: ComponentProps<typeof UnifiedDiffView>["initialExpansion"];
 };
 
 type LoadedDiff = {
@@ -34,6 +42,7 @@ export function SessionChangesDiff({
   sessionId,
   focusPath,
   paths,
+  initialExpansion,
 }: Props) {
   const scope = paths == null ? undefined : JSON.stringify(paths);
   // Only the load order uses the focus; moving it must not restart the load.
@@ -195,7 +204,12 @@ export function SessionChangesDiff({
   }
 
   return (
-    <UnifiedDiffView files={models} focusPath={focusPath} totals={totals} />
+    <UnifiedDiffView
+      files={models}
+      focusPath={focusPath}
+      totals={totals}
+      initialExpansion={initialExpansion}
+    />
   );
 }
 

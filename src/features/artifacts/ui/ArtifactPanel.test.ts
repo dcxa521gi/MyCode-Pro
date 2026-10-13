@@ -5,7 +5,8 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { invoke } from "@tauri-apps/api/core";
 import { copyMessage } from "../../../platform/tauri/clipboard";
 import { ARTIFACTS_CHANGED_EVENT, type Artifact } from "../artifacts";
-import { ArtifactPanel } from "./ArtifactPanel";
+import { ArtifactReader } from "./ArtifactPanel";
+import { setLanguage } from "../../../shared/i18n";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 vi.mock("../../sessions/ui/AgentMarkdown", () => ({
@@ -27,8 +28,10 @@ const report: Artifact = {
 let root: Root;
 let container: HTMLDivElement;
 beforeEach(() => {
+  setLanguage("en");
   vi.clearAllMocks();
   vi.mocked(invoke).mockReset();
+  vi.mocked(copyMessage).mockReset().mockResolvedValue(undefined);
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   container = document.createElement("div");
   document.body.append(container);
@@ -39,6 +42,38 @@ afterEach(() => {
   container.remove();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  setLanguage("en");
+});
+
+it("updates a failed artifact load when the language changes without reading again", async () => {
+  vi.mocked(invoke).mockRejectedValue(new Error("private storage detail"));
+  await act(async () => root.render(createElement(ArtifactReader, {id: report.id, onClose: vi.fn()})));
+  expect(container.textContent).toContain("Could not load this document.");
+  await act(async () => setLanguage("zh-CN"));
+  expect(container.textContent).not.toContain("Could not load this document.");
+  expect(container.textContent).not.toContain("private storage detail");
+  await act(async () => setLanguage("en"));
+  expect(container.textContent).toContain("Could not load this document.");
+  expect(invoke).toHaveBeenCalledTimes(1);
+});
+
+it.each(["copy", "delete"] as const)("updates %s failure feedback when switching language", async action => {
+  vi.mocked(invoke).mockImplementation(async command => {
+    if (command === "artifacts_delete") throw new Error("private storage detail");
+    return report;
+  });
+  vi.mocked(copyMessage).mockRejectedValue(new Error("private clipboard detail"));
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  await act(async () => root.render(createElement(ArtifactReader, {id: report.id, onClose: vi.fn()})));
+  const label = action === "copy" ? "Copy document" : "Delete document";
+  await act(async () => container.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!.click());
+  expect(container.textContent).toContain(`Could not ${action} this document.`);
+  await act(async () => setLanguage("zh-CN"));
+  expect(container.textContent).not.toContain(`Could not ${action} this document.`);
+  expect(container.textContent).not.toContain("private storage detail");
+  expect(container.textContent).not.toContain("private clipboard detail");
+  await act(async () => setLanguage("en"));
+  expect(container.textContent).toContain(`Could not ${action} this document.`);
 });
 
 it("loads document artifacts through their own command and closes with Escape", async () => {
@@ -46,12 +81,11 @@ it("loads document artifacts through their own command and closes with Escape", 
   const onClose = vi.fn();
   await act(async () =>
     root.render(
-      createElement(ArtifactPanel, { id: report.id, color: "#aaa", onClose }),
+      createElement(ArtifactReader, { id: report.id, onClose }),
     ),
   );
   expect(invoke).toHaveBeenCalledWith("artifacts_get", { id: report.id });
   expect(container.textContent).toContain(report.body);
-  expect(container.querySelector("[data-mono-artifact]")).not.toBeNull();
   const copy = container.querySelector<HTMLButtonElement>(
     'header [aria-label="Copy document"]',
   )!;
@@ -79,9 +113,8 @@ it("keeps a revised document when an older read finishes after refresh", async (
   );
   act(() =>
     root.render(
-      createElement(ArtifactPanel, {
+      createElement(ArtifactReader, {
         id: report.id,
-        color: "#aaa",
         onClose: vi.fn(),
       }),
     ),
@@ -99,9 +132,8 @@ it("shows missing documents without falling back to Notes", async () => {
   vi.mocked(invoke).mockResolvedValue(null);
   await act(async () =>
     root.render(
-      createElement(ArtifactPanel, {
+      createElement(ArtifactReader, {
         id: report.id,
-        color: "#aaa",
         onClose: vi.fn(),
       }),
     ),
@@ -119,9 +151,8 @@ it("can cancel deletion, keeps the reader on failure, and closes after a success
   });
   await act(async () =>
     root.render(
-      createElement(ArtifactPanel, {
+      createElement(ArtifactReader, {
         id: report.id,
-        color: "#aaa",
         onClose,
       }),
     ),

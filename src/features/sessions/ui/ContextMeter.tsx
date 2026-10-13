@@ -18,12 +18,15 @@ export function ContextMeter({
   sessionId,
   onCompact,
   compactDisabled = false,
+  empty = false,
 }: {
   usage?: ContextUsage;
   metrics?: TurnMetrics;
   sessionId?: string;
   onCompact?: () => boolean | void;
   compactDisabled?: boolean;
+  /** The conversation has no messages yet. */
+  empty?: boolean;
 }) {
   const { t, locale } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -45,7 +48,7 @@ export function ContextMeter({
       window.removeEventListener("storage", refresh);
     };
   }, []);
-  const ratio = contextRatio(usage);
+  const ratio = contextRatio(usage) ?? (empty ? 0 : null);
   const cache = reportedCacheRate(metrics);
   useEffect(() => {
     if (!sessionId) return;
@@ -74,6 +77,7 @@ export function ContextMeter({
   const detail = usage
     ? `${formatTokens(usage.used)} / ${usage.window ? formatTokens(usage.window) : "—"} tokens`
     : t("No usage yet");
+  if (ratio === null) return null;
   return (
     <div
       ref={root}
@@ -111,7 +115,7 @@ export function ContextMeter({
             strokeWidth="2.5"
             opacity=".2"
           />
-          <circle
+          {ratio > 0 && <circle
             cx="12"
             cy="12"
             r="9"
@@ -122,7 +126,7 @@ export function ContextMeter({
             strokeDasharray={Math.PI * 18}
             strokeDashoffset={Math.PI * 18 * (1 - (ratio ?? 0))}
             transform="rotate(-90 12 12)"
-          />
+          />}
         </svg>
       </button>
       {(open || hovered) && (

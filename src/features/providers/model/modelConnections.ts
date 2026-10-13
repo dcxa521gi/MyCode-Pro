@@ -3,15 +3,70 @@ import { setConnectionModels } from "../../sessions/model/models";
 import { invoke } from "@tauri-apps/api/core";
 
 export type ModelMetadata = {
+  mode?: string;
+  nativeApi?: string | null;
   name?: string;
   thinking?: boolean;
   contextWindow?: number;
   maxOutput?: number;
   modalities?: string[];
+  outputModalities?: string[];
+  output_modalities?: string[];
+  model_info?: {
+    input_modalities?: string[];
+    output_modalities?: string[];
+    inputModalities?: string[];
+    outputModalities?: string[];
+  };
   reasoningEfforts?: string[];
   supportedProtocols?: string[];
+  protocols?: string[];
   source?: string;
+  /** Explicit user edits only; ordinary discovered cache is refreshed. */
+  manualOverrides?: Pick<
+    ModelMetadata,
+    | "name"
+    | "mode"
+    | "nativeApi"
+    | "thinking"
+    | "contextWindow"
+    | "maxOutput"
+    | "modalities"
+    | "outputModalities"
+    | "output_modalities"
+    | "model_info"
+    | "reasoningEfforts"
+    | "supportedProtocols"
+    | "protocols"
+  >;
 };
+
+export function mergeDiscoveredModelMetadata(
+  previous: Record<string, ModelMetadata> | undefined,
+  discovered: Record<string, ModelMetadata>,
+): Record<string, ModelMetadata> {
+  const merged = { ...previous };
+  for (const [id, incoming] of Object.entries(discovered)) {
+    const cached = previous?.[id];
+    // Missing/unknown fields retain prior evidence. Explicit false and arrays
+    // refresh normally, with only marked user edits taking precedence.
+    const known = Object.fromEntries(
+      Object.entries(incoming).filter(
+        ([key, value]) =>
+          key !== "manualOverrides" && value !== undefined && value !== null,
+      ),
+    );
+    const sourceChanged =
+      !!cached?.source &&
+      !!incoming.source &&
+      cached.source !== incoming.source;
+    const retained = sourceChanged
+      ? { manualOverrides: cached.manualOverrides }
+      : cached;
+    merged[id] = { ...retained, ...known, ...cached?.manualOverrides };
+  }
+  return merged;
+}
 
 export type ModelConnection = {
   id: string;

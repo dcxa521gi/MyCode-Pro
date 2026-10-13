@@ -1,4 +1,4 @@
-import { translate as t, formatMessage } from "../../../shared/i18n";
+import { useTranslation, formatMessage } from "../../../shared/i18n";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -18,7 +18,11 @@ import {
   gitDiscardFile,
   gitPrCreate,
   gitPush,
+  gitStageAll,
+  gitStageFile,
   gitSync,
+  gitUnstageAll,
+  gitUnstageFile,
   notifyGitChanged,
   subscribeGitChanged,
   type GitChangedFile,
@@ -43,43 +47,54 @@ import {
   type ChangesView,
 } from "../../settings/model/appearance";
 import {
+  cachedIndex,
   ChangeList,
   FileSection,
   GitSyncActions,
+  rememberIndex,
+  sameIndex,
   usePrStatus,
 } from "../../source-control/ui/GitChangesPanel";
 
 /** One session file, with its path inside the repository that holds it. */
 export type MonoProjectFile = { file: CheckpointFile; relative: string };
 
-/** Live Git status for a project a Mono touched. */
+/**
+ * Live Git status for a project a Mono touched. It opens on the last status
+ * read for that checkout, here or in the project's Changes panel, and
+ * refreshes behind it.
+ */
 export function useProjectIndex(root: string | undefined): {
   index: GitDiffIndex | null;
   reload: () => void;
 } {
   const [loaded, setLoaded] = useState<{
-    root: string;
-    index: GitDiffIndex;
-  } | null>(null);
+    root: string | undefined;
+    index: GitDiffIndex | null;
+  }>(() => ({ root, index: cachedIndex(root) }));
   const [nonce, setNonce] = useState(0);
   const reload = useCallback(() => setNonce((value) => value + 1), []);
 
   useEffect(() => {
-    if (!root) {
-      setLoaded(null);
-      return;
-    }
+    if (!root) return;
     let cancelled = false;
     let generation = 0;
     const load = () => {
       const current = ++generation;
       void gitDiffIndex(root)
         .then((next) => {
-          if (!cancelled && current === generation)
-            setLoaded({ root, index: next });
+          if (cancelled || current !== generation) return;
+          rememberIndex(root, next);
+          setLoaded((previous) =>
+            previous.root === root && sameIndex(previous.index, next)
+              ? previous
+              : { root, index: next },
+          );
         })
         .catch(() => {
-          if (!cancelled && current === generation) setLoaded(null);
+          if (cancelled || current !== generation) return;
+          rememberIndex(root, null);
+          setLoaded({ root, index: null });
         });
     };
     load();
@@ -93,7 +108,7 @@ export function useProjectIndex(root: string | undefined): {
   }, [root, nonce]);
 
   return {
-    index: loaded && loaded.root === root ? loaded.index : null,
+    index: loaded.root === root ? loaded.index : cachedIndex(root),
     reload,
   };
 }
@@ -107,8 +122,8 @@ function fail(error: unknown) {
 }
 
 /**
- * Commit a Mono's work in one project. The session's files start selected;
- * anything else pending in the checkout is listed but left out unless chosen.
+ * Commit a Mono's work in one project. Staging goes through the Git index,
+ * so it matches what the project's own Changes panel shows.
  */
 export function MonoProjectCommit({
   sessionId,
@@ -128,16 +143,15 @@ export function MonoProjectCommit({
   index: GitDiffIndex | null;
   reloadIndex: () => void;
   textHarness?: HarnessId;
+  /** The file, opened with its changes over the list. */
   onOpenFile: (path: string) => void;
 }) {
+  const { t } = useTranslation();
   const { pr, reload: reloadPr } = usePrStatus(root, index?.branch);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  // Session files are in by default and other changes out; keep exceptions.
-  const [excluded, setExcluded] = useState<ReadonlySet<string>>(new Set());
-  const [included, setIncluded] = useState<ReadonlySet<string>>(new Set());
   const [view, setView] = useState<ChangesView>(loadChangesView);
   const [commitOpen, setCommitOpen] = useState(true);
   const [restOpen, setRestOpen] = useState(true);
@@ -172,13 +186,10 @@ export function MonoProjectCommit({
 
   useEffect(() => () => generateAbortRef.current?.abort(), []);
 
-  const own = new Set(files.map((entry) => entry.relative));
   const changed = index?.files ?? [];
-  const isSelected = (relative: string) =>
-    own.has(relative) ? !excluded.has(relative) : included.has(relative);
-  const inCommit = changed.filter((file) => isSelected(file.relative));
-  const rest = changed.filter((file) => !isSelected(file.relative));
-  const selected = inCommit.map((file) => file.relative);
+  // The Git index itself, as in the project's Changes panel.
+  const staged = changed.filter((file) => file.staged);
+  const unstaged = changed.filter((file) => file.unstaged);
   const hasRemote = Boolean(index?.remote);
   const hasOpenPr = pr?.state === "open";
   const diverged = (index?.ahead ?? 0) > 0 && (index?.behind ?? 0) > 0;
@@ -186,7 +197,7 @@ export function MonoProjectCommit({
     !!index?.branch &&
     !!index.defaultBranch &&
     index.branch === index.defaultBranch;
-  const canCommit = selected.length > 0 && message.trim().length > 0 && !busy;
+  const canCommit = staged.length > 0 && message.trim().length > 0 && !busy;
   const canCommitPush = canCommit && hasRemote && !diverged;
   const canCommitPushPr = canCommitPush && !hasOpenPr && !onDefault;
   const canPublish = hasRemote && !!index && !index.upstream;
@@ -204,19 +215,22 @@ export function MonoProjectCommit({
     (index?.aheadOfDefault ?? 0) > 0 &&
     (index?.behind ?? 0) === 0;
 
-  const choose = (relatives: readonly string[], include: boolean) => {
-    const apply =
-      (keep: (relative: string) => boolean, add: boolean) =>
-      (previous: ReadonlySet<string>) => {
-        const next = new Set(previous);
-        for (const relative of relatives.filter(keep)) {
-          if (add) next.add(relative);
-          else next.delete(relative);
-        }
-        return next;
-      };
-    setExcluded(apply((relative) => own.has(relative), !include));
-    setIncluded(apply((relative) => !own.has(relative), include));
+  const runStaging = async (
+    key: string,
+    change: () => Promise<void>,
+    paths?: string[],
+  ) => {
+    if (busy) return;
+    setBusy(key);
+    try {
+      await change();
+      if (paths) invalidateWatchedFiles(paths);
+    } catch (error) {
+      fail(error);
+    } finally {
+      settle();
+      setBusy(null);
+    }
   };
 
   const discard = async (file: GitChangedFile) => {
@@ -249,31 +263,26 @@ export function MonoProjectCommit({
     }
   };
 
-  const openFile = (relative: string) => {
-    const entry = files.find((item) => item.relative === relative);
-    if (entry) onOpenFile(entry.file.path);
-  };
-
   const changeListProps = {
     view,
     busy,
-    onOpenFile: (path: string) => {
-      const file = changed.find((item) => item.path === path);
-      if (file) openFile(file.relative);
-    },
+    onOpenFile,
     onAction: (
       file: GitChangedFile,
       action: "stage" | "unstage" | "discard",
     ) => {
       if (action === "discard") void discard(file);
-      else choose([file.relative], action === "stage");
+      else
+        void runStaging(file.relative, () =>
+          (action === "stage" ? gitStageFile : gitUnstageFile)(
+            root,
+            file.relative,
+          ),
+        );
     },
     onFolderAction: (folder: string, action: "stage" | "unstage") =>
-      choose(
-        changed
-          .filter((file) => file.relative.startsWith(`${folder}/`))
-          .map((file) => file.relative),
-        action === "stage",
+      void runStaging(`${action}:${folder}`, () =>
+        (action === "stage" ? gitStageFile : gitUnstageFile)(root, folder),
       ),
   };
 
@@ -323,7 +332,7 @@ export function MonoProjectCommit({
   };
 
   const generate = async () => {
-    if (busy || selected.length === 0 || generateAbortRef.current) return;
+    if (busy || staged.length === 0 || generateAbortRef.current) return;
     const controller = new AbortController();
     generateAbortRef.current = controller;
     setBusy("generate");
@@ -332,7 +341,6 @@ export function MonoProjectCommit({
         root,
         textHarness,
         controller.signal,
-        selected,
       );
       if (!controller.signal.aborted) setMessage(generated);
     } catch (error) {
@@ -361,11 +369,12 @@ export function MonoProjectCommit({
       return;
     }
     setBusy(createPr ? "pr" : "commit");
+    // Only files committed whole leave the session's review.
     const committed = files.filter((entry) =>
-      selected.includes(entry.relative),
+      staged.some((file) => file.relative === entry.relative && !file.unstaged),
     );
     try {
-      await gitCommit(root, message, false, selected);
+      await gitCommit(root, message, false);
       // Committed work is accepted work: clear it from the session's review.
       for (const entry of committed) {
         await keepSessionChanges(sessionId, cwd, entry.file.relative);
@@ -373,7 +382,6 @@ export function MonoProjectCommit({
       notifyReviewChanged(sessionId);
       invalidateWatchedFiles(committed.map((entry) => entry.file.path));
       setMessage("");
-      setIncluded(new Set());
       if (push || createPr) {
         await gitPush(root);
         recordPrActivity();
@@ -381,10 +389,10 @@ export function MonoProjectCommit({
       if (createPr) await openCreatedPr();
       setStatus(
         createPr
-          ? t("Pull request created")
+          ? "Pull request created"
           : push
-            ? t("Committed and pushed")
-            : t("Committed"),
+            ? "Committed and pushed"
+            : "Committed",
       );
     } catch (error) {
       fail(error);
@@ -467,7 +475,7 @@ export function MonoProjectCommit({
                 : t("Generate commit message")
             }
             disabled={
-              busy === "generate" ? false : !!busy || selected.length === 0
+              busy === "generate" ? false : !!busy || staged.length === 0
             }
             onClick={() =>
               busy === "generate" ? cancelGenerate() : void generate()
@@ -573,8 +581,11 @@ export function MonoProjectCommit({
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-none py-1">
         {changed.length === 0 ? (
           <p role="status" className="px-3 py-2 text-[12px] text-content/45">
-            {status ??
-              (index ? t("No uncommitted changes") : t("Loading changes…"))}
+            {status
+              ? t(status)
+              : index
+                ? t("No uncommitted changes")
+                : t("Loading changes…")}
           </p>
         ) : (
           <>
@@ -583,53 +594,51 @@ export function MonoProjectCommit({
                 role="status"
                 className="px-3 pb-1 text-[11px] text-content/55"
               >
-                {status}
+                {t(status)}
               </p>
             ) : null}
-            {inCommit.length > 0 ? (
+            {staged.length > 0 ? (
               <FileSection
-                title={t("This Commit")}
-                count={inCommit.length}
+                title={t("Staged Changes")}
+                count={staged.length}
                 open={commitOpen}
                 onToggle={() => setCommitOpen((open) => !open)}
                 view={view}
                 onToggleView={toggleView}
                 headerActions={[
                   {
-                    title: t("Leave All Out"),
+                    title: t("Unstage All Changes"),
                     icon: <Minus className="size-3.5" strokeWidth={1.75} />,
-                    onClick: () => choose(selected, false),
+                    onClick: () =>
+                      void runStaging("unstage", () => gitUnstageAll(root)),
                   },
                 ]}
               >
-                <ChangeList
-                  {...changeListProps}
-                  files={inCommit}
-                  kind="staged"
-                />
+                <ChangeList {...changeListProps} files={staged} kind="staged" />
               </FileSection>
             ) : null}
-            {rest.length > 0 ? (
+            {unstaged.length > 0 ? (
               <FileSection
                 title={t("Changes")}
-                count={rest.length}
+                count={unstaged.length}
                 open={restOpen}
                 onToggle={() => setRestOpen((open) => !open)}
                 view={view}
                 onToggleView={toggleView}
                 headerActions={[
                   {
-                    title: t("Add All to Commit"),
+                    title: t("Stage All Changes"),
                     icon: <Plus className="size-3.5" strokeWidth={1.75} />,
                     onClick: () =>
-                      choose(
-                        rest.map((file) => file.relative),
-                        true,
-                      ),
+                      void runStaging("stage", () => gitStageAll(root)),
                   },
                 ]}
               >
-                <ChangeList {...changeListProps} files={rest} kind="unstaged" />
+                <ChangeList
+                  {...changeListProps}
+                  files={unstaged}
+                  kind="unstaged"
+                />
               </FileSection>
             ) : null}
           </>

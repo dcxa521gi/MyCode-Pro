@@ -18,7 +18,6 @@ import {
   mergeModelSettings,
   modelEffortSetting,
   modelPickerTabs,
-  nativeModelId,
   preferredModelId,
   preferredModelSettings,
   resetHarnessModelOverlays,
@@ -771,15 +770,94 @@ it("routes custom reasoning effort to the Codex setting and preserves official c
   }
 });
 
-it("binds compatible custom connections to Hermes and MiniMax without losing model namespaces",()=>{
- setConnectionModels([{id:"qa",name:"QA",baseUrl:"https://example.com/v1",api:"openai-completions",models:["vendor/model"],enabled:true,hasKey:true}]);
- try {
-  const hermes=modelsFor("hermes").find(m=>m.connectionId==="qa")!;
-  const minimax=modelsFor("minimax").find(m=>m.connectionId==="qa")!;
-  expect(hermes).toBeDefined();expect(nativeModelId(hermes.id)).toBe("vendor/model");
-  expect(nativeModelId(minimax.id)).toBe("custom_provider:mycode-qa/vendor/model");
-  setConnectionModels([{id:"qa",name:"QA",baseUrl:"https://example.com/v1",api:"anthropic-messages",models:["vendor/model"],enabled:true,hasKey:true}]);
-  expect(modelsFor("hermes").some(m=>m.connectionId==="qa")).toBe(false);
-  expect(modelsFor("minimax").some(m=>m.connectionId==="qa")).toBe(true);
- }finally{setConnectionModels([]);}
+it("keeps explicit speech models out of chat routing and scopes identical IDs by connection", () => {
+  setConnectionModels([
+    {
+      id: "speech",
+      name: "Speech",
+      baseUrl: "https://example.com/v1",
+      api: "openai-responses",
+      models: ["same-id"],
+      enabled: true,
+      hasKey: true,
+      modelMetadata: {
+        "same-id": { mode: "audio_speech", nativeApi: "openai-audio-speech" },
+      },
+    },
+    {
+      id: "chat",
+      name: "Chat",
+      baseUrl: "https://example.com/v1",
+      api: "openai-responses",
+      models: ["same-id"],
+      enabled: true,
+      hasKey: true,
+      modelMetadata: {
+        "same-id": { mode: "chat", nativeApi: "openai-responses" },
+      },
+    },
+  ]);
+  try {
+    expect(
+      modelsFor("codex").some((model) => model.connectionId === "speech"),
+    ).toBe(false);
+    expect(
+      modelsFor("codex").find((model) => model.connectionId === "chat")?.id,
+    ).toBe("codex:mycode-chat/same-id");
+    setHarnessModels("pi", [
+      {
+        id: "pi:mycode-speech/same-id",
+        name: "Speech cached by Pi",
+        nativeId: "mycode-speech/same-id",
+        harness: "pi",
+      },
+    ]);
+    expect(
+      modelsFor("pi").some((model) => model.id === "pi:mycode-speech/same-id"),
+    ).toBe(false);
+  } finally {
+    setConnectionModels([]);
+  }
+});
+
+it("binds compatible custom connections to Hermes and MiniMax without losing model namespaces", () => {
+  setConnectionModels([
+    {
+      id: "qa",
+      name: "QA",
+      baseUrl: "https://example.com/v1",
+      api: "openai-completions",
+      models: ["vendor/model"],
+      enabled: true,
+      hasKey: true,
+    },
+  ]);
+  try {
+    const hermes = modelsFor("hermes").find((m) => m.connectionId === "qa")!;
+    const minimax = modelsFor("minimax").find((m) => m.connectionId === "qa")!;
+    expect(hermes).toBeDefined();
+    expect(nativeModelId(hermes.id)).toBe("vendor/model");
+    expect(nativeModelId(minimax.id)).toBe(
+      "custom_provider:mycode-qa/vendor/model",
+    );
+    setConnectionModels([
+      {
+        id: "qa",
+        name: "QA",
+        baseUrl: "https://example.com/v1",
+        api: "anthropic-messages",
+        models: ["vendor/model"],
+        enabled: true,
+        hasKey: true,
+      },
+    ]);
+    expect(modelsFor("hermes").some((m) => m.connectionId === "qa")).toBe(
+      false,
+    );
+    expect(modelsFor("minimax").some((m) => m.connectionId === "qa")).toBe(
+      true,
+    );
+  } finally {
+    setConnectionModels([]);
+  }
 });

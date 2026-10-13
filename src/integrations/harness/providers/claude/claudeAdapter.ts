@@ -3,6 +3,7 @@ import {
   cancelClaudeTurn,
   compactClaudeContext,
   forgetClaudeSession,
+  isClaudeSessionActive,
   respondClaudeApproval,
   respondClaudeQuestion,
   restoreClaudeTaskLists,
@@ -27,6 +28,7 @@ import { registerHarness, type HarnessAdapter } from "../../core/registry";
 export const claudeAdapter: HarnessAdapter = {
   id: "claude",
   live: true,
+  isSessionActive: isClaudeSessionActive,
   sendTurn: sendClaudeTurn,
   compactContext: compactClaudeContext,
   steerTurn: steerClaudeTurn,

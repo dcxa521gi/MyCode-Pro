@@ -1,5 +1,15 @@
 import { useSyncExternalStore } from "react";
 import zhCN from "./zh-CN.json";
+import { mycode021MonoZhCN } from "./mycode021Mono";
+import { mycode021CoreZhCN } from "./mycode021Core";
+import { mycode021HtmlZhCN } from "./mycode021Html";
+
+const messages: Record<string, string> = {
+  ...zhCN,
+  ...mycode021CoreZhCN,
+  ...mycode021MonoZhCN,
+  ...mycode021HtmlZhCN,
+};
 
 export type Locale = "en" | "zh-CN";
 export type LanguagePreference = "auto" | Locale;
@@ -106,8 +116,8 @@ export function subscribeLanguage(listener: () => void) {
 /** English source text is the fallback for untranslated UI messages. */
 export function translate(message: string, target: Locale = locale): string {
   return target === "zh-CN" &&
-    Object.prototype.hasOwnProperty.call(zhCN, message)
-    ? ((zhCN as Record<string, string>)[message] ?? message)
+    Object.prototype.hasOwnProperty.call(messages, message)
+    ? (messages[message] ?? message)
     : message;
 }
 
@@ -119,8 +129,8 @@ export function translateInContext(
 ): string {
   if (target !== "zh-CN") return message;
   const key = `${context}::${message}`;
-  return Object.prototype.hasOwnProperty.call(zhCN, key)
-    ? ((zhCN as Record<string, string>)[key] ?? translate(message, target))
+  return Object.prototype.hasOwnProperty.call(messages, key)
+    ? (messages[key] ?? translate(message, target))
     : translate(message, target);
 }
 

@@ -1,4 +1,4 @@
-import { useTranslation } from "../../shared/i18n";
+import { formatMessage, useTranslation } from "../../shared/i18n";
 import {
   CheckCircle,
   ChevronLeft,
@@ -6,7 +6,6 @@ import {
   DashboardSquare,
   Inbox,
   PanelLeft,
-  PanelRightToggle,
   Settings,
   StickyNote,
   Terminal,
@@ -101,8 +100,11 @@ type Props = {
    * project-scoped belongs beside it.
    */
   mono?: { look: MonoLook; state: MonoState };
-  onShowMonoDetails?: () => void;
-  /** The full-height Mono details panel owns these while it is open. */
+  /** Shows or hides the Mono's overview panel beside its chat. */
+  onToggleMonoOverview?: () => void;
+  monoOverviewOpen?: boolean;
+  onOpenMonoSettings?: () => void;
+  /** The full-height Mono panel owns these while it is open. */
   hideWindowControls?: boolean;
   projectRailOpen?: boolean;
   sessionSidebarOpen?: boolean;
@@ -607,7 +609,9 @@ function TitleBarComponent({
   activeId,
   cwd,
   mono,
-  onShowMonoDetails,
+  onToggleMonoOverview,
+  monoOverviewOpen = false,
+  onOpenMonoSettings,
   hideWindowControls = false,
   projectRailOpen = true,
   sessionSidebarOpen = true,
@@ -876,17 +880,36 @@ function TitleBarComponent({
     Boolean(onOpenInbox || onOpenNotes || onOpenSettings);
   const trailingControls =
     showTrailingActions ||
-    (mono && onShowMonoDetails) ||
+    (mono && (onToggleMonoOverview || onOpenMonoSettings)) ||
     (!IS_MAC && !hideWindowControls) ? (
       <div className="flex h-full shrink-0 items-stretch">
-        {mono && onShowMonoDetails ? (
-          <div className="flex items-center px-3">
-            <IconButton
-              label={t("Show Mono details")}
-              onClick={onShowMonoDetails}
-            >
-              <PanelRightToggle className="size-3.5" strokeWidth={1.75} />
-            </IconButton>
+        {mono && (onToggleMonoOverview || onOpenMonoSettings) ? (
+          <div className="flex items-center gap-1 px-3">
+            {onToggleMonoOverview ? (
+              <button
+                type="button"
+                aria-pressed={monoOverviewOpen}
+                title={t(monoOverviewOpen ? "Hide overview" : "Show overview")}
+                data-tauri-drag-region="false"
+                onClick={onToggleMonoOverview}
+                className={`flex h-6 items-center gap-1.5 rounded-md px-2 text-[12px] ${
+                  monoOverviewOpen
+                    ? "bg-content/10 text-content"
+                    : "bg-content/5 text-content/70 hover:bg-content/8 hover:text-content"
+                }`}
+              >
+                <DashboardSquare className="size-3.5" strokeWidth={1.75} />
+                {t("Overview")}
+              </button>
+            ) : null}
+            {onOpenMonoSettings ? (
+              <IconButton
+                label={formatMessage("{name} settings", {name: mono.look.name})}
+                onClick={onOpenMonoSettings}
+              >
+                <Settings className="size-3.5" strokeWidth={1.75} />
+              </IconButton>
+            ) : null}
           </div>
         ) : null}
         {showTrailingActions ? (

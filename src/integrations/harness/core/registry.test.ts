@@ -7,6 +7,7 @@ import type { HarnessId } from "../../../features/sessions/model/session";
 import {
   HARNESS_IDLE_PARK_MS,
   bindHarnessSession,
+  cancelHarnessTurn,
   canCompactHarnessContext,
   canRunHarnessTextPrompt,
   runHarnessTextPrompt,
@@ -263,7 +264,9 @@ describe("harness registry", () => {
     registerBuiltinHarnesses();
     for (const id of ["omp", "fx", "antigravity", "zcode"] as const) {
       expect(isLiveHarness(id)).toBe(false);
-      expect(listHarnesses().find(adapter => adapter.id === id)).toBeUndefined();
+      expect(
+        listHarnesses().find((adapter) => adapter.id === id),
+      ).toBeUndefined();
     }
   });
 
@@ -356,6 +359,53 @@ describe("harness registry", () => {
         runtimeMode: "supervised",
         onEvent: () => undefined,
       });
+
+    it("does not retire a provider still draining a cancelled turn", async () => {
+      vi.useFakeTimers();
+      const stopSession = vi.fn(async () => undefined);
+      let started!: () => void;
+      let finish!: () => void;
+      const ready = new Promise<void>((resolve) => {
+        started = resolve;
+      });
+      const draining = new Promise<void>((resolve) => {
+        finish = resolve;
+      });
+      registerHarness(
+        stub("cursor", {
+          stopSession,
+          async sendTurn() {
+            started();
+            await draining;
+          },
+        }),
+      );
+      const pending = turn("draining");
+      await ready;
+      await cancelHarnessTurn("cursor", "draining");
+      await vi.advanceTimersByTimeAsync(HARNESS_IDLE_PARK_MS);
+      expect(stopSession).not.toHaveBeenCalled();
+      finish();
+      await pending;
+      await vi.advanceTimersByTimeAsync(HARNESS_IDLE_PARK_MS);
+      expect(stopSession).toHaveBeenCalledWith("draining");
+    });
+
+    it("protects provider-owned work that wakes after the original send settles", async () => {
+      vi.useFakeTimers();
+      const stopSession = vi.fn(async () => undefined);
+      let nativeActive = true;
+      registerHarness(
+        stub("cursor", { stopSession, isSessionActive: () => nativeActive }),
+      );
+      configureHarnessIdlePark({ limit: () => 0, keep: () => false });
+      await turn("wake");
+      await vi.advanceTimersByTimeAsync(HARNESS_IDLE_PARK_MS);
+      expect(stopSession).not.toHaveBeenCalled();
+      nativeActive = false;
+      await vi.advanceTimersByTimeAsync(HARNESS_IDLE_PARK_MS);
+      expect(stopSession).toHaveBeenCalledWith("wake");
+    });
 
     it("parks the longest-idle child once too many are warm", async () => {
       vi.useFakeTimers();

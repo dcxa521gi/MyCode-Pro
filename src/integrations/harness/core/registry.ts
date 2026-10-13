@@ -63,6 +63,8 @@ export type HarnessAdapter = {
   id: HarnessId;
   /** True when this adapter can run live turns. */
   live: boolean;
+  /** Provider-owned wake/compaction work may outlive the app's send promise. */
+  isSessionActive?(sessionId: string): boolean;
   /** False when the harness cannot accept a follow-up while a turn is running. Default: same as live. */
   canSteer?: boolean;
   commands?: NativeCommandProvider;
@@ -214,6 +216,17 @@ function scheduleIdlePark(harness: HarnessId, sessionId: string): void {
     harness,
     timer: setTimeout(() => {
       idleParkTimers.delete(sessionId);
+      // Cancellation can finish before the provider drains its final events.
+      // The owning operation schedules a fresh timer when it actually settles.
+      if (
+        activeTurnSessions.has(sessionId) ||
+        sessionOperationTails.has(sessionId)
+      )
+        return;
+      if (getHarness(harness)?.isSessionActive?.(sessionId)) {
+        scheduleIdlePark(harness, sessionId);
+        return;
+      }
       void stopHarnessSession(harness, sessionId);
     }, HARNESS_IDLE_PARK_MS),
   });
@@ -236,7 +249,12 @@ export function enforceHarnessIdleLimit(): void {
   let excess = idleParkTimers.size - limit;
   for (const [sessionId, { harness }] of [...idleParkTimers]) {
     if (excess <= 0) return;
-    if (sessionOperationTails.has(sessionId)) continue;
+    if (
+      activeTurnSessions.has(sessionId) ||
+      sessionOperationTails.has(sessionId) ||
+      getHarness(harness)?.isSessionActive?.(sessionId)
+    )
+      continue;
     if (limit > 0 && idleParkPolicy.keep(sessionId)) continue;
     excess -= 1;
     void stopHarnessSession(harness, sessionId);

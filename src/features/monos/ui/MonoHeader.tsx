@@ -49,7 +49,7 @@ export function MonoHeader({
                 { value0: monoProjectsPhrase(agent.projects) },
               )
             : t(
-                "Add the projects I should work on from my details, or just ask me something.",
+                "Add the projects I should work on in my settings, or just ask me something.",
               )}
         </p>
       ) : (

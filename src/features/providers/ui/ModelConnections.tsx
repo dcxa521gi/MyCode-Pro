@@ -15,6 +15,7 @@ import { refreshPiCatalog } from "../../../integrations/harness/providers/pi/piC
 import {
   CONNECTION_PRESETS,
   connectionDisplayName,
+  mergeDiscoveredModelMetadata,
   loadLocalAIConfig,
   type ModelConnection,
   type ModelMetadata,
@@ -37,7 +38,10 @@ export function ModelConnections({
 }: { onOpenCli?: () => void } = {}) {
   const { t } = useTranslation();
   const [choosingProvider, setChoosingProvider] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // undefined is the initial selection; null records an explicit collapse.
+  const [selectedId, setSelectedId] = useState<string | null | undefined>(
+    undefined,
+  );
   const [usage, setUsage] = useState<Record<string, number>>({});
   const [items, setItems] = useState<ModelConnection[]>([]);
   const [formStep, setFormStep] = useState(2);
@@ -93,7 +97,7 @@ export function ModelConnections({
               current
                 ? {
                     ...current,
-                    modelMetadata: { ...current.modelMetadata, ...metadata },
+                    modelMetadata: mergeDiscoveredModelMetadata(current.modelMetadata, metadata),
                   }
                 : current,
             );
@@ -127,9 +131,11 @@ export function ModelConnections({
     setSelectedId((current) =>
       connections.some((c) => c.id === preferredId)
         ? preferredId!
-        : connections.some((c) => c.id === current)
-          ? current
-          : connections[0]?.id || null,
+        : current === null
+          ? null
+          : connections.some((c) => c.id === current)
+            ? current
+            : connections[0]?.id || null,
     );
   };
   useEffect(() => {
@@ -250,10 +256,12 @@ export function ModelConnections({
               key={item.id}
               role="button"
               tabIndex={0}
-              aria-pressed={selectedId === item.id}
+              aria-expanded={selectedId === item.id && !draft}
               onClick={(event) => {
                 if (!(event.target as HTMLElement).closest("button")) {
-                  setSelectedId(item.id);
+                  setSelectedId((current) =>
+                    current === item.id ? null : item.id,
+                  );
                   setDraft(null);
                 }
               }}
@@ -263,13 +271,29 @@ export function ModelConnections({
                   ["Enter", " "].includes(event.key)
                 ) {
                   event.preventDefault();
-                  setSelectedId(item.id);
+                  setSelectedId((current) =>
+                    current === item.id ? null : item.id,
+                  );
                   setDraft(null);
                 }
               }}
               className={`flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3.5 text-sm transition-colors ${selectedId === item.id ? "bg-content/[0.055]" : "hover:bg-content/[0.04]"}`}
             >
               <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  className={`size-4 shrink-0 text-content/55 transition-transform ${selectedId === item.id && !draft ? "rotate-90" : ""}`}
+                >
+                  <path
+                    d="m6 3 5 5-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
                 <span
                   aria-hidden="true"
                   className={`size-2 shrink-0 rounded-full ${item.enabled ? "bg-emerald-500" : "bg-content/20"}`}

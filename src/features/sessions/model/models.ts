@@ -1,4 +1,5 @@
 import type { ModelConnection } from "../../providers/model/modelConnections";
+import { supportsProtocol } from "../../providers/model/modelProtocols";
 import type { HarnessId } from "./session";
 import { HARNESSES } from "./session";
 import { loadProjectProviderSettings } from "./projectProviders";
@@ -386,6 +387,9 @@ export function sortModels(models: AgentModel[]): AgentModel[] {
 }
 export function modelsFor(harness: HarnessId): AgentModel[] {
   if (mergedModels[harness]) return mergedModels[harness]!;
+  const blockedCustomIds = new Set(connections.flatMap((c) => c.models
+    .filter((model) => !supportsProtocol(c.modelMetadata?.[model], c.api))
+    .map((model) => `${harness}:mycode-${c.id}/${model}`)));
   const external: AgentModel[] = connections
     .filter(
       (c) =>
@@ -394,7 +398,7 @@ export function modelsFor(harness: HarnessId): AgentModel[] {
         connectionSupportsHarness(harness, c),
     )
     .flatMap((c) =>
-      c.models.map((model) => ({
+      c.models.filter((model) => supportsProtocol(c.modelMetadata?.[model], c.api)).map((model) => ({
         id: `${harness}:mycode-${c.id}/${model}`,
         harness,
         name: c.modelMetadata?.[model]?.name || model,
@@ -504,7 +508,7 @@ export function modelsFor(harness: HarnessId): AgentModel[] {
   return (mergedModels[harness] = sortModels([
     ...external,
     ...(overlays[harness] ?? baseModelsFor(harness)).filter(
-      (m) => !ids.has(m.id),
+      (m) => !ids.has(m.id) && !blockedCustomIds.has(m.id),
     ),
   ]));
 }

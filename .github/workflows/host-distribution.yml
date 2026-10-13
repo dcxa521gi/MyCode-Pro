@@ -4,9 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Existing MyCode release version to migrate
+        description: MyCode source or existing release version
         required: true
-        default: '0.20.0'
+        default: "0.21.0"
+      mode:
+        description: Build from source without adding runtime archives to desktop Releases
+        type: choice
+        options: [build, migrate]
+        default: build
+      source_ref:
+        description: Source commit or tag to build (empty uses version tag)
+        required: false
 
 permissions:
   contents: write
@@ -15,11 +23,31 @@ jobs:
   migrate:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        if: inputs.mode != 'migrate'
+        with:
+          ref: ${{ inputs.source_ref || format('v{0}', inputs.version) }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        if: inputs.mode != 'migrate'
+        with:
+          node-version: 24
+          cache: npm
+      - name: Build versioned runtime archives
+        if: inputs.mode != 'migrate'
+        env:
+          HOST_VERSION: ${{ inputs.version }}
+        run: |
+          node --input-type=module -e "import fs from 'node:fs'; if (JSON.parse(fs.readFileSync('package.json')).version !== process.env.HOST_VERSION) throw Error('Source version mismatch');"
+          npm ci
+          node host/build.mjs
+          node host/package.mjs --all
       - name: Verify and relocate runtime downloads
         uses: actions/github-script@v7
         env:
           HOST_VERSION: ${{ inputs.version }}
           HOST_GIT_TOKEN: ${{ github.token }}
+          HOST_MODE: ${{ inputs.mode }}
         with:
           script: |
             const crypto = require('node:crypto');
@@ -37,7 +65,9 @@ jobs:
             git(['config', 'user.name', 'MyCode release maintenance']);
             git(['config', 'user.email', 'github-actions[bot]@users.noreply.github.com']);
             git(['remote', 'add', 'origin', `https://github.com/${repo.owner}/${repo.repo}.git`]);
-            const {data: release} = await github.rest.repos.getReleaseByTag({...repo, tag: `v${version}`});
+            const release = process.env.HOST_MODE === 'migrate'
+              ? (await github.rest.repos.getReleaseByTag({...repo, tag: `v${version}`})).data
+              : null;
             const tree = [], files = [];
             async function blob(name, bytes) {
               const expected = crypto.createHash('sha1').update(Buffer.from(`blob ${bytes.length}\0`)).update(bytes).digest('hex');
@@ -48,16 +78,25 @@ jobs:
               const extension = target.startsWith('win32') ? 'zip' : 'tar.gz';
               const oldName = `monocode-host-${target}.${extension}`;
               const name = `MyCode-host-${target}.${extension}`;
-              const asset = release.assets.find(a => a.name === oldName || a.name === name);
-              const checksum = release.assets.find(a => a.name === `${asset?.name}.sha256`);
-              if (!asset || !checksum) throw Error(`Missing runtime/checksum: ${target}`);
-              const response = await fetch(asset.browser_download_url);
-              if (!response.ok) throw Error(`Download failed: ${name}`);
-              const bytes = Buffer.from(await response.arrayBuffer());
-              const check = await fetch(checksum.browser_download_url);
-              if (!check.ok) throw Error(`Checksum download failed: ${name}`);
+              let bytes, recorded, expectedSize;
+              if (release) {
+                const asset = release.assets.find(a => a.name === oldName || a.name === name);
+                const checksum = release.assets.find(a => a.name === `${asset?.name}.sha256`);
+                if (!asset || !checksum) throw Error(`Missing runtime/checksum: ${target}`);
+                const response = await fetch(asset.browser_download_url);
+                if (!response.ok) throw Error(`Download failed: ${name}`);
+                bytes = Buffer.from(await response.arrayBuffer());
+                const check = await fetch(checksum.browser_download_url);
+                if (!check.ok) throw Error(`Checksum download failed: ${name}`);
+                recorded = await check.text(); expectedSize = asset.size;
+              } else {
+                const archive = path.join(process.env.GITHUB_WORKSPACE, 'build', 'host-packages', name);
+                bytes = fs.readFileSync(archive);
+                recorded = fs.readFileSync(`${archive}.sha256`, 'utf8');
+                expectedSize = fs.statSync(archive).size;
+              }
               const hash = crypto.createHash('sha256').update(bytes).digest('hex');
-              if (hash !== (await check.text()).trim().split(/\s+/)[0] || bytes.length !== asset.size) throw Error(`Archive mismatch: ${name}`);
+              if (hash !== recorded.trim().split(/\s+/)[0] || bytes.length !== expectedSize) throw Error(`Archive mismatch: ${name}`);
               await blob(name, bytes);
               await blob(`${name}.sha256`, Buffer.from(`${hash}  ${name}\n`));
               files.push({name, sha256: hash, bytes: bytes.length});
@@ -76,6 +115,7 @@ jobs:
                 const replacement = tree.find(row => row.path === item.path);
                 if (!replacement || replacement.sha !== item.sha) throw Error(`Existing version content differs: ${item.path}`);
               }
+              if (oldTree.length !== tree.length) throw Error('Existing version has a different file set');
             }
             if (existing) git(['fetch', 'origin', `refs/${branch}`]);
             git(['add', '--', ...tree.map(item => item.path)]);

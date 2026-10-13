@@ -2,6 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { applyHarnessEvent } from "../../core/apply";
 import { newSession } from "../../../../features/sessions/model/session";
 import {
+  bindIMTurnOrigin,
+  clearIMTurnOrigin,
+  subscribeIMProviderWake,
+} from "../../../../features/settings/model/imProviderWake";
+import {
   foldableWork,
   foldedBlocks,
   groupTurnItems,
@@ -36,6 +41,7 @@ vi.mock("../../core/child", () => ({
 
 const {
   bindClaudeSession,
+  isClaudeSessionActive,
   cancelClaudeTurn,
   compactClaudeContext,
   respondClaudeApproval,
@@ -710,7 +716,9 @@ describe("claude task tools", () => {
       {
         key: "claude-tasks",
         providerSessionId: "sess_2",
-        items: [{ id: "1", text: "Other conversation", status: "pending" as const }],
+        items: [
+          { id: "1", text: "Other conversation", status: "pending" as const },
+        ],
       },
     ];
 
@@ -753,7 +761,9 @@ describe("claude task tools", () => {
     );
 
     const events: HarnessEvent[] = [];
-    const { turn } = await restartedTurn(events, { providerSessionId: "sess_2" });
+    const { turn } = await restartedTurn(events, {
+      providerSessionId: "sess_2",
+    });
     expect(spawned.at(-1)).toEqual(
       expect.arrayContaining(["--resume", "sess_2"]),
     );
@@ -812,7 +822,9 @@ describe("claude task tools", () => {
     await first.turn;
 
     const events: HarnessEvent[] = [];
-    const { turn: second } = await restartedTurn(events, { providerAccountId: "home" });
+    const { turn: second } = await restartedTurn(events, {
+      providerAccountId: "home",
+    });
     expect(spawned.at(-1)).not.toContain("--resume");
     emitTaskTool(
       "toolu_u1",
@@ -1706,6 +1718,318 @@ describe("claude subagents", () => {
 });
 
 describe("claude background tasks", () => {
+  it.each([
+    {
+      label: "assistant message_start",
+      record: {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: { role: "assistant", content: [] },
+        },
+      },
+    },
+    {
+      label: "nonempty parent content delta",
+      record: {
+        type: "stream_event",
+        event: {
+          type: "content_block_delta",
+          index: 0,
+          delta: { type: "text_delta", text: "Wake started" },
+        },
+      },
+    },
+  ])(
+    "reserves result ownership immediately after $label",
+    async ({ record }) => {
+      const deliver = vi.fn();
+      const dispose = subscribeIMProviderWake(deliver);
+      bindIMTurnOrigin({
+        sessionId: "s1",
+        cwd: "/repo",
+        harness: "claude",
+        channel: "telegram",
+        ownerId: "owner",
+      });
+      try {
+        const { turn } = await startTurn("s1");
+        emit({ type: "result", subtype: "success", result: "Original" });
+        await turn;
+        emit(record);
+        expect(isClaudeSessionActive("s1")).toBe(true);
+        const prompts = parse().filter(
+          (message) => message.type === "user",
+        ).length;
+        await expect(
+          sendClaudeTurn({
+            sessionId: "s1",
+            cwd: "/repo",
+            model: "claude:claude-sonnet-5",
+            runtimeMode: "supervised",
+            text: "New prompt",
+            attachments: [],
+            onEvent: () => undefined,
+          }),
+        ).rejects.toThrow("Claude is finishing a background response");
+        expect(
+          parse().filter((message) => message.type === "user"),
+        ).toHaveLength(prompts);
+        emit({ type: "result", subtype: "success", result: "New wake final" });
+        expect(deliver).toHaveBeenCalledWith(
+          expect.objectContaining({ text: "New wake final", ownerId: "owner" }),
+        );
+      } finally {
+        clearIMTurnOrigin("s1");
+        dispose();
+      }
+    },
+  );
+  it.each([
+    {
+      label: "message_stop",
+      record: { type: "stream_event", event: { type: "message_stop" } },
+    },
+    {
+      label: "empty assistant",
+      record: { type: "assistant", message: { content: [] } },
+    },
+    {
+      label: "empty assistant text",
+      record: {
+        type: "assistant",
+        message: { content: [{ type: "text", text: "" }] },
+      },
+    },
+  ])(
+    "does not infer a wake from $label before a duplicate success result",
+    async ({ record }) => {
+      const deliver = vi.fn();
+      const dispose = subscribeIMProviderWake(deliver);
+      bindIMTurnOrigin({
+        sessionId: "s1",
+        cwd: "/repo",
+        harness: "claude",
+        channel: "telegram",
+        ownerId: "owner",
+      });
+      try {
+        const { turn } = await startTurn("s1");
+        emit({ type: "result", subtype: "success", result: "Original" });
+        await turn;
+        emit(record);
+        const activeAfterEnvelope = isClaudeSessionActive("s1");
+        emit({
+          type: "result",
+          subtype: "success",
+          result: "Duplicate original",
+        });
+        expect(deliver).not.toHaveBeenCalled();
+        expect(activeAfterEnvelope).toBe(false);
+      } finally {
+        clearIMTurnOrigin("s1");
+        dispose();
+      }
+    },
+  );
+  it.each([
+    { label: "interrupted", terminal_reason: "aborted_streaming" },
+    { label: "cancelled", errors: ["Request cancelled"] },
+  ])("does not push a $label provider wake final", async (termination) => {
+    const deliver = vi.fn();
+    const dispose = subscribeIMProviderWake(deliver);
+    bindIMTurnOrigin({
+      sessionId: "s1",
+      cwd: "/repo",
+      harness: "claude",
+      channel: "telegram",
+      ownerId: "owner",
+    });
+    try {
+      const { turn } = await startTurn("s1");
+      emit({ type: "result", subtype: "success", result: "Original" });
+      await turn;
+      emit({
+        type: "assistant",
+        message: { content: [{ type: "text", text: "Partial" }] },
+      });
+      emit({
+        type: "result",
+        subtype: "error_during_execution",
+        ...termination,
+        result: "Partial private answer",
+      });
+      expect(deliver).not.toHaveBeenCalled();
+      expect(isClaudeSessionActive("s1")).toBe(false);
+    } finally {
+      clearIMTurnOrigin("s1");
+      dispose();
+    }
+  });
+  it("does not treat a system init followed by a duplicate result as a provider reply", async () => {
+    const deliver = vi.fn();
+    const dispose = subscribeIMProviderWake(deliver);
+    bindIMTurnOrigin({
+      sessionId: "s1",
+      cwd: "/repo",
+      harness: "claude",
+      channel: "telegram",
+      ownerId: "owner",
+    });
+    try {
+      const { turn } = await startTurn("s1");
+      emit({ type: "result", subtype: "success", result: "Original" });
+      await turn;
+      emit({ type: "system", subtype: "init", session_id: "sess_1" });
+      emit({
+        type: "result",
+        subtype: "success",
+        result: "Duplicate original",
+      });
+      expect(deliver).not.toHaveBeenCalled();
+      expect(isClaudeSessionActive("s1")).toBe(false);
+    } finally {
+      clearIMTurnOrigin("s1");
+      dispose();
+    }
+  });
+  it("does not send an old wake to the newly bound IM owner after rejecting their turn", async () => {
+    const deliver = vi.fn();
+    const dispose = subscribeIMProviderWake(deliver);
+    bindIMTurnOrigin({
+      sessionId: "s1",
+      cwd: "/repo",
+      harness: "claude",
+      channel: "telegram",
+      ownerId: "old-owner",
+    });
+    try {
+      const { turn } = await startTurn("s1");
+      emit({ type: "result", subtype: "success", result: "Original" });
+      await turn;
+      emit({
+        type: "assistant",
+        message: { content: [{ type: "text", text: "Old wake" }] },
+      });
+      bindIMTurnOrigin({
+        sessionId: "s1",
+        cwd: "/repo",
+        harness: "claude",
+        channel: "discord",
+        ownerId: "new-owner",
+      });
+      await expect(
+        sendClaudeTurn({
+          sessionId: "s1",
+          cwd: "/repo",
+          model: "claude:claude-sonnet-5",
+          modelSettings: {},
+          runtimeMode: "supervised",
+          text: "New owner prompt",
+          attachments: [],
+          onEvent: () => undefined,
+        }),
+      ).rejects.toThrow("Claude is finishing a background response");
+      emit({
+        type: "result",
+        subtype: "success",
+        result: "Old private answer",
+      });
+      expect(deliver).not.toHaveBeenCalled();
+    } finally {
+      clearIMTurnOrigin("s1");
+      dispose();
+    }
+  });
+  it("returns a later provider-owned final answer to its original IM session", async () => {
+    const deliver = vi.fn();
+    const dispose = subscribeIMProviderWake(deliver);
+    bindIMTurnOrigin({
+      sessionId: "s1",
+      cwd: "/repo",
+      harness: "claude",
+      channel: "telegram",
+      ownerId: "owner",
+    });
+    try {
+      const { turn } = await startTurn("s1");
+      expect(isClaudeSessionActive("s1")).toBe(true);
+      emit({ type: "result", subtype: "success", result: "Original answer" });
+      await turn;
+      expect(isClaudeSessionActive("s1")).toBe(false);
+      expect(deliver).not.toHaveBeenCalled();
+      emit({
+        type: "assistant",
+        message: {
+          content: [{ type: "text", text: "Background work finished" }],
+        },
+      });
+      expect(isClaudeSessionActive("s1")).toBe(true);
+      emit({
+        type: "result",
+        subtype: "success",
+        result: "Background work finished",
+      });
+      expect(isClaudeSessionActive("s1")).toBe(false);
+      expect(deliver).toHaveBeenCalledWith({
+        sessionId: "s1",
+        cwd: "/repo",
+        harness: "claude",
+        channel: "telegram",
+        ownerId: "owner",
+        text: "Background work finished",
+      });
+      emit({ type: "result", subtype: "success", result: "Duplicate result" });
+      expect(deliver).toHaveBeenCalledTimes(1);
+    } finally {
+      clearIMTurnOrigin("s1");
+      dispose();
+    }
+  });
+
+  it("never relays child-agent output or failed provider wake results", async () => {
+    const deliver = vi.fn();
+    const dispose = subscribeIMProviderWake(deliver);
+    bindIMTurnOrigin({
+      sessionId: "s1",
+      cwd: "/repo",
+      harness: "claude",
+      channel: "telegram",
+      ownerId: "owner",
+    });
+    try {
+      const { turn } = await startTurn("s1");
+      emit({ type: "result", subtype: "success", result: "Original answer" });
+      await turn;
+      emit({
+        type: "assistant",
+        parent_tool_use_id: "child",
+        message: {
+          content: [{ type: "text", text: "private child tool output" }],
+        },
+      });
+      emit({
+        type: "result",
+        subtype: "success",
+        parent_tool_use_id: "child",
+        result: "private child result",
+      });
+      emit({
+        type: "assistant",
+        message: { content: [{ type: "text", text: "Partial answer" }] },
+      });
+      emit({
+        type: "result",
+        subtype: "error_during_execution",
+        is_error: true,
+        result: "failure detail",
+      });
+      expect(deliver).not.toHaveBeenCalled();
+    } finally {
+      clearIMTurnOrigin("s1");
+      dispose();
+    }
+  });
   it("keeps the turn working through a background command and Claude's follow-up", async () => {
     const { events, turn } = await startTurn("s1");
     let settled = false;

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
 import { randomUUID } from "node:crypto";
+import { assertIMNotificationOwner } from "./im-notification-route";
 import {
   createFeishuIM,
   createDingTalkIM,
@@ -398,6 +399,12 @@ async function dispatch(input: any) {
       !running.has(channel)
     )
       throw Error("Reply is no longer available");
+    assertIMNotificationOwner(
+      item.event.senderId,
+      routes[channel]?.ownerId ?? "",
+      transport.getStatus().kind === "connected" &&
+        secrets[ownerKeys[channel]] === routes[channel]?.ownerId,
+    );
     await transport.sendText(
       item.event.senderId,
       String(input.text ?? "").slice(0, 30000),
@@ -409,6 +416,11 @@ async function dispatch(input: any) {
     const route = routes[channel];
     if (!route || !running.has(channel))
       throw Error("Connect this bot before sending notifications");
+    assertIMNotificationOwner(
+      input.expectedOwnerId,
+      route.ownerId,
+      transport.getStatus().kind === "connected" && secrets[ownerKeys[channel]] === route.ownerId,
+    );
     const session = input.session;
     if (
       !session ||

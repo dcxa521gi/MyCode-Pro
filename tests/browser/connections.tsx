@@ -5,8 +5,11 @@ import { MonoRailSection } from "../../src/app/shell/MonoRailSection";
 import { ConnectionsSettings } from "../../src/features/connections/ui/ConnectionsSettings";
 import { createMono } from "../../src/features/monos/model/mono";
 import { setLanguage, useTranslation } from "../../src/shared/i18n";
+import { applyThemePreference } from "../../src/features/settings/model/appearance";
 import "../../src/styles/index.css";
-setLanguage("zh-CN");
+const query = new URLSearchParams(location.search);
+setLanguage(query.get("lang") === "en" ? "en" : "zh-CN");
+applyThemePreference(query.get("theme") === "light" ? "light" : "dark");
 createMono();
 function Fixture() {
   useTranslation();
@@ -28,6 +31,16 @@ function Fixture() {
   if (new URLSearchParams(location.search).has("providers"))
     return (
       <main className="mx-auto flex min-h-full max-w-5xl flex-col gap-6 bg-background-base p-6 text-content">
+        <button
+          data-switch-language
+          onClick={() =>
+            setLanguage(
+              document.documentElement.lang === "zh-CN" ? "en" : "zh-CN",
+            )
+          }
+        >
+          Switch language
+        </button>
         <ModelConnections />
       </main>
     );

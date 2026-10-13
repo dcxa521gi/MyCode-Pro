@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "recordedDate": "2026-10-13",
-  "currentProductVersion": "0.20.0",
-  "sourceCommit": "3c0593b81cba7a99b37764acde94da35741bd44e",
+  "currentProductVersion": "0.21.0",
+  "sourceCommit": "codex/mycode-0.21-upstream (validation and release pending)",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -214,6 +214,16 @@
       "releaseDoc": "mycode-release-policy.md",
       "monoBaseline": "沿用 889579b；核对到 633730d/v0.13 的 26 条新增提交，仅登记下一次软件升级待融合，未宣称集成。",
       "complementBaseline": "Cindy 28afb1e、Synara 9e01962 与 0.20 基线一致。"
+    },
+    {
+      "key": "0.21.0",
+      "display": "0.21.0",
+      "tag": "v0.21.0",
+      "tagCommit": "待交付验证",
+      "date": "2026-10-13",
+      "releaseDoc": "mycode-0.21.0.md",
+      "monoBaseline": "889579b61c2342cc27751092ff0effbe9ec8e162 → 633730d70dd3e6cb8113af28c062dd1ea9228c0d；26提交完整融合",
+      "complementBaseline": "Cindy 28afb1e → 3ea9099，121提交；Synara 9e01962 → b4bdc73，29提交；完整分类、选择本地能力，非全架构迁入"
     }
   ],
   "requirements": [
@@ -917,16 +927,67 @@
       "title": "发布页只保留 MyCode 介绍、安装包与必须文件",
       "scope": "0.20.0 发布维护；Host 分离下载，保留原用户数据和远程运行入口。",
       "events": [
-        "MC-0.20.0-036"
+        "MC-0.20.0-036",
+        "MC-0.21.0-034"
       ],
       "evidenceLevel": "用户明确要求、发布附件清单与修正版验证"
+    },
+    {
+      "id": "R60",
+      "title": "同步三个上游并融合 MyCode",
+      "scope": "0.21 完整 MonoCode 融合及 Cindy/Synara 本地适用补充，150参考提交分类有边界。",
+      "events": [
+        "MC-0.21.0-001",
+        "MC-0.21.0-002",
+        "MC-0.21.0-003",
+        "MC-0.21.0-004",
+        "MC-0.21.0-005",
+        "MC-0.21.0-006",
+        "MC-0.21.0-007",
+        "MC-0.21.0-008",
+        "MC-0.21.0-009",
+        "MC-0.21.0-010",
+        "MC-0.21.0-011",
+        "MC-0.21.0-012",
+        "MC-0.21.0-013",
+        "MC-0.21.0-014",
+        "MC-0.21.0-015",
+        "MC-0.21.0-016",
+        "MC-0.21.0-017",
+        "MC-0.21.0-018",
+        "MC-0.21.0-019",
+        "MC-0.21.0-020",
+        "MC-0.21.0-021",
+        "MC-0.21.0-022",
+        "MC-0.21.0-023",
+        "MC-0.21.0-024",
+        "MC-0.21.0-025",
+        "MC-0.21.0-026",
+        "MC-0.21.0-028",
+        "MC-0.21.0-029",
+        "MC-0.21.0-030",
+        "MC-0.21.0-031",
+        "MC-0.21.0-032",
+        "MC-0.21.0-033",
+        "MC-0.21.0-034"
+      ],
+      "evidenceLevel": "本次用户要求、实际合并与行为验证"
+    },
+    {
+      "id": "R61",
+      "title": "修复供应商无法折叠",
+      "scope": "0.21 鼠标、Enter、Space、刷新保持及子控件事件隔离。",
+      "events": [
+        "MC-0.21.0-027"
+      ],
+      "evidenceLevel": "真实RED/GREEN与浏览器回归"
     }
   ],
   "features": [
     {
       "id": "BASE",
       "firstRecordedVersion": "0.5.0",
-      "lastChangedVersion": "0.5.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -934,7 +995,9 @@
         "src/features/workspace"
       ],
       "changes": [
-        "MC-0.5.0-001"
+        "MC-0.5.0-001",
+        "MC-0.21.0-021",
+        "MC-0.21.0-026"
       ]
     },
     {
@@ -957,7 +1020,7 @@
     {
       "id": "I18N",
       "firstRecordedVersion": "0.5.0",
-      "lastChangedVersion": "0.20.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -975,7 +1038,8 @@
         "MC-0.18.0-006",
         "MC-0.19.0-complete-017",
         "MC-0.19.1-013",
-        "MC-0.20.0-030"
+        "MC-0.20.0-030",
+        "MC-0.21.0-033"
       ]
     },
     {
@@ -999,7 +1063,7 @@
     {
       "id": "MODEL-ROUTING",
       "firstRecordedVersion": "0.5.0",
-      "lastChangedVersion": "0.15.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1013,7 +1077,8 @@
         "MC-0.8.1-002",
         "MC-0.8.1-003",
         "MC-0.10.0-005",
-        "MC-0.15.0-010"
+        "MC-0.15.0-010",
+        "MC-0.21.0-030"
       ]
     },
     {
@@ -1098,7 +1163,7 @@
     {
       "id": "PROVIDER-UI",
       "firstRecordedVersion": "0.6.0",
-      "lastChangedVersion": "0.19.1",
+      "lastChangedVersion": "0.21.0",
       "status": "当前以 MonoCode 官方账户式列表为主",
       "upgradePolicy": "保留 MyCode 连接/主模型/模型开关与词元跳动；不要复原为旧独立 Cindy 风格全页。",
       "maintenancePaths": [
@@ -1111,26 +1176,28 @@
         "MC-0.12.0-010",
         "MC-0.14.0-005",
         "MC-0.15.0-005",
-        "MC-0.19.1-010"
+        "MC-0.19.1-010",
+        "MC-0.21.0-027"
       ]
     },
     {
       "id": "MODEL-DISCOVERY",
       "firstRecordedVersion": "0.6.0",
-      "lastChangedVersion": "0.6.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
         "src-tauri/src/local_ai.rs"
       ],
       "changes": [
-        "MC-0.6.0-003"
+        "MC-0.6.0-003",
+        "MC-0.21.0-028"
       ]
     },
     {
       "id": "IM",
       "firstRecordedVersion": "0.6.0",
-      "lastChangedVersion": "0.15.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1142,7 +1209,8 @@
         "MC-0.6.0-004",
         "MC-0.6.0-005",
         "MC-0.12.0-012",
-        "MC-0.15.0-015"
+        "MC-0.15.0-015",
+        "MC-0.21.0-029"
       ]
     },
     {
@@ -1186,7 +1254,7 @@
     {
       "id": "USAGE",
       "firstRecordedVersion": "0.6.0",
-      "lastChangedVersion": "0.16.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1202,13 +1270,14 @@
         "MC-0.14.0-003",
         "MC-0.14.0-004",
         "MC-0.16.0-002",
-        "MC-0.16.0-019"
+        "MC-0.16.0-019",
+        "MC-0.21.0-008"
       ]
     },
     {
       "id": "MODEL-CHOICE",
       "firstRecordedVersion": "0.7.0",
-      "lastChangedVersion": "0.19.0-original",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1225,7 +1294,8 @@
         "MC-0.15.0-004",
         "MC-0.16.0-006",
         "MC-0.18.0-016",
-        "MC-0.19.0-original-007"
+        "MC-0.19.0-original-007",
+        "MC-0.21.0-014"
       ]
     },
     {
@@ -1295,7 +1365,7 @@
     {
       "id": "LAYOUT",
       "firstRecordedVersion": "0.7.0",
-      "lastChangedVersion": "0.16.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1307,7 +1377,8 @@
         "MC-0.11.0-007",
         "MC-0.12.0-024",
         "MC-0.15.0-002",
-        "MC-0.16.0-017"
+        "MC-0.16.0-017",
+        "MC-0.21.0-012"
       ]
     },
     {
@@ -1391,7 +1462,7 @@
     {
       "id": "CONTEXT",
       "firstRecordedVersion": "0.8.0",
-      "lastChangedVersion": "0.10.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1400,7 +1471,8 @@
       ],
       "changes": [
         "MC-0.8.0-012",
-        "MC-0.10.0-004"
+        "MC-0.10.0-004",
+        "MC-0.21.0-017"
       ]
     },
     {
@@ -2220,14 +2292,22 @@
     {
       "id": "MONOS",
       "firstRecordedVersion": "0.19.0-complete",
-      "lastChangedVersion": "0.19.0-complete",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
         "src/features/monos"
       ],
       "changes": [
-        "MC-0.19.0-complete-002"
+        "MC-0.19.0-complete-002",
+        "MC-0.21.0-001",
+        "MC-0.21.0-003",
+        "MC-0.21.0-005",
+        "MC-0.21.0-006",
+        "MC-0.21.0-011",
+        "MC-0.21.0-013",
+        "MC-0.21.0-019",
+        "MC-0.21.0-024"
       ]
     },
     {
@@ -2247,20 +2327,22 @@
     {
       "id": "HABITS",
       "firstRecordedVersion": "0.19.0-complete",
-      "lastChangedVersion": "0.19.0-complete",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
         "src/features/monos"
       ],
       "changes": [
-        "MC-0.19.0-complete-004"
+        "MC-0.19.0-complete-004",
+        "MC-0.21.0-004",
+        "MC-0.21.0-010"
       ]
     },
     {
       "id": "MONOS-SESSIONS",
       "firstRecordedVersion": "0.19.0-complete",
-      "lastChangedVersion": "0.20.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -2270,7 +2352,9 @@
       "changes": [
         "MC-0.19.0-complete-005",
         "MC-0.19.1-003",
-        "MC-0.20.0-009"
+        "MC-0.20.0-009",
+        "MC-0.21.0-002",
+        "MC-0.21.0-009"
       ]
     },
     {
@@ -2290,7 +2374,7 @@
     {
       "id": "ARTIFACTS",
       "firstRecordedVersion": "0.19.0-complete",
-      "lastChangedVersion": "0.20.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -2298,7 +2382,10 @@
       ],
       "changes": [
         "MC-0.19.0-complete-007",
-        "MC-0.20.0-010"
+        "MC-0.20.0-010",
+        "MC-0.21.0-007",
+        "MC-0.21.0-020",
+        "MC-0.21.0-022"
       ]
     },
     {
@@ -2420,7 +2507,7 @@
     {
       "id": "GIT-SELECTED",
       "firstRecordedVersion": "0.20.0",
-      "lastChangedVersion": "0.20.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -2429,7 +2516,11 @@
       ],
       "changes": [
         "MC-0.20.0-004",
-        "MC-0.20.0-005"
+        "MC-0.20.0-005",
+        "MC-0.21.0-015",
+        "MC-0.21.0-016",
+        "MC-0.21.0-018",
+        "MC-0.21.0-025"
       ]
     },
     {
@@ -2489,7 +2580,7 @@
     {
       "id": "VIDEO",
       "firstRecordedVersion": "0.20.0",
-      "lastChangedVersion": "0.20.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -2497,20 +2588,22 @@
       ],
       "changes": [
         "MC-0.20.0-014",
-        "MC-0.20.0-015"
+        "MC-0.20.0-015",
+        "MC-0.21.0-023"
       ]
     },
     {
       "id": "IDLE-AGENTS",
       "firstRecordedVersion": "0.20.0",
-      "lastChangedVersion": "0.20.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
         "src/integrations/harness/core/registry.ts"
       ],
       "changes": [
-        "MC-0.20.0-016"
+        "MC-0.20.0-016",
+        "MC-0.21.0-031"
       ]
     },
     {
@@ -2542,7 +2635,7 @@
     {
       "id": "FILES",
       "firstRecordedVersion": "0.20.0",
-      "lastChangedVersion": "0.20.0",
+      "lastChangedVersion": "0.21.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -2550,7 +2643,8 @@
         "src-tauri/src/fs.rs"
       ],
       "changes": [
-        "MC-0.20.0-023"
+        "MC-0.20.0-023",
+        "MC-0.21.0-032"
       ]
     },
     {
@@ -2591,10 +2685,11 @@
         "src-tauri/src/remote_ssh.rs"
       ],
       "changes": [
-        "MC-0.20.0-036"
+        "MC-0.20.0-036",
+        "MC-0.21.0-034"
       ],
       "firstRecordedVersion": "0.20.0-release-maintenance",
-      "lastChangedVersion": "0.20.0-release-maintenance"
+      "lastChangedVersion": "0.21.0"
     }
   ],
   "events": [
@@ -8094,6 +8189,672 @@
         "scripts/check-release-assets.mjs",
         "scripts/publish-host-downloads.mjs",
         "src-tauri/src/remote_ssh.rs"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-001",
+      "version": "0.21.0",
+      "feature": "MONOS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "吉祥物/颜色选择浮层",
+      "detail": "7c8badb3530f3fc7c9e0cb227ebe98b747191806 Move Mono mascot and color pickers into a popover；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-002",
+      "version": "0.21.0",
+      "feature": "MONOS-SESSIONS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "会话列表与设置弹窗测试",
+      "detail": "ebd0745fa4b512180c711a37b493157d8ae4a42e Rename Mono sessions panel and add settings dialog tests；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos/model/monoSpawnedSessions.ts",
+        "src/features/monos/ui/LaunchedSessionCard.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-003",
+      "version": "0.21.0",
+      "feature": "MONOS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "项目/会话合并总览",
+      "detail": "35a49799ae7a7759d33a5d34699d75962755b230 Merge Mono details and sessions into an overview panel；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-004",
+      "version": "0.21.0",
+      "feature": "HABITS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "会话与习惯空白加载修复",
+      "detail": "9a8fe6261e9a6ff2cf6149a42b09212e6e24837b Keep Mono session and habit lists from loading blank；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-005",
+      "version": "0.21.0",
+      "feature": "MONOS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "吉祥物下显示名称",
+      "detail": "fc034096d7ead604835b160afb4742dc6580d3c2 Move Mono name field under its mascot in settings；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-006",
+      "version": "0.21.0",
+      "feature": "MONOS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "卡片溢出修复",
+      "detail": "fcb56cd7d799fb9b13215e530049ccd853fe7ffc Keep Mono session and artifact cards from overflowing their container；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-007",
+      "version": "0.21.0",
+      "feature": "ARTIFACTS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "文档产物图标与标题",
+      "detail": "62de67415e50df15345b1b2f832ab9a700a634b5 Show artifact cards as document icon with title；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/artifacts"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-008",
+      "version": "0.21.0",
+      "feature": "USAGE",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "输入区复用用量控件",
+      "detail": "70eda8166bc66f05a5f91d2f5679401feb116601 Extract usage chips into UsageChips and show them in Mono composer；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/settings/ui/UsageHistoryPage.tsx",
+        "src/features/sessions/model/sessionUsage.ts"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-009",
+      "version": "0.21.0",
+      "feature": "MONOS-SESSIONS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "会话搜索筛选和空状态",
+      "detail": "a3035dfc2d49217bfa4a222834a54368dbee7158 Add session search, filters, and empty states to Mono overview；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos/model/monoSpawnedSessions.ts",
+        "src/features/monos/ui/LaunchedSessionCard.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-010",
+      "version": "0.21.0",
+      "feature": "HABITS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "习惯按天分组与会话分页",
+      "detail": "40c4246f65ba9a129c5073be289c9d43a0ba7c0a Group Mono habits by day state and page session cards；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-011",
+      "version": "0.21.0",
+      "feature": "MONOS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "默认总览/侧栏会话可选",
+      "detail": "8f8ceeec3be25199b6c6d38b912af2775d2b8c98 Make Mono overview open by default and sidebar sessions opt-in；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-012",
+      "version": "0.21.0",
+      "feature": "LAYOUT",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "默认侧栏宽度400",
+      "detail": "90ded7a5d68afa2dc19daa8cb78b5b8ef295bce4 Widen default Mono sidebar width to 400px；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/app/shell",
+        "src/features/workspace"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-013",
+      "version": "0.21.0",
+      "feature": "MONOS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "恢复最近智能体",
+      "detail": "e43b3802bc1f654328d4dd3ce345e30a7d6530a3 Reopen the last open Mono on launch；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-014",
+      "version": "0.21.0",
+      "feature": "MODEL-CHOICE",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "会话模型供应商标记",
+      "detail": "564316b0b6b70eeb5901b3fc1e939388c266e328 Show Mono session model as provider mark in card footer；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/sessions/ui/ModelPicker.tsx",
+        "src/features/providers/ui/ModelConnections.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-015",
+      "version": "0.21.0",
+      "feature": "GIT-SELECTED",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "按仓库提交页签",
+      "detail": "5948a14c6d1996651fda761c22fe581d568f9ddc Add per-repo commit tabs to the Mono changes view；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos/ui/MonoProjectCommit.tsx",
+        "host/workspace-commands.ts"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-016",
+      "version": "0.21.0",
+      "feature": "GIT-SELECTED",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "智能体文件变更总览",
+      "detail": "8b70dc86e4940664d32e59fe30e3a2ca1b9f2615 Move Mono session changes into the overview's Changes tab；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos/ui/MonoProjectCommit.tsx",
+        "host/workspace-commands.ts"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-017",
+      "version": "0.21.0",
+      "feature": "CONTEXT",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "空上下文圆环修复",
+      "detail": "8dec2438b29334188c476efd9cc181ebd20ea5c4 Show an empty context ring for new conversations；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/sessions/model/contextUsage.ts",
+        "src/features/sessions/ui/Composer.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-018",
+      "version": "0.21.0",
+      "feature": "GIT-SELECTED",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "折叠变更提示点",
+      "detail": "1088e0e0f485253e96cb75233bc7262fce253b31 Dot the folded Changes tab icon when it has changes；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos/ui/MonoProjectCommit.tsx",
+        "host/workspace-commands.ts"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-019",
+      "version": "0.21.0",
+      "feature": "MONOS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "隐藏常驻智能体交接与第二意见入口",
+      "detail": "c30dbe154e621d616cfeb774704a0bbac255eb92 Hide handoff and second-opinion actions in Mono view；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-020",
+      "version": "0.21.0",
+      "feature": "ARTIFACTS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "总览文档产物展示",
+      "detail": "d8cb37e6264659394ba07c346f10aeb80e87483f Open Mono artifacts in the overview documents tab；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/artifacts"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-021",
+      "version": "0.21.0",
+      "feature": "BASE",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "React会话状态同步",
+      "detail": "95320d002093a52900b50f06913683a2f63a1aaf Synchronize session updates with React state；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/app/App.tsx",
+        "src/features/workspace"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-022",
+      "version": "0.21.0",
+      "feature": "ARTIFACTS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "沙箱HTML产物",
+      "detail": "ab2a6afbb3f2c6623e98e470e26212ae2c325890 Add HTML visual artifacts rendered in a sandboxed frame；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/artifacts"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-023",
+      "version": "0.21.0",
+      "feature": "VIDEO",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "Markdown本地图片/视频",
+      "detail": "70fb3ea54c66e30f2580183f4c1e0f7f0196252c Show local images and videos linked in Mono replies；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/files/ui/BinaryFileView.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-024",
+      "version": "0.21.0",
+      "feature": "MONOS",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "切智能体重置总览",
+      "detail": "649cead4a90b914f6544718de9f353fee45c0bee Reset Mono overview state when switching to another Mono；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-025",
+      "version": "0.21.0",
+      "feature": "GIT-SELECTED",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "文件变更内联差异",
+      "detail": "9a9df5ef6edc82e975215d9c8ee3de9eb291f770 Open changed files in inline diff viewer；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/monos/ui/MonoProjectCommit.tsx",
+        "host/workspace-commands.ts"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-026",
+      "version": "0.21.0",
+      "feature": "BASE",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "产品版本映射与发布适配",
+      "detail": "633730d70dd3e6cb8113af28c062dd1ea9228c0d Release v0.13.0；以MonoCode行为为主，融合MyCode路由/Windows/中文和英文。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/app/App.tsx",
+        "src/features/workspace"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-027",
+      "version": "0.21.0",
+      "feature": "PROVIDER-UI",
+      "origin": "MYCODE",
+      "action": "修复",
+      "requirements": [
+        "R61"
+      ],
+      "title": "供应商折叠状态与交互修复",
+      "detail": "显式收起状态区别于初始状态；刷新不重新打开；子操作不冒泡。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/providers/ui/ModelConnections.tsx",
+        "src/features/providers/ui/ModelConnections.collapse.test.ts"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-028",
+      "version": "0.21.0",
+      "feature": "MODEL-DISCOVERY",
+      "origin": "CINDY_REFERENCE",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "客户端协议和输入/输出模态",
+      "detail": "广告的客户端协议优先于后台原生接口；未知字段保留同源证据、跨目录隔离；用户明确覆盖继续保留。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src-tauri/src/local_ai.rs"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-029",
+      "version": "0.21.0",
+      "feature": "IM",
+      "origin": "CINDY_REFERENCE",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "原生后台补充回复通知与所有权",
+      "detail": "只发布实际成功回复到原渠道/原用户；重绑定/取消撤销资格；重叠发送门控；真实账号未执行。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/settings/ui/IMBotsPage.tsx",
+        "src-tauri/src/im_bridge.rs",
+        "vendor/cindy-im"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-030",
+      "version": "0.21.0",
+      "feature": "MODEL-ROUTING",
+      "origin": "CINDY_REFERENCE",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "Codex迟到终态隔离",
+      "detail": "已结束轮次事件与start ack race不污染新任务；限制历史ID集。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/integrations/harness",
+        "src-tauri/src/local_ai.rs"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-031",
+      "version": "0.21.0",
+      "feature": "IDLE-AGENTS",
+      "origin": "SYNARA_REFERENCE",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "原生活跃状态保护",
+      "detail": "清理空闲代理前同时检查应用与原生活动状态，避免后台工作被清理。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/integrations/harness/core/registry.ts"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-032",
+      "version": "0.21.0",
+      "feature": "FILES",
+      "origin": "SYNARA_REFERENCE",
+      "action": "融合",
+      "requirements": [
+        "R60"
+      ],
+      "title": "非普通文件读取等价核对",
+      "detail": "现有is_file防护与FIFO拒绝能力核对；增加目录/Unix管道回归，Unix需对应CI执行。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/features/files",
+        "src-tauri/src/fs.rs"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-033",
+      "version": "0.21.0",
+      "feature": "I18N",
+      "origin": "MYCODE",
+      "action": "修复",
+      "requirements": [
+        "R60"
+      ],
+      "title": "新增功能双语与反馈切换",
+      "detail": "总览、设置、会话、变更、产物/HTML、用量反馈支持简体中文/英文；保存源键后按当前语言渲染。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        "src/shared/i18n",
+        "src/features/sessions/ui/MonoWorkTicker.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.21.0-034",
+      "version": "0.21.0",
+      "feature": "RELEASE-ASSETS",
+      "origin": "MYCODE",
+      "action": "修复",
+      "requirements": [
+        "R59",
+        "R60"
+      ],
+      "title": "Host从源码独立发布",
+      "detail": "构建到版本下载分支，桌面页不加入Host组件；白名单保留MyCode安装与必须校验。",
+      "evidence": [
+        "mycode-0.21.0.md"
+      ],
+      "sourceConfidence": "本次源码实现、上游提交及实际行为回归；实机边界见交付记录",
+      "maintenancePaths": [
+        ".github/workflows/host-distribution.yml",
+        "scripts/check-release-assets.mjs"
       ]
     }
   ],

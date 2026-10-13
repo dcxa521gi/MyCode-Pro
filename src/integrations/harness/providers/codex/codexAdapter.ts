@@ -4,6 +4,7 @@ import {
   compactCodexContext,
   rewindCodexLastTurn,
   forgetCodexSession,
+  isCodexSessionActive,
   keepCodexQuestionOpen,
   respondCodexApproval,
   respondCodexQuestion,
@@ -32,6 +33,7 @@ import {
 export const codexAdapter: HarnessAdapter = {
   id: "codex",
   live: true,
+  isSessionActive: isCodexSessionActive,
   sendTurn: sendCodexTurn,
   compactContext: compactCodexContext,
   rewindLastTurn: rewindCodexLastTurn,

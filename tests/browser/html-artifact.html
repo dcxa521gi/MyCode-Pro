@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>MyCode HTML artifact verification</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      window.fixtureOpens = [];
+      window.__TAURI_INTERNALS__ = {
+        invoke: async (command, args) => {
+          if (command === "plugin:opener|open_url")
+            window.fixtureOpens.push(args.url);
+          else throw new Error("Unexpected native invocation: " + command);
+        },
+        convertFileSrc: (id, protocol) => {
+          if (protocol !== "monoartifact" || id !== "fixture-visual")
+            throw new Error("Unexpected artifact source");
+          return location.origin + "/tests/browser/artifact-frame/" + id;
+        },
+      };
+    </script>
+    <script type="module" src="./html-artifact.tsx"></script>
+  </body>
+</html>

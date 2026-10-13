@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import {
   setLanguage,
   translate as t,
+  useTranslation,
 } from "../../src/shared/i18n";
 import { applyThemePreference } from "../../src/features/settings/model/appearance";
 import {
@@ -11,9 +12,12 @@ import {
   saveMonoName,
 } from "../../src/features/monos/model/mono";
 import { MonoHeader } from "../../src/features/monos/ui/MonoHeader";
-import { MonoSettingsPage } from "../../src/features/monos/ui/MonoSettingsPage";
+import {
+  MonoOverview,
+  type MonoOverviewTab,
+} from "../../src/features/monos/ui/MonoOverview";
+import { MonoSettingsDialog } from "../../src/features/monos/ui/MonoSettingsDialog";
 import { MonoComposer } from "../../src/features/monos/ui/MonoComposer";
-import { ArtifactContent } from "../../src/features/artifacts/ui/ArtifactContent";
 import "../../src/styles/index.css";
 const query = new URLSearchParams(location.search);
 setLanguage(query.get("lang") === "en" ? "en" : "zh-CN");
@@ -22,28 +26,35 @@ const mono = createMono(["/demo"]);
 saveMonoName(mono.id, "小助手");
 const agent = { ...monoLook(mono), name: "小助手" };
 function Fixture() {
+  useTranslation();
   const [page, setPage] = useState("");
   const [sent, setSent] = useState("");
+  const [tab, setTab] = useState<MonoOverviewTab>("sessions");
+  const [documentId, setDocumentId] = useState<string>();
+  const [settings, setSettings] = useState(false);
   return (
     <main className="flex h-full min-h-0 bg-background-base text-content">
-      <section className="flex min-w-0 flex-1 flex-col border-r border-stroke">
+      <section className="flex min-w-0 flex-1 flex-col">
+        <div className="flex gap-4 p-3">
+          <button
+            data-switch-language
+            onClick={() =>
+              setLanguage(
+                document.documentElement.lang === "zh-CN" ? "en" : "zh-CN",
+              )
+            }
+          >
+            Switch language
+          </button>
+          <button data-open-settings onClick={() => setSettings(true)}>
+            {t("Settings")}
+          </button>
+        </div>
         <MonoHeader
           agent={agent}
           state={{ status: "working", activity: "Thinking" }}
         />
-        <div className="mx-auto min-h-0 w-full max-w-xl flex-1 overflow-auto p-6">
-          <ArtifactContent
-            artifact={{
-              id: "doc",
-              kind: "document",
-              title: "发布检查",
-              body: "# 发布检查\n\n- 项目与模型配置已保留\n- 常驻智能体工作正常\n\n[README](/demo/README.md)",
-              createdAt: 0,
-              updatedAt: 0,
-              sourceCwd: "/demo",
-            }}
-            onOpenFile={setPage}
-          />
+        <div className="flex-1 p-6">
           <p data-opened-file>{page}</p>
           <p data-sent-message>{sent}</p>
         </div>
@@ -60,24 +71,40 @@ function Fixture() {
           }}
         />
       </section>
-      <aside className="flex w-80 flex-col bg-surface">
-        <MonoSettingsPage
+      <MonoOverview
+        open
+        monoId={mono.id}
+        cwd="/demo"
+        agent={agent}
+        state={{ status: "idle" }}
+        launches={[]}
+        sessions={[]}
+        documents={[{ id: "doc", kind: "document", title: "发布检查" }]}
+        tab={tab}
+        onTabChange={setTab}
+        onOpenSession={setPage}
+        onOpenDocument={setDocumentId}
+        shownDocumentId={documentId}
+        onBackFromDocument={() => setDocumentId(undefined)}
+        onOpenFile={setPage}
+        onClose={() => {}}
+      />
+      {settings && (
+        <MonoSettingsDialog
           monoId={mono.id}
           agent={agent}
-          counts={{ habits: 2, memory: 3 }}
-          onOpen={(next) =>
-            setPage(
-              t(
-                next === "habits"
-                  ? "Habits"
-                  : next === "soul"
-                    ? "Soul"
-                    : "Memory",
-              ),
-            )
-          }
+          status="idle"
+          cwd="/demo"
+          harness="pi"
+          model="fixture-model"
+          modelSettings={{}}
+          runtimeMode="supervised"
+          onModelChange={() => {}}
+          onModelSettingsChange={() => {}}
+          onRuntimeModeChange={() => {}}
+          onClose={() => setSettings(false)}
         />
-      </aside>
+      )}
     </main>
   );
 }

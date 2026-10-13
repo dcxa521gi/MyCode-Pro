@@ -529,6 +529,14 @@ pub fn configure_child(
             .iter()
             .find(|c| c.id == id && c.enabled)
             .ok_or("Model connection is missing or disabled")?;
+        if let Some(model) = selected_model {
+            let native = model
+                .strip_prefix(&format!("mycode-{id}/"))
+                .unwrap_or(model);
+            if !chat_model_metadata(connection.model_metadata.get(native), &connection.api) {
+                return Err("This model does not support the selected chat protocol".into());
+            }
+        }
         let key = connection_key(connection)?;
         match provider {
             Some("hermes" | "minimax") => {
@@ -607,6 +615,7 @@ pub fn configure_child(
             let models: serde_json::Map<String, Value> = c
                 .models
                 .iter()
+                .filter(|id| chat_model_metadata(c.model_metadata.get(*id), &c.api))
                 .map(|id| {
                     let metadata = c.model_metadata.get(id).cloned().unwrap_or(Value::Null);
                     let mut variants = serde_json::Map::new();
@@ -653,7 +662,11 @@ pub fn configure_child(
                 if let Some(c) = config.connections.iter().find(|c| c.id == id) {
                     let model = selected_model
                         .and_then(|m| m.strip_prefix(&format!("mycode-{id}/")))
-                        .or(c.models.first().map(String::as_str));
+                        .or(c
+                            .models
+                            .iter()
+                            .find(|id| chat_model_metadata(c.model_metadata.get(*id), &c.api))
+                            .map(String::as_str));
                     if let Some(model) = model {
                         let slug = format!("mycode-{id}/{model}");
                         value["model"] = json!(slug);
@@ -743,7 +756,12 @@ pub fn configure_child(
             } else {
                 &c.base_url
             };
-            entries.push(json!({"id": format!("mycode-{}", c.id), "name": c.name, "baseUrl": base, "api": c.api, "env": env, "models": c.models, "metadata": c.model_metadata, "headers":if crate::tokendance::is_endpoint(&c.base_url) {json!({"X-App-URL":crate::tokendance::APP_URL})} else {json!({})}}));
+            let models: Vec<_> = c
+                .models
+                .iter()
+                .filter(|id| chat_model_metadata(c.model_metadata.get(*id), &c.api))
+                .collect();
+            entries.push(json!({"id": format!("mycode-{}", c.id), "name": c.name, "baseUrl": base, "api": c.api, "env": env, "models": models, "metadata": c.model_metadata, "headers":if crate::tokendance::is_endpoint(&c.base_url) {json!({"X-App-URL":crate::tokendance::APP_URL})} else {json!({})}}));
         }
         if !entries.is_empty() {
             let script = include_str!("local_ai_provider.mjs");
@@ -868,7 +886,7 @@ fn fetch_models(
                 .iter()
                 .find(|m| {
                     m.as_str() == Some(&id)
-                        || ["id", "slug", "name"].iter().any(|k| {
+                        || ["id", "model_id", "slug", "name"].iter().any(|k| {
                             m[*k].as_str().map(|s| s.trim_start_matches("models/"))
                                 == Some(id.as_str())
                         })
@@ -989,6 +1007,8 @@ fn model_metadata(item: &Value, source: &str) -> Value {
     let modalities = item
         .pointer("/architecture/input_modalities")
         .or_else(|| item.get("input_modalities"))
+        .or_else(|| item.pointer("/model_info/input_modalities"))
+        .or_else(|| item.pointer("/model_info/inputModalities"))
         .or_else(|| item.get("modalities"))
         .and_then(Value::as_array)
         .map(|items| {
@@ -999,15 +1019,110 @@ fn model_metadata(item: &Value, source: &str) -> Value {
                 .map(str::to_owned)
                 .collect::<Vec<_>>()
         });
+    let output_modalities = [
+        "/outputModalities",
+        "/output_modalities",
+        "/architecture/output_modalities",
+        "/model_info/outputModalities",
+        "/model_info/output_modalities",
+    ]
+    .iter()
+    .find_map(|path| item.pointer(path).and_then(Value::as_array))
+    .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
     json!({
+        "mode":item.get("mode").or_else(|| item.pointer("/model_info/mode")).and_then(Value::as_str),
+        "nativeApi":item.get("nativeApi").or_else(|| item.get("native_api")).or_else(|| item.pointer("/model_info/nativeApi")).or_else(|| item.pointer("/model_info/native_api")),
+        "thinking":item.get("thinking").or_else(|| item.pointer("/model_info/thinking")).and_then(Value::as_bool),
         "name":item.get("display_name").or_else(|| item.get("displayName")).or_else(|| item.get("name")),
         "contextWindow":number(&["/context_length","/context_window","/inputTokenLimit","/limit/context","/max_input_tokens"]),
         "maxOutput":number(&["/max_output_tokens","/outputTokenLimit","/top_provider/max_completion_tokens","/limit/output"]),
         "modalities":modalities,
+        "outputModalities":output_modalities,
+        "model_info":item.get("model_info"),
         "reasoningEfforts":item.get("reasoning_efforts").and_then(Value::as_array).map(|a| a.iter().filter_map(Value::as_str).collect::<Vec<_>>()),
-        "supportedProtocols":item.get("supported_protocols"),
+        "supportedProtocols":item.get("supportedProtocols").or_else(|| item.get("supported_protocols")).or_else(|| item.get("protocols")),
         "source":source
     })
+}
+
+fn chat_model_metadata(metadata: Option<&Value>, protocol: &str) -> bool {
+    let Some(metadata) = metadata else {
+        return true;
+    };
+    if matches!(
+        metadata["mode"].as_str(),
+        Some(
+            "audio_speech"
+                | "audio_transcription"
+                | "speech"
+                | "tts"
+                | "stt"
+                | "image"
+                | "image_generation"
+                | "video"
+                | "video_generation"
+                | "embedding"
+                | "embeddings"
+        )
+    ) {
+        return false;
+    }
+    let outputs = [
+        "/outputModalities",
+        "/output_modalities",
+        "/model_info/outputModalities",
+        "/model_info/output_modalities",
+    ]
+    .iter()
+    .find_map(|path| metadata.pointer(path).and_then(Value::as_array));
+    if outputs.is_some_and(|values| {
+        !values.is_empty()
+            && values.iter().all(|value| {
+                value.as_str().is_some_and(|value| {
+                    matches!(
+                        value.to_ascii_lowercase().as_str(),
+                        "audio" | "image" | "video" | "embedding" | "embeddings"
+                    )
+                })
+            })
+    }) {
+        return false;
+    }
+    let normalize = |value: &str| match value {
+        "openai-chat" | "openai:chat-completions" | "chat-completions" | "openai-completions" => {
+            Some("openai-completions")
+        }
+        "openai:responses" | "responses" | "openai-responses" => Some("openai-responses"),
+        "anthropic:messages" | "anthropic-messages" => Some("anthropic-messages"),
+        "google:generateContent" | "google-generative-ai" => Some("google-generative-ai"),
+        _ => None,
+    };
+    let client: Vec<_> = ["supportedProtocols", "protocols"]
+        .iter()
+        .flat_map(|key| metadata[*key].as_array().into_iter().flatten())
+        .filter_map(Value::as_str)
+        .filter_map(normalize)
+        .collect();
+    if !client.is_empty() {
+        return client
+            .iter()
+            .any(|value| Some(*value) == normalize(protocol));
+    }
+    if matches!(
+        metadata["nativeApi"].as_str(),
+        Some(
+            "openai-audio-speech"
+                | "openai-audio-transcriptions"
+                | "openai-images"
+                | "openai-image-generation"
+                | "openai-videos"
+                | "elevenlabs-tts"
+        )
+    ) {
+        return false;
+    }
+    normalize(metadata["nativeApi"].as_str().unwrap_or(""))
+        .is_none_or(|value| Some(value) == normalize(protocol))
 }
 
 fn parse_model_ids(value: &Value) -> Result<Vec<String>, String> {
@@ -1032,6 +1147,7 @@ fn parse_model_ids(value: &Value) -> Result<Vec<String>, String> {
         let id = item
             .as_str()
             .or_else(|| item.get("id").and_then(Value::as_str))
+            .or_else(|| item.get("model_id").and_then(Value::as_str))
             .or_else(|| item.get("slug").and_then(Value::as_str))
             .or_else(|| item.get("name").and_then(Value::as_str));
         if let Some(id) = id {
@@ -1139,6 +1255,42 @@ mod tests {
         fs::remove_dir_all(root).unwrap();
     }
     #[test]
+    fn client_protocol_advertisements_override_native_backend() {
+        let metadata =
+            json!({"supportedProtocols":["openai:responses"], "nativeApi":"anthropic-messages"});
+        assert!(!chat_model_metadata(Some(&metadata), "anthropic-messages"));
+        assert!(chat_model_metadata(
+            Some(&json!({"protocols":["openai:responses"], "nativeApi":"openai-audio-speech"})),
+            "openai-responses"
+        ));
+        assert!(!chat_model_metadata(
+            Some(&json!({"mode":"speech", "supportedProtocols":["openai:responses"]})),
+            "openai-responses"
+        ));
+    }
+    #[test]
+    fn discovery_retains_nested_output_modalities_and_excludes_nontext_chat() {
+        let metadata = model_metadata(
+            &json!({"id":"audio-only", "model_info":{"input_modalities":["text"], "output_modalities":["audio"]}}),
+            "fixture",
+        );
+        assert_eq!(metadata["modalities"], json!(["text"]));
+        assert_eq!(metadata["outputModalities"], json!(["audio"]));
+        assert!(!chat_model_metadata(Some(&metadata), "openai-completions"));
+        assert!(!chat_model_metadata(
+            Some(&json!({"output_modalities":["audio"]})),
+            "openai-completions"
+        ));
+        assert!(chat_model_metadata(
+            Some(&json!({"outputModalities":["text", "audio"]})),
+            "openai-completions"
+        ));
+        assert!(chat_model_metadata(
+            Some(&json!({"outputModalities":["vendor:future"]})),
+            "openai-completions"
+        ));
+    }
+    #[test]
     fn model_metadata_never_invents_missing_capabilities() {
         let missing = model_metadata(
             &json!({"id":"example", "modalities":{"input":["image"]}}),
@@ -1237,6 +1389,28 @@ mod tests {
         );
         assert_eq!(parse_model_ids(&json!({"models":[{"name":"models/gemini","supportedGenerationMethods":["generateContent"]},{"name":"models/embed","supportedGenerationMethods":["embedContent"]}]})).unwrap(),vec!["gemini"]);
         assert!(parse_model_ids(&json!({"error":"unauthorized"})).is_err());
+    }
+    #[test]
+    fn discovery_retains_explicit_media_mode_and_native_protocol_without_name_inference() {
+        let response = json!({"models":[{"model_id":"gpt-private-voice","model_info":{"mode":"audio_speech"},"native_api":"openai-audio-speech","thinking":false}]});
+        assert_eq!(
+            parse_model_ids(&response).unwrap(),
+            vec!["gpt-private-voice"]
+        );
+        let metadata = model_metadata(&response["models"][0], "fixture");
+        assert_eq!(metadata["mode"], "audio_speech");
+        assert_eq!(metadata["nativeApi"], "openai-audio-speech");
+        assert_eq!(metadata["thinking"], false);
+        let unknown = model_metadata(&json!({"id":"gpt-unknown"}), "fixture");
+        assert!(unknown["mode"].is_null());
+        assert!(unknown["nativeApi"].is_null());
+        assert!(unknown["thinking"].is_null());
+        assert!(!chat_model_metadata(Some(&metadata), "openai-responses"));
+        assert!(chat_model_metadata(Some(&unknown), "openai-responses"));
+        assert!(!chat_model_metadata(
+            Some(&json!({"nativeApi":"openai-responses"})),
+            "openai-completions"
+        ));
     }
     #[cfg(windows)]
     #[test]

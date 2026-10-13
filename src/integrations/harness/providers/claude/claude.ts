@@ -9,6 +9,11 @@ import type {
 } from "../../../../features/sessions/model/session";
 import { loadClaudeHooks } from "../../../../features/settings/model/settings";
 import {
+  captureIMTurnOrigin,
+  publishIMProviderWake,
+  type IMTurnOriginLease,
+} from "../../../../features/settings/model/imProviderWake";
+import {
   killChild,
   resolveClaudeBinary,
   spawnChild,
@@ -169,6 +174,9 @@ type Live = {
   turnFailed: ((error: Error) => void) | null;
   turnEndPending: boolean;
   activeTurn: boolean;
+  hasUserTurn: boolean;
+  providerWakePending: boolean;
+  imTurnOrigin: IMTurnOriginLease | undefined;
   initDone: (() => void) | null;
   initialized: boolean;
   emittedAssistant: string;
@@ -192,6 +200,19 @@ const INIT_TIMEOUT_MS = 8_000;
 const RESUME_GRACE_MS = 15_000;
 
 const liveByThread = new Map<string, Live>();
+
+export function isClaudeSessionActive(sessionId: string): boolean {
+  const live = liveByThread.get(sessionId);
+  return (
+    !!live &&
+    !live.cancelled &&
+    (live.activeTurn ||
+      live.providerWakePending ||
+      live.agentTasks.size > 0 ||
+      live.backgroundTasks.size > 0 ||
+      !!live.awaitingResume)
+  );
+}
 const resumeByThread = new Map<string, Resume>();
 /**
  * Claude task lists outlive a Live: a restart that resumes the conversation
@@ -217,6 +238,7 @@ export function setClaudeBinaryResolver(
 }
 
 export async function sendClaudeTurn(input: SendTurnInput): Promise<void> {
+  assertNoProviderWake(liveByThread.get(input.sessionId));
   let live: Live;
   try {
     live = await ensureLive(input);
@@ -226,11 +248,11 @@ export async function sendClaudeTurn(input: SendTurnInput): Promise<void> {
   }
   if (cancelledThreads.delete(input.sessionId)) return;
 
-  live.onEvent = input.onEvent;
-  live.runtimeMode = input.runtimeMode;
+  assertNoProviderWake(live);
   live.turns = live.turns
     .catch(() => undefined)
     .then(async () => {
+      assertNoProviderWake(live);
       live.cancelled = false;
       live.muteUpdates = false;
       try {
@@ -246,6 +268,7 @@ export async function sendClaudeTurn(input: SendTurnInput): Promise<void> {
 export async function compactClaudeContext(
   input: CompactContextInput,
 ): Promise<void> {
+  assertNoProviderWake(liveByThread.get(input.sessionId));
   const settingsKey = settingsKeyFor(input);
   let live = liveByThread.get(input.sessionId);
   if (!live || live.cwd !== input.cwd || live.settingsKey !== settingsKey) {
@@ -253,11 +276,11 @@ export async function compactClaudeContext(
   }
   if (cancelledThreads.delete(input.sessionId)) return;
 
-  live.onEvent = input.onEvent;
-  live.runtimeMode = input.runtimeMode;
+  assertNoProviderWake(live);
   live.turns = live.turns
     .catch(() => undefined)
     .then(async () => {
+      assertNoProviderWake(live);
       live.cancelled = false;
       live.muteUpdates = false;
       live.manualCompaction = true;
@@ -351,6 +374,10 @@ export async function cancelClaudeTurn(sessionId: string): Promise<void> {
     { type: "message.completed" },
     { type: "reasoning.completed" },
   ]);
+  // Interrupt has no result ownership acknowledgement, and muted output is
+  // intentionally discarded. End this wake's transport before another user
+  // turn can resume the retained provider conversation.
+  if (live.providerWakePending) await stopClaudeSession(sessionId);
 }
 
 export async function stopClaudeSession(sessionId: string): Promise<void> {
@@ -432,8 +459,6 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
     existing.settingsKey === settingsKey &&
     existing.planning === planning
   ) {
-    existing.onEvent = input.onEvent;
-    existing.runtimeMode = input.runtimeMode;
     return existing;
   }
   if (existing) {
@@ -506,6 +531,9 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
     turnFailed: null,
     turnEndPending: false,
     activeTurn: false,
+    hasUserTurn: false,
+    providerWakePending: false,
+    imTurnOrigin: undefined,
     initDone: null,
     initialized: false,
     emittedAssistant: "",
@@ -575,7 +603,17 @@ async function ensureLive(input: HarnessSessionInput): Promise<Live> {
   }
 }
 
+function assertNoProviderWake(live: Live | undefined): void {
+  // Claude results carry no client turn id. Until the provider-owned response
+  // ends, writing a new prompt would let its old result settle that new turn.
+  if (live?.providerWakePending)
+    throw new Error(
+      "Claude is finishing a background response. Try again when it completes.",
+    );
+}
+
 async function runTurn(live: Live, input: SendTurnInput): Promise<void> {
+  assertNoProviderWake(live);
   const effort = input.modelSettings?.effort;
   const message = buildClaudeUserMessage({
     text: input.text,
@@ -584,6 +622,10 @@ async function runTurn(live: Live, input: SendTurnInput): Promise<void> {
   });
   const content = (message.message as { content: unknown[] }).content;
   if (content.length === 0) return;
+
+  live.onEvent = input.onEvent;
+  live.runtimeMode = input.runtimeMode;
+  live.imTurnOrigin = captureIMTurnOrigin(input.sessionId);
 
   live.emittedAssistant = "";
   live.emittedReasoning = "";
@@ -597,12 +639,14 @@ async function runTurn(live: Live, input: SendTurnInput): Promise<void> {
   live.backgroundKey = "";
   live.taskNotes = [];
   live.turnResultSeen = false;
+  live.providerWakePending = false;
 
   const turnPromise = new Promise<void>((resolve, reject) => {
     live.turnDone = resolve;
     live.turnFailed = reject;
   });
   live.activeTurn = true;
+  live.hasUserTurn = true;
   settlePendingTurn(live);
 
   try {
@@ -711,12 +755,28 @@ function handleLine(sessionId: string, live: Live, line: string): void {
     return;
   }
   if (type === "stream_event") {
-    if (!isSubagentMessage(rec)) noteClaudeTurnStarted(live);
+    const event = asRecord(rec.event);
+    const assistantStart =
+      stringField(event, "type") === "message_start" &&
+      stringField(asRecord(event?.message), "role") === "assistant";
+    if (
+      !isSubagentMessage(rec) &&
+      (assistantStart ||
+        streamDeltaFromEvent(rec) ||
+        inputJsonDeltaFromEvent(rec))
+    )
+      noteClaudeTurnStarted(live, true);
     handleStreamEvent(live, rec);
     return;
   }
   if (type === "assistant") {
-    if (!isSubagentMessage(rec)) noteClaudeTurnStarted(live);
+    if (
+      !isSubagentMessage(rec) &&
+      (assistantTextBlocks(rec).length > 0 ||
+        assistantThinkingBlocks(rec).length > 0 ||
+        assistantToolUses(rec).length > 0)
+    )
+      noteClaudeTurnStarted(live, true);
     handleAssistant(live, rec);
     return;
   }
@@ -725,7 +785,7 @@ function handleLine(sessionId: string, live: Live, line: string): void {
     return;
   }
   if (type === "result") {
-    handleResult(live, rec);
+    handleResult(sessionId, live, rec);
     return;
   }
   if (type === "rate_limit_event") {
@@ -970,7 +1030,11 @@ function settleInlineAgentTask(live: Live, toolUseId: string): void {
   syncBackgroundWait(live);
 }
 
-function handleResult(live: Live, rec: Record<string, unknown>): void {
+function handleResult(
+  sessionId: string,
+  live: Live,
+  rec: Record<string, unknown>,
+): void {
   if (isSubagentMessage(rec)) return;
   // A /compact result reports the summarizer call's usage, not the rebuilt
   // conversation level. The next real turn will provide the fresh reading.
@@ -982,6 +1046,26 @@ function handleResult(live: Live, rec: Record<string, unknown>): void {
   if (metrics) live.onEvent({ type: "turn.metrics", ...metrics });
 
   const result = turnStatusFromResult(rec);
+  if (live.providerWakePending) {
+    live.providerWakePending = false;
+    const text = stringField(rec, "result");
+    if (
+      text &&
+      result.status === "completed" &&
+      stringField(rec, "subtype") === "success" &&
+      rec.is_error !== true &&
+      !live.cancelled
+    )
+      publishIMProviderWake(
+        {
+          sessionId,
+          cwd: live.cwd,
+          harness: "claude",
+          text,
+        },
+        live.imTurnOrigin,
+      );
+  }
   if (result.status === "failed" && result.error && !live.cancelled) {
     live.onEvent({ type: "session.error", message: result.error });
   }
@@ -1579,7 +1663,20 @@ function finishBackgroundTask(live: Live, taskId: string): void {
  * task, or by a follow-up written in while it waited. Its own result, not the
  * earlier one, decides when the MyCode turn ends.
  */
-function noteClaudeTurnStarted(live: Live): void {
+function noteClaudeTurnStarted(live: Live, providerAuthored = false): void {
+  if (
+    providerAuthored &&
+    live.hasUserTurn &&
+    !live.activeTurn &&
+    !live.turnDone &&
+    !live.cancelled &&
+    !live.providerWakePending
+  ) {
+    live.providerWakePending = true;
+    live.emittedAssistant = "";
+    live.emittedReasoning = "";
+    live.pendingAssistantBoundary = false;
+  }
   if (!live.activeTurn || !live.turnResultSeen) return;
   live.turnResultSeen = false;
   // A new message, not more of the last one: its snapshot must not be

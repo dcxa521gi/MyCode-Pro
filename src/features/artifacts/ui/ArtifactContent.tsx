@@ -1,6 +1,6 @@
-import { translate as t } from "../../../shared/i18n";
 import { useEffect, useState } from "react";
 import { AgentMarkdown } from "../../sessions/ui/AgentMarkdown";
+import { HtmlArtifactFrame } from "./HtmlArtifactFrame";
 import {
   ARTIFACTS_CHANGED_EVENT,
   getArtifact,
@@ -29,7 +29,7 @@ export function useArtifact(id: string) {
         },
         () => {
           if (!live || token !== request) return;
-          setError(t("Could not load this document."));
+          setError("Could not load this document.");
           setLoaded(true);
         },
       );
@@ -62,6 +62,14 @@ export function ArtifactContent({
           cwd={artifact.sourceCwd}
           onOpenFile={onOpenFile}
           hardBreaks
+        />
+      );
+    case "html":
+      return (
+        <HtmlArtifactFrame
+          id={artifact.id}
+          title={artifact.title}
+          version={artifact.updatedAt}
         />
       );
   }

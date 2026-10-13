@@ -4526,7 +4526,7 @@ function MonoRow({ mono }: { mono: Mono }) {
         label={formatMessage("Show sessions started by {name} in sidebar", {
           name: look.name,
         })}
-        on={mono.showStartedSessionsInSidebar !== false}
+        on={mono.showStartedSessionsInSidebar === true}
         onChange={(on) =>
           updateMono(mono.id, (entry) => ({
             ...entry,

@@ -5583,6 +5583,36 @@ fn read_file_base64_sync(path: &str) -> Result<String, String> {
     ))
 }
 
+/// Video containers the chat can stream; mirrors `VIDEO_MIME_TYPES` in the UI.
+const STREAMABLE_VIDEO_EXTENSIONS: &[&str] = &[
+    "mp4", "m4v", "mov", "webm", "ogv", "avi", "mkv", "mpg", "mpeg", "3gp", "3g2",
+];
+
+/// Let the asset protocol serve one local video, so a chat can stream it with
+/// range requests instead of reading the whole file into memory. Only that
+/// file, and only a video container, joins the scope. Returns the canonical
+/// path the caller should load.
+#[tauri::command]
+pub fn allow_video_stream(app: AppHandle, path: String) -> Result<String, String> {
+    let path = expand_home(&path)
+        .canonicalize()
+        .map_err(|e| e.to_string())?;
+    let video = is_streamable_video(&path);
+    if !video || !path.is_file() {
+        return Err("Not a video file".into());
+    }
+    app.asset_protocol_scope()
+        .allow_file(&path)
+        .map_err(|e| e.to_string())?;
+    Ok(path.to_string_lossy().into_owned())
+}
+
+fn is_streamable_video(path: &std::path::Path) -> bool {
+    path.extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| STREAMABLE_VIDEO_EXTENSIONS.contains(&ext.to_ascii_lowercase().as_str()))
+}
+
 /// Read a file as raw bytes for the image viewer.
 ///
 /// Returns an `ipc::Response`, which reaches the webview as an ArrayBuffer, so
@@ -5663,7 +5693,6 @@ fn write_attachment_at(name: &str, data: &str, cwd: Option<&str>) -> Result<Stri
     options.write(true).create_new(true);
     #[cfg(unix)]
     {
-        use std::os::unix::fs::OpenOptionsExt;
         options.mode(0o600);
     }
     options
@@ -6185,6 +6214,75 @@ pub async fn open_path_with_default_app(path: String) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn workspace_file_readers_reject_directories_as_non_regular_files() {
+        let directory =
+            std::env::temp_dir().join(format!("mycode-regular-file-{}", Uuid::new_v4()));
+        std::fs::create_dir(&directory).unwrap();
+        let path = directory.to_string_lossy().into_owned();
+        let results = [
+            read_text_file_sync(&path),
+            read_file_base64_sync(&path),
+            read_binary_file_sync(&path).map(|_| String::new()),
+            read_file_preview(path, 1, None).map(|_| String::new()),
+        ];
+        std::fs::remove_dir(&directory).unwrap();
+        for result in results {
+            assert_eq!(result.unwrap_err(), "Not a file");
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn workspace_fifo_is_rejected_without_waiting_for_a_writer() {
+        use std::ffi::CString;
+        use std::os::unix::ffi::OsStrExt;
+        use std::os::unix::fs::OpenOptionsExt;
+        use std::time::Duration;
+
+        let directory = std::env::temp_dir().join(format!("mycode-fifo-{}", Uuid::new_v4()));
+        std::fs::create_dir(&directory).unwrap();
+        let fifo = directory.join("blocked.txt");
+        let name = CString::new(fifo.as_os_str().as_bytes()).unwrap();
+        assert_eq!(unsafe { libc::mkfifo(name.as_ptr(), 0o600) }, 0);
+        let path = fifo.to_string_lossy().into_owned();
+        let (sender, receiver) = std::sync::mpsc::channel();
+        let reader = std::thread::spawn(move || {
+            let _ = sender.send(read_text_file_sync(&path));
+        });
+        let result = receiver.recv_timeout(Duration::from_secs(2));
+        // Never join a reader that may be blocked opening a pipe: a regression
+        // must fail within the timeout rather than hanging the entire CI job.
+        if result.is_err() {
+            std::fs::remove_file(&fifo).unwrap();
+            std::fs::remove_dir(&directory).unwrap();
+            panic!("reading the FIFO blocked");
+        }
+        reader.join().unwrap();
+        std::fs::remove_file(&fifo).unwrap();
+        std::fs::remove_dir(&directory).unwrap();
+        assert_eq!(
+            result.expect("reading the FIFO blocked").unwrap_err(),
+            "Not a file"
+        );
+    }
+
+    #[test]
+    fn only_video_containers_can_join_the_stream_scope() {
+        use std::path::Path;
+        assert!(is_streamable_video(Path::new("/clips/demo.MP4")));
+        assert!(is_streamable_video(Path::new("/clips/demo.webm")));
+        for path in [
+            "/home/me/.ssh/id_rsa",
+            "/notes/a.md",
+            "/shot.png",
+            "/mp4",
+            "/a.mp4.txt",
+        ] {
+            assert!(!is_streamable_video(Path::new(path)), "{path}");
+        }
+    }
     use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
     use std::sync::Arc;
 
