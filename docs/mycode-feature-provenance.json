@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "recordedDate": "2026-10-13",
   "currentProductVersion": "0.21.0",
-  "sourceCommit": "codex/mycode-0.21-upstream (validation and release pending)",
+  "sourceCommit": "cf42fc63f429b9d65095712464836b2cdabe977e",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -219,7 +219,7 @@
       "key": "0.21.0",
       "display": "0.21.0",
       "tag": "v0.21.0",
-      "tagCommit": "待交付验证",
+      "tagCommit": "pending final release tag",
       "date": "2026-10-13",
       "releaseDoc": "mycode-0.21.0.md",
       "monoBaseline": "889579b61c2342cc27751092ff0effbe9ec8e162 → 633730d70dd3e6cb8113af28c062dd1ea9228c0d；26提交完整融合",
