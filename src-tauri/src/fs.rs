@@ -5693,6 +5693,7 @@ fn write_attachment_at(name: &str, data: &str, cwd: Option<&str>) -> Result<Stri
     options.write(true).create_new(true);
     #[cfg(unix)]
     {
+        use std::os::unix::fs::OpenOptionsExt;
         options.mode(0o600);
     }
     options
@@ -6238,7 +6239,6 @@ mod tests {
     fn workspace_fifo_is_rejected_without_waiting_for_a_writer() {
         use std::ffi::CString;
         use std::os::unix::ffi::OsStrExt;
-        use std::os::unix::fs::OpenOptionsExt;
         use std::time::Duration;
 
         let directory = std::env::temp_dir().join(format!("mycode-fifo-{}", Uuid::new_v4()));

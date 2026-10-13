@@ -87,7 +87,10 @@ export function EmojiPickerPopover({
     const category = [
       ...(el?.querySelectorAll<HTMLElement>("[frimousse-category]") ?? []),
     ].filter((entry) => !entry.closest("[aria-hidden]"))[index];
-    if (el && category) el.scrollTo({ top: category.offsetTop });
+    // Frimousse may remeasure its list after a locale switch. `offsetTop` is
+    // relative to its changing offset parent, while this scrolls the actual
+    // category into the visible viewport.
+    if (category) category.scrollIntoView({ block: "start", inline: "nearest" });
   };
 
   return (

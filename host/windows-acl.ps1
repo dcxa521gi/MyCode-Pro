@@ -7,7 +7,14 @@ function Protect-MonoCodeDirectory([string] $Path) {
   # Read only the existing DACL. Replacing a new descriptor with SetOwner
   # can require WRITE_OWNER even when this user already owns the directory.
   $owner = $item.GetAccessControl([Security.AccessControl.AccessControlSections]::Owner).GetOwner([Security.Principal.SecurityIdentifier])
-  if ($owner.Value -ne $sid.Value) { throw 'The host data directory belongs to another user.' }
+  # Elevated Windows accounts commonly create directories owned by the
+  # Administrators group rather than the user's SID (including CI runners).
+  # Accept that owner only when this process actually has that group enabled.
+  $adminSid = 'S-1-5-32-544'
+  $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+  if ($owner.Value -ne $sid.Value -and -not ($owner.Value -eq $adminSid -and $isAdmin)) {
+    throw 'The host data directory belongs to another user.'
+  }
   $acl = $item.GetAccessControl([Security.AccessControl.AccessControlSections]::Access)
   $acl.SetAccessRuleProtection($true, $false)
   foreach ($oldRule in @($acl.Access)) { $acl.RemoveAccessRuleSpecific($oldRule) }
