@@ -22,3 +22,32 @@ GitHub 自动生成的 Source code (zip/tar.gz) 是本仓库源码归档，不�
 已安装原 0.20.0 的客户端需要安装同版本修正版后再新建 SSH Host。已经配置成功的 Host 不因下载地址迁移被删除。
 
 此次属于 0.20.0 发布维护，保留现有功能基线。2026-10-13 核对发现 MonoCode main 已到 `633730d70dd3e6cb8113af28c062dd1ea9228c0d`（v0.13.0），相对本版基线新增 26 个提交；它们不属于此次发布页清理，必须在下一次软件升级中逐项融合、汉化与验证，不能将本次核对当作已集成。Cindy 与 Synara 当前提交和本版记录一致。
+
+### 下一次软件升级的上游提交清单
+
+- [ ] `7c8badb` Move Mono mascot and color pickers into a popover — 待下一次软件升级融合、汉化与验证。
+- [ ] `ebd0745` Rename Mono sessions panel and add settings dialog tests — 待下一次软件升级融合、汉化与验证。
+- [ ] `35a4979` Merge Mono details and sessions into an overview panel — 待下一次软件升级融合、汉化与验证。
+- [ ] `9a8fe62` Keep Mono session and habit lists from loading blank — 待下一次软件升级融合、汉化与验证。
+- [ ] `fc03409` Move Mono name field under its mascot in settings — 待下一次软件升级融合、汉化与验证。
+- [ ] `fcb56cd` Keep Mono session and artifact cards from overflowing their container — 待下一次软件升级融合、汉化与验证。
+- [ ] `62de674` Show artifact cards as document icon with title — 待下一次软件升级融合、汉化与验证。
+- [ ] `70eda81` Extract usage chips into UsageChips and show them in Mono composer — 待下一次软件升级融合、汉化与验证。
+- [ ] `a3035df` Add session search, filters, and empty states to Mono overview — 待下一次软件升级融合、汉化与验证。
+- [ ] `40c4246` Group Mono habits by day state and page session cards — 待下一次软件升级融合、汉化与验证。
+- [ ] `8f8ceee` Make Mono overview open by default and sidebar sessions opt-in — 待下一次软件升级融合、汉化与验证。
+- [ ] `90ded7a` Widen default Mono sidebar width to 400px — 待下一次软件升级融合、汉化与验证。
+- [ ] `e43b380` Reopen the last open Mono on launch — 待下一次软件升级融合、汉化与验证。
+- [ ] `564316b` Show Mono session model as provider mark in card footer — 待下一次软件升级融合、汉化与验证。
+- [ ] `5948a14` Add per-repo commit tabs to the Mono changes view — 待下一次软件升级融合、汉化与验证。
+- [ ] `8b70dc8` Move Mono session changes into the overview's Changes tab — 待下一次软件升级融合、汉化与验证。
+- [ ] `8dec243` Show an empty context ring for new conversations — 待下一次软件升级融合、汉化与验证。
+- [ ] `1088e0e` Dot the folded Changes tab icon when it has changes — 待下一次软件升级融合、汉化与验证。
+- [ ] `c30dbe1` Hide handoff and second-opinion actions in Mono view — 待下一次软件升级融合、汉化与验证。
+- [ ] `d8cb37e` Open Mono artifacts in the overview documents tab — 待下一次软件升级融合、汉化与验证。
+- [ ] `95320d0` Synchronize session updates with React state — 待下一次软件升级融合、汉化与验证。
+- [ ] `ab2a6af` Add HTML visual artifacts rendered in a sandboxed frame — 待下一次软件升级融合、汉化与验证。
+- [ ] `70fb3ea` Show local images and videos linked in Mono replies — 待下一次软件升级融合、汉化与验证。
+- [ ] `649cead` Reset Mono overview state when switching to another Mono — 待下一次软件升级融合、汉化与验证。
+- [ ] `9a9df5e` Open changed files in inline diff viewer — 待下一次软件升级融合、汉化与验证。
+- [ ] `633730d` Release v0.13.0 — 待下一次软件升级融合、汉化与验证。

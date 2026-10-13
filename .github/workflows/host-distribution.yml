@@ -1,0 +1,73 @@
+name: Publish MyCode Host downloads
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing MyCode release version to migrate
+        required: true
+        default: '0.20.0'
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify and relocate runtime downloads
+        uses: actions/github-script@v7
+        env:
+          HOST_VERSION: ${{ inputs.version }}
+        with:
+          script: |
+            const crypto = require('node:crypto');
+            const version = process.env.HOST_VERSION;
+            if (!/^\d+\.\d+\.\d+$/.test(version)) throw Error('Invalid version');
+            const repo = context.repo;
+            const {data: release} = await github.rest.repos.getReleaseByTag({...repo, tag: `v${version}`});
+            const tree = [], files = [];
+            async function blob(name, bytes) {
+              const expected = crypto.createHash('sha1').update(Buffer.from(`blob ${bytes.length}\0`)).update(bytes).digest('hex');
+              const {data} = await github.rest.git.createBlob({...repo, encoding: 'base64', content: bytes.toString('base64')});
+              if (data.sha !== expected) throw Error(`Blob mismatch: ${name}`);
+              tree.push({path: name, mode: '100644', type: 'blob', sha: data.sha});
+            }
+            for (const target of ['darwin-arm64', 'darwin-x64', 'linux-arm64', 'linux-x64', 'win32-arm64', 'win32-x64']) {
+              const extension = target.startsWith('win32') ? 'zip' : 'tar.gz';
+              const oldName = `monocode-host-${target}.${extension}`;
+              const name = `MyCode-host-${target}.${extension}`;
+              const asset = release.assets.find(a => a.name === oldName || a.name === name);
+              const checksum = release.assets.find(a => a.name === `${asset?.name}.sha256`);
+              if (!asset || !checksum) throw Error(`Missing runtime/checksum: ${target}`);
+              const response = await fetch(asset.browser_download_url);
+              if (!response.ok) throw Error(`Download failed: ${name}`);
+              const bytes = Buffer.from(await response.arrayBuffer());
+              const check = await fetch(checksum.browser_download_url);
+              if (!check.ok) throw Error(`Checksum download failed: ${name}`);
+              const hash = crypto.createHash('sha256').update(bytes).digest('hex');
+              if (hash !== (await check.text()).trim().split(/\s+/)[0] || bytes.length !== asset.size) throw Error(`Archive mismatch: ${name}`);
+              await blob(name, bytes);
+              await blob(`${name}.sha256`, Buffer.from(`${hash}  ${name}\n`));
+              files.push({name, sha256: hash, bytes: bytes.length});
+              core.info(`Verified and stored ${name}`);
+            }
+            await blob('manifest.json', Buffer.from(JSON.stringify({product: 'MyCode Host', version, files}, null, 2) + '\n'));
+            await blob('README.md', Buffer.from(`# MyCode Host ${version}\n\nVersioned remote runtime downloads, separate from desktop Releases.\n`));
+            const branch = `heads/mycode-host-v${version}`;
+            let existing;
+            try { existing = (await github.rest.git.getRef({...repo, ref: branch})).data; }
+            catch (error) { if (error.status !== 404) throw error; }
+            if (existing) {
+              const current = (await github.rest.git.getCommit({...repo, commit_sha: existing.object.sha})).data;
+              const oldTree = (await github.rest.git.getTree({...repo, tree_sha: current.tree.sha})).data.tree;
+              for (const item of oldTree) {
+                const replacement = tree.find(row => row.path === item.path);
+                if (!replacement || replacement.sha !== item.sha) throw Error(`Existing version content differs: ${item.path}`);
+              }
+            }
+            const {data: createdTree} = await github.rest.git.createTree({...repo, tree});
+            const {data: commit} = await github.rest.git.createCommit({...repo, message: `Publish verified MyCode Host ${version} downloads`, tree: createdTree.sha, parents: existing ? [existing.object.sha] : []});
+            if (existing) await github.rest.git.updateRef({...repo, ref: branch, sha: commit.sha, force: false});
+            else await github.rest.git.createRef({...repo, ref: `refs/${branch}`, sha: commit.sha});
+            core.info(`Published MyCode Host download branch: ${commit.sha}`);
