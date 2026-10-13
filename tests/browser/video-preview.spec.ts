@@ -18,7 +18,7 @@ test("file preview decodes, plays and seeks a video, then pauses on tab change",
         })),
       // Allow the cold WebKit media pipeline to initialize on shared runners.
       {
-        timeout: 15_000,
+        timeout: 45_000,
         message: "Video should load metadata without a media error",
       },
     )
