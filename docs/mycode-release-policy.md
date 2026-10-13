@@ -51,3 +51,12 @@ GitHub 自动生成的 Source code (zip/tar.gz) 是本仓库源码归档，不�
 - [ ] `649cead` Reset Mono overview state when switching to another Mono — 待下一次软件升级融合、汉化与验证。
 - [ ] `9a9df5e` Open changed files in inline diff viewer — 待下一次软件升级融合、汉化与验证。
 - [ ] `633730d` Release v0.13.0 — 待下一次软件升级融合、汉化与验证。
+
+## 本次完成记录
+
+- 0.20.0 发布页现仅上传 MyCode 安装包、SHA256SUMS.txt 和 verification-0.20.0.json；13 个旧 Host 附件已移除，介绍仅显示 MyCode。
+- 修正版安装包大小 39,119,614 字节，SHA-256：9c3450f248bce019c692841d51576a8c5014314dcf2ba4f71932a95a8030a4fc；正式公开下载与本地文件一致。
+- SSH 引导目标测试通过；Windows Host 三项集成测试通过，Unix 三项因 Windows 环境跳过。Rust 格式检查通过，438 个内嵌前端资源校验通过，安装包内 Node/npm 与程序启动帮助检查通过。未进行真实异地 SSH 部署验收。
+- Host 分发提交：c647a5770854e1edb2aff9efd1960d9eb222b8c8；六个平台的完整公开下载、尺寸、SHA-256 和校验文件全部验证通过。
+- 程序构建源码 534ce79，发布源码 3c0593b81cba7a99b37764acde94da35741bd44e；其间程序改动仅 Rust 换行格式，其他变动为工作流和文档。
+- 原 0.20.0 源码标签保留为 0.20.0-original-20261012；0.20.0 指向维护源码。原安装包与旧附件清单保留在本地 build 目录用于回退。

@@ -1,8 +1,8 @@
 # MyCode 功能来源与版本台账
 
-整理日期：2026-10-13；当前产品基线：**MyCode 0.20.0**，源码提交 `618a2d0db69d4e4080b3ec473cb3cf58a1d6618a`。
+整理日期：2026-10-13；当前产品基线：**MyCode 0.20.0**，源码提交 `3c0593b81cba7a99b37764acde94da35741bd44e`。
 
-本文件按 **19 个交付阶段、285 条变更、109 个稳定功能 ID、59 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
+本文件按 **20 个交付阶段、285 条变更、109 个稳定功能 ID、59 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
 
 ## 如何使用
 
@@ -57,6 +57,7 @@
 | [0.19.0 功能补齐版](#v-0-19-0-complete) | 2026-10-09 / `v0.19.0` | `3a16433c` | 补齐遗漏并完整融合至 d26871f246d34479795bc9a00513b43d4d18add2（MonoCode v0.10.0） | Cindy fa2ea01b6c77053fc8b78f2edd94337916e8a0f9；Synara 6f54f53c66348a9a19c65779daaabd96113773eb |
 | [0.19.1](#v-0-19-1) | 2026-10-09 / `v0.19.1` | `f4b80c8e` | d26871f246d34479795bc9a00513b43d4d18add2 → fe5c10e33e71e04130d52ab33912c33ec13e0458 | Cindy a152497ac24d155dd46142b73dda4fa10ad08ad0 的 iOS 差异仅审查；Synara 6f54f53 无增量 |
 | [0.20.0](#v-0-20-0) | 2026-10-12 / `v0.20.0` | `618a2d0d` | fe5c10e33e71e04130d52ab33912c33ec13e0458 → 889579b61c2342cc27751092ff0effbe9ec8e162（MonoCode v0.12.0） | Cindy 28afb1e98a01e5e1abfc86d9ec20483bec2dcf15；Synara 9e01962e0b1e8fec9fb0e17f17a64017bc4eaf94 |
+| [0.20.0 发布维护（2026-10-13）](#v-0-20-0-release-maintenance) | 2026-10-13 / `v0.20.0` | `3c0593b8` | 沿用 889579b；核对到 633730d/v0.13 的 26 条新增提交，仅登记下一次软件升级待融合，未宣称集成。 | Cindy 28afb1e、Synara 9e01962 与 0.20 基线一致。 |
 
 ## 按版本的功能明细
 
@@ -516,7 +517,16 @@
 | MC-0.20.0-033<br>`REMOTE-SAFETY` | 持久请求 ID/回执去重/明确重试 | 上游/维护/历史记录 | Synara 设计参考/等价能力核对<br>**核对已有能力** | 370b42c0 设计对照；MyCode 已有 HTTP/SSH 等价安全能力，不能计为新增 WebSocket 断路器。 | 已有等价安全能力核对并保留 |
 | MC-0.20.0-034<br>`SSH-HOST` | Host 下载源与六平台运行包 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**修复** | 发布 MyCode-Pro / v0.20.0 包及 .sha256，Node 24.21.0；Unix 0755/许可/路径检查，Windows x64 实际执行。 | 远程架构与六平台发布包已融合 |
 | MC-0.20.0-035<br>`UPSTREAM-CONTROL` | 完整合并/文档重组/增量修复清单 | [R13](#r13)、[R38](#r38) | MonoCode 为主、MyCode 适配融合<br>**同步** | 本版 main 889579b，完整提交清单见 0.20 说明，保存上游祖先关系。 | 治理规则持续执行；历史遗漏已补齐 |
-| MC-0.20.0-036<br>`RELEASE-ASSETS` | 清理发行附件并分离 Host 下载 | [R59](#r59) | MyCode 自有新增/修复<br>**发布维护** | MyCode 描述与安装包/校验文件白名单；SSH 下载地址迁移到专用版本分支，重打包同版本。旧安装包新建 Host 需安装修正版。此次不宣称已融合新核对到的上游 v0.13。 | 仅 MyCode 桌面产物；Host 独立下载 |
+
+<a id="v-0-20-0-release-maintenance"></a>
+
+### 0.20.0 发布维护（2026-10-13）（2026-10-13）
+
+证据：[docs/mycode-release-policy.md](mycode-release-policy.md)；本地标签 `v0.20.0` → `3c0593b81cba7a99b37764acde94da35741bd44e`。
+
+| 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
+| --- | --- | --- | --- | --- | --- |
+| MC-0.20.0-036<br>`RELEASE-ASSETS` | 清理发行附件并分离 Host 下载 | [R59](#r59) | MyCode 自有新增/修复<br>**发布维护** | MyCode 描述与安装包/校验文件白名单；SSH 下载地址迁移到专用版本分支，重打包同版本。旧安装包新建 Host 需安装修正版。此次不宣称已融合新核对到的上游 v0.13。 新安装包公开下载 SHA-256 为 9c3450f248bce019c692841d51576a8c5014314dcf2ba4f71932a95a8030a4fc；原源码标签存为 v0.20.0-original-20261012。 | 仅 MyCode 桌面产物；Host 独立下载 |
 
 ## 用户要求覆盖索引
 
@@ -990,7 +1000,7 @@
 
 **R59：发布页只保留 MyCode 介绍、安装包与必须文件**
 
-- 关联阶段：0.20.0。
+- 关联阶段：0.20.0 发布维护（2026-10-13）。
 - 变更记录：`MC-0.20.0-036`。
 - 当前范围：0.20.0 发布维护；Host 分离下载，保留原用户数据和远程运行入口。
 
@@ -1106,7 +1116,7 @@
 | `FILES` | 0.20.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/files](../src/features/files)<br>[src-tauri/src/fs.rs](../src-tauri/src/fs.rs) |
 | `REMOTE-SAFETY` | 0.20.0<br>0.20.0 | 已有等价安全能力核对并保留 | 不计作新移植 Synara WebSocket/Effect/完整 Hub；禁止失败后自动重放改变请求。 | [host/engine.ts](../host/engine.ts)<br>[host/store.ts](../host/store.ts)<br>[src/features/connections](../src/features/connections) |
 | `IME-INPUT` | 0.19.0 初版（历史快照）<br>0.19.0 初版（历史快照） | 保留，中文输入法候选处理与历史箭头不同 | IME 候选选择不误发送；不要把上下键历史当作输入法行为，维护 Enter/编号/引用时分别验证。 | [src/features/sessions/ui/Composer.tsx](../src/features/sessions/ui/Composer.tsx) |
-| `RELEASE-ASSETS` | 0.20.0<br>0.20.0 | 仅 MyCode 桌面产物；Host 独立下载 | 发布前后执行附件白名单检查；不得把 Host 或上游安装包上传到桌面发行页。 | [scripts/check-release-assets.mjs](../scripts/check-release-assets.mjs)<br>[scripts/publish-host-downloads.mjs](../scripts/publish-host-downloads.mjs)<br>[src-tauri/src/remote_ssh.rs](../src-tauri/src/remote_ssh.rs) |
+| `RELEASE-ASSETS` | 0.20.0 发布维护（2026-10-13）<br>0.20.0 发布维护（2026-10-13） | 仅 MyCode 桌面产物；Host 独立下载 | 发布前后执行附件白名单检查；不得把 Host 或上游安装包上传到桌面发行页。 | [scripts/check-release-assets.mjs](../scripts/check-release-assets.mjs)<br>[scripts/publish-host-downloads.mjs](../scripts/publish-host-downloads.mjs)<br>[src-tauri/src/remote_ssh.rs](../src-tauri/src/remote_ssh.rs) |
 
 ## 需要特别分清的演变
 

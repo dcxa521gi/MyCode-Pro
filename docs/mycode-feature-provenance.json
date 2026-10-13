@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "recordedDate": "2026-10-13",
   "currentProductVersion": "0.20.0",
-  "sourceCommit": "618a2d0db69d4e4080b3ec473cb3cf58a1d6618a",
+  "sourceCommit": "3c0593b81cba7a99b37764acde94da35741bd44e",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -204,6 +204,16 @@
       "releaseDoc": "mycode-0.20.0.md",
       "monoBaseline": "fe5c10e33e71e04130d52ab33912c33ec13e0458 → 889579b61c2342cc27751092ff0effbe9ec8e162（MonoCode v0.12.0）",
       "complementBaseline": "Cindy 28afb1e98a01e5e1abfc86d9ec20483bec2dcf15；Synara 9e01962e0b1e8fec9fb0e17f17a64017bc4eaf94"
+    },
+    {
+      "key": "0.20.0-release-maintenance",
+      "display": "0.20.0 发布维护（2026-10-13）",
+      "tag": "v0.20.0",
+      "tagCommit": "3c0593b81cba7a99b37764acde94da35741bd44e",
+      "date": "2026-10-13",
+      "releaseDoc": "mycode-release-policy.md",
+      "monoBaseline": "沿用 889579b；核对到 633730d/v0.13 的 26 条新增提交，仅登记下一次软件升级待融合，未宣称集成。",
+      "complementBaseline": "Cindy 28afb1e、Synara 9e01962 与 0.20 基线一致。"
     }
   ],
   "requirements": [
@@ -2583,8 +2593,8 @@
       "changes": [
         "MC-0.20.0-036"
       ],
-      "firstRecordedVersion": "0.20.0",
-      "lastChangedVersion": "0.20.0"
+      "firstRecordedVersion": "0.20.0-release-maintenance",
+      "lastChangedVersion": "0.20.0-release-maintenance"
     }
   ],
   "events": [
@@ -8067,7 +8077,7 @@
     },
     {
       "id": "MC-0.20.0-036",
-      "version": "0.20.0",
+      "version": "0.20.0-release-maintenance",
       "feature": "RELEASE-ASSETS",
       "origin": "MYCODE",
       "action": "发布维护",
@@ -8075,7 +8085,7 @@
         "R59"
       ],
       "title": "清理发行附件并分离 Host 下载",
-      "detail": "MyCode 描述与安装包/校验文件白名单；SSH 下载地址迁移到专用版本分支，重打包同版本。旧安装包新建 Host 需安装修正版。此次不宣称已融合新核对到的上游 v0.13。",
+      "detail": "MyCode 描述与安装包/校验文件白名单；SSH 下载地址迁移到专用版本分支，重打包同版本。旧安装包新建 Host 需安装修正版。此次不宣称已融合新核对到的上游 v0.13。 新安装包公开下载 SHA-256 为 9c3450f248bce019c692841d51576a8c5014314dcf2ba4f71932a95a8030a4fc；原源码标签存为 v0.20.0-original-20261012。",
       "evidence": [
         "mycode-release-policy.md"
       ],
