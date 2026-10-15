@@ -48,7 +48,8 @@ MonoCode 基线：`633730d` → `5c21f01`，共 41 个提交。此表保留上�
 
 ## 验证与平台边界
 
-- 前端：`npm run check:web`；原生：`cargo fmt --check`、`cargo clippy --workspace --all-targets -- -D warnings`、`cargo test`。最终结果以本版发行记录为准。
+- 逐提交表中的源码融合由合并提交 `82923c9` 保留上游父提交 `5c21f01` 验证，非仅复制清单。对应验证覆盖：智能体/侧栏与分组（`SidebarRename` 71 项及智能体、项目分组测试）；服务商分组（`ModelPicker` 28 项）；文件与 Git（编辑器和 CRLF Git 4 项）；Host 与远程会话（Host 套件）；原生文件、工作树和会话（Rust 637 项通过、1 项忽略）。
+- `tsc --noEmit`、`npm run build`、`cargo fmt --check`、`cargo clippy --workspace --all-targets -- -D warnings` 已通过。前端全量首次运行 5388 项通过、4 项 Windows Git 启动超时；这 4 项在 30 秒阈值下单独复测通过，测试文件已设置适当阈值。高并行负载下 Host 首轮有 4 项失败；Windows 凭据、OpenCode 桥接、Git 分支相关 4 个文件在单工作线程复测 9 项全部通过。公开 CI 独立运行结果另行核对，不将负载下失败抹去。
 - 上游 omp 服务商分组适配到 MyCode 已启用的 Pi、Hermes；OpenCode 保留 MyCode 价格分类并按上游服务商排序。omp 在 MyCode 的 Windows 可用代理列表中未启用，不把仅存在于类型定义的代理写成可运行。
 - Linux Host 无 systemd 运行逻辑来自上游，本版需以 Host 类型/单元验证；Windows 安装包不冒称 Linux 运行实测。
 - 新增界面文案应有简体中文映射，英语原文保持可用；真实微信扫码、生产 IM 推送与公开安装包分别验证。
