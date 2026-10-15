@@ -1,4 +1,3 @@
-import { PiTurnUsage } from "./piUsage";
 import { findModel } from "../../../../features/sessions/model/models";
 import { TurnNotReadyError } from "../../core/types";
 import { nativeModelId } from "../../../../features/sessions/model/models";
@@ -23,6 +22,7 @@ import type { PiFlavor } from "./piFlavor";
 import { PiRpc } from "./piClient";
 import { piSubagentEvents } from "./piSubagents";
 import {
+  addPiTurnUsage,
   agentEndWillRetry,
   asRecord,
   assistantDeltaFromEvent,
@@ -31,7 +31,6 @@ import {
   buildPiSteer,
   contextFromSessionStats,
   contextFromUsage,
-  turnMetricsFromUsage,
   extensionUiResponse,
   extensionUiTitle,
   forkMessagesFromRpcData,
@@ -59,6 +58,7 @@ import {
   tryParseJsonRecord,
   turnErrorFromEvent,
   type PiExtensionUiRequest,
+  type PiTurnUsage,
 } from "./piProtocol";
 import type {
   ApprovalDecision,
@@ -117,11 +117,11 @@ type Live = {
   turnFailed: ((error: Error) => void) | null;
   turnEndPending: boolean;
   activeTurn: boolean;
-  usage: PiTurnUsage;
   emittedAssistant: string;
   emittedReasoning: string;
   /** Reason the turn failed, held until we know it is not being retried. */
   turnError: string | null;
+  turnUsage: PiTurnUsage;
 };
 
 type Resume = {
@@ -526,10 +526,10 @@ async function startLive(
     turnFailed: null,
     turnEndPending: false,
     activeTurn: false,
-    usage: new PiTurnUsage(),
     emittedAssistant: "",
     emittedReasoning: "",
     turnError: null,
+    turnUsage: { done: {}, open: {} },
   };
   liveRef.current = live;
 
@@ -604,10 +604,10 @@ async function runTurn(
   input: SendTurnInput,
 ): Promise<void> {
   await applyModel(flavor, live, input);
-  live.usage.reset();
   live.emittedAssistant = "";
   live.emittedReasoning = "";
   live.turnError = null;
+  live.turnUsage = { done: {}, open: {} };
   live.toolsByIndex.clear();
   live.toolsById.clear();
   live.compacting = false;
@@ -872,9 +872,8 @@ function handleFrame(
 
   const context = contextFromUsage(rec, live.contextWindow);
   if (context) live.onEvent({ type: "context", ...context });
-  if (type === "message_start" && asRecord(rec.message)?.role === "assistant") live.usage.startMessage();
-  const metrics = turnMetricsFromUsage(rec);
-  if (metrics) live.onEvent({ type: "turn.metrics", ...live.usage.update(metrics) });
+  const metrics = addPiTurnUsage(live.turnUsage, rec);
+  if (metrics) live.onEvent({ type: "turn.metrics", ...metrics });
 
   const delta = assistantDeltaFromEvent(rec);
   if (delta) {

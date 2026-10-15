@@ -41,6 +41,7 @@ import {
   inputJsonDeltaFromEvent,
   isAgentTaskType,
   isClaudeUltracodeEffort,
+  isReplayedTaskNotificationResult,
   isSubagentMessage,
   isTerminalAgentTaskStatus,
   isTodoTool,
@@ -1036,6 +1037,11 @@ function handleResult(
   rec: Record<string, unknown>,
 ): void {
   if (isSubagentMessage(rec)) return;
+  if (isReplayedTaskNotificationResult(rec)) {
+    // A limit reported for the replay must not carry over to the real turn.
+    live.usageLimit = null;
+    return;
+  }
   // A /compact result reports the summarizer call's usage, not the rebuilt
   // conversation level. The next real turn will provide the fresh reading.
   if (!live.manualCompaction) {

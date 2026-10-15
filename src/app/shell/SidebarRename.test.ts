@@ -11,6 +11,7 @@ import {
 } from "../../features/sessions/model/sessionFolders";
 import { useProjectDiffStats } from "../../features/source-control/hooks/useProjectDiffStats";
 import { copyText } from "../../platform/tauri/clipboard";
+import { setLanguage } from "../../shared/i18n";
 import {
   createMono,
   saveMonoSessionId,
@@ -143,6 +144,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  act(() => setLanguage("en"));
   act(() => root.unmount());
   container.remove();
   localStorage.clear();
@@ -190,6 +192,38 @@ it("omits hidden Mono launches from history, open sessions and folders", () => {
 });
 
 describe("project rail visibility", () => {
+  it("updates the workspace name when switching to Simplified Chinese", () => {
+    act(() => render());
+    act(() => setLanguage("zh-CN"));
+    expect(container.querySelector('[role="tablist"][aria-label="工作区"]')).not.toBeNull();
+  });
+
+  it("hides the workspace pane for standalone tools and restores it afterward", () => {
+    act(() => render());
+    expect(container.querySelector('[role="tablist"][aria-label="Workspace"]')).not.toBeNull();
+    props = { ...props, workspaceHidden: true };
+    act(() => render());
+    expect(container.querySelector('[role="tablist"][aria-label="Workspace"]')).toBeNull();
+    props = { ...props, workspaceHidden: false };
+    act(() => render());
+    expect(container.querySelector('[role="tablist"][aria-label="Workspace"]')).not.toBeNull();
+  });
+
+  it("moves the workspace side from its header shortcut", () => {
+    props = {
+      ...props,
+      projectRailOpen: true,
+      onSelectProject: vi.fn(),
+      onOpenProject: vi.fn(),
+    };
+    act(() => render());
+    const moveLeft = container.querySelector<HTMLButtonElement>('[aria-label="Move workspace left"]');
+    expect(moveLeft).not.toBeNull();
+    act(() => moveLeft!.click());
+    expect(localStorage.getItem("mycode.workspaceSide")).toBe("left");
+    expect(container.querySelector('[aria-label="Move workspace right"]')).not.toBeNull();
+  });
+
   it("keeps the mounted rail and its scroll state when collapsed", async () => {
     props = {
       ...props,

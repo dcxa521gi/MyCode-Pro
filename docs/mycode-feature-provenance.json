@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedDate": "2026-10-13",
-  "currentProductVersion": "0.21.0",
+  "recordedDate": "2026-10-15",
+  "currentProductVersion": "0.22.0",
   "sourceCommit": "cf42fc63f429b9d65095712464836b2cdabe977e",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
@@ -224,6 +224,16 @@
       "releaseDoc": "mycode-0.21.0.md",
       "monoBaseline": "889579b61c2342cc27751092ff0effbe9ec8e162 → 633730d70dd3e6cb8113af28c062dd1ea9228c0d；26提交完整融合",
       "complementBaseline": "Cindy 28afb1e → 3ea9099，121提交；Synara 9e01962 → b4bdc73，29提交；完整分类、选择本地能力，非全架构迁入"
+    },
+    {
+      "key": "0.22.0",
+      "display": "0.22.0",
+      "tag": "v0.22.0",
+      "tagCommit": "待发布",
+      "date": "2026-10-15",
+      "releaseDoc": "mycode-0.22.0.md",
+      "monoBaseline": "633730d70dd3e6cb8113af28c062dd1ea9228c0d → 5c21f014d4bdaa766b260b8d120174ad60358c2f；41提交逐项核对",
+      "complementBaseline": "Cindy 3ea9099 → 0bbf5b3，128提交；Synara b4bdc73 → a21eb2b，21提交；只采本地能力"
     }
   ],
   "requirements": [
@@ -981,6 +991,55 @@
         "MC-0.21.0-027"
       ],
       "evidenceLevel": "真实RED/GREEN与浏览器回归"
+    },
+    {
+      "id": "R62",
+      "title": "顶部LOGO切换运行任务会话",
+      "scope": "连续点击在运行任务间轮换；编排子任务映射到可见主管会话。",
+      "events": [
+        "MC-0.22.0-002"
+      ],
+      "evidenceLevel": "本次明确要求；代码与本地回归"
+    },
+    {
+      "id": "R63",
+      "title": "独立工具页隐藏工作区并恢复左右切换",
+      "scope": "技能和IM机器人不显示工作区；工作区名称和快捷操作双语；左右位置快捷切换。",
+      "events": [
+        "MC-0.22.0-003",
+        "MC-0.22.0-006"
+      ],
+      "evidenceLevel": "本次明确要求；侧栏交互测试"
+    },
+    {
+      "id": "R64",
+      "title": "微信连接与任务完成推送可靠性",
+      "scope": "统一连接状态、网络重试和安全保存回复上下文；真实微信账号另行验收。",
+      "events": [
+        "MC-0.22.0-004",
+        "MC-0.22.0-007"
+      ],
+      "evidenceLevel": "本次明确要求；本地模拟链路，非真实账号"
+    },
+    {
+      "id": "R65",
+      "title": "同步并融合MonoCode本轮全部增量",
+      "scope": "逐项核对41提交；冲突以上游为主，融合MyCode扩展并保持中文/英文。",
+      "events": [
+        "MC-0.22.0-001",
+        "MC-0.22.0-006"
+      ],
+      "evidenceLevel": "上游提交清单与模块回归"
+    },
+    {
+      "id": "R66",
+      "title": "核对Cindy和Synara本地能力",
+      "scope": "排除云依赖，选择可在本机运行的能力和交互适配。",
+      "events": [
+        "MC-0.22.0-005",
+        "MC-0.22.0-007"
+      ],
+      "evidenceLevel": "仓库提交审阅和本地适配验证"
     }
   ],
   "features": [
@@ -1020,7 +1079,7 @@
     {
       "id": "I18N",
       "firstRecordedVersion": "0.5.0",
-      "lastChangedVersion": "0.21.0",
+      "lastChangedVersion": "0.22.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1039,7 +1098,8 @@
         "MC-0.19.0-complete-017",
         "MC-0.19.1-013",
         "MC-0.20.0-030",
-        "MC-0.21.0-033"
+        "MC-0.21.0-033",
+        "MC-0.22.0-006"
       ]
     },
     {
@@ -1197,7 +1257,7 @@
     {
       "id": "IM",
       "firstRecordedVersion": "0.6.0",
-      "lastChangedVersion": "0.21.0",
+      "lastChangedVersion": "0.22.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1210,7 +1270,8 @@
         "MC-0.6.0-005",
         "MC-0.12.0-012",
         "MC-0.15.0-015",
-        "MC-0.21.0-029"
+        "MC-0.21.0-029",
+        "MC-0.22.0-007"
       ]
     },
     {
@@ -1331,7 +1392,7 @@
     {
       "id": "WECHAT",
       "firstRecordedVersion": "0.7.0",
-      "lastChangedVersion": "0.7.0",
+      "lastChangedVersion": "0.22.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1339,13 +1400,14 @@
         "src-tauri/src/im_bridge.rs"
       ],
       "changes": [
-        "MC-0.7.0-007"
+        "MC-0.7.0-007",
+        "MC-0.22.0-004"
       ]
     },
     {
       "id": "NAV",
       "firstRecordedVersion": "0.7.0",
-      "lastChangedVersion": "0.20.0",
+      "lastChangedVersion": "0.22.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1359,13 +1421,14 @@
         "MC-0.12.0-002",
         "MC-0.13.0-001",
         "MC-0.13.0-014",
-        "MC-0.20.0-021"
+        "MC-0.20.0-021",
+        "MC-0.22.0-002"
       ]
     },
     {
       "id": "LAYOUT",
       "firstRecordedVersion": "0.7.0",
-      "lastChangedVersion": "0.21.0",
+      "lastChangedVersion": "0.22.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1378,7 +1441,8 @@
         "MC-0.12.0-024",
         "MC-0.15.0-002",
         "MC-0.16.0-017",
-        "MC-0.21.0-012"
+        "MC-0.21.0-012",
+        "MC-0.22.0-003"
       ]
     },
     {
@@ -1584,7 +1648,7 @@
     {
       "id": "BROWSER",
       "firstRecordedVersion": "0.9.0",
-      "lastChangedVersion": "0.11.0",
+      "lastChangedVersion": "0.22.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1594,7 +1658,8 @@
       "changes": [
         "MC-0.9.0-009",
         "MC-0.10.0-009",
-        "MC-0.11.0-009"
+        "MC-0.11.0-009",
+        "MC-0.22.0-005"
       ]
     },
     {
@@ -1991,7 +2056,7 @@
     {
       "id": "UPSTREAM-CONTROL",
       "firstRecordedVersion": "0.14.0",
-      "lastChangedVersion": "0.20.0",
+      "lastChangedVersion": "0.22.0",
       "status": "治理规则持续执行；历史遗漏已补齐",
       "upgradePolicy": "先记录新基线与完整增量，MonoCode 新能力必须适配，不能因架构差异跳过；仅审查与真整合分开。",
       "maintenancePaths": [
@@ -2004,7 +2069,8 @@
         "MC-0.19.0-original-009",
         "MC-0.19.0-complete-018",
         "MC-0.19.1-016",
-        "MC-0.20.0-035"
+        "MC-0.20.0-035",
+        "MC-0.22.0-001"
       ]
     },
     {
@@ -8855,6 +8921,148 @@
       "maintenancePaths": [
         ".github/workflows/host-distribution.yml",
         "scripts/check-release-assets.mjs"
+      ]
+    },
+    {
+      "id": "MC-0.22.0-001",
+      "version": "0.22.0",
+      "feature": "UPSTREAM-CONTROL",
+      "origin": "MONO_ADAPT",
+      "action": "升级",
+      "requirements": [
+        "R65"
+      ],
+      "title": "融合MonoCode 41提交增量",
+      "detail": "活动总览、项目分组、模型分组、轮次用量、终端链接、文件预览和编辑、远程Host等，逐项范围见版本清单；保留MyCode扩展。",
+      "evidence": [
+        "mycode-0.22.0-upstream.md",
+        "mycode-0.22.0.md"
+      ],
+      "sourceConfidence": "本地源码合并与自动测试；平台、真实设备边界见版本记录",
+      "maintenancePaths": [
+        "src/app",
+        "src/features",
+        "src-tauri/src"
+      ]
+    },
+    {
+      "id": "MC-0.22.0-002",
+      "version": "0.22.0",
+      "feature": "NAV",
+      "origin": "MYCODE",
+      "action": "修复",
+      "requirements": [
+        "R62"
+      ],
+      "title": "LOGO轮换运行任务",
+      "detail": "按真实运行会话轮换，编排工作者折回可见主管会话，连续点击保持轮换位置。",
+      "evidence": [
+        "mycode-0.22.0.md"
+      ],
+      "sourceConfidence": "源码实现；真实桌面交互另列",
+      "maintenancePaths": [
+        "src/app/App.tsx",
+        "src/app/shell/ProjectRail.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.22.0-003",
+      "version": "0.22.0",
+      "feature": "LAYOUT",
+      "origin": "MYCODE",
+      "action": "修复",
+      "requirements": [
+        "R63"
+      ],
+      "title": "工作区显隐与左右快捷按钮",
+      "detail": "技能、IM机器人独立页卸下工作区；工作区标题和按钮双语；扩展、折叠项目栏均提供左右切换。",
+      "evidence": [
+        "mycode-0.22.0.md"
+      ],
+      "sourceConfidence": "源码实现及侧栏交互测试",
+      "maintenancePaths": [
+        "src/app/shell/Sidebar.tsx",
+        "src/features/source-control/ui/SidebarWorktreeSwitcher.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.22.0-004",
+      "version": "0.22.0",
+      "feature": "WECHAT",
+      "origin": "MYCODE",
+      "action": "修复",
+      "requirements": [
+        "R64"
+      ],
+      "title": "微信连接和完成通知上下文",
+      "detail": "连接状态与桥接器一致；网络故障退避重试；在原加密秘密存储中保存授权账号的回复上下文。",
+      "evidence": [
+        "mycode-0.22.0.md"
+      ],
+      "sourceConfidence": "模拟链路通过；真实微信账号未验收",
+      "maintenancePaths": [
+        "runtime/wechat.ts",
+        "runtime/im-bridge.ts"
+      ]
+    },
+    {
+      "id": "MC-0.22.0-005",
+      "version": "0.22.0",
+      "feature": "BROWSER",
+      "origin": "SYNARA_REFERENCE",
+      "action": "适配",
+      "requirements": [
+        "R66"
+      ],
+      "title": "本地预览切换保留页面状态",
+      "detail": "参考Synara切换保留页面状态的本地行为，MyCode暂时隐藏预览时保留iframe。",
+      "evidence": [
+        "mycode-0.22.0.md"
+      ],
+      "sourceConfidence": "本地源码适配，非Synara架构移植",
+      "maintenancePaths": [
+        "src/features/files/ui/BrowserDock.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.22.0-006",
+      "version": "0.22.0",
+      "feature": "I18N",
+      "origin": "MYCODE",
+      "action": "完善",
+      "requirements": [
+        "R63",
+        "R65"
+      ],
+      "title": "工作区及上游新增界面双语",
+      "detail": "本轮新增活动、服务商用量、远程Host说明等文案提供简体中文与英文。",
+      "evidence": [
+        "mycode-0.22.0.md"
+      ],
+      "sourceConfidence": "中文词典与自动检查；真实界面语言巡检另列",
+      "maintenancePaths": [
+        "src/shared/i18n/zh-CN.json"
+      ]
+    },
+    {
+      "id": "MC-0.22.0-007",
+      "version": "0.22.0",
+      "feature": "IM",
+      "origin": "CINDY_REFERENCE",
+      "action": "核对",
+      "requirements": [
+        "R66",
+        "R64"
+      ],
+      "title": "核对Cindy本地IM并修复MyCode适配",
+      "detail": "Cindy新增云团队能力不纳入；保留本机iLink能力，仅修复MyCode桥接状态和回复上下文。",
+      "evidence": [
+        "mycode-0.22.0.md"
+      ],
+      "sourceConfidence": "开源本地模块审阅与模拟验证",
+      "maintenancePaths": [
+        "vendor/cindy-wechat-ilink/src",
+        "runtime/wechat.ts"
       ]
     }
   ],

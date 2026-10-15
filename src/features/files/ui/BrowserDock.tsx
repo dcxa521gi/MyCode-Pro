@@ -49,9 +49,14 @@ export function BrowserDock({ hidden = false }: { hidden?: boolean }) {
         void invoke("local_preview_stop", { id: current.current.id });
     };
   }, []);
-  if (hidden || (!page && !error && !loading)) return null;
+  // Keep the iframe mounted while another app surface covers the preview so
+  // switching back does not discard the page's scroll position and state.
+  if (!page && !error && !loading) return null;
   return (
     <aside
+      style={hidden ? { display: "none" } : undefined}
+      aria-hidden={hidden}
+      inert={hidden || undefined}
       className="order-30 flex w-[42vw] min-w-72 max-w-[70vw] resize-x flex-col overflow-hidden border-l border-content/10 bg-surface text-content"
       aria-label={t("Built-in browser")}
     >

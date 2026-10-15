@@ -6,10 +6,11 @@ import type { WechatCredentials } from "../vendor/cindy-wechat-ilink/src/types";
 // Host-owned lifecycle and encrypted storage; all network calls go to Tencent.
 export function createWechat(host: any) {
   let controller: AbortController | null = null;
-  let status = "Disconnected";
+  let status = "disconnected";
   let qrImage: string | null = null;
   let verification: ((code: string) => void) | null = null;
   let client: TencentIlinkTransport | null = null;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
   const contexts = new Map<string, string>();
   const seen = new Set<string>();
   const messages = new Set<(event: any) => void>();
@@ -25,12 +26,22 @@ export function createWechat(host: any) {
       return null;
     }
   };
+  const rememberedContext = (ownerId: string): string | null => {
+    try {
+      const saved = JSON.parse(host.secrets.read("wechat-context") || "null");
+      return saved?.ownerId === ownerId && typeof saved?.token === "string"
+        ? saved.token
+        : null;
+    } catch {
+      return null;
+    }
+  };
   const make = (credentials?: WechatCredentials) =>
     new TencentIlinkTransport({
       baseUrl: credentials?.baseUrl ?? "https://ilinkai.weixin.qq.com",
       token: credentials?.token,
-      botAgent: "MyCode/0.7.0",
-      clientVersion: "0.7.0",
+      botAgent: "MyCode/0.22.0",
+      clientVersion: "0.22.0",
       fetch,
       localTokens: async () => {
         const saved = read();
@@ -62,15 +73,17 @@ export function createWechat(host: any) {
       },
     });
   const dispose = async () => {
+    if (retryTimer) clearTimeout(retryTimer);
+    retryTimer = null;
     controller?.abort();
     controller = null;
     client = null;
     qrImage = null;
     verification = null;
     contexts.clear();
-    changed("Disconnected");
+    changed("disconnected");
   };
-  const start = async () => {
+  const start = async (attempt = 0) => {
     await dispose();
     const credentials = read();
     if (!credentials) throw Error("Scan the WeChat QR code first");
@@ -83,7 +96,7 @@ export function createWechat(host: any) {
     void (async () => {
       try {
         await transport.notifyStart(active.signal);
-        changed("Connected");
+        changed("connected");
         let cursor = host.secrets.read("wechat-cursor") || "";
         while (!active.signal.aborted) {
           const batch = await transport.poll(cursor, active.signal);
@@ -98,11 +111,19 @@ export function createWechat(host: any) {
             if (seen.size >= 2000) seen.delete(seen.values().next().value!);
             seen.add(event.messageId);
             contexts.set(event.senderId, event.contextToken);
+            const quotedText = event.quote?.text ?? event.quote?.title;
+            host.secrets.write("wechat-context", JSON.stringify({
+              ownerId: event.senderId,
+              token: event.contextToken,
+            }));
             messages.forEach((fn) =>
               fn({
                 senderId: event.senderId,
                 text: event.text,
                 protectedContent: false,
+                ...(quotedText
+                  ? { replyContext: { text: quotedText } }
+                  : {}),
               }),
             );
           }
@@ -111,8 +132,18 @@ export function createWechat(host: any) {
             host.secrets.write("wechat-cursor", cursor);
           }
         }
-      } catch {
-        if (!active.signal.aborted) changed("Connection failed");
+      } catch (error) {
+        if (active.signal.aborted) return;
+        const code = (error as { code?: string })?.code;
+        if (code === "AUTH_REPLACED") {
+          changed("Authorization expired");
+          return;
+        }
+        changed("Connection failed");
+        retryTimer = setTimeout(() => {
+          if (controller === active && !active.signal.aborted)
+            void start(attempt + 1);
+        }, Math.min(60_000, 3_000 * 2 ** Math.min(attempt, 5)));
       }
     })();
   };
@@ -134,6 +165,7 @@ export function createWechat(host: any) {
         if (active.signal.aborted) return;
         host.secrets.write("wechat-credentials", JSON.stringify(credentials));
         host.secrets.remove("wechat-cursor");
+        host.secrets.remove("wechat-context");
         qrImage = null;
         changed("Authorized");
       })
@@ -153,6 +185,7 @@ export function createWechat(host: any) {
       qrImage,
       verificationRequired: status === "verification-required",
       ownerId: read()?.userId ?? "",
+      readyForNotifications: Boolean(read()?.userId && rememberedContext(read()!.userId)),
     }),
     onStatusChange(fn: () => void) {
       changes.add(fn);
@@ -167,9 +200,9 @@ export function createWechat(host: any) {
       verification(code);
     },
     async sendText(peerId: string, text: string) {
-      const contextToken = contexts.get(peerId);
+      const contextToken = contexts.get(peerId) ?? rememberedContext(peerId);
       if (!client || !controller || !contextToken || peerId !== read()?.userId)
-        throw Error("WeChat reply is no longer available");
+        throw Error("Send a message to the WeChat bot before using completion notifications");
       await client.sendMessage(
         { peerId, text, contextToken, clientId: randomUUID() },
         controller.signal,

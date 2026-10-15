@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.22.0] - 2026-10-15
+
+- 融合 MonoCode `633730d` → `5c21f01` 的 41 个提交：智能体活动总览、项目分组排序、服务商模型分组、轮次 Token 用量、文件预览记忆、终端链接、编辑器语言和 Linux Host 无 systemd 运行等。
+- 修复顶部 LOGO 切换运行任务、技能和 IM 机器人页面隐藏工作区、工作区标题汉化和左右位置快捷按钮。
+- 修复微信连接状态识别、网络重试、任务完成推送及引用通知继续原会话时的上下文传递；保留原凭据和会话。
+- 参考 Synara 的页面保持行为，本地预览暂时隐藏后保留页面状态；补齐本轮新增界面的简体中文。
+- 来源、逐提交处置与验证边界见 [版本说明](docs/mycode-0.22.0.md)。
+
+## [0.21.0] - 2026-10-13
+
+- 融合 MonoCode 26 个增量提交，并按上游行为融合 MyCode 的模型路由、HTML 保护和中文界面；修复供应商折叠、后台 IM 回复与子会话变更范围。
+- 桌面发行页只保留 MyCode 安装包和校验文件，Host 运行包通过独立分支下载。详情见 [版本说明](docs/mycode-0.21.0.md)。
+
 ## [0.20.0] - 2026-10-12
 
 - 完整合入 MonoCode v0.12.0/main 的全部增量：Devin ACP、选中文件安全提交、智能体反应与未读数、启动任务卡、模型/上下文/Emoji 控件、视频预览、空闲代理和流式性能、检查点及 Windows 多窗口修复。
@@ -193,6 +206,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added
+
+- Remote hosts can run on **Linux without systemd**, such as containers and Firecracker microVMs. Setup starts the host as a detached background process there instead of a systemd user service, so it keeps running after SSH disconnects, and the next connect starts it again if it has stopped. Machines with systemd keep the user service and lingering.
 
 ## [0.13.0] - 2026-10-12
 

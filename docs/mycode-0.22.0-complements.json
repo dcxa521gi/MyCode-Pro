@@ -1,0 +1,1067 @@
+{
+  "schemaVersion": 1,
+  "version": "0.22.0",
+  "auditDate": "2026-10-15",
+  "reviewLevel": "149 个提交的主题分类；对 Synara 浏览器保持行为作本地适配。未声称逐行审阅所有提交，也未将未移植项目记为融合。",
+  "baselines": [
+    {
+      "id": "cindy",
+      "name": "Cindy",
+      "from": "3ea90999d01fb7071c3e83a717fcdf404547ee24",
+      "to": "0bbf5b39c04fe18f605c18b7b7d5713960c222a8",
+      "commits": 128
+    },
+    {
+      "id": "synara",
+      "name": "Synara",
+      "from": "b4bdc7362df83025fe30fb45b9599153a5e014a7",
+      "to": "a21eb2b43dc16dcc33c55271070d3bdb4a3c1cfb",
+      "commits": 21
+    }
+  ],
+  "rows": [
+    {
+      "source": "Cindy",
+      "sha": "c23698200b1d33ed211a6db6f6ce1808594defe6",
+      "title": "feat(provider-sharing): 分享任务里少弹凭证确认，命令里写着密钥时照样确认",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "c3e5ef446dd805023d862a20f1ed1b99a28b7ccc",
+      "title": "fix(provider-sharing): harden git credential exemptions",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "68d62d3d9f855606ea1808dbb0168927158d4675",
+      "title": "fix(cindy-make): 隐藏并禁用所有用户入口",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "0cb395438f4fd70535b761f98e778674044ab9c8",
+      "title": "fix(cindy-make): close cold-link and app attention gaps",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "a76ee8eabb6d40cf2784d8c9e5b4118e6048bebe",
+      "title": "Merge main into fix/disable-cindy-make",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "4070db19fc80725afeb9e266184567f11496b6f6",
+      "title": "fix(remote-agent): tighten shared credential read checks",
+      "category": "权限/安全",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "987c1afa3135092c4717b776e638f569e8e779f8",
+      "title": "fix(cindy-make): close mobile home and file entry gaps",
+      "category": "移动/设备",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "861417548cb523625e8ff30d5e87b2500dfa0a1b",
+      "title": "fix(provider-sharing): reject unverified Git probe runtimes",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "0fedc01db6b6c1453bc67dbbce94ee74c5031fb0",
+      "title": "fix(cindy-make): close failed lookups and hidden task notifications",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "24b20cc9dda5b06ca4a56101c1469a3dbaeaadfb",
+      "title": "Merge main into fix/disable-cindy-make",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "ff14764f0b160975b4a44add4b872d72e03db288",
+      "title": "fix(provider-sharing): fail closed for Git objects and linked inputs",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "1cd6c4fdfc491cc9ff051619c3e0a07030cef195",
+      "title": "fix(cindy-make): filter hidden tasks from usage surfaces",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "520f62d35453d2622a2435b4cad61ee7a622f7f4",
+      "title": "fix(cindy-make): remove disabled entries from built-in help",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "0837b021cd8325af40412231e6fc443dcbdcee0b",
+      "title": "fix(provider-sharing): bind credential exemptions to search and Git sources",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "8782cd840d9b181803b063bca236f33b31e35bf4",
+      "title": "fix(provider-sharing): scan ambiguous config queries conservatively",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "8443aea3b1c5e280699169879936282da077c4c8",
+      "title": "fix(cindy-make): suppress hidden pending failure alerts",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "b406ba874fdb590887e429550b61514b4a53067d",
+      "title": "fix(provider-sharing): fail closed on Git helpers and shell hooks",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "0986072cd60ffc8bc6163b8772460f059ddbc024",
+      "title": "fix(cindy-make): overread legacy remote search candidates",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "3cc72026dae8e637968d9c563a8aa5beab832191",
+      "title": "fix(provider-sharing): require consent for Git remote queries",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "911298d7cf6ef69583b2326a2f3f14d40215e7fa",
+      "title": "fix(provider-sharing): guard zsh startup before Git probes",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "1528ed6933c695ec5cf6f42b93df4f3995fffe62",
+      "title": "fix(provider-sharing): require consent for Git clean filters",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "86dc414f1fc1e58b4c36576f9775a8db4b578454",
+      "title": "Merge main into fix/disable-cindy-make",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "7536a6fa7334e63adb9ad999661926de182e0faa",
+      "title": "fix(cindy-make): stop hidden task delivery and sharing",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "4e522c1258c7090a27add5f24efb84ff7103b6bf",
+      "title": "fix(provider-sharing): account for inherited ripgrep config",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "3cee4f5bd3facbe15d946c33b317c69d7725f65c",
+      "title": "test(cindy-make): cover disabled outbox message leases",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "673f4be5a03f6755700d5d395468e4ed59116036",
+      "title": "fix(cindy-make): preserve unknown ordinary share records",
+      "category": "权限/安全",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "f25d40c95510efc757e717c74fc78824c76bc326",
+      "title": "Merge latest main into fix/disable-cindy-make",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "0d9fef500560b8913429c7eba0049db5e616ac12",
+      "title": "fix(provider-sharing): bound Git probes and block fsmonitor hooks",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "dcc979742b1de0611f19eb88e1ac845b59e7cd23",
+      "title": "fix(cindy-make): confirm sources before shared task discovery",
+      "category": "权限/安全",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "a7b8265bf55e5d827bda9e5c73519fff545ddd3d",
+      "title": "fix(provider-sharing): require consent for Git signature verifiers",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "ed3c4fcdb26140df7929162168b112a16d5d3c0a",
+      "title": "test(cindy-make): confirm shared task button fixture sources",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "c660aa178adb54ffa74f850e6b1f64cb47b442e8",
+      "title": "fix(provider-sharing): require consent for index change hooks",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "674708d13f97b70232030fe758e717031f70819a",
+      "title": "fix(hook): 继承默认模型时不再被残留的目录来源卡死任务 (#5912)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "53e23b600a0a1b4e1463cd3e15b8d358cbb82262",
+      "title": "docs(hook): 设置页注释同步来源校验的现行规则",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "1b9f00fa72ed9823e698a95fcc4f23f099a558dc",
+      "title": "fix(provider-sharing): reject submodule reads and untrusted shells",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "63c0e488c64992637adb57c233f793204e319a67",
+      "title": "fix(cindy-make): prevent legacy version and share bypasses",
+      "category": "权限/安全",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "47b4b610b0951f44e89d70f0c664bb07d5fe2529",
+      "title": "fix(hook): 来源清理覆盖重连镜像，残留判定只认来源未提供该模型",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "60a93cb49fad799df3e2e70184e4986017d4b16a",
+      "title": "fix(hook): 远端只换 Agent 也清配对来源；null-team 兜底来源不因单个 team 改路由被清",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "28c0cf90df02ccba7db99c35fda988d454bcfbe1",
+      "title": "fix(provider-sharing): keep consent for ripgrep preprocessors",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "31a164914f5d6f0e752e59c6cee6ea397cb4db80",
+      "title": "fix(cindy-make): hide unconfirmed peer usage tasks",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "4ab149df482baa698574fce832796f2e5841e7ba",
+      "title": "fix(bots): preserve group replies across persistence and approval waits",
+      "category": "IM/消息",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "8c2c3d1a334850a73c53aa3197ad4885259d9e23",
+      "title": "fix(runtime): preserve Codex transport in automatic fallback",
+      "category": "IM/消息",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "74238adcd37973685a6c6ba6d489dc83896fd42e",
+      "title": "fix(runtime): honor model wire protocols in fallback",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "e04f9f0d838c349594c9e76efd9ab27be1be6d09",
+      "title": "docs(rules): 能力台账登记目录来源判定边界 (#5912)",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "09deecda176c5b81837289c79abda815376aa9f5",
+      "title": "Merge main into fix/disable-cindy-make",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "8a3dcbd3d2e6f483cb271f7551406813ac5c2d53",
+      "title": "fix(cindy-make): reject forks of disabled sessions",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "944243f472866318a3f5efc89030cb543ba5cb75",
+      "title": "fix(review): disable native project doc discovery (#5421) (#5533)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "7bafb9586d14902da542d0ecc78c17bcdbf56547",
+      "title": "Merge pull request #5914 from makecindy/dash/fix-x-orphan-provider-source",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "2910a851c98b9fef0fd52dfe143230e34508f34a",
+      "title": "Merge pull request #5296 from Dante-dan/fix/5280-compatible-runtime-fallback",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "59099db4dd15ed09da1291fbfbe11772de21b116",
+      "title": "fix(cindy-make): isolate hidden share cleanup failures",
+      "category": "权限/安全",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "5d82cc37b7276bf94ff33f4c422698945cae2885",
+      "title": "fix(desktop): 精简菜单栏用量管理文案 (#5927)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "551e02554d57176efa2960fc89a3e80f041e6980",
+      "title": "fix(goal): 普通消息后继续目标并接通手机命令 (#5919)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "540f5c944e8d7087d90fe7884f8070674de54b24",
+      "title": "fix(pi): scope inherited windows to runtime binary (#5890)",
+      "category": "IM/消息",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "ca33b93db7c016e312bbff9d949852cdb6c3135a",
+      "title": "feat(model-access): 在模型详情展示可选复杂价目",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "0531f6a5c4b56d9ac19cc499e67956807acc38e1",
+      "title": "perf(desktop): 普通插件读取凭证时跳过 Mivo 身份校验",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "4aadca6eac8994acd590942d61f1a29d63233139",
+      "title": "chore: 合并 main 并保留两组协议说明",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "39cfa0e09c0fb6e7f9a7c962e4504743a1fe4114",
+      "title": "fix(billing): 补充个人版开票盖章说明和多语言邮件模板",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "888996c8066b5fb2821e6ef130f087f3b58001d7",
+      "title": "Merge pull request #5923 from makecindy/group-mention-reliability",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "f2e61ffdb86475d1e6ef87648e803fad7bbada97",
+      "title": "Merge pull request #5903 from makecindy/fix/disable-cindy-make",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "bf8bddc152044e5713452e25c791b6815469d7bf",
+      "title": "feat(mobile): 统一 iOS 首页与聊天顶栏，任务／伙伴左右滑动切换",
+      "category": "移动/设备",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "8b8f1ad857c6cad21f35a8dd09453bfde77689bf",
+      "title": "docs(design): 决策记录按现行月份分节写 10-13 条目",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "2f39ff7a91e2a6ddcc14b879a0f4cf807db43a0d",
+      "title": "Merge pull request #5932 from makecindy/cindy/sharp-knuth",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "37ab58d3d6fa92860600291fb72077434d63edd9",
+      "title": "fix(model-access): 修正零价文案并覆盖复杂价目渲染",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "ddc376773dec4349bda21d46e630e13975762b24",
+      "title": "fix(model-access): 将价目区域排除出菜单悬浮选项",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "e0cbabf7884afa18ab312cd6ceb2bf592f7d2006",
+      "title": "fix(mobile): keep cached teammates accessible and recover remote reads (#5928)",
+      "category": "移动/设备",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "ddeaf5da7c49f92b4d65003b4e27a43435c31042",
+      "title": "fix: 为旧任务闭流错误提供可读历史恢复入口",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "b68c89ab6e0fe459676bebaa61dc9ac64c6f55ce",
+      "title": "Merge pull request #5934 from nanaco666/fix-invoice-company-stamp",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "73537b1190a600a6952792b237abbd31e42956bb",
+      "title": "docs: 同步可读历史恢复入口的 UI 台账",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "5b587c6fe5268d50532f09a72ad6094dd14026aa",
+      "title": "chore: 同步主干并合并恢复入口台账",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "2fcee5bf20c7a42ae0e29f298dfdfc8664257dd9",
+      "title": "fix(mobile): 对齐历史恢复与 Fork 的等待窗口",
+      "category": "移动/设备",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "6afee6c41fc80df5105cef7330d95e736192b139",
+      "title": "Merge remote-tracking branch 'origin/main' into feat/mobile-home-chat-chrome",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "7f6a8010be31a5aed295c76f19f56f1f15509adf",
+      "title": "test(mobile): 补齐 Goal 发送测试的页面依赖",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "85a1c247a9c4bad5bae833ba2a8a14fd21eea4f0",
+      "title": "fix(scheduler): release recovery after automatic resume fails",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "9b449c40ff8ef7e5dcbbf3055ab3ed44f3b5828e",
+      "title": "test(desktop): 对齐恢复入口守卫并等待授权通知",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "46edb4e5f71cd4c02a90eeec5e006f130c3e702b",
+      "title": "test: fix goal command fixtures and isolate library archive helper IO",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "ccbaf71c430297cb659163a74623c8b249e47092",
+      "title": "Merge pull request #5951 from makecindy/fix/scheduler-auto-resume-recovery",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "928e9d48a9b87d2461c7fcedf2f8da0facbc24e5",
+      "title": "fix(desktop): 修复伙伴/群设置抽屉关闭按钮点击无效",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "69661422beeb85d692fa3704df6d2b42884f4c4b",
+      "title": "Merge pull request #5956 from makecindy/cindy/silly-ritchie",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "d23e4faa1f53ba8157df61f23cef6c6771e1382c",
+      "title": "Merge pull request #5971 from makecindy/cindy/dazzling-fermi",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "c78b6a7807a01c0b8ee9ad9fdca896e0a3c89158",
+      "title": "fix(desktop): 修复分享供应商「本任务总是允许」在并发与 Worker 重建后失效",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "7085c77678f374bc5010a8bf0e790bfba32ec729",
+      "title": "fix(mobile): 从 Play AAB 移除安装包权限 (#5187)",
+      "category": "移动/设备",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "ac7be9f7369e67b1e22b63a3ed5548f98ba8e6e7",
+      "title": "fix(desktop): 在启动和登录异常时提供日志反馈入口 (#5970)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "2d4c5d7c71a87c6fcb42070b4b15290fa22e3e1c",
+      "title": "Merge latest main into provider-sharing credential improvements",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "d5e2927b16c9f6f182c155b267798f3c43f288f1",
+      "title": "fix(provider-sharing): keep nested credential checks sharing-only",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "601d8de9cc5f2dc0e205d2236a8e842eda7b9f82",
+      "title": "fix(provider-sharing): accept standard Git LFS read filters",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "16c14eefcf1eca8b254a5469d74bc370f3c94464",
+      "title": "fix(provider-sharing): inspect implicit merge patches for credentials",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "e1c2836fdf1d8bc5215adb65f482f556af934f14",
+      "title": "fix(provider-sharing): guard remerge drivers and isolate history probes",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "16fd77dee40ea188957e66b0648ffc0cbfbe8da8",
+      "title": "fix(provider-sharing): inspect Git logical variable output before exemption",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "94641636a3a45100a15a5772baec5a354e49a922",
+      "title": "fix(provider-sharing): inspect source lines in Git whitespace diagnostics",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "6b9de39edcac7510c8f2710eaf8e9aba45f943a8",
+      "title": "fix(provider-sharing): check Git mailmap credential sources",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "928cf514705a6255a84959b7c16da01c9855f92e",
+      "title": "Merge pull request #5879 from makecindy/feat/share-credential-fewer-prompts",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "3d2dc0df504e94b8bf535cf189dea3ed8c3f1725",
+      "title": "fix(mobile): 伙伴页保存失败提示出现时滚回可见，滑动转场仅限 iOS",
+      "category": "移动/设备",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "2c06c871bacb478275470f239e9705120ca5352d",
+      "title": "fix(codex): 补齐 GPT-6.1 网关搜索历史的工具声明 (#5992)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "5a3cfed56e34997500c54a5d9ebb21f025f353b5",
+      "title": "fix(desktop): 权限档变化后作废分享供应商的任务级凭证授权",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "118a91911350817a787980026ce3ef7372f52838",
+      "title": "fix(mobile): 减少隐藏弹层键盘处理并修正性能诊断 (#5999)",
+      "category": "移动/设备",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "935c8555455d0f36da2395354e109116fb129dc3",
+      "title": "fix(desktop): 思考档位投影跟随进程实测值，目录误判不再渲染成假「低」 (#5780)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "2599c045d94b06a859d239d7749ff5582c2042c3",
+      "title": "fix(desktop): Thread 内唤醒伙伴时送对话题上下文 (#5969)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "6c8757260141c1b0c33f513eec27fedbefa3382e",
+      "title": "Merge origin/main and refresh mobile design inventory",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "a796ec8f19a128049c0657825caec7cbefd2aeef",
+      "title": "fix(models): 统一分享与远程模型收藏视图",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "0b28f45d7e4bb977ec35891985eb7254c9076aed",
+      "title": "test(models): 覆盖被控任务修改分享收藏配置",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "a3aa86a6babed0068cbd2171e6ca4d65d66ed128",
+      "title": "perf(bot-groups): 打开群聊立即显示群框架，并缩短 Chat Server 串行读取 (#6012)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "c950b504649f2c64668c618320c352d159370961",
+      "title": "fix(plugins): 修复 0.1.105 作品库读写变慢与重装后作品库变空 (#5967)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "a129242636e9b76ca75ed44fc7434380d9316d54",
+      "title": "fix(models): 按被控端收藏恢复跨区分享授权",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "ec61898b798c61934455e60f7ec25750975a15af",
+      "title": "Merge pull request #5931 from makecindy/feature/model-display-pricing",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "f3d07efd5d7f5aa15cda98d02ef7c1dec43550f1",
+      "title": "Merge origin/main into fix/shared-provider-concurrent-consent",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "13a1adf8db09593431c82471ef31ac54925672c7",
+      "title": "Merge pull request #5940 from kirozeng/feat/mobile-home-chat-chrome",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "a243547982b6347ff6eb41d932685ace077c4271",
+      "title": "Merge pull request #5957 from makecindy/cindy/elegant-hodgkin",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "9acae25e4eab6a21e99a96caa5bf01efbc921df5",
+      "title": "feat(group-chat): 新增引用回复，原「回复」改名为「创建话题」 (#5976)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "80cc9eccac94c27fb93c1402d34f8f605ef3bfbb",
+      "title": "test(desktop): 为权限档源码切片测试注入 forgetCredentialGrants 并覆盖清除时机",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "011859395dc5d3f9a8980b67f5e62e72ed755538",
+      "title": "test(desktop): 去掉新增 mock 的未使用参数",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "32c7a59918e25a81915f4e507cc7b9237690f2ac",
+      "title": "fix(desktop): 删除任务级凭证授权时收回已恢复到执行器的授权",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "3f4ec18ec53a604651320a76db6cfb463afebd90",
+      "title": "feat(input-handoff): 代输入——把需要主人填写的输入步骤交给主人 (#6009)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "46f75dd161d34831f604bf6d5a4b11c9c68b56d2",
+      "title": "feat(mobile): 输入框顶边与聊天记录都能拖动调高，拖到底即收起键盘 (#5946)",
+      "category": "移动/设备",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "53a01b8661bb89365058a843bf510724414df0b7",
+      "title": "fix(plugins): 修复旧组织插件同版本来源凭据未恢复",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "e9352541f9ff632feba8fb708dc8cc5974effd5a",
+      "title": "Merge pull request #6043 from makecindy/feature/legacy-broker-recovery",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "69043b683d71763710b78d9449ffd5f23e25b4a2",
+      "title": "fix(desktop): Git 核实期间被取消的凭证请求不再进入确认排队",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "3f6f9330a61066835eacc8f391fc073aeb776926",
+      "title": "fix(desktop): 权限档变化时释放旧确认卡占用的排队位置，确认卡说明补充计划模式",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "3312cc69936992cce864c265498b6ba30815e545",
+      "title": "feat(plugins): $ 指令不再显示企业 slug，同名时企业版标「团队共享」 (#5960)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "ff385ab4aa6d3cb008080dc085c74241ceaa2922",
+      "title": "fix(bridge): detect headerless SSE in non-stream fallback (#5991)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "78d4c0a6400d97166f46a4d12a9452966858dc76",
+      "title": "Merge origin/main into fix/shared-provider-concurrent-consent",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "3459eb6b886fe7f84774e4f92b74c70982c0acf3",
+      "title": "Merge pull request #5988 from makecindy/fix/shared-provider-concurrent-consent",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "0b779c8210fa4b9363fb1db8b8d7e5fab46019d4",
+      "title": "feat(agent): Agent 可跨电脑管理定时任务、给其它电脑的任务发消息，工具索引写明作用范围 (#6008)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "9f1ef577f1507eaa79b6c445f5bb1b4eacfe8d07",
+      "title": "fix(mcps): call_tool 入口 args 改为可选，无参工具省略 args 不再被 -32602 拒收 (#6025)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "133d532089becc4d1304163612c1096116281ef6",
+      "title": "fix(desktop): 暂停 Codex Micro 全局注入并清理遗留环境 (#5990)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "779b5237917a173fd32d2a6a381c5fe61b21695b",
+      "title": "feat(desktop): 供应商组先用快重置的配额，本机任务与外部任务同一套策略 (#6066)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "f2d51c62def29008d1eb73eb8e44b1b682cbf3e0",
+      "title": "feat(bots): 云端伙伴：同一个伙伴、主力电脑与换电脑继续 (#5899)",
+      "category": "IM/消息",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "d1fc07e23a67c623d66c02aa4e4c637b319a5904",
+      "title": "ci: run client-ci for merge queue groups (#6089)",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Cindy",
+      "sha": "0bbf5b39c04fe18f605c18b7b7d5713960c222a8",
+      "title": "fix(mobile): 修复新建任务失败后空白且无法恢复 (#6055)",
+      "category": "移动/设备",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "60982507f81a2def5bf749f0065adf21475d2424",
+      "title": "fix(browser): retain inactive tabs across switches (#1790)",
+      "category": "桌面/界面",
+      "disposition": "本地交互参考：隐藏预览时保留页面状态"
+    },
+    {
+      "source": "Synara",
+      "sha": "fa2404553fd07fceb7e6acd90a882f1bb084da57",
+      "title": "fix(desktop): restore browser tabs after window replacement (#1904)",
+      "category": "桌面/界面",
+      "disposition": "本地交互参考：隐藏预览时保留页面状态"
+    },
+    {
+      "source": "Synara",
+      "sha": "f1ffd5d5cd58d652a63e07ac7d6c57490a3ec064",
+      "title": "fix(web): count automations, not unresolved runs, in sidebar badge (#1026)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "d36a31a294e59ff882e0d8f319af9dd77f9320c8",
+      "title": "fix(computer): repair native targeting, delivery evidence and recovery (#1915)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "775b3359e18bb9429fb59a3dd3e5ef6744e39a57",
+      "title": "release: prepare Synara 1.0.4 Stable",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "f6ffa14e77b9924237235edb35f87790544f5d9f",
+      "title": "fix(release): retry interrupted Apple ticket checks",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "fb2e308124c4d89c17c3a3dfae3c7c6ebc5dd4c6",
+      "title": "test: synchronize release regression checks with completed work",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "a62d7c733d19f5538ffc0d126d57437b3b578ff1",
+      "title": "test(web): await rendered transcript before final follow assertion",
+      "category": "交付/测试/维护",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "9bba1d3f89b0f52d57b17ee706d310c2a0d492a6",
+      "title": "fix(server): preserve Claude sessions across behavior-only option change (#1923)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "587083dedf0ad3b42d10316d8d6fea257ab788bd",
+      "title": "fix(web): offer to stop tasks when provider handoff is blocked (#1922)",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "23662c852aa387f9f47ab07983632570f73bb03d",
+      "title": "feat(connectors): connect remote MCP servers in Beta (#1921)",
+      "category": "其他能力/修复",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "a3b1c8519b8f7e7486e7721f0b191ea4a433d2c8",
+      "title": "fix(web): ignore stale timeline row size reports (#1927)",
+      "category": "IM/消息",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "76a9dac90ccef38407551caa02c04109d61f3a0a",
+      "title": "fix(web): remove subagent chats from the sidebar (#1926)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "427a4209db8188d0f9df045172dbeee75a2496aa",
+      "title": "feat(web): prioritize chats needing attention in Activity (#1929)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "74e0b3654c91e2f5478e14d0c7137e71cf12837a",
+      "title": "fix(device): iOS simulator input on Xcode 27, E2E agent tools, and all #1905 stability fixes (#1924)",
+      "category": "移动/设备",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "84a219bce89239c1c6c6975e400b7ebc35142702",
+      "title": "fix(browser): preserve composer focus during native hover (#1928)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "b7f503f9660fee15d9ae9e9a3fcb5168d4e20e88",
+      "title": "fix(browser): stop agent input from taking native focus (#1925)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "42fe8a7a66291ce8959bffd20249778752b4601a",
+      "title": "Enable React and HTML chat visualizations in Stable (#1932)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "dd18bd993962e46271ee17e5143ee5fb30d7f347",
+      "title": "feat(web): animated ASCII background on the empty chat landing (#1930)",
+      "category": "IM/消息",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "e571029d69d6e9a0f624bc48bf70a88107454f83",
+      "title": "fix(server): resolve thread detail task state in one pass (#1917)",
+      "category": "桌面/界面",
+      "disposition": "已核对提交主题；本版未移植"
+    },
+    {
+      "source": "Synara",
+      "sha": "a21eb2b43dc16dcc33c55271070d3bdb4a3c1cfb",
+      "title": "fix(stats): stop double-counting Claude usage and split cache reads (#1931)",
+      "category": "模型/用量",
+      "disposition": "已核对提交主题；本版未移植"
+    }
+  ]
+}

@@ -29,7 +29,7 @@ try {
  async beginAuthorization(){return {id:'challenge',qrCodeUrl:'https://weixin.qq.com/test',createdAt:Date.now()};}
  async waitAuthorization(challenge,signal){await new Promise(resolve=>setTimeout(resolve,20)); if(signal.aborted)throw Error('aborted');return {token:'secret-test',botId:'bot',userId:'owner',baseUrl:'https://ilinkai.weixin.qq.com'};}
  async notifyStart(){}
- async poll(cursor,signal){if(this.polled)return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(Error('aborted')),{once:true}));this.polled=true;return {cursor:'next',messages:[{messageId:'1',senderId:'intruder',text:'ignore',contextToken:'x'},{messageId:'2',senderId:'owner',text:'hello',contextToken:'ctx'},{messageId:'2',senderId:'owner',text:'hello',contextToken:'ctx'}]};}
+ async poll(cursor,signal){if(this.polled)return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(Error('aborted')),{once:true}));this.polled=true;return {cursor:'next',messages:[{messageId:'1',senderId:'intruder',text:'ignore',contextToken:'x'},{messageId:'2',senderId:'owner',text:'hello',contextToken:'ctx'},{messageId:'2',senderId:'owner',text:'hello',contextToken:'ctx'},{messageId:'3',senderId:'owner',text:'continue',contextToken:'ctx',quote:{text:'MyCode /continue session-a next'}}]};}
  async sendMessage(input){if(input.peerId!=='owner'||input.contextToken!=='ctx')throw Error('invalid peer');}
  }`,
           }));
@@ -49,7 +49,7 @@ try {
   const bot = createWechat(host);
   const incoming = [];
   bot.onMessage((e) => incoming.push(e));
-  assert.equal(bot.getStatus().kind, "Disconnected");
+  assert.equal(bot.getStatus().kind, "disconnected");
   await assert.rejects(bot.init(), /Scan/);
   await bot.authorize();
   assert(bot.publicState().qrImage.startsWith("data:image/png;base64,"));
@@ -58,9 +58,17 @@ try {
   assert.equal(bot.publicState().token, undefined);
   await bot.init();
   await new Promise((resolve) => setTimeout(resolve, 10));
-  assert.equal(incoming.length, 1);
+  assert.equal(bot.getStatus().kind, "connected");
+  assert.equal(incoming.length, 2);
   assert.equal(incoming[0].text, "hello");
+  assert.equal(incoming[1].replyContext.text, "MyCode /continue session-a next");
   await bot.sendText("owner", "reply");
+  assert.equal(JSON.parse(secrets.get("wechat-context")).token, "ctx");
+  const reconnected = createWechat(host);
+  await reconnected.init();
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  await reconnected.sendText("owner", "notification after restart");
+  await reconnected.dispose();
   await assert.rejects(bot.sendText("intruder", "reply"));
   await bot.dispose();
   await assert.rejects(bot.sendText("owner", "reply"));

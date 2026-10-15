@@ -1522,6 +1522,9 @@
   "scanned": "已扫码，请在微信中确认",
   "verification-required": "需要验证码",
   "Authorization failed": "授权失败",
+  "Authorization expired": "微信授权已失效，请重新扫码",
+  "Retry connection": "重试连接",
+  "After connecting, send one message to the WeChat bot to enable task completion notifications.": "连接后请先给微信机器人发送一条消息，才可接收任务完成通知。",
   "CLI scope": "CLI 使用范围",
   "Global (this computer)": "全局（本机）",
   "Using the CLI installed on this computer.": "正在使用本机全局 CLI。",
@@ -2385,6 +2388,7 @@
   "MonoCode installs and starts its background host, then connects securely. Your SSH keys and config are used automatically. Enable SSH on the host and sign in to Codex or Claude Code there. On Windows and Mac, keep the host’s desktop account signed in and the machine awake. Locking the desktop is fine.": "MyCode 会安装并启动后台宿主，使用你的 SSH 密钥和配置建立连接。请在远程电脑启用 SSH 并登录对应 CLI。Windows 和 Mac 须保持账号登录且电脑处于唤醒状态，可以锁屏。",
   "On Linux, setup installs a systemd user service and turns on lingering for your account (": "Linux 会安装 systemd 用户服务并启用账号持续运行（",
   "), so the host and your other user services keep running after you log out. The host keeps running until you stop it on that machine; removing it here only disconnects this desktop.": "），使宿主及其他用户服务在注销后继续运行。请在远程电脑上停止宿主；在此移除仅断开本机连接。",
+  "), so the host and your other user services keep running after you log out. Without systemd, as in many containers and microVMs, the host runs as a background process instead and is started again when you reconnect. The host keeps running until you stop it on that machine; removing it here only disconnects this desktop.": "），使宿主及其他用户服务在注销后继续运行。若 Linux 环境没有 systemd（例如部分容器和微型虚拟机），宿主会作为后台进程运行，并在下次连接时重新启动。宿主会持续运行，直到你在远程设备停止它；在此移除只会断开本机连接。",
   "SSH password or passphrase": "SSH 密码或密钥口令",
   "Reject": "拒绝",
   "Cancel connection": "取消连接",
@@ -2637,5 +2641,14 @@
   "Error: Host rejected request: This agent is not available on this host. Choose another agent to continue.": "请求失败：主机拒绝请求：此主机无法使用该智能体，请选择其他智能体后继续。",
   "Connecting to SSH and setting up MyCode Host…": "正在连接 SSH 并配置 MyCode Host…",
   "status::Open": "待处理",
-  "Install CLI": "安装 CLI"
+  "Install CLI": "安装 CLI",
+  "Sessions, new replies": "会话，有新回复",
+  "Overview": "概览",
+  "Provider usage": "服务商用量",
+  "Hide overview": "隐藏概览",
+  "Agents of your own that work across your projects and run habits on their own.": "专属智能体可以跨项目工作，并按设定自主执行习惯任务。",
+  "Create mono": "创建智能体",
+  "Hide monos from the rail. Turn them back on in Settings › Monos.": "从侧边栏隐藏智能体。可在设置 › 智能体中重新显示。",
+  "Search sessions": "搜索会话",
+  "Search sessions...": "搜索会话…"
 }

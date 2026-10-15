@@ -24,6 +24,9 @@ vi.mock("@tauri-apps/api/core", async (original) => ({
 }));
 
 describe("CRLF editor Git boundaries", () => {
+  // Each case starts a real Git repository and several Git processes; Windows startup
+  // can exceed Vitest's default five-second limit under concurrent test load.
+  vi.setConfig({ testTimeout: 30_000 });
   let directory: string;
   let root: Root;
   let container: HTMLDivElement;

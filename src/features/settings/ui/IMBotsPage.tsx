@@ -23,6 +23,7 @@ type Bot = {
   qrImage?: string;
   verificationRequired?: boolean;
   ownerId?: string;
+  readyForNotifications?: boolean;
   status: string;
   running: boolean;
   route: Route | null;
@@ -98,6 +99,7 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
     };
   }, []);
   const current = bots.find((b) => b.channel === channel);
+  const retryConnection = Boolean(current?.running && current.status === "Connection failed");
   const fields =
     channel === "wechat"
       ? []
@@ -140,6 +142,11 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
               "Scan with WeChat to authorize a local connection. The authorized account is the only allowed sender.",
             )}
           </p>
+          {current?.ownerId && !current.readyForNotifications ? (
+            <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-content/80">
+              {t("After connecting, send one message to the WeChat bot to enable task completion notifications.")}
+            </p>
+          ) : null}
           <button
             type="button"
             disabled={busy}
@@ -273,9 +280,9 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
         <button
           disabled={busy || !current?.route}
           type="button"
-          onClick={() => void request(current?.running ? "stop" : "start")}
+          onClick={() => void request(current?.running && !retryConnection ? "stop" : "start")}
         >
-          {t(current?.running ? "Disconnect" : "Connect saved bot")}
+          {t(retryConnection ? "Retry connection" : current?.running ? "Disconnect" : "Connect saved bot")}
         </button>
       </div>
     </form>
@@ -314,7 +321,7 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
               >
                 <span
                   aria-hidden="true"
-                  className={`size-2 shrink-0 rounded-full ${bot?.running ? "bg-emerald-500" : "bg-content/20"}`}
+                  className={`size-2 shrink-0 rounded-full ${bot?.status === "connected" ? "bg-emerald-500" : "bg-content/20"}`}
                 />
                 <span className="min-w-0">
                   <strong className="block">{t(label)}</strong>

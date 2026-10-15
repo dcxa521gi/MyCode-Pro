@@ -152,8 +152,8 @@ export function SidebarWorktreeSwitcher({
     focus &&
     worktrees.find((tree) => pathKey(tree.path) === pathKey(focus.path));
   const title = focus
-    ? (focused?.branch ?? focus.branch ?? "Detached worktree")
-    : "Workspace";
+    ? (focused?.branch ?? focus.branch ?? t("Detached worktree"))
+    : t("Workspace");
   return (
     <>
       <button
