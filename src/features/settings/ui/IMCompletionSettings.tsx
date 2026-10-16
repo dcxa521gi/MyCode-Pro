@@ -81,6 +81,9 @@ export function IMCompletionSettings() {
           "Only the configured allowed user can continue a notified session using /continue and its session ID. Tool approvals still require the desktop app.",
         )}
       </p>
+      <p className="rounded-lg border border-content/10 bg-content/[0.035] px-3 py-2 text-xs leading-relaxed text-content/60">
+        {t("In the bot, send /projects to list projects, /switch-project number-or-name to switch, or /new-project name | request to create a project and start a task. Only the configured allowed user can use these commands.")}
+      </p>
       {error && (
         <p role="alert" className="text-xs text-red-400">
           {t("Could not load IM channels. Configure a bot in IM bots first.")}

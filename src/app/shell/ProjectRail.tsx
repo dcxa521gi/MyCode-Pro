@@ -586,7 +586,7 @@ export function ProjectRail({
               shortcut={`${MOD},`}
               ariaLabel={`${t("Settings")} (${MOD},)`}
             />
-            <AccountCenter />
+            <AccountCenter onManageModels={() => { onOpenSettings?.(); onSelectSettingsSection?.("providers"); }} />
           </div>
         </>
       )}

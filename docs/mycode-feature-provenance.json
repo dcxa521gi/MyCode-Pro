@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedDate": "2026-10-15",
-  "currentProductVersion": "0.22.0",
-  "sourceCommit": "cf42fc63f429b9d65095712464836b2cdabe977e",
+  "recordedDate": "2026-10-16",
+  "currentProductVersion": "0.23.0",
+  "sourceCommit": "待发布（以 v0.23.0 标签为准）",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -234,6 +234,16 @@
       "releaseDoc": "mycode-0.22.0.md",
       "monoBaseline": "633730d70dd3e6cb8113af28c062dd1ea9228c0d → 5c21f014d4bdaa766b260b8d120174ad60358c2f；41提交逐项核对",
       "complementBaseline": "Cindy 3ea9099 → 0bbf5b3，128提交；Synara b4bdc73 → a21eb2b，21提交；只采本地能力"
+    },
+    {
+      "key": "0.23.0",
+      "display": "0.23.0",
+      "tag": "v0.23.0",
+      "tagCommit": "待发布",
+      "date": "2026-10-16",
+      "releaseDoc": "mycode-0.23.0.md",
+      "monoBaseline": "5c21f014d4bdaa766b260b8d120174ad60358c2f → 3e37ad3c00bde790813473dfa7911160edc1339a；5提交完整融合",
+      "complementBaseline": "Cindy 0bbf5b39 → a1fbbb8e，347提交；Synara a21eb2b → f2614e58，13提交；核对本地能力"
     }
   ],
   "requirements": [
@@ -1037,16 +1047,63 @@
       "scope": "排除云依赖，选择可在本机运行的能力和交互适配。",
       "events": [
         "MC-0.22.0-005",
-        "MC-0.22.0-007"
+        "MC-0.22.0-007",
+        "MC-0.23.0-011",
+        "MC-0.23.0-012"
       ],
       "evidenceLevel": "仓库提交审阅和本地适配验证"
+    },
+    {
+      "id": "R67",
+      "title": "词元跳动成为唯一账号登录与模型授权入口",
+      "scope": "移除旧账号服务入口，保留旧数据；账户卡仅显示官方 API 可取得的字段。",
+      "events": [
+        "MC-0.23.0-006",
+        "MC-0.23.0-007",
+        "MC-0.23.0-010"
+      ],
+      "evidenceLevel": "本轮用户明确要求与源码、模块测试"
+    },
+    {
+      "id": "R68",
+      "title": "会话空输入框上下键无论焦点位置均可回看已发送内容",
+      "scope": "输入框自身和非输入控件都支持；不抢占其他输入框或输入法。",
+      "events": [
+        "MC-0.23.0-008"
+      ],
+      "evidenceLevel": "本轮用户明确要求与源码、模块测试"
+    },
+    {
+      "id": "R69",
+      "title": "IM 列出所有项目并支持创建和切换",
+      "scope": "历史会话数据库、默认工作区、已登记路径共同构成目录；仅 IM owner 可用。",
+      "events": [
+        "MC-0.23.0-009",
+        "MC-0.23.0-010",
+        "MC-0.23.0-011"
+      ],
+      "evidenceLevel": "本轮用户明确要求与源码、模块测试"
+    },
+    {
+      "id": "R70",
+      "title": "融合 MonoCode 本轮五项新增能力",
+      "scope": "主线上游五提交逐项适配并提供中文。",
+      "events": [
+        "MC-0.23.0-001",
+        "MC-0.23.0-002",
+        "MC-0.23.0-003",
+        "MC-0.23.0-004",
+        "MC-0.23.0-005",
+        "MC-0.23.0-010"
+      ],
+      "evidenceLevel": "本轮用户明确要求与源码、模块测试"
     }
   ],
   "features": [
     {
       "id": "BASE",
       "firstRecordedVersion": "0.5.0",
-      "lastChangedVersion": "0.21.0",
+      "lastChangedVersion": "0.23.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1056,7 +1113,10 @@
       "changes": [
         "MC-0.5.0-001",
         "MC-0.21.0-021",
-        "MC-0.21.0-026"
+        "MC-0.21.0-026",
+        "MC-0.23.0-001",
+        "MC-0.23.0-002",
+        "MC-0.23.0-005"
       ]
     },
     {
@@ -1079,7 +1139,7 @@
     {
       "id": "I18N",
       "firstRecordedVersion": "0.5.0",
-      "lastChangedVersion": "0.22.0",
+      "lastChangedVersion": "0.23.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1099,7 +1159,8 @@
         "MC-0.19.1-013",
         "MC-0.20.0-030",
         "MC-0.21.0-033",
-        "MC-0.22.0-006"
+        "MC-0.22.0-006",
+        "MC-0.23.0-010"
       ]
     },
     {
@@ -1257,7 +1318,7 @@
     {
       "id": "IM",
       "firstRecordedVersion": "0.6.0",
-      "lastChangedVersion": "0.22.0",
+      "lastChangedVersion": "0.23.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1271,7 +1332,9 @@
         "MC-0.12.0-012",
         "MC-0.15.0-015",
         "MC-0.21.0-029",
-        "MC-0.22.0-007"
+        "MC-0.22.0-007",
+        "MC-0.23.0-009",
+        "MC-0.23.0-011"
       ]
     },
     {
@@ -1616,14 +1679,15 @@
     {
       "id": "SESSION-REFERENCE",
       "firstRecordedVersion": "0.9.0",
-      "lastChangedVersion": "0.9.0",
+      "lastChangedVersion": "0.23.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
         "src/features/agent-app/model/sessionConversation.ts"
       ],
       "changes": [
-        "MC-0.9.0-007"
+        "MC-0.9.0-007",
+        "MC-0.23.0-003"
       ]
     },
     {
@@ -1665,21 +1729,23 @@
     {
       "id": "LOGIN",
       "firstRecordedVersion": "0.10.0",
-      "lastChangedVersion": "0.12.0",
-      "status": "保留；具体范围/实测条件见版本记录",
+      "lastChangedVersion": "0.23.0",
+      "status": "旧账号入口已替换为词元跳动；旧凭据文件保留不读取",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
-        "src-tauri/src/account_center.rs"
+        "src/app/shell/AccountCenter.tsx",
+        "src-tauri/src/local_ai.rs"
       ],
       "changes": [
         "MC-0.10.0-001",
-        "MC-0.12.0-009"
+        "MC-0.12.0-009",
+        "MC-0.23.0-006"
       ]
     },
     {
       "id": "TOKEN-DANCE",
       "firstRecordedVersion": "0.10.0",
-      "lastChangedVersion": "0.19.1",
+      "lastChangedVersion": "0.23.0",
       "status": "保留，显示名称词元跳动",
       "upgradePolicy": "tokendance 内部 ID/API/已有授权不更改；合作卡片随主题与中文显示。",
       "maintenancePaths": [
@@ -1688,7 +1754,8 @@
       ],
       "changes": [
         "MC-0.10.0-002",
-        "MC-0.19.1-011"
+        "MC-0.19.1-011",
+        "MC-0.23.0-007"
       ]
     },
     {
@@ -1740,7 +1807,7 @@
     {
       "id": "PERFORMANCE",
       "firstRecordedVersion": "0.11.0",
-      "lastChangedVersion": "0.20.0",
+      "lastChangedVersion": "0.23.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1751,7 +1818,8 @@
         "MC-0.11.0-010",
         "MC-0.11.0-011",
         "MC-0.15.0-017",
-        "MC-0.20.0-017"
+        "MC-0.20.0-017",
+        "MC-0.23.0-012"
       ]
     },
     {
@@ -1924,14 +1992,15 @@
     {
       "id": "INPUT-HISTORY",
       "firstRecordedVersion": "0.13.0",
-      "lastChangedVersion": "0.13.0",
+      "lastChangedVersion": "0.23.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
         "src/features/sessions/ui/Composer.tsx"
       ],
       "changes": [
-        "MC-0.13.0-004"
+        "MC-0.13.0-004",
+        "MC-0.23.0-008"
       ]
     },
     {
@@ -2316,14 +2385,15 @@
     {
       "id": "DIFF",
       "firstRecordedVersion": "0.18.0",
-      "lastChangedVersion": "0.18.0",
+      "lastChangedVersion": "0.23.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
         "src/features/source-control"
       ],
       "changes": [
-        "MC-0.18.0-017"
+        "MC-0.18.0-017",
+        "MC-0.23.0-004"
       ]
     },
     {
@@ -9063,6 +9133,245 @@
       "maintenancePaths": [
         "vendor/cindy-wechat-ilink/src",
         "runtime/wechat.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-001",
+      "version": "0.23.0",
+      "feature": "BASE",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R70"
+      ],
+      "title": "标签右键关闭全部标签",
+      "detail": "同步 MonoCode #1005；保留 MyCode 工作区、未保存文件与终端确认。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "src/app/App.tsx",
+        "src/app/shell/TitleBar.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-002",
+      "version": "0.23.0",
+      "feature": "BASE",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R70"
+      ],
+      "title": "Finder 本地 Git 查找 git-lfs",
+      "detail": "同步 MonoCode #1004；macOS Finder 环境补 PATH，Windows 行为保留。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "src-tauri/src/fs.rs",
+        "src-tauri/src/harness.rs"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-003",
+      "version": "0.23.0",
+      "feature": "SESSION-REFERENCE",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R70"
+      ],
+      "title": "回复末段整段选择",
+      "detail": "同步 MonoCode #1001；保留 MyCode 选区加入对话操作。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "src/features/sessions/hooks/useTranscriptSelection.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-004",
+      "version": "0.23.0",
+      "feature": "DIFF",
+      "origin": "MONO",
+      "action": "同步",
+      "requirements": [
+        "R70"
+      ],
+      "title": "Diff 滚动条按渲染行定位",
+      "detail": "同步 MonoCode #1002；不改变现有 diff 数据。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "src/features/files/editor/editorGit.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-005",
+      "version": "0.23.0",
+      "feature": "BASE",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [
+        "R70"
+      ],
+      "title": "隐藏仅网页命令右键菜单",
+      "detail": "同步 MonoCode #1003；保留文本、链接、媒体、终端原生菜单。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "src/shared/lib/nativeContextMenu.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-006",
+      "version": "0.23.0",
+      "feature": "LOGIN",
+      "origin": "MYCODE",
+      "action": "替换",
+      "requirements": [
+        "R67"
+      ],
+      "title": "词元跳动成为唯一账号入口",
+      "detail": "停用旧 OAuth 命令及 UI，旧凭据文件不迁移不删除；现有词元跳动 Key 可识别。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "src/app/shell/AccountCenter.tsx",
+        "src-tauri/src/lib.rs"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-007",
+      "version": "0.23.0",
+      "feature": "TOKEN-DANCE",
+      "origin": "VENDOR",
+      "action": "接入",
+      "requirements": [
+        "R67"
+      ],
+      "title": "词元跳动余额与可得资料",
+      "detail": "官方开放平台 API 查余额和用量关联 ID；资料接口若不可用于 Key 则字段缺省。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "src-tauri/src/local_ai.rs",
+        "src-tauri/src/tokendance.rs"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-008",
+      "version": "0.23.0",
+      "feature": "INPUT-HISTORY",
+      "origin": "MYCODE",
+      "action": "修复",
+      "requirements": [
+        "R68"
+      ],
+      "title": "发送历史上下键聚焦与失焦均可用",
+      "detail": "会话用户消息传入输入框，排除其他输入控件与输入法。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "src/features/sessions/ui/SessionPane.tsx",
+        "src/features/sessions/ui/Composer.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-009",
+      "version": "0.23.0",
+      "feature": "IM",
+      "origin": "MYCODE",
+      "action": "增强",
+      "requirements": [
+        "R69"
+      ],
+      "title": "IM 全项目目录与项目切换创建",
+      "detail": "历史会话库与工作区项目合并；仅已配置 owner 可使用，显式引用继续原会话。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "src/app/App.tsx",
+        "src-tauri/src/session_store.rs",
+        "src/features/settings/model/imProjects.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-010",
+      "version": "0.23.0",
+      "feature": "I18N",
+      "origin": "MYCODE",
+      "action": "完善",
+      "requirements": [
+        "R67",
+        "R69",
+        "R70"
+      ],
+      "title": "新增 UI 与 IM 指令双语",
+      "detail": "账号卡、标签操作和 IM 项目命令提供简体中文与英文。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "src/shared/i18n/zh-CN.json",
+        "src/features/settings/model/imProjects.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-011",
+      "version": "0.23.0",
+      "feature": "IM",
+      "origin": "CINDY_REFERENCE",
+      "action": "核对",
+      "requirements": [
+        "R66",
+        "R69"
+      ],
+      "title": "Cindy IM 归属与回退机制核对",
+      "detail": "仅参考本地 owner 边界与项目路由；群聊及 Cindy 云服务不纳入。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "runtime/im-bridge.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.0-012",
+      "version": "0.23.0",
+      "feature": "PERFORMANCE",
+      "origin": "SYNARA_REFERENCE",
+      "action": "核对",
+      "requirements": [
+        "R66"
+      ],
+      "title": "Synara 本地性能与档位能力核对",
+      "detail": "动态档位及请求流按 MyCode 当前实现对照，未宣称移植 Synara 服务端架构。",
+      "evidence": [
+        "mycode-0.23.0.md"
+      ],
+      "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
+      "maintenancePaths": [
+        "src/integrations/harness/providers/claude/claudeCatalog.ts"
       ]
     }
   ],

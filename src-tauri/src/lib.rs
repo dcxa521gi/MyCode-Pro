@@ -7,7 +7,6 @@ mod power;
 mod turn_recovery;
 use tauri::Manager;
 
-mod account_center;
 mod account_identity;
 mod app_update;
 mod artifacts;
@@ -376,6 +375,8 @@ pub fn run() {
             cache_location::cache_set_location,
             cache_location::workspace_set_location,
             cache_location::create_project_folder,
+            cache_location::workspace_projects,
+            session_store::session_project_catalog,
             voice::voice_config,
             voice::voice_use_provider,
             voice::voice_save,
@@ -428,9 +429,7 @@ pub fn run() {
             local_ai::local_ai_discover_models,
             gitcode::gitcode_config,
             gitcode::gitcode_items,
-            account_center::account_center_status,
-            account_center::account_center_login,
-            account_center::account_center_logout,
+            local_ai::tokendance_account_status,
             tokendance::tokendance_authorize,
             tokendance::tokendance_exchange,
             app_update::app_update_download,

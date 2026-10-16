@@ -1720,9 +1720,9 @@ export function Composer({
         e.ctrlKey ||
         e.metaKey ||
         !["ArrowUp", "ArrowDown"].includes(e.key) ||
-        target.closest(
+        (target !== el && target.closest(
           "input,textarea,select,[contenteditable=true],[role=dialog],[role=menu]",
-        )
+        ))
       )
         return;
       if (el.value.trim() && historyIndex.current === null) return;

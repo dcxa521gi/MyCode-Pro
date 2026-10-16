@@ -35,6 +35,7 @@ import {
 } from "../features/sessions/model/draftCache";
 import { BrowserDock } from "../features/files/ui/BrowserDock";
 import { defaultWorkspace } from "../platform/tauri/workspace";
+import { formatIMProjects, parseIMProjectCommand } from "../features/settings/model/imProjects";
 import { findModel } from "../features/sessions/model/models";
 import { CliReadyDialog } from "../features/providers/ui/CliReadyDialog";
 import { NewTaskDialog } from "../features/sessions/ui/NewTaskDialog";
@@ -1032,6 +1033,27 @@ function filesInWorkspaceTabs(tabs: readonly WorkspaceTab[]): FilePaneTab[] {
 
 /** Stable empty tab list for the title bar while a Mono is in full view. */
 const NO_TITLE_TABS: [] = [];
+
+function loadIMProjectSelections(): Map<string, string> {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem("mycode.imProjectSelections") || "{}");
+    if (!value || typeof value !== "object" || Array.isArray(value)) return new Map();
+    return new Map(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
+  } catch { return new Map(); }
+}
+function persistIMProjectSelections(value: Map<string, string>) {
+  try { localStorage.setItem("mycode.imProjectSelections", JSON.stringify(Object.fromEntries(value))); }
+  catch { /* Continue routing in memory if local storage is unavailable. */ }
+}
+function imKnownProjectLocations(): string[] {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem("monocode.projectLocations") || "{}");
+    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+    return Object.values(value).flatMap((item) =>
+      item && typeof item === "object" && "path" in item && typeof item.path === "string" ? [item.path] : [],
+    );
+  } catch { return []; }
+}
 
 /** Native sheet. `window.confirm` is swallowed when a macOS menu accelerator fires. */
 function confirmDiscardUnsaved(message: string): Promise<boolean> {
@@ -3661,7 +3683,7 @@ function Workspace({
   }, []);
 
   const onClearTabSession = useCallback(
-    (id: string) => {
+    (id: string, opts?: { confirmed?: boolean }) => {
       const tab = tabs.find((entry) => entry.id === id);
       if (!tab || isBlankWorkspaceTab(tab, sessionsRef.current)) return;
 
@@ -3741,7 +3763,8 @@ function Workspace({
         void refreshHistory(sidebarCwd);
       };
 
-      if (unsaved.length === 0) {
+      // The caller already confirmed unsaved files.
+      if (unsaved.length === 0 || opts?.confirmed) {
         finishClear();
         return;
       }
@@ -3773,23 +3796,97 @@ function Workspace({
     [onClearTabSession, onCloseTab, tabCloseScope],
   );
 
+  const seedSession = useCallback((cwd: string) => {
+    const seed = sessionsRef.current[0];
+    return newSession(
+      seed?.harness ?? "claude",
+      cwd,
+      seed?.model,
+      seed?.runtimeMode,
+      seed?.modelSettings,
+    );
+  }, []);
+
+  // The workspace always keeps one tab, so close every other tab and reset
+  // the active one to a blank session. `scope` limits this to those tabs,
+  // such as the ones the title bar shows. Every confirmation runs before
+  // any tab changes, so a cancelled prompt leaves all tabs.
+  const onCloseEveryTab = useCallback(
+    (scope?: readonly string[]) => {
+      const inScope = scope ? new Set(scope) : null;
+      const tab = tabsRef.current.find(
+        (entry) => entry.id === activeTabIdRef.current,
+      );
+      if (!tab || (inScope && !inScope.has(tab.id))) return;
+
+      const otherIds = tabsRef.current
+        .filter((entry) => entry.id !== tab.id)
+        .filter((entry) => !inScope || inScope.has(entry.id))
+        .map((entry) => entry.id);
+      const keptFiles = [
+        ...tab.editorPanes.flatMap((pane) => pane.files),
+        ...(tab.terminalPanes ?? []).flatMap((pane) => pane.files),
+      ];
+      const closingFiles = [
+        ...tabsRef.current
+          .filter((entry) => otherIds.includes(entry.id))
+          .flatMap((entry) => [
+            ...entry.editorPanes.flatMap((pane) => pane.files),
+            ...(entry.terminalPanes ?? []).flatMap((pane) => pane.files),
+          ]),
+        ...keptFiles,
+      ];
+      const unsaved = closingFiles.filter(
+        (file) => isFilesystemTab(file) && dirtyFilesRef.current.has(file.id),
+      );
+      const terminals = closingFiles.filter((file) => file.terminal);
+
+      void (async () => {
+        if (unsaved.length > 0) {
+          const ok = await confirmDiscardUnsaved(
+            uiTranslate("Close all tabs with unsaved files?"),
+          );
+          if (!ok) return;
+        }
+        if (terminals.length > 0) {
+          const ok = await confirmCloseTerminals(terminals);
+          if (!ok) return;
+        }
+        if (otherIds.length > 0) {
+          onCloseTabs(otherIds, tab.id, { confirmed: true });
+        }
+        const hasSession = leafIds(tab.layout).some((paneId) =>
+          sessionsRef.current.some((session) => session.id === paneId),
+        );
+        if (hasSession) {
+          onClearTabSession(tab.id, { confirmed: true });
+          return;
+        }
+        // The tab held no session: seed one so the workspace stays usable.
+        const session = seedSession(keptFiles[0]?.cwd || projectCwd);
+        setSessions((prev) => [...prev, session]);
+        setDirtyFiles((prev) => {
+          const updated = new Set(prev);
+          for (const file of keptFiles) updated.delete(file.id);
+          return updated;
+        });
+        setTabs((prev) =>
+          prev.map((entry) =>
+            entry.id === tab.id ? resetTabToSession(entry, session.id) : entry,
+          ),
+        );
+        setComposerFocused(true);
+      })();
+    },
+    [onCloseTabs, onClearTabSession, projectCwd, seedSession],
+  );
+
   const onCloseAllTabs = useCallback(() => {
     closeMonoView();
     const tab = tabsRef.current.find(
       (entry) => entry.id === activeTabIdRef.current,
     );
     if (!tab) return;
-
-    const seedSession = (cwd: string) => {
-      const seed = sessionsRef.current[0];
-      return newSession(
-        seed?.harness ?? "claude",
-        cwd,
-        seed?.model,
-        seed?.runtimeMode,
-        seed?.modelSettings,
-      );
-    };
 
     // Stage one: files open in the active tab's editor panes close first.
     // Only when none are open does the command close every workspace tab.
@@ -3851,62 +3948,9 @@ function Workspace({
       return;
     }
 
-    // Stage two: the workspace always keeps one tab, so close every other
-    // tab and reset the active one to a blank session. Every confirmation
-    // runs before any tab changes, so a cancelled prompt leaves all tabs.
-    const otherIds = tabsRef.current
-      .filter((entry) => entry.id !== tab.id)
-      .map((entry) => entry.id);
-    const terminalFiles = (tab.terminalPanes ?? []).flatMap(
-      (pane) => pane.files,
-    );
-    const closingFiles = [
-      ...tabsRef.current
-        .filter((entry) => otherIds.includes(entry.id))
-        .flatMap((entry) => [
-          ...entry.editorPanes.flatMap((pane) => pane.files),
-          ...(entry.terminalPanes ?? []).flatMap((pane) => pane.files),
-        ]),
-      ...terminalFiles,
-    ];
-    const unsaved = closingFiles.filter(
-      (file) => isFilesystemTab(file) && dirtyFilesRef.current.has(file.id),
-    );
-    const terminals = closingFiles.filter((file) => file.terminal);
-
-    void (async () => {
-      if (unsaved.length > 0) {
-        const ok = await confirmDiscardUnsaved(
-          "Close all tabs with unsaved files?",
-        );
-        if (!ok) return;
-      }
-      if (terminals.length > 0) {
-        const ok = await confirmCloseTerminals(terminals);
-        if (!ok) return;
-      }
-      if (otherIds.length > 0) {
-        onCloseTabs(otherIds, tab.id, { confirmed: true });
-      }
-      const hasSession = leafIds(tab.layout).some((paneId) =>
-        sessionsRef.current.some((session) => session.id === paneId),
-      );
-      if (hasSession) {
-        // No editor files remain, so this commits without a prompt.
-        onClearTabSession(tab.id);
-        return;
-      }
-      // The tab held no session: seed one so the workspace stays usable.
-      const session = seedSession(terminalFiles[0]?.cwd || projectCwd);
-      setSessions((prev) => [...prev, session]);
-      setTabs((prev) =>
-        prev.map((entry) =>
-          entry.id === tab.id ? resetTabToSession(entry, session.id) : entry,
-        ),
-      );
-      setComposerFocused(true);
-    })();
-  }, [onCloseTab, onCloseTabs, onClearTabSession, projectCwd, tabCloseScope]);
+    // Stage two: no files are open, so close every workspace tab.
+    onCloseEveryTab();
+  }, [onCloseEveryTab, onCloseTab, projectCwd, seedSession, tabCloseScope]);
 
   const onClosePane = useCallback(
     (sessionId?: string) => {
@@ -8755,6 +8799,7 @@ function Workspace({
   );
 
   const imSessions = useRef(new Map<string, string>());
+  const imSelectedProjects = useRef(loadIMProjectSelections());
   useEffect(() => subscribeIMProviderWake((wake) => {
     const current = sessionsRef.current.find((session) => session.id === wake.sessionId);
     if (!current || current.busy || current.harness !== wake.harness || sessionWorkCwd(current) !== wake.cwd) return;
@@ -8778,14 +8823,16 @@ function Workspace({
     type IncomingIM = {
       receipt: string;
       sessionId?: string;
+      explicitContinuation?: boolean;
       channel: string;
       senderId: string;
       text: string;
       route: { cwd: string; harness: HarnessId; model: string };
+      baseRoute?: { cwd: string; harness: HarnessId; model: string };
     };
     void listen<IncomingIM>("mycode-im-message", (event) => {
       void (async () => {
-        const message = event.payload;
+        let message = event.payload;
         const reply = (text: string) =>
           invoke("im_bridge_request", {
             request: {
@@ -8795,20 +8842,61 @@ function Workspace({
               text,
             },
           }).catch(() => undefined);
-        const lane = `${message.channel}:${message.senderId}:${message.route.cwd}:${message.route.harness}:${message.route.model}`;
+        const ownerKey = `${message.channel}:${message.senderId}`;
+        const command = parseIMProjectCommand(message.text);
+        const projectCatalog = async () => {
+          const [stored, workspace] = await Promise.all([
+            invoke<string[]>("session_project_catalog").catch(() => []),
+            invoke<string[]>("workspace_projects").catch(() => []),
+          ]);
+          return [...new Set([...stored, ...workspace, ...imKnownProjectLocations(), ...loadRecents().map((item) => item.path), ...sessionsRef.current.map((item) => item.cwd)])]
+            .filter((path) => path && path !== "~")
+            .sort((a, b) => a.localeCompare(b, "zh-CN"));
+        };
+        if (command?.kind === "list") {
+          void reply(formatIMProjects(await projectCatalog(), command.page, command.completedQuestion, uiLocale() === "zh-CN"));
+          return;
+        }
+        if (command?.kind === "switch") {
+          const projects = await projectCatalog();
+          const candidates = /^\d+$/.test(command.selector)
+            ? [projects[Number(command.selector) - 1]].filter((path): path is string => !!path)
+            : projects.filter((path) => path === command.selector || path.replace(/\\/g, "/").split("/").pop() === command.selector);
+          if (candidates.length > 1) { void reply(uiLocale() === "zh-CN" ? "存在同名项目，请发送 /项目 后使用编号切换。" : "Several projects share this name. Send /projects and switch by number."); return; }
+          const selected = candidates[0];
+          if (!selected) { void reply(uiLocale() === "zh-CN" ? "未找到项目。发送 /项目 查看全部项目和编号。" : "Project not found. Send /projects to see names and numbers."); return; }
+          imSelectedProjects.current.set(ownerKey, selected);
+          persistIMProjectSelections(imSelectedProjects.current);
+          void reply(uiLocale() === "zh-CN" ? `已切换到项目：${selected}\n下一条消息将在此项目中开始或继续 IM 会话。` : `Switched to: ${selected}\nThe next message will start or continue the IM session in this project.`);
+          return;
+        }
+        if (command?.kind === "create") {
+          try {
+            const cwd = await invoke<string>("create_project_folder", { parent: await defaultWorkspace(), name: command.name });
+            imSelectedProjects.current.set(ownerKey, cwd);
+            persistIMProjectSelections(imSelectedProjects.current);
+            setRecents(rememberProject(cwd));
+            if (!command.prompt) { void reply(uiLocale() === "zh-CN" ? `已创建并切换项目：${cwd}\n发送消息即可开始任务。` : `Created and switched to: ${cwd}\nSend a message to start a task.`); return; }
+            message = { ...message, text: command.prompt };
+          } catch (reason) { const detail = uiTranslate(String(reason)); void reply(uiLocale() === "zh-CN" ? `无法创建项目：${detail}` : `Could not create project: ${detail}`); return; }
+        }
+        const selectedProject = !message.explicitContinuation ? imSelectedProjects.current.get(ownerKey) : undefined;
+        const route = selectedProject ? { ...(message.baseRoute ?? message.route), cwd: selectedProject } : message.route;
+        const sessionId = selectedProject ? undefined : message.sessionId;
+        const lane = `${message.channel}:${message.senderId}:${route.cwd}:${route.harness}:${route.model}`;
         let session = sessionsRef.current.find(
-          (s) => s.id === (message.sessionId ?? imSessions.current.get(lane)),
+          (s) => s.id === (sessionId ?? imSessions.current.get(lane)),
         );
         if (
-          message.sessionId &&
+          sessionId &&
           loadIMCompletion().remoteContinue &&
           loadIMCompletion().channels.includes(message.channel) &&
           !session
         )
-          session = (await ensureOpenSession(message.sessionId)) ?? undefined;
+          session = (await ensureOpenSession(sessionId)) ?? undefined;
         if (disposed) return;
         if (
-          message.sessionId &&
+          sessionId &&
           (!loadIMCompletion().remoteContinue ||
             !loadIMCompletion().channels.includes(message.channel) ||
             !session)
@@ -8829,9 +8917,9 @@ function Workspace({
         if (!session) {
           session = {
             ...newSession(
-              message.route.harness,
-              message.route.cwd,
-              message.route.model,
+              route.harness,
+              route.cwd,
+              route.model,
               "supervised",
             ),
             title: `${message.channel} · ${message.text.slice(0, 48)}`,
@@ -13555,6 +13643,7 @@ function Workspace({
       onOpenNotes={notesEnabled ? onOpenNotes : undefined}
       onClose={onCloseTitleTab}
       onCloseMany={onCloseTabs}
+      onCloseAll={onCloseEveryTab}
       onArchiveTab={onArchiveTitleTab}
       onDeleteTab={onDeleteTitleTab}
       onReorder={onReorderTabs}

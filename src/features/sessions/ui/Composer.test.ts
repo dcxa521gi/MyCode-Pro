@@ -1812,7 +1812,7 @@ describe("Composer question focus", () => {
     await act(async()=>container.querySelector<HTMLButtonElement>('[aria-label="Send"]')!.click());
     expect(onSubmit.mock.calls[0]?.[0]).toContain("> a long selected passage\n> second line\n\nExplain this");
   });
-  it("recalls history only outside the textarea and obeys Ctrl+Enter", async()=>{
+  it("recalls history with or without textarea focus and obeys Ctrl+Enter", async()=>{
     localStorage.setItem("mycode.composer-behavior",JSON.stringify({sendKey:"ctrl-enter",numberedLists:true}));
     const onSubmit=vi.fn(()=>true);
     try {
@@ -1827,6 +1827,8 @@ describe("Composer question focus", () => {
       expect(textarea.value).toBe("1、second");
       textarea.focus();textarea.setSelectionRange(textarea.value.length,textarea.value.length);
       await act(async()=>textarea.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowUp",bubbles:true,cancelable:true})));
+      expect(textarea.value).toBe("first");
+      await act(async()=>textarea.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowDown",bubbles:true,cancelable:true})));
       expect(textarea.value).toBe("1、second");
       await act(async()=>textarea.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true,cancelable:true})));
       expect(textarea.value).toBe("1、second\n2、");

@@ -10,7 +10,7 @@ use tauri::AppHandle;
 
 type Pending = HashMap<String, (String, Instant, bool)>;
 static PENDING: OnceLock<Mutex<Pending>> = OnceLock::new();
-pub const APP_URL: &str = "app://example-desktop";
+pub const APP_URL: &str = "https://github.com/dcxa521gi/MyCode-Pro";
 pub fn is_endpoint(base: &str) -> bool {
     url::Url::parse(base)
         .is_ok_and(|u| u.scheme() == "https" && u.host_str() == Some("tokendance.space"))

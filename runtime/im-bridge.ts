@@ -4,6 +4,7 @@ import path from "node:path";
 import readline from "node:readline";
 import { randomUUID } from "node:crypto";
 import { assertIMNotificationOwner } from "./im-notification-route";
+import { parseIMProjectCommand } from "../src/features/settings/model/imProjects";
 import {
   createFeishuIM,
   createDingTalkIM,
@@ -227,21 +228,24 @@ function init(data: { secrets: Record<string, string>; directory: string }) {
       const command = event.text
         .trim()
         .match(/^\/continue\s+(\S+)\s+([\s\S]+)$/);
+      const projectCommand = parseIMProjectCommand(event.text);
       const quoted = quotedMessageId(event);
       const quotedSession =
         event.replyContext?.text.match(/\/continue\s+(\S+)/)?.[1];
-      const hasQuote = !!quoted || !!event.replyContext;
+      const hasQuote = !projectCommand && (!!quoted || !!event.replyContext);
       const available = [...continuations.entries()].filter(
         ([key, item]) =>
           key.startsWith(`${channel}:`) && item.ownerId === route.ownerId,
       );
-      const continuation = command
+      const continuation = projectCommand ? undefined : command
         ? continuations.get(`${channel}:${command[1]}`)
         : quotedSession
           ? continuations.get(`${channel}:${quotedSession}`)
           : quoted
             ? available.find(([, item]) => item.messages.includes(quoted))?.[1]
-            : available.sort((a, b) => b[1].updated - a[1].updated)[0]?.[1];
+            : available
+                .filter(([, item]) => item.enabled && item.expires >= Date.now())
+                .sort((a, b) => b[1].updated - a[1].updated)[0]?.[1];
       // A notification reply must never fall back into the bot's default project.
       if (
         (command || hasQuote || continuation) &&
@@ -271,6 +275,8 @@ function init(data: { secrets: Record<string, string>; directory: string }) {
           senderId: event.senderId,
           text: (command ? command[2] : event.text).slice(0, 64000),
           ...(continuation ? { sessionId: continuation.sessionId } : {}),
+          explicitContinuation: Boolean(command || hasQuote),
+          baseRoute: route,
           route: continuation
             ? {
                 ...route,

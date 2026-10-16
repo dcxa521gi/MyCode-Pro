@@ -351,6 +351,22 @@ pub fn session_list_by_project(
     list_by_project(&conn, &cwd).map_err(|e| e.to_string())
 }
 
+/// Include old projects even after they fall out of the bounded recent-project rail.
+#[tauri::command(async)]
+pub fn session_project_catalog(store: State<'_, SessionStore>) -> Result<Vec<String>, String> {
+    let conn = store.conn.lock().map_err(|_| "Session store is locked")?;
+    list_project_paths(&conn).map_err(|e| e.to_string())
+}
+
+fn list_project_paths(conn: &Connection) -> rusqlite::Result<Vec<String>> {
+    let mut statement = conn
+        .prepare("SELECT DISTINCT cwd FROM sessions WHERE cwd <> '' AND cwd <> '~' ORDER BY cwd")?;
+    let paths = statement
+        .query_map([], |row| row.get::<_, String>(0))?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+    Ok(paths)
+}
+
 #[tauri::command(async)]
 pub fn session_rebase_project(
     store: State<'_, SessionStore>,
@@ -2260,6 +2276,29 @@ mod tests {
             linked_work_item: None,
             automation_id: None,
         }
+    }
+
+    #[test]
+    fn project_catalog_includes_old_and_archived_sessions_outside_recent_limit() {
+        let store = SessionStore::open_in_memory().unwrap();
+        let conn = store.lock_conn().unwrap();
+        for index in 0..25 {
+            upsert_session(
+                &conn,
+                &sample(
+                    &format!("s-{index}"),
+                    &format!("/tmp/project-{index}"),
+                    "Task",
+                ),
+            )
+            .unwrap();
+        }
+        conn.execute("UPDATE sessions SET archived = 1 WHERE id = 's-0'", [])
+            .unwrap();
+        let paths = list_project_paths(&conn).unwrap();
+        assert_eq!(paths.len(), 25);
+        assert!(paths.contains(&"/tmp/project-0".to_string()));
+        assert!(paths.contains(&"/tmp/project-24".to_string()));
     }
 
     #[test]

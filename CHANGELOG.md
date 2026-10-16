@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0] - 2026-10-16
+
+- 完整融合 MonoCode `5c21f014` → `3e37ad3c` 的 5 个提交：关闭全部标签、macOS Finder Git LFS 查找、回复末段整段选取、Diff 渲染高度标记及原生网页菜单精简；新增 UI 保持中英双语。
+- 词元跳动成为唯一 MyCode 账号登录入口；旧登录服务及命令退出应用，旧本地凭据保留。账号卡显示官方 API 可取得的资料和账户余额；模型 API Key 不被冒充为 OIDC 身份令牌。
+- 恢复会话已发送消息的上下键历史，输入框聚焦或失焦均可使用。IM 可查询全部项目、切换项目、在默认工作区创建项目，并在选中项目下开始任务；引用完成推送继续原会话。
+- 核对 Cindy 和 Synara 本地能力，来源、未纳入项及验证边界见 [版本说明](docs/mycode-0.23.0.md)。
+
 ## [0.22.0] - 2026-10-15
 
 - 融合 MonoCode `633730d` → `5c21f01` 的 41 个提交：智能体活动总览、项目分组排序、服务商模型分组、轮次 Token 用量、文件预览记忆、终端链接、编辑器语言和 Linux Host 无 systemd 运行等。
@@ -210,6 +217,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Remote hosts can run on **Linux without systemd**, such as containers and Firecracker microVMs. Setup starts the host as a detached background process there instead of a systemd user service, so it keeps running after SSH disconnects, and the next connect starts it again if it has stopped. Machines with systemd keep the user service and lingering.
+- The workspace tab context menu has **Close All Tabs** after Close Tabs to the Left. It closes every tab in the tab bar and resets the active one to a blank session, with the same unsaved-file and terminal confirmations as File > Close All Tabs, and it is disabled when the only tab is already blank.
+
+### Fixed
+
+- Git LFS repositories no longer fail with "git-lfs: command not found" when MonoCode is opened from Finder. Status, diffs, staging, discards, and worktree checks run Git with Homebrew and other common install directories on its PATH, plus the terminal's PATH once it has been read, so filters resolve without waiting on the login shell.
+
+### Fixed
+
+- Selecting the **whole last paragraph** of a reply, such as by triple-clicking it, shows the Add to chat and Add to notes menu instead of nothing. Such a selection ends at the start of the action row below the reply, which no longer counts as leaving the reply when it picks up none of the row's text.
+
+### Fixed
+
+- Change markers on the diff editor's scrollbar line up with their changes when long lines wrap. Markers follow the rendered line heights, including removed lines, so the scrollbar thumb covers a marker while its change is on screen, and clicking a marker scrolls to its change.
+
+### Fixed
+
+- Right-clicking an empty part of a MonoCode window no longer opens a native menu offering only **Reload**, which read like an action on the clicked item. Reload stays in the View menu (**⌘⇧R / Ctrl+Shift+R**), and text fields, editors, terminals, selected text, links, and media keep their native menus.
 
 ## [0.13.0] - 2026-10-12
 

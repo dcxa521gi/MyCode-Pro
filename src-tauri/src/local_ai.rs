@@ -1,7 +1,7 @@
 //! Local-only configuration. No Cindy account, catalog or cloud dependency.
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::{fs, path::PathBuf, process::Command, sync::Mutex, time::Duration};
+use std::{fs, io::Read, path::PathBuf, process::Command, sync::Mutex, time::Duration};
 use tauri::{AppHandle, Manager};
 
 static CONFIG_LOCK: Mutex<()> = Mutex::new(());
@@ -301,6 +301,78 @@ pub fn local_ai_config(app: AppHandle) -> Result<LocalConfig, String> {
         connection.secret.clear();
     }
     Ok(config)
+}
+
+/// Account information available through the TokenDance API key already held by
+/// the model provider. The key never crosses the Tauri IPC boundary.
+#[tauri::command(async)]
+pub fn tokendance_account_status(app: AppHandle) -> Result<Value, String> {
+    let config = load(&app)?;
+    let Some(connection) = config.connections.iter().rev().find(|connection| {
+        crate::tokendance::is_endpoint(&connection.base_url) && !connection.secret.is_empty()
+    }) else {
+        return Ok(Value::Null);
+    };
+    let key = connection_key(connection)?;
+    let agent = ureq::AgentBuilder::new()
+        .timeout(Duration::from_secs(12))
+        .redirects(0)
+        .build();
+    let optional_agent = ureq::AgentBuilder::new()
+        .timeout(Duration::from_secs(4))
+        .redirects(0)
+        .build();
+    let request = |url: &str| -> Option<Value> {
+        let response = optional_agent
+            .get(url)
+            .set("Authorization", &format!("Bearer {key}"))
+            .call()
+            .ok()?;
+        serde_json::from_reader(response.into_reader().take(128 * 1024)).ok()
+    };
+    let balance_response = agent
+        .get("https://tokendance.space/portal/api/v1/user/balance")
+        .set("Authorization", &format!("Bearer {key}"))
+        .call();
+    let balance = match balance_response {
+        Ok(response) => {
+            serde_json::from_reader::<_, Value>(response.into_reader().take(128 * 1024))
+                .ok()
+                .and_then(|value| value.get("balance").cloned())
+        }
+        Err(ureq::Error::Status(401, _)) => return Ok(Value::Null),
+        Err(_) => None,
+    };
+    // The portal currently documents balance for API keys. Profile is optional:
+    // some deployments expose /user/me only to browser sessions.
+    let profile = request("https://tokendance.space/portal/api/v1/user/me")
+        .or_else(|| request("https://tokendance.space/portal/api/user/me"))
+        .unwrap_or(Value::Null);
+    let user = profile.get("user").unwrap_or(&profile);
+    let usage_user_id = if user.get("id").is_none() {
+        request("https://tokendance.space/portal/api/v1/usage?limit=1").and_then(|usage| {
+            usage
+                .get("items")?
+                .as_array()?
+                .first()?
+                .get("user_id")
+                .cloned()
+        })
+    } else {
+        None
+    };
+    Ok(json!({
+        "connected": true,
+        "provider": "TokenDance",
+        "connectionName": connection.name,
+        "name": user.get("nickname").or_else(|| user.get("name")).and_then(Value::as_str),
+        "avatar": user.get("avatar").or_else(|| user.get("avatar_url")).and_then(Value::as_str),
+        "email": user.get("email").and_then(Value::as_str),
+        "userId": user.get("id").or(usage_user_id.as_ref()).and_then(Value::as_str),
+        "balance": balance.as_ref().and_then(|v| v.get("balance")).and_then(Value::as_i64),
+        "credits": balance.as_ref().and_then(|v| v.get("credits")).and_then(Value::as_i64),
+        "creditsUsed": balance.as_ref().and_then(|v| v.get("credits_used")).and_then(Value::as_i64),
+    }))
 }
 
 #[tauri::command(async)]

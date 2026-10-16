@@ -114,6 +114,23 @@ pub fn create_project_folder(parent: String, name: String) -> Result<String, Str
     Ok(crate::fs::path_to_js(&path))
 }
 
+#[tauri::command]
+pub fn workspace_projects(app: AppHandle) -> Result<Vec<String>, String> {
+    let root = PathBuf::from(workspace(&app)?);
+    let mut projects = Vec::new();
+    for entry in fs::read_dir(root).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        if entry.file_type().map_err(|e| e.to_string())?.is_dir()
+            && entry.file_name() != "MyCode-cache"
+            && entry.file_name() != ".mycode"
+        {
+            projects.push(crate::fs::path_to_js(&entry.path()));
+        }
+    }
+    projects.sort();
+    Ok(projects)
+}
+
 pub fn project_storage(cwd: &std::path::Path) -> Result<PathBuf, String> {
     let root = cwd.join(".mycode");
     fs::create_dir_all(&root).map_err(|e| e.to_string())?;

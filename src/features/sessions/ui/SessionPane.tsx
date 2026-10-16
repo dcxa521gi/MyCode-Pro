@@ -386,6 +386,10 @@ const LocalSessionPane = memo(function LocalSessionPane({
   );
   const title = sessionDisplayTitle(session.title, session.harness);
   const isEmpty = session.blocks.length === 0;
+  const promptHistory = useMemo(
+    () => session.blocks.filter((block) => block.role === "user" && !block.draft && block.text.trim()).map((block) => block.text),
+    [session.blocks],
+  );
   const editedPaths = useMemo(
     () => (session.busy ? undefined : sessionEditPaths(session.blocks)),
     [session.blocks, session.busy],
@@ -658,6 +662,7 @@ const LocalSessionPane = memo(function LocalSessionPane({
       focused={focused && composerFocused && !btw.open}
       focusToken={composerFocusToken}
       hotkeys={focused && !btw.open}
+      promptHistory={promptHistory}
       shell={!dockComposer}
       harness={session.harness}
       model={session.model}
