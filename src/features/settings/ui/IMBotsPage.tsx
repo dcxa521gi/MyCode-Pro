@@ -335,6 +335,26 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
           );
         })}
       </div>
+      <section className="rounded-2xl border border-content/10 bg-content/[0.035] p-5" aria-label={t("IM bot command guide")}>
+        <h3 className="text-sm font-semibold">{t("IM bot command guide")}</h3>
+        <p className="mt-1 text-xs leading-relaxed text-content/55">{t("Send the following messages to your connected bot from the allowed account. Commands are available only while MyCode is running.")}</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {([
+            ["/项目", "List all registered projects. Use /项目 2 for the next page."],
+            ["/切换项目 2", "Switch the bot's active project by number or name. Later messages run in that project."],
+            ["/新建项目 示例项目 | 做一个首页", "Create a folder in the default workspace, select it and start the described task."],
+            ["直接发送任务内容", "Start or continue a task in the currently selected project."],
+            ["回复任务完成通知", "Reply to a completion message to continue that exact session when remote continuation is enabled."],
+            ["/continue 会话ID 下一步任务", "Continue an authorized session explicitly with its ID and your instruction."],
+          ] as const).map(([command, description]) => (
+            <div key={command} className="rounded-xl border border-content/10 bg-content/[0.035] p-3">
+              <code className="block break-all text-xs font-semibold text-accent">{command}</code>
+              <p className="mt-1.5 text-xs leading-relaxed text-content/60">{t(description)}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs leading-relaxed text-content/50">{t("Before using /continue or replying to a completion notice, enable remote continuation in Settings → Chat. File and command approvals still require this computer.")}</p>
+      </section>
       {error && (
         <p role="alert" className="text-sm text-red-400">
           {error}

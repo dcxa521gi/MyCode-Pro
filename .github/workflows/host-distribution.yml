@@ -6,7 +6,7 @@ on:
       version:
         description: MyCode source or existing release version
         required: true
-        default: "0.23.0"
+        default: "0.23.1"
       mode:
         description: Build from source without adding runtime archives to desktop Releases
         type: choice

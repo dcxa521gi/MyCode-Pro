@@ -14,7 +14,13 @@ import { invalidateCLIVersion } from "../model/cliVersions";
 import { initializeProviderBinaryPaths } from "../model/providerBinaryPaths";
 import { refreshHarnessCatalogs } from "../../../integrations/harness/core/registry";
 import { LAYER } from "../../../shared/lib/layers";
-import { Check, Loader, X } from "../../../shared/ui/icons";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Loader,
+  X,
+} from "../../../shared/ui/icons";
 import {
   formatMessage,
   translate as t,
@@ -111,6 +117,7 @@ export function HarnessUpdateNotice({
   const panelRef = useRef<HTMLElement>(null);
   const [updates, setUpdates] = useState<HarnessUpdate[]>([]);
   const [rows, setRows] = useState<Partial<Record<HarnessId, RowState>>>({});
+  const [collapsed, setCollapsed] = useState(false);
 
   // Mounted in every window, so the window that ran the update tells the
   // others to pick up the new CLI's models too.
@@ -167,6 +174,10 @@ export function HarnessUpdateNotice({
   const anyUpdated = updates.some(
     (update) => stateOf(update.harness).status === "updated",
   );
+  const activeUpdate =
+    updates.find((update) => stateOf(update.harness).status === "updating") ??
+    updates.find((update) => stateOf(update.harness).status !== "updated") ??
+    updates[0];
 
   const start = (targets: HarnessUpdate[]) => {
     for (const update of targets) {
@@ -195,13 +206,32 @@ export function HarnessUpdateNotice({
     >
       <GlassBackdrop />
       <div className="relative z-[1]">
-        <div className="flex items-center gap-2 border-b border-stroke px-3 py-2">
+        <div
+          className={`flex items-center gap-2 px-3 py-2 ${collapsed ? "" : "border-b border-stroke"}`}
+        >
+          <button
+            type="button"
+            aria-label={t(
+              collapsed ? "Expand CLI updates" : "Collapse CLI updates",
+            )}
+            aria-expanded={!collapsed}
+            className="grid size-6 shrink-0 place-items-center rounded-md text-content/60 hover:bg-content/10"
+            onClick={() => setCollapsed((value) => !value)}
+          >
+            {collapsed ? (
+              <ChevronRight className="size-3.5" />
+            ) : (
+              <ChevronDown className="size-3.5" />
+            )}
+          </button>
           <span className="min-w-0 flex-1 truncate text-[12px] font-semibold">
-            {updates.length === 1
-              ? t("Harness update available")
-              : t("Harness updates available")}
+            {collapsed && activeUpdate
+              ? `${HARNESS_TITLE[activeUpdate.harness]} · ${t(stateOf(activeUpdate.harness).status === "updating" ? "Updating" : "Harness update available")}`
+              : updates.length === 1
+                ? t("Harness update available")
+                : t("Harness updates available")}
           </span>
-          {pending.length > 1 ? (
+          {!collapsed && pending.length > 1 ? (
             <button
               type="button"
               className="rounded-md px-2 py-1 text-[11px] font-medium text-content/70 hover:bg-content/10 hover:text-content"
@@ -220,26 +250,30 @@ export function HarnessUpdateNotice({
             <X className="size-3" strokeWidth={2} />
           </button>
         </div>
-        <div
-          className="divide-y divide-stroke overflow-y-auto"
-          style={{
-            maxHeight: `max(48px, calc(100dvh - ${topOffset + 110}px))`,
-          }}
-        >
-          {updates.map((update) => (
-            <HarnessUpdateRow
-              key={update.harness}
-              update={update}
-              state={stateOf(update.harness)}
-              onUpdate={() => start([update])}
-            />
-          ))}
-        </div>
-        <p className="border-t border-stroke px-3 py-2 text-[11px] text-content/50">
-          {anyUpdated
-            ? t("Model picker refreshed with the new version’s models.")
-            : t("New models often need the latest version.")}
-        </p>
+        {!collapsed && (
+          <div
+            className="divide-y divide-stroke overflow-y-auto"
+            style={{
+              maxHeight: `max(48px, calc(100dvh - ${topOffset + 110}px))`,
+            }}
+          >
+            {updates.map((update) => (
+              <HarnessUpdateRow
+                key={update.harness}
+                update={update}
+                state={stateOf(update.harness)}
+                onUpdate={() => start([update])}
+              />
+            ))}
+          </div>
+        )}
+        {!collapsed && (
+          <p className="border-t border-stroke px-3 py-2 text-[11px] text-content/50">
+            {anyUpdated
+              ? t("Model picker refreshed with the new version’s models.")
+              : t("New models often need the latest version.")}
+          </p>
+        )}
       </div>
     </section>,
     document.body,

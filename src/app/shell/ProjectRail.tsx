@@ -394,6 +394,11 @@ export function ProjectRail({
           <div className="flex shrink-0 flex-col gap-px px-2 pb-2 pt-0.5">
             <RailAction label={t("New task")} icon={Plus} onClick={onNewTask} />
             <RailAction
+              label={t("Group tasks")}
+              icon={FolderPlus}
+              onClick={() => window.dispatchEvent(new Event("mycode:open-groups"))}
+            />
+            <RailAction
               label={t("IM bots")}
               icon={Inbox}
               onClick={() =>

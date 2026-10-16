@@ -35,10 +35,20 @@ import {
 } from "../features/sessions/model/draftCache";
 import { BrowserDock } from "../features/files/ui/BrowserDock";
 import { defaultWorkspace } from "../platform/tauri/workspace";
-import { formatIMProjects, parseIMProjectCommand } from "../features/settings/model/imProjects";
+import {
+  formatIMProjects,
+  parseIMProjectCommand,
+} from "../features/settings/model/imProjects";
 import { findModel } from "../features/sessions/model/models";
 import { CliReadyDialog } from "../features/providers/ui/CliReadyDialog";
 import { NewTaskDialog } from "../features/sessions/ui/NewTaskDialog";
+import { GroupTaskView } from "../features/group-tasks/ui/GroupTaskView";
+import {
+  connectTeamRunner,
+  bindTeamSession,
+  loadTeamRooms,
+  startTeamIdleScheduler,
+} from "../features/group-tasks/model/groupTasks";
 import { importedContextPrompt } from "../features/sessions/model/importedContext";
 import { useTranslation } from "../shared/i18n";
 import { sessionConversationPage } from "../features/agent-app/model/sessionConversation";
@@ -1036,23 +1046,47 @@ const NO_TITLE_TABS: [] = [];
 
 function loadIMProjectSelections(): Map<string, string> {
   try {
-    const value: unknown = JSON.parse(localStorage.getItem("mycode.imProjectSelections") || "{}");
-    if (!value || typeof value !== "object" || Array.isArray(value)) return new Map();
-    return new Map(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
-  } catch { return new Map(); }
+    const value: unknown = JSON.parse(
+      localStorage.getItem("mycode.imProjectSelections") || "{}",
+    );
+    if (!value || typeof value !== "object" || Array.isArray(value))
+      return new Map();
+    return new Map(
+      Object.entries(value).filter(
+        (entry): entry is [string, string] => typeof entry[1] === "string",
+      ),
+    );
+  } catch {
+    return new Map();
+  }
 }
 function persistIMProjectSelections(value: Map<string, string>) {
-  try { localStorage.setItem("mycode.imProjectSelections", JSON.stringify(Object.fromEntries(value))); }
-  catch { /* Continue routing in memory if local storage is unavailable. */ }
+  try {
+    localStorage.setItem(
+      "mycode.imProjectSelections",
+      JSON.stringify(Object.fromEntries(value)),
+    );
+  } catch {
+    /* Continue routing in memory if local storage is unavailable. */
+  }
 }
 function imKnownProjectLocations(): string[] {
   try {
-    const value: unknown = JSON.parse(localStorage.getItem("monocode.projectLocations") || "{}");
+    const value: unknown = JSON.parse(
+      localStorage.getItem("monocode.projectLocations") || "{}",
+    );
     if (!value || typeof value !== "object" || Array.isArray(value)) return [];
     return Object.values(value).flatMap((item) =>
-      item && typeof item === "object" && "path" in item && typeof item.path === "string" ? [item.path] : [],
+      item &&
+      typeof item === "object" &&
+      "path" in item &&
+      typeof item.path === "string"
+        ? [item.path]
+        : [],
     );
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 /** Native sheet. `window.confirm` is swallowed when a macOS menu accelerator fires. */
@@ -1234,15 +1268,14 @@ function Workspace({
   const onShowMonoActivity = useCallback(
     (sessionId: string, turnId: string, blocks: Block[]) => {
       const shown =
-        monoOverviewOpenRef.current && monoOverviewTabRef.current === "activity";
+        monoOverviewOpenRef.current &&
+        monoOverviewTabRef.current === "activity";
       setMonoShownSession(null);
       setMonoOverviewDocument(null);
       setMonoOverviewTab("activity");
       setMonoOverviewOpen(true);
       setMonoActivity((previous) =>
-        shown &&
-        previous?.sessionId === sessionId &&
-        previous.turnId === turnId
+        shown && previous?.sessionId === sessionId && previous.turnId === turnId
           ? null
           : { sessionId, turnId, blocks },
       );
@@ -1334,6 +1367,8 @@ function Workspace({
     useState<CollapsedProjectRailMode>(loadCollapsedProjectRailMode);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [standaloneTools, setStandaloneTools] = useState(false);
+  const [groupsOpen, setGroupsOpen] = useState(false);
+  useEffect(() => setGroupsOpen(false), [activeTabId]);
   const settingsReturnViewRef = useRef({
     search: false,
     inbox: false,
@@ -2813,6 +2848,7 @@ function Workspace({
   );
 
   const onNew = useCallback(() => {
+    setGroupsOpen(false);
     setSettingsOpen(false);
     setStandaloneTools(false);
     const cwd = sidebarCwd;
@@ -2831,6 +2867,7 @@ function Workspace({
   const [, setHomeOpen] = useState(false);
   const createWorkspaceTask = useCallback(
     (cwd: string, harness: HarnessId, model: string) => {
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setStandaloneTools(false);
       setHomeOpen(false);
@@ -4972,6 +5009,7 @@ function Workspace({
 
   const onSelectHistorySession = useCallback(
     async (sessionId: string) => {
+      setGroupsOpen(false);
       setSettingsOpen(false);
       setStandaloneTools(false);
       workspaceNavigation.cancel();
@@ -6345,6 +6383,7 @@ function Workspace({
 
   const onSelectProject = useCallback(
     (path: string) => {
+      setGroupsOpen(false);
       closeMonoView();
       workspaceNavigation.cancel();
       openProjects([path]);
@@ -8112,7 +8151,9 @@ function Workspace({
           const sendTurn = (text: string, turnAttachments = prepared) => {
             if (options?.imSource) {
               bindIMTurnOrigin({
-                sessionId, cwd: workCwd, harness: current.harness,
+                sessionId,
+                cwd: workCwd,
+                harness: current.harness,
                 channel: options.imSource.channel,
                 ownerId: options.imSource.ownerId,
               });
@@ -8800,23 +8841,59 @@ function Workspace({
 
   const imSessions = useRef(new Map<string, string>());
   const imSelectedProjects = useRef(loadIMProjectSelections());
-  useEffect(() => subscribeIMProviderWake((wake) => {
-    const current = sessionsRef.current.find((session) => session.id === wake.sessionId);
-    if (!current || current.busy || current.harness !== wake.harness || sessionWorkCwd(current) !== wake.cwd) return;
-    const settings = loadIMCompletion();
-    const project = current.cwd.replace(/\\/g, "/").split("/").filter(Boolean).slice(-1)[0] || current.cwd;
-    void invoke("im_bridge_request", {
-      request: {
-        action: "notify", channel: wake.channel, expectedOwnerId: wake.ownerId,
-        session: { id: current.id, cwd: current.cwd, harness: current.harness, model: current.model },
-        remoteContinue: settings.remoteContinue,
-        text: completionMessage(project, current.title || project, current.id, wake.text, settings.remoteContinue, uiLocale() === "zh-CN"),
-      },
-    }).catch(() => {
-      enqueueHarnessEvent(current.id, {type: "status", text: uiTranslate("Could not deliver the completion notification. Check the IM bot connection.")});
-      flushHarnessEvents();
-    });
-  }), [enqueueHarnessEvent, flushHarnessEvents]);
+  useEffect(
+    () =>
+      subscribeIMProviderWake((wake) => {
+        const current = sessionsRef.current.find(
+          (session) => session.id === wake.sessionId,
+        );
+        if (
+          !current ||
+          current.busy ||
+          current.harness !== wake.harness ||
+          sessionWorkCwd(current) !== wake.cwd
+        )
+          return;
+        const settings = loadIMCompletion();
+        const project =
+          current.cwd
+            .replace(/\\/g, "/")
+            .split("/")
+            .filter(Boolean)
+            .slice(-1)[0] || current.cwd;
+        void invoke("im_bridge_request", {
+          request: {
+            action: "notify",
+            channel: wake.channel,
+            expectedOwnerId: wake.ownerId,
+            session: {
+              id: current.id,
+              cwd: current.cwd,
+              harness: current.harness,
+              model: current.model,
+            },
+            remoteContinue: settings.remoteContinue,
+            text: completionMessage(
+              project,
+              current.title || project,
+              current.id,
+              wake.text,
+              settings.remoteContinue,
+              uiLocale() === "zh-CN",
+            ),
+          },
+        }).catch(() => {
+          enqueueHarnessEvent(current.id, {
+            type: "status",
+            text: uiTranslate(
+              "Could not deliver the completion notification. Check the IM bot connection.",
+            ),
+          });
+          flushHarnessEvents();
+        });
+      }),
+    [enqueueHarnessEvent, flushHarnessEvents],
+  );
   useEffect(() => {
     let disposed = false;
     let unlisten: (() => void) | undefined;
@@ -8849,39 +8926,101 @@ function Workspace({
             invoke<string[]>("session_project_catalog").catch(() => []),
             invoke<string[]>("workspace_projects").catch(() => []),
           ]);
-          return [...new Set([...stored, ...workspace, ...imKnownProjectLocations(), ...loadRecents().map((item) => item.path), ...sessionsRef.current.map((item) => item.cwd)])]
+          return [
+            ...new Set([
+              ...stored,
+              ...workspace,
+              ...imKnownProjectLocations(),
+              ...loadRecents().map((item) => item.path),
+              ...sessionsRef.current.map((item) => item.cwd),
+            ]),
+          ]
             .filter((path) => path && path !== "~")
             .sort((a, b) => a.localeCompare(b, "zh-CN"));
         };
         if (command?.kind === "list") {
-          void reply(formatIMProjects(await projectCatalog(), command.page, command.completedQuestion, uiLocale() === "zh-CN"));
+          void reply(
+            formatIMProjects(
+              await projectCatalog(),
+              command.page,
+              command.completedQuestion,
+              uiLocale() === "zh-CN",
+            ),
+          );
           return;
         }
         if (command?.kind === "switch") {
           const projects = await projectCatalog();
           const candidates = /^\d+$/.test(command.selector)
-            ? [projects[Number(command.selector) - 1]].filter((path): path is string => !!path)
-            : projects.filter((path) => path === command.selector || path.replace(/\\/g, "/").split("/").pop() === command.selector);
-          if (candidates.length > 1) { void reply(uiLocale() === "zh-CN" ? "存在同名项目，请发送 /项目 后使用编号切换。" : "Several projects share this name. Send /projects and switch by number."); return; }
+            ? [projects[Number(command.selector) - 1]].filter(
+                (path): path is string => !!path,
+              )
+            : projects.filter(
+                (path) =>
+                  path === command.selector ||
+                  path.replace(/\\/g, "/").split("/").pop() ===
+                    command.selector,
+              );
+          if (candidates.length > 1) {
+            void reply(
+              uiLocale() === "zh-CN"
+                ? "存在同名项目，请发送 /项目 后使用编号切换。"
+                : "Several projects share this name. Send /projects and switch by number.",
+            );
+            return;
+          }
           const selected = candidates[0];
-          if (!selected) { void reply(uiLocale() === "zh-CN" ? "未找到项目。发送 /项目 查看全部项目和编号。" : "Project not found. Send /projects to see names and numbers."); return; }
+          if (!selected) {
+            void reply(
+              uiLocale() === "zh-CN"
+                ? "未找到项目。发送 /项目 查看全部项目和编号。"
+                : "Project not found. Send /projects to see names and numbers.",
+            );
+            return;
+          }
           imSelectedProjects.current.set(ownerKey, selected);
           persistIMProjectSelections(imSelectedProjects.current);
-          void reply(uiLocale() === "zh-CN" ? `已切换到项目：${selected}\n下一条消息将在此项目中开始或继续 IM 会话。` : `Switched to: ${selected}\nThe next message will start or continue the IM session in this project.`);
+          void reply(
+            uiLocale() === "zh-CN"
+              ? `已切换到项目：${selected}\n下一条消息将在此项目中开始或继续 IM 会话。`
+              : `Switched to: ${selected}\nThe next message will start or continue the IM session in this project.`,
+          );
           return;
         }
         if (command?.kind === "create") {
           try {
-            const cwd = await invoke<string>("create_project_folder", { parent: await defaultWorkspace(), name: command.name });
+            const cwd = await invoke<string>("create_project_folder", {
+              parent: await defaultWorkspace(),
+              name: command.name,
+            });
             imSelectedProjects.current.set(ownerKey, cwd);
             persistIMProjectSelections(imSelectedProjects.current);
             setRecents(rememberProject(cwd));
-            if (!command.prompt) { void reply(uiLocale() === "zh-CN" ? `已创建并切换项目：${cwd}\n发送消息即可开始任务。` : `Created and switched to: ${cwd}\nSend a message to start a task.`); return; }
+            if (!command.prompt) {
+              void reply(
+                uiLocale() === "zh-CN"
+                  ? `已创建并切换项目：${cwd}\n发送消息即可开始任务。`
+                  : `Created and switched to: ${cwd}\nSend a message to start a task.`,
+              );
+              return;
+            }
             message = { ...message, text: command.prompt };
-          } catch (reason) { const detail = uiTranslate(String(reason)); void reply(uiLocale() === "zh-CN" ? `无法创建项目：${detail}` : `Could not create project: ${detail}`); return; }
+          } catch (reason) {
+            const detail = uiTranslate(String(reason));
+            void reply(
+              uiLocale() === "zh-CN"
+                ? `无法创建项目：${detail}`
+                : `Could not create project: ${detail}`,
+            );
+            return;
+          }
         }
-        const selectedProject = !message.explicitContinuation ? imSelectedProjects.current.get(ownerKey) : undefined;
-        const route = selectedProject ? { ...(message.baseRoute ?? message.route), cwd: selectedProject } : message.route;
+        const selectedProject = !message.explicitContinuation
+          ? imSelectedProjects.current.get(ownerKey)
+          : undefined;
+        const route = selectedProject
+          ? { ...(message.baseRoute ?? message.route), cwd: selectedProject }
+          : message.route;
         const sessionId = selectedProject ? undefined : message.sessionId;
         const lane = `${message.channel}:${message.senderId}:${route.cwd}:${route.harness}:${route.model}`;
         let session = sessionsRef.current.find(
@@ -8916,12 +9055,7 @@ function Workspace({
         }
         if (!session) {
           session = {
-            ...newSession(
-              route.harness,
-              route.cwd,
-              route.model,
-              "supervised",
-            ),
+            ...newSession(route.harness, route.cwd, route.model, "supervised"),
             title: `${message.channel} · ${message.text.slice(0, 48)}`,
           };
           imSessions.current.set(lane, session.id);
@@ -12284,6 +12418,7 @@ function Workspace({
   }, []);
 
   const onOpenSearch = useCallback(() => {
+    setGroupsOpen(false);
     workspaceNavigation.cancel();
     startTransition(() => {
       setFilePickerOpen(false);
@@ -12301,6 +12436,7 @@ function Workspace({
   }, []);
 
   const onOpenInbox = useCallback(() => {
+    setGroupsOpen(false);
     workspaceNavigation.cancel();
     startTransition(() => {
       setFilePickerOpen(false);
@@ -12416,6 +12552,7 @@ function Workspace({
   );
 
   const onOpenNotes = useCallback(() => {
+    setGroupsOpen(false);
     workspaceNavigation.cancel();
     if (!loadNotesEnabled()) return;
     startTransition(() => {
@@ -12433,6 +12570,7 @@ function Workspace({
   }, []);
 
   const onOpenAutomations = useCallback(() => {
+    setGroupsOpen(false);
     workspaceNavigation.cancel();
     startTransition(() => {
       setFilePickerOpen(false);
@@ -12496,7 +12634,104 @@ function Workspace({
     [],
   );
 
+  useEffect(() => {
+    const open = () => {
+      setSettingsOpen(false);
+      setStandaloneTools(false);
+      setSearchViewOpen(false);
+      setInboxViewOpen(false);
+      setNotesViewOpen(false);
+      setAutomationsViewOpen(false);
+      setGroupsOpen(true);
+    };
+    window.addEventListener("mycode:open-groups", open);
+    void loadTeamRooms().catch(() => undefined);
+    const stopIdle = startTeamIdleScheduler();
+    return () => {
+      window.removeEventListener("mycode:open-groups", open);
+      stopIdle();
+    };
+  }, []);
+  useEffect(() => {
+    connectTeamRunner(
+      ({ room, agent, prompt, execute, signal }) =>
+        new Promise((resolve, reject) => {
+          if (signal.aborted) return reject(new Error("Cancelled"));
+          const session = newSession(
+            agent.harness,
+            room.cwd,
+            agent.model,
+            "supervised",
+          );
+          session.title = `${room.name} · ${agent.name}`;
+          session.sidebarHidden = true;
+          session.modelSettings = {
+            ...session.modelSettings,
+            mycodeGroup: "true",
+          };
+          sessionsRef.current = [...sessionsRef.current, session];
+          setSessions(sessionsRef.current);
+          bindTeamSession(room.id, session.id);
+          const abort = () => {
+            onStop(session.id);
+            reject(new Error("Cancelled"));
+          };
+          signal.addEventListener("abort", abort, { once: true });
+          const accepted = submitSession(session.id, prompt, [], {
+            intent: execute ? "build" : "plan",
+            onSettled: (outcome) => {
+              signal.removeEventListener("abort", abort);
+              if (outcome.status !== "completed") {
+                reject(new Error(outcome.error || outcome.status));
+                return;
+              }
+              const blocks =
+                sessionsRef.current.find((s) => s.id === session.id)?.blocks ||
+                [];
+              const measured = blocks.filter(
+                (b) =>
+                  b.turnMetrics?.inputTokens != null ||
+                  b.turnMetrics?.outputTokens != null,
+              );
+              resolve({
+                text:
+                  outcome.text ||
+                  blocks
+                    .filter((b) => b.role === "assistant" || b.role === "plan")
+                    .map((b) => b.text)
+                    .join("\n"),
+                tokens: measured.length
+                  ? measured.reduce(
+                      (n, b) =>
+                        n +
+                        (b.turnMetrics?.inputTokens || 0) +
+                        (b.turnMetrics?.outputTokens || 0),
+                      0,
+                    )
+                  : undefined,
+                sessionId: session.id,
+              });
+            },
+          });
+          void Promise.resolve(accepted)
+            .then((ok) => {
+              if (!ok) {
+                signal.removeEventListener("abort", abort);
+                reject(
+                  new Error(
+                    "Could not start this agent. Check CLI installation and model access.",
+                  ),
+                );
+              }
+            })
+            .catch(reject);
+        }),
+    );
+    return () => connectTeamRunner(undefined);
+  }, [submitSession, onStop]);
+
   const onOpenSettings = useCallback(() => {
+    setGroupsOpen(false);
     setStandaloneTools(false);
     openSettings();
   }, [openSettings]);
@@ -12504,6 +12739,7 @@ function Workspace({
     const openTools = (event: Event) => {
       const section = (event as CustomEvent<string>).detail;
       if (section !== "skills" && section !== "im-bots") return;
+      setGroupsOpen(false);
       openSettings();
       setSettingsSection(section);
       setStandaloneTools(true);
@@ -13595,6 +13831,7 @@ function Workspace({
 
   const chromeSurfaceOpen =
     searchViewOpen ||
+    groupsOpen ||
     settingsOpen ||
     inboxViewOpen ||
     notesViewOpen ||
@@ -13614,9 +13851,7 @@ function Workspace({
           : undefined
       }
       onToggleMonoOverview={
-        monoCovers
-          ? () => setMonoOverviewOpen(!monoOverviewOpen)
-          : undefined
+        monoCovers ? () => setMonoOverviewOpen(!monoOverviewOpen) : undefined
       }
       monoOverviewOpen={monoOverviewOpen}
       onOpenMonoSettings={
@@ -13771,7 +14006,7 @@ function Workspace({
               inboxUnseen={inboxUnseen}
               linkedSessionUpdateIds={linkedSessionUpdateIds}
               settingsOpen={settingsOpen && !standaloneTools}
-              workspaceHidden={standaloneTools && settingsOpen}
+              workspaceHidden={(standaloneTools && settingsOpen) || groupsOpen}
               settingsSection={settingsSection}
               onOpenSettings={onOpenSettings}
               onOpenNotificationSettings={onOpenNotificationSettings}
@@ -13786,6 +14021,7 @@ function Workspace({
               <div
                 className={
                   searchViewOpen ||
+                  groupsOpen ||
                   settingsOpen ||
                   inboxViewOpen ||
                   notesViewOpen ||
@@ -13795,6 +14031,7 @@ function Workspace({
                 }
                 aria-hidden={
                   searchViewOpen ||
+                  groupsOpen ||
                   settingsOpen ||
                   inboxViewOpen ||
                   notesViewOpen ||
@@ -13802,6 +14039,7 @@ function Workspace({
                 }
                 inert={
                   searchViewOpen ||
+                  groupsOpen ||
                   settingsOpen ||
                   inboxViewOpen ||
                   notesViewOpen ||
@@ -14114,6 +14352,12 @@ function Workspace({
                   onOpenIntegrations={onOpenInboxIntegrations}
                 />
               ) : null}
+              {groupsOpen && !settingsOpen ? (
+                <GroupTaskView
+                  onClose={() => setGroupsOpen(false)}
+                  onOpenSession={(id) => void onSelectHistorySession(id)}
+                />
+              ) : null}
               {notesViewOpen ? (
                 <NotesView
                   besideRail={projectRailOpen || compactProjectRail}
@@ -14167,6 +14411,7 @@ function Workspace({
                 />
               ) : null}
               {searchViewOpen ||
+              groupsOpen ||
               inboxViewOpen ||
               notesViewOpen ||
               automationsViewOpen ||

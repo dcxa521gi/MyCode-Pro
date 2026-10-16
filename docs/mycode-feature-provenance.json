@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedDate": "2026-10-16",
-  "currentProductVersion": "0.23.0",
+  "currentProductVersion": "0.23.1",
   "sourceCommit": "fc759f835cf9218bef7221e748ccc355fa653064",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
@@ -244,6 +244,16 @@
       "releaseDoc": "mycode-0.23.0.md",
       "monoBaseline": "5c21f014d4bdaa766b260b8d120174ad60358c2f → 3e37ad3c00bde790813473dfa7911160edc1339a；5提交完整融合",
       "complementBaseline": "Cindy 0bbf5b39 → a1fbbb8e，347提交；Synara a21eb2b → f2614e58，13提交；核对本地能力"
+    },
+    {
+      "key": "0.23.1",
+      "display": "0.23.1",
+      "tag": "v0.23.1",
+      "tagCommit": "pending",
+      "date": "2026-10-16",
+      "releaseDoc": "mycode-0.23.1.md",
+      "monoBaseline": "3e37ad3c → 3e37ad3c；0新增提交",
+      "complementBaseline": "Cindy a1fbbb8e → 7bfa89e6，64提交；本地群任务重构；Synara f2614e58 无新增"
     }
   ],
   "requirements": [
@@ -1097,6 +1107,42 @@
         "MC-0.23.0-010"
       ],
       "evidenceLevel": "本轮用户明确要求与源码、模块测试"
+    },
+    {
+      "id": "R71",
+      "title": "在 0.23.0 基础上融合 Cindy 式新群任务，旧群数据不复用",
+      "scope": "新的本地群任务目录与数据格式；成员、主管、安排卡和逐步执行。",
+      "events": [
+        "MC-0.23.1-001"
+      ],
+      "evidenceLevel": "用户本轮明确要求与代码、测试"
+    },
+    {
+      "id": "R72",
+      "title": "IM 机器人页增加对话命令教程",
+      "scope": "只说明当前桥接实际支持的项目与会话继续命令。",
+      "events": [
+        "MC-0.23.1-002"
+      ],
+      "evidenceLevel": "用户本轮明确要求与页面实现"
+    },
+    {
+      "id": "R73",
+      "title": "词元跳动账号退出不影响模型授权",
+      "scope": "账号界面会话与模型连接独立；不清除已保存 API Key。",
+      "events": [
+        "MC-0.23.1-003"
+      ],
+      "evidenceLevel": "用户本轮明确要求与单元测试"
+    },
+    {
+      "id": "R74",
+      "title": "CLI 更新弹窗可折叠成一行",
+      "scope": "折叠时优先显示正在更新的 CLI。",
+      "events": [
+        "MC-0.23.1-004"
+      ],
+      "evidenceLevel": "用户本轮明确要求与组件测试"
     }
   ],
   "features": [
@@ -1318,7 +1364,7 @@
     {
       "id": "IM",
       "firstRecordedVersion": "0.6.0",
-      "lastChangedVersion": "0.23.0",
+      "lastChangedVersion": "0.23.1",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1334,7 +1380,8 @@
         "MC-0.21.0-029",
         "MC-0.22.0-007",
         "MC-0.23.0-009",
-        "MC-0.23.0-011"
+        "MC-0.23.0-011",
+        "MC-0.23.1-002"
       ]
     },
     {
@@ -1729,7 +1776,7 @@
     {
       "id": "LOGIN",
       "firstRecordedVersion": "0.10.0",
-      "lastChangedVersion": "0.23.0",
+      "lastChangedVersion": "0.23.1",
       "status": "旧账号入口已替换为词元跳动；旧凭据文件保留不读取",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1739,7 +1786,8 @@
       "changes": [
         "MC-0.10.0-001",
         "MC-0.12.0-009",
-        "MC-0.23.0-006"
+        "MC-0.23.0-006",
+        "MC-0.23.1-003"
       ]
     },
     {
@@ -1888,7 +1936,7 @@
     {
       "id": "CLI-LEGACY-NOTICE",
       "firstRecordedVersion": "0.12.0",
-      "lastChangedVersion": "0.20.0",
+      "lastChangedVersion": "0.23.1",
       "status": "额外启动通知已移除",
       "upgradePolicy": "只能使用 HarnessUpdateNotice；别恢复 CLIUpdateNotice 或第二个启动扫描。",
       "maintenancePaths": [
@@ -1896,7 +1944,8 @@
       ],
       "changes": [
         "MC-0.12.0-013",
-        "MC-0.20.0-026"
+        "MC-0.20.0-026",
+        "MC-0.23.1-004"
       ]
     },
     {
@@ -1904,7 +1953,7 @@
       "firstRecordedVersion": "0.12.0",
       "lastChangedVersion": "0.19.1",
       "status": "已移除运行功能，历史数据保留",
-      "upgradePolicy": "用户 R55 覆盖 R16。不得重新接回入口、调度、写入。上游常驻 Monos 是另一功能，不随群聊一起删除。",
+      "upgradePolicy": "用户 R55 覆盖 R16。旧群聊入口、调度、写入保持移除；R71 的新群任务另用独立数据格式和目录，不读取旧群记录。",
       "maintenancePaths": [],
       "changes": [
         "MC-0.12.0-014",
@@ -1913,6 +1962,20 @@
         "MC-0.12.0-017",
         "MC-0.13.0-002",
         "MC-0.19.1-012"
+      ]
+    },
+    {
+      "id": "GROUP-TASK",
+      "firstRecordedVersion": "0.23.1",
+      "lastChangedVersion": "0.23.1",
+      "status": "独立本地群任务，不复用旧群聊数据",
+      "upgradePolicy": "保留群目录和记忆隔离；任务安排逐步由用户确认，CLI 执行与模型配置沿用 MyCode 主线。",
+      "maintenancePaths": [
+        "src/features/group-tasks",
+        "src-tauri/src/group_tasks.rs"
+      ],
+      "changes": [
+        "MC-0.23.1-001"
       ]
     },
     {
@@ -9372,6 +9435,84 @@
       "sourceConfidence": "本轮源码核对；真实账号、IM 和跨平台实机另列",
       "maintenancePaths": [
         "src/integrations/harness/providers/claude/claudeCatalog.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.1-001",
+      "version": "0.23.1",
+      "feature": "GROUP-TASK",
+      "origin": "CINDY_REFERENCE",
+      "action": "本地重构",
+      "requirements": [
+        "R71"
+      ],
+      "title": "独立群任务、安排卡与逐步执行",
+      "detail": "参考 Cindy 开源群任务交互；MyCode 新建本地数据和多 CLI 运行，旧群聊数据不读取。",
+      "evidence": [
+        "mycode-0.23.1.md"
+      ],
+      "sourceConfidence": "本地源码和模拟测试；真实 CLI 执行待环境验收",
+      "maintenancePaths": [
+        "src/features/group-tasks",
+        "src-tauri/src/group_tasks.rs",
+        "src/app/App.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.1-002",
+      "version": "0.23.1",
+      "feature": "IM",
+      "origin": "MYCODE",
+      "action": "文档化",
+      "requirements": [
+        "R72"
+      ],
+      "title": "IM 页面内对话命令教程",
+      "detail": "列出已实现的项目、会话继续命令及前提。",
+      "evidence": [
+        "mycode-0.23.1.md"
+      ],
+      "sourceConfidence": "已核对 runtime/im-bridge.ts 与 App.tsx 路由",
+      "maintenancePaths": [
+        "src/features/settings/ui/IMBotsPage.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.1-003",
+      "version": "0.23.1",
+      "feature": "LOGIN",
+      "origin": "MYCODE",
+      "action": "增强",
+      "requirements": [
+        "R73"
+      ],
+      "title": "账号退出与模型授权分离",
+      "detail": "退出仅隐藏账号会话，不调用模型连接删除或清除密钥。",
+      "evidence": [
+        "mycode-0.23.1.md"
+      ],
+      "sourceConfidence": "组件测试通过；真实账号待验",
+      "maintenancePaths": [
+        "src/app/shell/AccountCenter.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.1-004",
+      "version": "0.23.1",
+      "feature": "CLI-LEGACY-NOTICE",
+      "origin": "MYCODE",
+      "action": "增强",
+      "requirements": [
+        "R74"
+      ],
+      "title": "上游 CLI 更新提示一行折叠",
+      "detail": "沿用 HarnessUpdateNotice；折叠只显示一行，优先当前更新项。",
+      "evidence": [
+        "mycode-0.23.1.md"
+      ],
+      "sourceConfidence": "组件测试通过",
+      "maintenancePaths": [
+        "src/features/providers/ui/HarnessUpdateNotice.tsx"
       ]
     }
   ],

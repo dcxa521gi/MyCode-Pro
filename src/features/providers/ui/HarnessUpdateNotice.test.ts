@@ -86,6 +86,12 @@ describe("HarnessUpdateNotice", () => {
     );
     expect(notice?.textContent).toContain("Claude Code");
     expect(notice?.textContent).toContain("2.1.284 → 2.1.285");
+    const collapse = notice!.querySelector<HTMLButtonElement>('[aria-label="Collapse CLI updates"]')!;
+    await act(async () => collapse.click());
+    expect(notice?.querySelectorAll("article")).toHaveLength(0);
+    expect(notice?.textContent).toContain("Claude Code");
+    await act(async () => notice!.querySelector<HTMLButtonElement>('[aria-label="Expand CLI updates"]')!.click());
+    expect(notice?.querySelectorAll("article")).toHaveLength(1);
 
     const update = Array.from(notice!.querySelectorAll("button")).find(
       (button) => button.textContent === "Update",

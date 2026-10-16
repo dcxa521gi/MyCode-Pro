@@ -1,8 +1,8 @@
 # MyCode 功能来源与版本台账
 
-整理日期：2026-10-16；当前产品基线：**MyCode 0.23.0**，源码提交 `fc759f835cf9218bef7221e748ccc355fa653064`。
+整理日期：2026-10-16；当前产品基线：**MyCode 0.23.1**，源码提交 `fc759f835cf9218bef7221e748ccc355fa653064`。
 
-本文件按 **23 个交付阶段、338 条变更、109 个稳定功能 ID、70 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
+本文件按 **24 个交付阶段、342 条变更、110 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
 
 ## 如何使用
 
@@ -19,9 +19,9 @@
 | MONO | MonoCode 上游直接同步 | 36 |
 | MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 114 |
 | CINDY_CODE | Cindy 开源代码复用 | 2 |
-| CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 27 |
+| CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 28 |
 | SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 10 |
-| MYCODE | MyCode 自有新增/修复 | 122 |
+| MYCODE | MyCode 自有新增/修复 | 125 |
 | VENDOR | 官方 CLI/SDK/接口适配 | 22 |
 | CODEX_REFERENCE | Codex 交互参考、MyCode 实现 | 4 |
 | USER_UI_REFERENCE | 用户截图布局参考、MyCode 实现 | 1 |
@@ -61,6 +61,7 @@
 | [0.21.0](#v-0-21-0) | 2026-10-13 / `v0.21.0` | `b3fc8af6` | 889579b61c2342cc27751092ff0effbe9ec8e162 → 633730d70dd3e6cb8113af28c062dd1ea9228c0d；26提交完整融合 | Cindy 28afb1e → 3ea9099，121提交；Synara 9e01962 → b4bdc73，29提交；完整分类、选择本地能力，非全架构迁入 |
 | [0.22.0](#v-0-22-0) | 2026-10-15 / `v0.22.0` | `514659d8` | 633730d70dd3e6cb8113af28c062dd1ea9228c0d → 5c21f014d4bdaa766b260b8d120174ad60358c2f；41提交逐项核对 | Cindy 3ea9099 → 0bbf5b3，128提交；Synara b4bdc73 → a21eb2b，21提交；只采本地能力 |
 | [0.23.0](#v-0-23-0) | 2026-10-16 / `v0.23.0` | `fc759f83` | 5c21f014d4bdaa766b260b8d120174ad60358c2f → 3e37ad3c00bde790813473dfa7911160edc1339a；5提交完整融合 | Cindy 0bbf5b39 → a1fbbb8e，347提交；Synara a21eb2b → f2614e58，13提交；核对本地能力 |
+| [0.23.1](#v-0-23-1) | 2026-10-16 / `v0.23.1` | `pending` | 3e37ad3c → 3e37ad3c；0新增提交 | Cindy a1fbbb8e → 7bfa89e6，64提交；本地群任务重构；Synara f2614e58 无新增 |
 
 ## 按版本的功能明细
 
@@ -610,6 +611,19 @@
 | MC-0.23.0-010<br>`I18N` | 新增 UI 与 IM 指令双语 | [R67](#r67)、[R69](#r69)、[R70](#r70) | MyCode 自有新增/修复<br>**完善** | 账号卡、标签操作和 IM 项目命令提供简体中文与英文。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.23.0-011<br>`IM` | Cindy IM 归属与回退机制核对 | [R66](#r66)、[R69](#r69) | Cindy 本地设计参考、MyCode 实现<br>**核对** | 仅参考本地 owner 边界与项目路由；群聊及 Cindy 云服务不纳入。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.23.0-012<br>`PERFORMANCE` | Synara 本地性能与档位能力核对 | [R66](#r66) | Synara 设计参考/等价能力核对<br>**核对** | 动态档位及请求流按 MyCode 当前实现对照，未宣称移植 Synara 服务端架构。 | 保留；具体范围/实测条件见版本记录 |
+
+<a id="v-0-23-1"></a>
+
+### 0.23.1（2026-10-16）
+
+证据：[docs/mycode-0.23.1.md](mycode-0.23.1.md)；本地标签 `v0.23.1` → `pending`。
+
+| 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
+| --- | --- | --- | --- | --- | --- |
+| MC-0.23.1-001<br>`GROUP-TASK` | 独立群任务、安排卡与逐步执行 | [R71](#r71) | Cindy 本地设计参考、MyCode 实现<br>**本地重构** | 参考 Cindy 开源群任务交互；MyCode 新建本地数据和多 CLI 运行，旧群聊数据不读取。 | 独立本地群任务，不复用旧群聊数据 |
+| MC-0.23.1-002<br>`IM` | IM 页面内对话命令教程 | [R72](#r72) | MyCode 自有新增/修复<br>**文档化** | 列出已实现的项目、会话继续命令及前提。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.23.1-003<br>`LOGIN` | 账号退出与模型授权分离 | [R73](#r73) | MyCode 自有新增/修复<br>**增强** | 退出仅隐藏账号会话，不调用模型连接删除或清除密钥。 | 旧账号入口已替换为词元跳动；旧凭据文件保留不读取 |
+| MC-0.23.1-004<br>`CLI-LEGACY-NOTICE` | 上游 CLI 更新提示一行折叠 | [R74](#r74) | MyCode 自有新增/修复<br>**增强** | 沿用 HarnessUpdateNotice；折叠只显示一行，优先当前更新项。 | 额外启动通知已移除 |
 
 ## 用户要求覆盖索引
 
@@ -1175,6 +1189,38 @@
 - 变更记录：`MC-0.23.0-001`、`MC-0.23.0-002`、`MC-0.23.0-003`、`MC-0.23.0-004`、`MC-0.23.0-005`、`MC-0.23.0-010`。
 - 当前范围：主线上游五提交逐项适配并提供中文。
 
+<a id="r71"></a>
+
+**R71：在 0.23.0 基础上融合 Cindy 式新群任务，旧群数据不复用**
+
+- 关联阶段：0.23.1。
+- 变更记录：`MC-0.23.1-001`。
+- 当前范围：新的本地群任务目录与数据格式；成员、主管、安排卡和逐步执行。
+
+<a id="r72"></a>
+
+**R72：IM 机器人页增加对话命令教程**
+
+- 关联阶段：0.23.1。
+- 变更记录：`MC-0.23.1-002`。
+- 当前范围：只说明当前桥接实际支持的项目与会话继续命令。
+
+<a id="r73"></a>
+
+**R73：词元跳动账号退出不影响模型授权**
+
+- 关联阶段：0.23.1。
+- 变更记录：`MC-0.23.1-003`。
+- 当前范围：账号界面会话与模型连接独立；不清除已保存 API Key。
+
+<a id="r74"></a>
+
+**R74：CLI 更新弹窗可折叠成一行**
+
+- 关联阶段：0.23.1。
+- 变更记录：`MC-0.23.1-004`。
+- 当前范围：折叠时优先显示正在更新的 CLI。
+
 ## 当前功能处置与升级维护入口
 
 | 功能 ID | 首次记录 / 最近变化 | 当前状态 | 升级保留或替换策略 | 当前维护入口 |
@@ -1191,7 +1237,7 @@
 | `CREDENTIALS` | 0.5.0<br>0.6.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs) |
 | `PROVIDER-UI` | 0.6.0<br>0.21.0 | 当前以 MonoCode 官方账户式列表为主 | 保留 MyCode 连接/主模型/模型开关与词元跳动；不要复原为旧独立 Cindy 风格全页。 | [src/features/providers/ui/ModelConnections.tsx](../src/features/providers/ui/ModelConnections.tsx)<br>[src/features/providers/ui/ProviderGallery.tsx](../src/features/providers/ui/ProviderGallery.tsx) |
 | `MODEL-DISCOVERY` | 0.6.0<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
-| `IM` | 0.6.0<br>0.23.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/IMBotsPage.tsx](../src/features/settings/ui/IMBotsPage.tsx)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs)<br>[vendor/cindy-im](../vendor/cindy-im) |
+| `IM` | 0.6.0<br>0.23.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/IMBotsPage.tsx](../src/features/settings/ui/IMBotsPage.tsx)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs)<br>[vendor/cindy-im](../vendor/cindy-im) |
 | `IMPORT` | 0.6.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/TaskImportPage.tsx](../src/features/settings/ui/TaskImportPage.tsx)<br>[src-tauri/src/task_import.rs](../src-tauri/src/task_import.rs)<br>[src-tauri/src/task_import_external.rs](../src-tauri/src/task_import_external.rs) |
 | `CLI-INSTALL` | 0.6.0<br>0.19.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers/ui/ManagedCLIControls.tsx](../src/features/providers/ui/ManagedCLIControls.tsx)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
 | `USAGE` | 0.6.0<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/UsageHistoryPage.tsx](../src/features/settings/ui/UsageHistoryPage.tsx)<br>[src/features/sessions/model/sessionUsage.ts](../src/features/sessions/model/sessionUsage.ts) |
@@ -1215,7 +1261,7 @@
 | `SESSION-REFERENCE` | 0.9.0<br>0.23.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/agent-app/model/sessionConversation.ts](../src/features/agent-app/model/sessionConversation.ts) |
 | `ACTIVITY` | 0.9.0<br>0.19.0 功能补齐版 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/AgentTranscript.tsx](../src/features/sessions/ui/AgentTranscript.tsx)<br>[src/features/sessions/model/monoWorkStatus.ts](../src/features/sessions/model/monoWorkStatus.ts) |
 | `BROWSER` | 0.9.0<br>0.22.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/browser.rs](../src-tauri/src/browser.rs)<br>[src/features/settings/ui/BrowserSettings.tsx](../src/features/settings/ui/BrowserSettings.tsx) |
-| `LOGIN` | 0.10.0<br>0.23.0 | 旧账号入口已替换为词元跳动；旧凭据文件保留不读取 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/shell/AccountCenter.tsx](../src/app/shell/AccountCenter.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
+| `LOGIN` | 0.10.0<br>0.23.1 | 旧账号入口已替换为词元跳动；旧凭据文件保留不读取 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/shell/AccountCenter.tsx](../src/app/shell/AccountCenter.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `TOKEN-DANCE` | 0.10.0<br>0.23.0 | 保留，显示名称词元跳动 | tokendance 内部 ID/API/已有授权不更改；合作卡片随主题与中文显示。 | [src/features/providers/ui/ModelConnections.tsx](../src/features/providers/ui/ModelConnections.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `MODEL-METADATA` | 0.10.0<br>0.18.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers/model/modelProtocols.ts](../src/features/providers/model/modelProtocols.ts)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `UPDATER` | 0.10.0<br>0.19.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src](../src-tauri/src)<br>[src/features/settings](../src/features/settings) |
@@ -1225,8 +1271,9 @@
 | `GIT-COMMIT` | 0.11.0<br>0.19.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/monos/ui/MonoProjectCommit.tsx](../src/features/monos/ui/MonoProjectCommit.tsx)<br>[src/features/source-control](../src/features/source-control) |
 | `SSH-HOST` | 0.11.0<br>0.20.0 | 远程架构与六平台发布包已融合 | 实际 Host 注册为 8 个代理；桌面 10 个不代表全部可远程，旧不支持代理不自动重放。 | [host](../host)<br>[src-tauri/src/remote_ssh.rs](../src-tauri/src/remote_ssh.rs) |
 | `PROJECT-DIALOG` | 0.12.0<br>0.12.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/App.tsx](../src/app/App.tsx)<br>[src/features/projects](../src/features/projects) |
-| `CLI-LEGACY-NOTICE` | 0.12.0<br>0.20.0 | 额外启动通知已移除 | 只能使用 HarnessUpdateNotice；别恢复 CLIUpdateNotice 或第二个启动扫描。 | [src/features/providers/ui/HarnessUpdateNotice.tsx](../src/features/providers/ui/HarnessUpdateNotice.tsx) |
-| `GROUP-CHAT` | 0.12.0<br>0.19.1 | 已移除运行功能，历史数据保留 | 用户 R55 覆盖 R16。不得重新接回入口、调度、写入。上游常驻 Monos 是另一功能，不随群聊一起删除。 | 已移除运行模块；查历史 tag 和交付说明 |
+| `CLI-LEGACY-NOTICE` | 0.12.0<br>0.23.1 | 额外启动通知已移除 | 只能使用 HarnessUpdateNotice；别恢复 CLIUpdateNotice 或第二个启动扫描。 | [src/features/providers/ui/HarnessUpdateNotice.tsx](../src/features/providers/ui/HarnessUpdateNotice.tsx) |
+| `GROUP-CHAT` | 0.12.0<br>0.19.1 | 已移除运行功能，历史数据保留 | 用户 R55 覆盖 R16。旧群聊入口、调度、写入保持移除；R71 的新群任务另用独立数据格式和目录，不读取旧群记录。 | 已移除运行模块；查历史 tag 和交付说明 |
+| `GROUP-TASK` | 0.23.1<br>0.23.1 | 独立本地群任务，不复用旧群聊数据 | 保留群目录和记忆隔离；任务安排逐步由用户确认，CLI 执行与模型配置沿用 MyCode 主线。 | [src/features/group-tasks](../src/features/group-tasks)<br>[src-tauri/src/group_tasks.rs](../src-tauri/src/group_tasks.rs) |
 | `MODES-COMMANDS` | 0.12.0<br>0.12.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions](../src/features/sessions)<br>[src/features/orchestration](../src/features/orchestration) |
 | `EDITOR` | 0.12.0<br>0.19.0 功能补齐版 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/files](../src/features/files) |
 | `TASK-PLAN` | 0.12.0<br>0.18.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/TaskPlanSurface.tsx](../src/features/sessions/ui/TaskPlanSurface.tsx)<br>[src/features/sessions/model/automaticTaskPlan.test.ts](../src/features/sessions/model/automaticTaskPlan.test.ts) |

@@ -11,10 +11,22 @@ vi.mock("../../shared/i18n", () => ({ useTranslation: () => ({ t: (s: string) =>
 let root: Root, container: HTMLDivElement;
 beforeEach(() => {
   invoke.mockReset(); openUrl.mockReset();
+  localStorage.clear();
   Object.defineProperty(window, "__TAURI_INTERNALS__", { value: {}, configurable: true });
   (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
   container = document.createElement("div"); document.body.append(container);
   root = createRoot(container);
+});
+it("signs out of the account without clearing the saved model authorization", async () => {
+  invoke.mockResolvedValue({ connected: true, name: "Alice", balance: 2500000 });
+  await act(async () => root.render(createElement(AccountCenter)));
+  await act(async () => container.querySelector("button")!.click());
+  const signOut = [...document.querySelectorAll("button")].find((button) => button.textContent === "Sign out")!;
+  await act(async () => signOut.click());
+  expect(container.textContent).toContain("Sign in to TokenDance");
+  expect(localStorage.getItem("mycode.tokendance.accountSignedOut")).toBe("true");
+  expect(invoke).not.toHaveBeenCalledWith("local_ai_save_config", expect.anything());
+  expect(invoke).not.toHaveBeenCalledWith("tokendance_disconnect");
 });
 afterEach(async () => {
   await act(async () => root.unmount());

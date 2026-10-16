@@ -27,6 +27,7 @@ mod external_editor;
 mod fs;
 mod gitcode;
 mod gitlab;
+mod group_tasks;
 mod harness;
 mod harness_updates;
 mod im_bridge;
@@ -337,6 +338,8 @@ pub fn run() {
             menu::dispatch(app, event.id().as_ref());
         })
         .invoke_handler(tauri::generate_handler![
+            group_tasks::group_tasks_list,
+            group_tasks::group_tasks_save,
             development::development_detect,
             development::development_context,
             development::development_run,
