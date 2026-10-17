@@ -263,7 +263,7 @@
       "date": "2026-10-17",
       "releaseDoc": "mycode-0.23.2.md",
       "monoBaseline": "3e37ad3c → e49a5ae4；3提交逐项融合",
-      "complementBaseline": "Cindy 7bfa89e6 → db24db2a，316提交；Synara f2614e58 → df87a48b，8提交；候选能力核对"
+      "complementBaseline": "Cindy 7bfa89e6 → 832e5b74，319提交；Synara f2614e58 → df87a48b，8提交；候选能力核对"
     }
   ],
   "requirements": [
