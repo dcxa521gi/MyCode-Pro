@@ -1,8 +1,8 @@
 # MyCode 功能来源与版本台账
 
-整理日期：2026-10-16；当前产品基线：**MyCode 0.23.1**，源码提交 `1a88ba5e41aca49d720776879fa342243ce7257a`。
+整理日期：2026-10-17；当前产品基线：**MyCode 0.23.2**，源码提交 `b994d95b29121b2016bc25f40a571d555aa1d360`。
 
-本文件按 **24 个交付阶段、342 条变更、110 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
+本文件按 **25 个交付阶段、345 条变更、110 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
 
 ## 如何使用
 
@@ -16,8 +16,8 @@
 
 | 来源代码 | 含义 | 本次变更条数 |
 | --- | --- | --- |
-| MONO | MonoCode 上游直接同步 | 36 |
-| MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 114 |
+| MONO | MonoCode 上游直接同步 | 38 |
+| MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 115 |
 | CINDY_CODE | Cindy 开源代码复用 | 2 |
 | CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 28 |
 | SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 10 |
@@ -62,6 +62,7 @@
 | [0.22.0](#v-0-22-0) | 2026-10-15 / `v0.22.0` | `514659d8` | 633730d70dd3e6cb8113af28c062dd1ea9228c0d → 5c21f014d4bdaa766b260b8d120174ad60358c2f；41提交逐项核对 | Cindy 3ea9099 → 0bbf5b3，128提交；Synara b4bdc73 → a21eb2b，21提交；只采本地能力 |
 | [0.23.0](#v-0-23-0) | 2026-10-16 / `v0.23.0` | `fc759f83` | 5c21f014d4bdaa766b260b8d120174ad60358c2f → 3e37ad3c00bde790813473dfa7911160edc1339a；5提交完整融合 | Cindy 0bbf5b39 → a1fbbb8e，347提交；Synara a21eb2b → f2614e58，13提交；核对本地能力 |
 | [0.23.1](#v-0-23-1) | 2026-10-16 / `v0.23.1` | `1a88ba5e` | 3e37ad3c → 3e37ad3c；0新增提交 | Cindy a1fbbb8e → 7bfa89e6，64提交；本地群任务重构；Synara f2614e58 无新增 |
+| [0.23.2](#v-0-23-2) | 2026-10-17 / `v0.23.2` | `b994d95b` | 3e37ad3c → e49a5ae4；3提交逐项融合 | Cindy 7bfa89e6 → db24db2a，316提交；Synara f2614e58 → df87a48b，8提交；候选能力核对 |
 
 ## 按版本的功能明细
 
@@ -624,6 +625,18 @@
 | MC-0.23.1-002<br>`IM` | IM 页面内对话命令教程 | [R72](#r72) | MyCode 自有新增/修复<br>**文档化** | 列出已实现的项目、会话继续命令及前提。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.23.1-003<br>`LOGIN` | 账号退出与模型授权分离 | [R73](#r73) | MyCode 自有新增/修复<br>**增强** | 退出仅隐藏账号会话，不调用模型连接删除或清除密钥。 | 旧账号入口已替换为词元跳动；旧凭据文件保留不读取 |
 | MC-0.23.1-004<br>`CLI-LEGACY-NOTICE` | 上游 CLI 更新提示一行折叠 | [R74](#r74) | MyCode 自有新增/修复<br>**增强** | 沿用 HarnessUpdateNotice；折叠只显示一行，优先当前更新项。 | 额外启动通知已移除 |
+
+<a id="v-0-23-2"></a>
+
+### 0.23.2（2026-10-17）
+
+证据：[docs/mycode-0.23.2.md](mycode-0.23.2.md)；本地标签 `v0.23.2` → `b994d95b29121b2016bc25f40a571d555aa1d360`。
+
+| 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
+| --- | --- | --- | --- | --- | --- |
+| MC-0.23.2-001<br>`MARKDOWN` | 项目 Markdown 图片预览 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**融合** | MonoCode 503c27e；合入项目内图片加载、路径约束与失败 alt 回退；保留 MyCode 本地媒体和中英文复制按钮。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.23.2-002<br>`ACTIVITY` | 任务中途追加消息保持运行计时 | 上游/维护/历史记录 | MonoCode 上游直接同步<br>**同步** | MonoCode 4630908；转录分组沿用原回合起点。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.23.2-003<br>`ARTIFACTS` | HTML 产物不透明主题颜色 | 上游/维护/历史记录 | MonoCode 上游直接同步<br>**同步** | MonoCode e49a5ae；surface、muted、border 使用背景混色，不修改产物正文。 | 保留；具体范围/实测条件见版本记录 |
 
 ## 用户要求覆盖索引
 
@@ -1259,7 +1272,7 @@
 | `FREEBUFF` | 0.9.0<br>0.20.0 | 已移除集成，旧文件/凭据/历史保留 | 禁止进入启动检查、更新事件、设置与安装；兼容残留只能用于拒绝/历史保护。 | [src/features/sessions/model/session.ts](../src/features/sessions/model/session.ts)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
 | `HERMES` | 0.9.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers/hermes](../src/integrations/harness/providers/hermes)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
 | `SESSION-REFERENCE` | 0.9.0<br>0.23.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/agent-app/model/sessionConversation.ts](../src/features/agent-app/model/sessionConversation.ts) |
-| `ACTIVITY` | 0.9.0<br>0.19.0 功能补齐版 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/AgentTranscript.tsx](../src/features/sessions/ui/AgentTranscript.tsx)<br>[src/features/sessions/model/monoWorkStatus.ts](../src/features/sessions/model/monoWorkStatus.ts) |
+| `ACTIVITY` | 0.9.0<br>0.23.2 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/AgentTranscript.tsx](../src/features/sessions/ui/AgentTranscript.tsx)<br>[src/features/sessions/model/monoWorkStatus.ts](../src/features/sessions/model/monoWorkStatus.ts) |
 | `BROWSER` | 0.9.0<br>0.22.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/browser.rs](../src-tauri/src/browser.rs)<br>[src/features/settings/ui/BrowserSettings.tsx](../src/features/settings/ui/BrowserSettings.tsx) |
 | `LOGIN` | 0.10.0<br>0.23.1 | 旧账号入口已替换为词元跳动；旧凭据文件保留不读取 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/shell/AccountCenter.tsx](../src/app/shell/AccountCenter.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `TOKEN-DANCE` | 0.10.0<br>0.23.0 | 保留，显示名称词元跳动 | tokendance 内部 ID/API/已有授权不更改；合作卡片随主题与中文显示。 | [src/features/providers/ui/ModelConnections.tsx](../src/features/providers/ui/ModelConnections.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
@@ -1287,7 +1300,7 @@
 | `MINIMAX` | 0.13.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers](../src/integrations/harness/providers)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
 | `THEME` | 0.13.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/styles/index.css](../src/styles/index.css)<br>[src/features/settings/model/appearance.ts](../src/features/settings/model/appearance.ts) |
 | `REVIEW` | 0.13.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/SessionReview.tsx](../src/features/sessions/ui/SessionReview.tsx)<br>[src-tauri/src/checkpoint](../src-tauri/src/checkpoint) |
-| `MARKDOWN` | 0.13.0<br>0.19.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/AgentMarkdown.tsx](../src/features/sessions/ui/AgentMarkdown.tsx) |
+| `MARKDOWN` | 0.13.0<br>0.23.2 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/AgentMarkdown.tsx](../src/features/sessions/ui/AgentMarkdown.tsx) |
 | `UPSTREAM-CONTROL` | 0.14.0<br>0.22.0 | 治理规则持续执行；历史遗漏已补齐 | 先记录新基线与完整增量，MonoCode 新能力必须适配，不能因架构差异跳过；仅审查与真整合分开。 | [AGENTS.md](../AGENTS.md)<br>[docs](../docs) |
 | `SETTINGS-OPTIONS` | 0.15.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/ui/SettingsDropdown.tsx](../src/shared/ui/SettingsDropdown.tsx)<br>[src/features/settings/ui/SettingsView.tsx](../src/features/settings/ui/SettingsView.tsx) |
 | `MODEL-AUTH` | 0.15.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers](../src/features/providers)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
@@ -1313,7 +1326,7 @@
 | `HABITS` | 0.19.0 功能补齐版<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/monos](../src/features/monos) |
 | `MONOS-SESSIONS` | 0.19.0 功能补齐版<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/monos/model/monoSpawnedSessions.ts](../src/features/monos/model/monoSpawnedSessions.ts)<br>[src/features/monos/ui/LaunchedSessionCard.tsx](../src/features/monos/ui/LaunchedSessionCard.tsx) |
 | `MONOS-FLOATING` | 0.19.0 功能补齐版<br>0.19.0 功能补齐版 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/monos/ui/FloatingMonoChat.tsx](../src/features/monos/ui/FloatingMonoChat.tsx)<br>[src-tauri/src/mono_chat.rs](../src-tauri/src/mono_chat.rs) |
-| `ARTIFACTS` | 0.19.0 功能补齐版<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/artifacts](../src/features/artifacts) |
+| `ARTIFACTS` | 0.19.0 功能补齐版<br>0.23.2 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/artifacts](../src/features/artifacts) |
 | `MONOS-CODEX-STORE` | 0.19.0 功能补齐版<br>0.19.0 功能补齐版 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/core/child.ts](../src/integrations/harness/core/child.ts)<br>[src/features/monos](../src/features/monos) |
 | `OPENCODE-V2` | 0.19.0 功能补齐版<br>0.19.0 功能补齐版 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers/opencode](../src/integrations/harness/providers/opencode)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `MONOS-COMPOSER` | 0.19.0 功能补齐版<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/monos/ui/MonoComposer.tsx](../src/features/monos/ui/MonoComposer.tsx)<br>[src/features/sessions/ui/SessionPane.tsx](../src/features/sessions/ui/SessionPane.tsx) |

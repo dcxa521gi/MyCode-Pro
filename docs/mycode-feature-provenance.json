@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedDate": "2026-10-16",
-  "currentProductVersion": "0.23.1",
-  "sourceCommit": "1a88ba5e41aca49d720776879fa342243ce7257a",
+  "recordedDate": "2026-10-17",
+  "currentProductVersion": "0.23.2",
+  "sourceCommit": "b994d95b29121b2016bc25f40a571d555aa1d360",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -254,6 +254,16 @@
       "releaseDoc": "mycode-0.23.1.md",
       "monoBaseline": "3e37ad3c → 3e37ad3c；0新增提交",
       "complementBaseline": "Cindy a1fbbb8e → 7bfa89e6，64提交；本地群任务重构；Synara f2614e58 无新增"
+    },
+    {
+      "key": "0.23.2",
+      "display": "0.23.2",
+      "tag": "v0.23.2",
+      "tagCommit": "b994d95b29121b2016bc25f40a571d555aa1d360",
+      "date": "2026-10-17",
+      "releaseDoc": "mycode-0.23.2.md",
+      "monoBaseline": "3e37ad3c → e49a5ae4；3提交逐项融合",
+      "complementBaseline": "Cindy 7bfa89e6 → db24db2a，316提交；Synara f2614e58 → df87a48b，8提交；候选能力核对"
     }
   ],
   "requirements": [
@@ -1740,7 +1750,7 @@
     {
       "id": "ACTIVITY",
       "firstRecordedVersion": "0.9.0",
-      "lastChangedVersion": "0.19.0-complete",
+      "lastChangedVersion": "0.23.2",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1753,7 +1763,8 @@
         "MC-0.12.0-022",
         "MC-0.13.0-016",
         "MC-0.19.0-original-003",
-        "MC-0.19.0-complete-014"
+        "MC-0.19.0-complete-014",
+        "MC-0.23.2-002"
       ]
     },
     {
@@ -2174,7 +2185,7 @@
     {
       "id": "MARKDOWN",
       "firstRecordedVersion": "0.13.0",
-      "lastChangedVersion": "0.19.1",
+      "lastChangedVersion": "0.23.2",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -2182,7 +2193,8 @@
       ],
       "changes": [
         "MC-0.13.0-017",
-        "MC-0.19.1-004"
+        "MC-0.19.1-004",
+        "MC-0.23.2-001"
       ]
     },
     {
@@ -2573,7 +2585,7 @@
     {
       "id": "ARTIFACTS",
       "firstRecordedVersion": "0.19.0-complete",
-      "lastChangedVersion": "0.21.0",
+      "lastChangedVersion": "0.23.2",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -2584,7 +2596,8 @@
         "MC-0.20.0-010",
         "MC-0.21.0-007",
         "MC-0.21.0-020",
-        "MC-0.21.0-022"
+        "MC-0.21.0-022",
+        "MC-0.23.2-003"
       ]
     },
     {
@@ -9513,6 +9526,59 @@
       "sourceConfidence": "组件测试通过",
       "maintenancePaths": [
         "src/features/providers/ui/HarnessUpdateNotice.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.2-001",
+      "version": "0.23.2",
+      "feature": "MARKDOWN",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [],
+      "title": "项目 Markdown 图片预览",
+      "detail": "MonoCode 503c27e；合入项目内图片加载、路径约束与失败 alt 回退；保留 MyCode 本地媒体和中英文复制按钮。",
+      "evidence": [
+        "mycode-0.23.2.md"
+      ],
+      "sourceConfidence": "定向测试和类型检查通过；真实远程 Host 与安装后体验待验",
+      "maintenancePaths": [
+        "src/features/sessions/ui/DocumentImage.tsx",
+        "src-tauri/src/fs.rs"
+      ]
+    },
+    {
+      "id": "MC-0.23.2-002",
+      "version": "0.23.2",
+      "feature": "ACTIVITY",
+      "origin": "MONO",
+      "action": "同步",
+      "requirements": [],
+      "title": "任务中途追加消息保持运行计时",
+      "detail": "MonoCode 4630908；转录分组沿用原回合起点。",
+      "evidence": [
+        "mycode-0.23.2.md"
+      ],
+      "sourceConfidence": "定向测试通过",
+      "maintenancePaths": [
+        "src/features/sessions/model/transcriptActivity.ts",
+        "src/features/sessions/ui/AgentTranscript.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.2-003",
+      "version": "0.23.2",
+      "feature": "ARTIFACTS",
+      "origin": "MONO",
+      "action": "同步",
+      "requirements": [],
+      "title": "HTML 产物不透明主题颜色",
+      "detail": "MonoCode e49a5ae；surface、muted、border 使用背景混色，不修改产物正文。",
+      "evidence": [
+        "mycode-0.23.2.md"
+      ],
+      "sourceConfidence": "类型检查通过；安装后视觉待验",
+      "maintenancePaths": [
+        "src/features/artifacts/ui/HtmlArtifactFrame.tsx"
       ]
     }
   ],
