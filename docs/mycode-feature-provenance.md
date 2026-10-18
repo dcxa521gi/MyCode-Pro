@@ -1,8 +1,8 @@
 # MyCode 功能来源与版本台账
 
-整理日期：2026-10-17；当前产品基线：**MyCode 0.23.2**，源码提交 `b994d95b29121b2016bc25f40a571d555aa1d360`。
+整理日期：2026-10-18；当前产品基线：**MyCode 0.23.3**，源码提交 `5851df4561fbc534e7a41ecd920520a7bcf9151a`。
 
-本文件按 **25 个交付阶段、345 条变更、110 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
+本文件按 **26 个交付阶段、350 条变更、111 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
 
 ## 如何使用
 
@@ -16,12 +16,12 @@
 
 | 来源代码 | 含义 | 本次变更条数 |
 | --- | --- | --- |
-| MONO | MonoCode 上游直接同步 | 38 |
-| MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 115 |
+| MONO | MonoCode 上游直接同步 | 39 |
+| MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 118 |
 | CINDY_CODE | Cindy 开源代码复用 | 2 |
 | CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 28 |
 | SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 10 |
-| MYCODE | MyCode 自有新增/修复 | 125 |
+| MYCODE | MyCode 自有新增/修复 | 126 |
 | VENDOR | 官方 CLI/SDK/接口适配 | 22 |
 | CODEX_REFERENCE | Codex 交互参考、MyCode 实现 | 4 |
 | USER_UI_REFERENCE | 用户截图布局参考、MyCode 实现 | 1 |
@@ -63,6 +63,7 @@
 | [0.23.0](#v-0-23-0) | 2026-10-16 / `v0.23.0` | `fc759f83` | 5c21f014d4bdaa766b260b8d120174ad60358c2f → 3e37ad3c00bde790813473dfa7911160edc1339a；5提交完整融合 | Cindy 0bbf5b39 → a1fbbb8e，347提交；Synara a21eb2b → f2614e58，13提交；核对本地能力 |
 | [0.23.1](#v-0-23-1) | 2026-10-16 / `v0.23.1` | `1a88ba5e` | 3e37ad3c → 3e37ad3c；0新增提交 | Cindy a1fbbb8e → 7bfa89e6，64提交；本地群任务重构；Synara f2614e58 无新增 |
 | [0.23.2](#v-0-23-2) | 2026-10-17 / `v0.23.2` | `b994d95b` | 3e37ad3c → e49a5ae4；3提交逐项融合 | Cindy 7bfa89e6 → 832e5b74，319提交；Synara f2614e58 → df87a48b，8提交；候选能力核对 |
+| [0.23.3](#v-0-23-3) | 2026-10-18 / `v0.23.3` | `5851df45` | e49a5ae4 → 399c3033；26提交逐项融合与核对 | Cindy 832e5b74 → 77e2c32d，195提交；Synara df87a48b → b8cf9382，8提交；本地候选核对 |
 
 ## 按版本的功能明细
 
@@ -637,6 +638,20 @@
 | MC-0.23.2-001<br>`MARKDOWN` | 项目 Markdown 图片预览 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**融合** | MonoCode 503c27e；合入项目内图片加载、路径约束与失败 alt 回退；保留 MyCode 本地媒体和中英文复制按钮。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.23.2-002<br>`ACTIVITY` | 任务中途追加消息保持运行计时 | 上游/维护/历史记录 | MonoCode 上游直接同步<br>**同步** | MonoCode 4630908；转录分组沿用原回合起点。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.23.2-003<br>`ARTIFACTS` | HTML 产物不透明主题颜色 | 上游/维护/历史记录 | MonoCode 上游直接同步<br>**同步** | MonoCode e49a5ae；surface、muted、border 使用背景混色，不修改产物正文。 | 保留；具体范围/实测条件见版本记录 |
+
+<a id="v-0-23-3"></a>
+
+### 0.23.3（2026-10-18）
+
+证据：[docs/mycode-0.23.3.md](mycode-0.23.3.md)；本地标签 `v0.23.3` → `5851df4561fbc534e7a41ecd920520a7bcf9151a`。
+
+| 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
+| --- | --- | --- | --- | --- | --- |
+| MC-0.23.3-001<br>`RESOURCE-PRESSURE` | 资源压力与进程控制 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**融合** | MonoCode 53777ef；合并原生采样、查看与停止用户所选进程，改为 MyCode 中英文提示。 | 保留；资源进程操作需用户主动触发 |
+| MC-0.23.3-002<br>`SETTINGS-OPTIONS` | 平滑显示回复文字设置 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**融合** | MonoCode 53777ef；保留上游默认与切换行为，设置提供英文和简体中文。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.23.3-003<br>`PERFORMANCE` | 长会话与工作区资源优化 | 上游/维护/历史记录 | MonoCode 上游直接同步<br>**同步** | MonoCode 002d393..399c303；会话状态、折叠工具输出、工作线程高亮与差异、资源下压力策略；撤回的隐藏转录释放不作现行功能。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.23.3-004<br>`SCROLL` | 回复完成与切换标签页保留阅读位置 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**融合** | MonoCode 002d393..399c303；保留字符锚点、原生滚动与动画状态；现有 MyCode 会话入口继续工作。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.23.3-005<br>`I18N` | 新增资源面板与设置双语 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**改造** | 资源压力、进程操作、平滑显示回复文字、延迟输出不可用及差异处理错误提供简体中文和英文。 | 保留；具体范围/实测条件见版本记录 |
 
 ## 用户要求覆盖索引
 
@@ -1240,7 +1255,7 @@
 | --- | --- | --- | --- | --- |
 | `BASE` | 0.5.0<br>0.23.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/App.tsx](../src/app/App.tsx)<br>[src/features/workspace](../src/features/workspace) |
 | `BRAND` | 0.5.0<br>0.17.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/i18n](../src/shared/i18n)<br>[public/mycode-icon.png](../public/mycode-icon.png) |
-| `I18N` | 0.5.0<br>0.23.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/i18n](../src/shared/i18n)<br>[src/features/sessions/ui/MonoWorkTicker.tsx](../src/features/sessions/ui/MonoWorkTicker.tsx) |
+| `I18N` | 0.5.0<br>0.23.3 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/i18n](../src/shared/i18n)<br>[src/features/sessions/ui/MonoWorkTicker.tsx](../src/features/sessions/ui/MonoWorkTicker.tsx) |
 | `MODEL-CONNECTION` | 0.5.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers/model/modelConnections.ts](../src/features/providers/model/modelConnections.ts)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `MODEL-ROUTING` | 0.5.0<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness](../src/integrations/harness)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `MEMORY` | 0.5.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/PersonalizationSettings.tsx](../src/features/settings/ui/PersonalizationSettings.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
@@ -1279,8 +1294,8 @@
 | `MODEL-METADATA` | 0.10.0<br>0.18.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers/model/modelProtocols.ts](../src/features/providers/model/modelProtocols.ts)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `UPDATER` | 0.10.0<br>0.19.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src](../src-tauri/src)<br>[src/features/settings](../src/features/settings) |
 | `GITCODE` | 0.10.0<br>0.11.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/inbox](../src/features/inbox)<br>[src/features/settings](../src/features/settings) |
-| `PERFORMANCE` | 0.11.0<br>0.23.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/core](../src/integrations/harness/core)<br>[src/app/model/harnessFlush.ts](../src/app/model/harnessFlush.ts) |
-| `SCROLL` | 0.11.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/hooks](../src/features/sessions/hooks)<br>[src/shared/hooks/useAnimatedReorder.ts](../src/shared/hooks/useAnimatedReorder.ts) |
+| `PERFORMANCE` | 0.11.0<br>0.23.3 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/core](../src/integrations/harness/core)<br>[src/app/model/harnessFlush.ts](../src/app/model/harnessFlush.ts) |
+| `SCROLL` | 0.11.0<br>0.23.3 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/hooks](../src/features/sessions/hooks)<br>[src/shared/hooks/useAnimatedReorder.ts](../src/shared/hooks/useAnimatedReorder.ts) |
 | `GIT-COMMIT` | 0.11.0<br>0.19.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/monos/ui/MonoProjectCommit.tsx](../src/features/monos/ui/MonoProjectCommit.tsx)<br>[src/features/source-control](../src/features/source-control) |
 | `SSH-HOST` | 0.11.0<br>0.20.0 | 远程架构与六平台发布包已融合 | 实际 Host 注册为 8 个代理；桌面 10 个不代表全部可远程，旧不支持代理不自动重放。 | [host](../host)<br>[src-tauri/src/remote_ssh.rs](../src-tauri/src/remote_ssh.rs) |
 | `PROJECT-DIALOG` | 0.12.0<br>0.12.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/App.tsx](../src/app/App.tsx)<br>[src/features/projects](../src/features/projects) |
@@ -1302,7 +1317,7 @@
 | `REVIEW` | 0.13.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/SessionReview.tsx](../src/features/sessions/ui/SessionReview.tsx)<br>[src-tauri/src/checkpoint](../src-tauri/src/checkpoint) |
 | `MARKDOWN` | 0.13.0<br>0.23.2 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/AgentMarkdown.tsx](../src/features/sessions/ui/AgentMarkdown.tsx) |
 | `UPSTREAM-CONTROL` | 0.14.0<br>0.22.0 | 治理规则持续执行；历史遗漏已补齐 | 先记录新基线与完整增量，MonoCode 新能力必须适配，不能因架构差异跳过；仅审查与真整合分开。 | [AGENTS.md](../AGENTS.md)<br>[docs](../docs) |
-| `SETTINGS-OPTIONS` | 0.15.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/ui/SettingsDropdown.tsx](../src/shared/ui/SettingsDropdown.tsx)<br>[src/features/settings/ui/SettingsView.tsx](../src/features/settings/ui/SettingsView.tsx) |
+| `SETTINGS-OPTIONS` | 0.15.0<br>0.23.3 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/ui/SettingsDropdown.tsx](../src/shared/ui/SettingsDropdown.tsx)<br>[src/features/settings/ui/SettingsView.tsx](../src/features/settings/ui/SettingsView.tsx) |
 | `MODEL-AUTH` | 0.15.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers](../src/features/providers)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `IM-NOTIFY` | 0.15.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/IMCompletionSettings.tsx](../src/features/settings/ui/IMCompletionSettings.tsx)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs) |
 | `IM-CONTINUE` | 0.15.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs)<br>[src/app/App.tsx](../src/app/App.tsx) |
@@ -1348,6 +1363,7 @@
 | `REMOTE-SAFETY` | 0.20.0<br>0.20.0 | 已有等价安全能力核对并保留 | 不计作新移植 Synara WebSocket/Effect/完整 Hub；禁止失败后自动重放改变请求。 | [host/engine.ts](../host/engine.ts)<br>[host/store.ts](../host/store.ts)<br>[src/features/connections](../src/features/connections) |
 | `IME-INPUT` | 0.19.0 初版（历史快照）<br>0.19.0 初版（历史快照） | 保留，中文输入法候选处理与历史箭头不同 | IME 候选选择不误发送；不要把上下键历史当作输入法行为，维护 Enter/编号/引用时分别验证。 | [src/features/sessions/ui/Composer.tsx](../src/features/sessions/ui/Composer.tsx) |
 | `RELEASE-ASSETS` | 0.20.0 发布维护（2026-10-13）<br>0.21.0 | 仅 MyCode 桌面产物；Host 独立下载 | 发布前后执行附件白名单检查；不得把 Host 或上游安装包上传到桌面发行页。 | [scripts/check-release-assets.mjs](../scripts/check-release-assets.mjs)<br>[scripts/publish-host-downloads.mjs](../scripts/publish-host-downloads.mjs)<br>[src-tauri/src/remote_ssh.rs](../src-tauri/src/remote_ssh.rs) |
+| `RESOURCE-PRESSURE` | 0.23.3<br>0.23.3 | 保留；资源进程操作需用户主动触发 | 保持进程身份与归属校验；停止操作须用户显式触发；中英文提示一致。 | [src/features/notifications/ui/ResourcePressureNotice.tsx](../src/features/notifications/ui/ResourcePressureNotice.tsx)<br>[src-tauri/src/resources.rs](../src-tauri/src/resources.rs) |
 
 ## 需要特别分清的演变
 
