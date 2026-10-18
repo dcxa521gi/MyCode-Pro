@@ -232,7 +232,7 @@ export function ResourcePressureNotice({
                 {sample.cpuPercent == null
                   ? t("unavailable")
                   : `${Math.round(sample.cpuPercent)}%`}{" "}
-                · {t("Memory")}: {" "}
+                · {t("Memory usage")}: {" "}
                 {sample.memoryPressure == null
                   ? t("unavailable")
                   : sample.memoryPressure >= 4

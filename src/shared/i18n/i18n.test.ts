@@ -123,6 +123,8 @@ describe("context-specific action and status semantics", () => {
 });
 
 it("keeps the new resource controls and chat setting readable in both languages", () => {
+  expect(translate("Memory", "zh-CN")).toBe("记忆");
+  expect(translate("Memory usage", "zh-CN")).toBe("内存使用量");
   for (const key of [
     "Resource pressure",
     "View processes",

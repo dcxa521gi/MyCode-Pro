@@ -11,7 +11,7 @@ export const mycode0233ZhCN: Record<string, string> = {
   "Resource pressure has recovered.": "资源压力已恢复。",
   "Processes below were launched by MyCode agents. Nothing is stopped automatically.": "以下进程由 MyCode 代理启动。不会自动停止任何进程。",
   "CPU": "CPU",
-  "Memory": "内存",
+  "Memory usage": "内存使用量",
   "UI stall time": "界面卡顿时间",
   "unavailable": "不可用",
   "critical": "严重",
