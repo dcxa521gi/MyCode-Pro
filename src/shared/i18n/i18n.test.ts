@@ -121,3 +121,17 @@ describe("context-specific action and status semantics", () => {
     expect(translateInContext("Unknown", "status")).toBe("Unknown");
   });
 });
+
+it("keeps the new resource controls and chat setting readable in both languages", () => {
+  for (const key of [
+    "Resource pressure",
+    "View processes",
+    "Stop agent",
+    "Stop build/tool",
+    "Stop session",
+    "Smooth text reveal",
+  ]) {
+    expect(translate(key, "en")).toBe(key);
+    expect(translate(key, "zh-CN")).not.toBe(key);
+  }
+});

@@ -14,12 +14,14 @@ import {
   type CheckpointFile,
 } from "../../sessions/model/checkpoint";
 import { forEachConcurrent } from "../../../shared/lib/concurrent";
-import { buildUnifiedFile, type UnifiedFileDiff } from "../model/unifiedDiff";
+import type { UnifiedFileDiff } from "../model/unifiedDiff";
+import { prepareUnifiedDiff } from "../model/diffWorker";
 import { UnifiedDiffView, type UnifiedDiffFileModel } from "./UnifiedDiffView";
 
 type Props = {
   cwd: string;
   sessionId: string;
+  visible?: boolean;
   focusPath?: string;
   /** Limit the review to these session file paths. */
   paths?: readonly string[];
@@ -43,6 +45,7 @@ export function SessionChangesDiff({
   focusPath,
   paths,
   initialExpansion,
+  visible = true,
 }: Props) {
   const scope = paths == null ? undefined : JSON.stringify(paths);
   // Only the load order uses the focus; moving it must not restart the load.
@@ -51,8 +54,10 @@ export function SessionChangesDiff({
   const [files, setFiles] = useState<CheckpointFile[] | null>(null);
   const [diffs, setDiffs] = useState<Map<string, LoadedDiff>>(new Map());
   const [error, setError] = useState<string | null>(null);
+  const loadedScope = useRef("");
 
   useEffect(() => {
+    if (!visible) return;
     if (!cwd || cwd === "~" || !sessionId) {
       setFiles([]);
       setDiffs(new Map());
@@ -61,18 +66,32 @@ export function SessionChangesDiff({
 
     let disposed = false;
     let generation = 0;
-    const run = () => {
-      const current = ++generation;
+    let controller = new AbortController();
+    const key = `${cwd}\0${sessionId}\0${scope ?? ""}`;
+    if (loadedScope.current !== key) {
+      loadedScope.current = key;
       setFiles(null);
       setDiffs(new Map());
+    }
+    const run = () => {
+      controller.abort();
+      controller = new AbortController();
+      const { signal } = controller;
+      const current = ++generation;
       void sessionCheckpointStatus(sessionId, cwd)
         .then(async (status) => {
           if (disposed || current !== generation) return;
-          const allowed = scope == null ? null : new Set<string>(JSON.parse(scope));
+          const allowed =
+            scope == null ? null : new Set<string>(JSON.parse(scope));
           const scoped = allowed
             ? status.files.filter((file) => allowed.has(file.path))
             : status.files;
           setFiles(scoped);
+          const retained = new Set(scoped.map((file) => file.relative));
+          setDiffs(
+            (existing) =>
+              new Map([...existing].filter(([id]) => retained.has(id))),
+          );
           setError(null);
           await forEachConcurrent(
             prioritizeFile(scoped, focusRef.current),
@@ -90,7 +109,12 @@ export function SessionChangesDiff({
                   tooLarge: diff.tooLarge,
                   unified:
                     !diff.binary && !diff.tooLarge
-                      ? buildUnifiedFile(diff.original, diff.current)
+                      ? await prepareUnifiedDiff(
+                          diff.original,
+                          diff.current,
+                          signal,
+                          file.path === focusRef.current ? 0 : 1,
+                        )
                       : null,
                 };
               } catch (caught: unknown) {
@@ -125,9 +149,10 @@ export function SessionChangesDiff({
     });
     return () => {
       disposed = true;
+      controller.abort();
       unsubscribe();
     };
-  }, [cwd, sessionId, scope]);
+  }, [cwd, sessionId, scope, visible]);
 
   const models = useMemo<UnifiedDiffFileModel[]>(() => {
     if (!files) return [];

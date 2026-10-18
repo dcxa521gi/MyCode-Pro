@@ -3,12 +3,14 @@ import zhCN from "./zh-CN.json";
 import { mycode021MonoZhCN } from "./mycode021Mono";
 import { mycode021CoreZhCN } from "./mycode021Core";
 import { mycode021HtmlZhCN } from "./mycode021Html";
+import { mycode0233ZhCN } from "./mycode0233";
 
 const messages: Record<string, string> = {
   ...zhCN,
   ...mycode021CoreZhCN,
   ...mycode021MonoZhCN,
   ...mycode021HtmlZhCN,
+  ...mycode0233ZhCN,
 };
 
 export type Locale = "en" | "zh-CN";
