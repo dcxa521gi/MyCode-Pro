@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { loadToolDetail } from "../data/sessionStore";
 import type { Block } from "../model/session";
+import { useTranslation } from "../../../shared/i18n";
 
 /** The saved session that rows in this transcript fetch omitted output from. */
 export const ToolDetailSession = createContext<string | undefined>(undefined);
@@ -28,6 +29,7 @@ export type ToolDetail = {
  * (`detailOmitted`), and the row fetches it only once it is opened.
  */
 export function useToolDetail(block: Block, open: boolean): ToolDetail {
+  const { t } = useTranslation();
   const sessionId = useContext(ToolDetailSession);
   const inline = block.tool?.detail;
   const omitted = !inline && !!block.tool?.detailOmitted && !!sessionId;
@@ -35,14 +37,14 @@ export function useToolDetail(block: Block, open: boolean): ToolDetail {
   const blockId = owner?.blockId ?? block.id;
   const stepId = owner?.stepId;
   const key = `${sessionId}\0${blockId}\0${stepId ?? ""}`;
-  const [loaded, setLoaded] = useState<{ key: string; detail: string }>();
+  const [loaded, setLoaded] = useState<{ key: string; detail: string | null }>();
   const fetched = loaded?.key === key ? loaded.detail : undefined;
   const fetching = omitted && open && fetched === undefined;
   useEffect(() => {
     if (!fetching || !sessionId) return;
     let cancelled = false;
     const settle = (detail: string | null) => {
-      if (!cancelled) setLoaded({ key, detail: detail ?? OUTPUT_UNAVAILABLE });
+      if (!cancelled) setLoaded({ key, detail });
     };
     loadToolDetail(sessionId, blockId, stepId).then(settle, () => settle(null));
     return () => {
@@ -50,5 +52,9 @@ export function useToolDetail(block: Block, open: boolean): ToolDetail {
     };
   }, [fetching, sessionId, blockId, stepId, key]);
   if (!omitted) return { detail: inline, omitted: false, pending: false };
-  return { detail: fetched, omitted: true, pending: fetching };
+  return {
+    detail: fetched === null ? t(OUTPUT_UNAVAILABLE) : fetched,
+    omitted: true,
+    pending: fetching,
+  };
 }

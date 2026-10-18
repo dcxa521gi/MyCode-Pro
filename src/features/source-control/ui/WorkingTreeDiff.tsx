@@ -1,4 +1,4 @@
-import { useTranslation } from "../../../shared/i18n";
+import { formatMessage, useTranslation } from "../../../shared/i18n";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Loader } from "../../../shared/ui/icons";
 import {
@@ -206,7 +206,7 @@ export function WorkingTreeDiff({
           loaded == null
             ? "Loading…"
             : loaded.error
-              ? `Couldn’t load diff: ${loaded.error}`
+              ? formatMessage("Couldn’t load diff: {error}", { error: t(loaded.error) })
               : unchanged
                 ? kind === "staged"
                   ? "No staged changes"

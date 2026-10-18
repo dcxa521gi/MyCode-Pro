@@ -25,4 +25,7 @@ export const mycode0233ZhCN: Record<string, string> = {
   "Stop session": "停止会话",
   "{action} for {session} (PID {pid})": "对 {session} 执行{action}（PID {pid}）",
   "Stop session {session}": "停止会话 {session}",
+  "Output is no longer available.": "输出内容已不可用。",
+  "Could not prepare the diff": "无法处理差异内容",
+  "Couldn’t load diff: {error}": "无法加载差异：{error}",
 };
