@@ -90,4 +90,6 @@ MonoCode 从 `399c303360686e804c8657d98db91d93f6ae99b6` 更新到 `e53e09aad2f19
 - TypeScript 类型检查、生产前端构建（3751 模块）、Rust `cargo check -p monocode --lib` 与 `cargo fmt --check` 通过。Tailwind 样式扫描限定到应用源码和入口页面，保留 Streamdown 显式来源，解决本机先前的构建耗时问题。
 - 原有 14 个前端定向测试文件共 152 项通过；最终增量复跑 5 文件 73 项通过，覆盖新增中英文文案、设置、项目范围、限额和资源提示。Rust `provider_session_transfer` 定向 3 项通过。
 - Chromium 浏览器初轮曾因 Vite 首次加载超过 90 秒超时；重启后复跑新版布局单项通过，随后布局、应用标签、资源面板及差异审阅整组 12 项通过。以上为浏览器模拟验证，不等于安装后的桌面验收。
-- Windows NSIS 安装包、六平台 Host 独立分支及公开附件校验以最终发布记录补齐。安装后升级、真实账号、macOS 实机与异地 Host 仍需对应环境验收。
+- Windows NSIS 安装包由最终源码构建：`MyCode_0.23.4_x64-setup.exe`，40,617,706 字节，SHA-256 `98ad6626201316314b53fad66a269ae9ad6d996f4555357bac8bec0d7a96c4d4`。安装包和可执行文件的 ProductName/ProductVersion 均为 MyCode/0.23.4；安装包未签名，未执行覆盖安装。
+- 六个平台的 MyCode Host 0.23.4 压缩包已发布到独立 `mycode-host-v0.23.4` 分支；从公开地址逐包重读，6 个包的字节数和 SHA-256 与本地清单一致。Host 包未进入桌面发行页，旧版本分支未删除。
+- 桌面发行页及公开安装包校验以最终发布记录补齐。安装后升级、真实账号、macOS 实机与异地 Host 仍需对应环境验收。
