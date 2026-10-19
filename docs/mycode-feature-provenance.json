@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedDate": "2026-10-18",
-  "currentProductVersion": "0.23.3",
-  "sourceCommit": "5851df4561fbc534e7a41ecd920520a7bcf9151a",
+  "recordedDate": "2026-10-19",
+  "currentProductVersion": "0.23.4",
+  "sourceCommit": "cc5faacad66e6db2729ae5e35150fbf2872112e8",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -274,6 +274,16 @@
       "releaseDoc": "mycode-0.23.3.md",
       "monoBaseline": "e49a5ae4 → 399c3033；26提交逐项融合与核对",
       "complementBaseline": "Cindy 832e5b74 → 77e2c32d，195提交；Synara df87a48b → b8cf9382，8提交；本地候选核对"
+    },
+    {
+      "key": "0.23.4",
+      "display": "0.23.4",
+      "tag": "v0.23.4",
+      "tagCommit": "cc5faacad66e6db2729ae5e35150fbf2872112e8",
+      "date": "2026-10-19",
+      "releaseDoc": "mycode-0.23.4.md",
+      "monoBaseline": "399c3033 → e53e09aad2；61提交逐项融合与核对",
+      "complementBaseline": "Cindy 77e2c32d → e6c54663，121提交；Synara b8cf9382 → 299fd573，4提交；本地候选核对"
     }
   ],
   "requirements": [
@@ -1133,7 +1143,8 @@
       "title": "在 0.23.0 基础上融合 Cindy 式新群任务，旧群数据不复用",
       "scope": "新的本地群任务目录与数据格式；成员、主管、安排卡和逐步执行。",
       "events": [
-        "MC-0.23.1-001"
+        "MC-0.23.1-001",
+        "MC-0.23.4-007"
       ],
       "evidenceLevel": "用户本轮明确要求与代码、测试"
     },
@@ -1205,7 +1216,7 @@
     {
       "id": "I18N",
       "firstRecordedVersion": "0.5.0",
-      "lastChangedVersion": "0.23.3",
+      "lastChangedVersion": "0.23.4",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1227,7 +1238,8 @@
         "MC-0.21.0-033",
         "MC-0.22.0-006",
         "MC-0.23.0-010",
-        "MC-0.23.3-005"
+        "MC-0.23.3-005",
+        "MC-0.23.4-006"
       ]
     },
     {
@@ -1446,7 +1458,7 @@
     {
       "id": "USAGE",
       "firstRecordedVersion": "0.6.0",
-      "lastChangedVersion": "0.21.0",
+      "lastChangedVersion": "0.23.4",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1463,7 +1475,8 @@
         "MC-0.14.0-004",
         "MC-0.16.0-002",
         "MC-0.16.0-019",
-        "MC-0.21.0-008"
+        "MC-0.21.0-008",
+        "MC-0.23.4-004"
       ]
     },
     {
@@ -1559,7 +1572,7 @@
     {
       "id": "LAYOUT",
       "firstRecordedVersion": "0.7.0",
-      "lastChangedVersion": "0.22.0",
+      "lastChangedVersion": "0.23.4",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1573,7 +1586,8 @@
         "MC-0.15.0-002",
         "MC-0.16.0-017",
         "MC-0.21.0-012",
-        "MC-0.22.0-003"
+        "MC-0.22.0-003",
+        "MC-0.23.4-001"
       ]
     },
     {
@@ -1991,7 +2005,7 @@
     {
       "id": "GROUP-TASK",
       "firstRecordedVersion": "0.23.1",
-      "lastChangedVersion": "0.23.1",
+      "lastChangedVersion": "0.23.4",
       "status": "独立本地群任务，不复用旧群聊数据",
       "upgradePolicy": "保留群目录和记忆隔离；任务安排逐步由用户确认，CLI 执行与模型配置沿用 MyCode 主线。",
       "maintenancePaths": [
@@ -1999,7 +2013,8 @@
         "src-tauri/src/group_tasks.rs"
       ],
       "changes": [
-        "MC-0.23.1-001"
+        "MC-0.23.1-001",
+        "MC-0.23.4-007"
       ]
     },
     {
@@ -2405,14 +2420,15 @@
     {
       "id": "INBOX",
       "firstRecordedVersion": "0.16.0",
-      "lastChangedVersion": "0.16.0",
+      "lastChangedVersion": "0.23.4",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
         "src/features/inbox"
       ],
       "changes": [
-        "MC-0.16.0-016"
+        "MC-0.16.0-016",
+        "MC-0.23.4-002"
       ]
     },
     {
@@ -2474,7 +2490,7 @@
     {
       "id": "DIFF",
       "firstRecordedVersion": "0.18.0",
-      "lastChangedVersion": "0.23.0",
+      "lastChangedVersion": "0.23.4",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -2482,7 +2498,8 @@
       ],
       "changes": [
         "MC-0.18.0-017",
-        "MC-0.23.0-004"
+        "MC-0.23.0-004",
+        "MC-0.23.4-003"
       ]
     },
     {
@@ -2926,10 +2943,11 @@
         "src-tauri/src/resources.rs"
       ],
       "changes": [
-        "MC-0.23.3-001"
+        "MC-0.23.3-001",
+        "MC-0.23.4-005"
       ],
       "firstRecordedVersion": "0.23.3",
-      "lastChangedVersion": "0.23.3"
+      "lastChangedVersion": "0.23.4"
     }
   ],
   "events": [
@@ -9695,6 +9713,132 @@
       "sourceConfidence": "类型检查、生产构建与定向测试通过；安装后体验待验",
       "maintenancePaths": [
         "src/shared/i18n/mycode0233.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.4-001",
+      "version": "0.23.4",
+      "feature": "LAYOUT",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [],
+      "title": "可选新版工作区与主题",
+      "detail": "MonoCode v0.15.0 的 inset 布局、项目栏、标签页和主题作为主行为；MyCode 首页、语音和独立群任务接入，保留经典布局与既有设置。",
+      "evidence": [
+        "mycode-0.23.4.md"
+      ],
+      "sourceConfidence": "构建、定向测试及 Chromium 新旧布局流程通过；桌面安装后待验",
+      "maintenancePaths": [
+        "src/app/App.tsx",
+        "src/app/shell/Sidebar.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.4-002",
+      "version": "0.23.4",
+      "feature": "INBOX",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [],
+      "title": "项目范围的收件箱、笔记与自动化",
+      "detail": "沿用上游项目范围与应用标签状态，不搬迁现有项目、凭据或会话历史。",
+      "evidence": [
+        "mycode-0.23.4.md"
+      ],
+      "sourceConfidence": "项目范围及应用标签测试通过；真实服务连接待验",
+      "maintenancePaths": [
+        "src/features/projects/model/projectScope.ts",
+        "src/features/workspace/model/appViewTabs.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.4-003",
+      "version": "0.23.4",
+      "feature": "DIFF",
+      "origin": "MONO",
+      "action": "同步",
+      "requirements": [],
+      "title": "Git 历史标签与大型差异审阅",
+      "detail": "合入右侧 Git 历史、差异窗口化、工作线程高亮及暂存操作；新增操作文案提供简体中文。",
+      "evidence": [
+        "mycode-0.23.4.md"
+      ],
+      "sourceConfidence": "Chromium 大型差异及交互测试通过；真实大型仓库待验",
+      "maintenancePaths": [
+        "src/features/source-control/ui/GitHistoryGraph.tsx",
+        "src/features/source-control/ui/UnifiedDiffView.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.4-004",
+      "version": "0.23.4",
+      "feature": "USAGE",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [],
+      "title": "限额后的账号接续",
+      "detail": "融合上游多账号接续与原生历史转移，保留 MyCode 模型路由及账号选择。",
+      "evidence": [
+        "mycode-0.23.4.md"
+      ],
+      "sourceConfidence": "Rust 3 项原生转移测试与前端限额测试通过；真实账号待验",
+      "maintenancePaths": [
+        "src-tauri/src/provider_session_transfer.rs",
+        "src/features/sessions/ui/UsageLimitAccountPicker.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.4-005",
+      "version": "0.23.4",
+      "feature": "RESOURCE-PRESSURE",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [],
+      "title": "会话分组的资源提示",
+      "detail": "资源提示按会话分组，停止进程仍需用户主动触发；空状态保持 MyCode 品牌。",
+      "evidence": [
+        "mycode-0.23.4.md"
+      ],
+      "sourceConfidence": "资源面板前端与 Chromium 测试通过；桌面原生进程待验",
+      "maintenancePaths": [
+        "src/features/notifications/ui/ResourcePressureNotice.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.4-006",
+      "version": "0.23.4",
+      "feature": "I18N",
+      "origin": "MYCODE",
+      "action": "改造",
+      "requirements": [],
+      "title": "新增布局和工具的中英文文案",
+      "detail": "新版布局、项目范围、账号接续、Git 历史和资源操作新增界面文案提供简体中文与英文。",
+      "evidence": [
+        "mycode-0.23.4.md"
+      ],
+      "sourceConfidence": "i18n 定向测试、构建与 Chromium 测试通过；桌面双语言人工验收待验",
+      "maintenancePaths": [
+        "src/shared/i18n/mycode0234.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.4-007",
+      "version": "0.23.4",
+      "feature": "GROUP-TASK",
+      "origin": "MYCODE",
+      "action": "适配",
+      "requirements": [
+        "R71"
+      ],
+      "title": "独立群任务保留在新版工作区",
+      "detail": "新版页面结构重新接入独立群任务；旧群聊入口不恢复，群目录和记忆继续隔离，自动闲聊默认关闭。",
+      "evidence": [
+        "mycode-0.23.4.md"
+      ],
+      "sourceConfidence": "类型检查、构建与既有群任务定向测试通过；安装后待验",
+      "maintenancePaths": [
+        "src/app/App.tsx",
+        "src/features/group-tasks/model/groupTasks.ts"
       ]
     }
   ],
