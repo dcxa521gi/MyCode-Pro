@@ -137,3 +137,19 @@ it("keeps the new resource controls and chat setting readable in both languages"
     expect(translate(key, "zh-CN")).not.toBe(key);
   }
 });
+
+it("localizes the new workspace, running work, account and history actions", () => {
+  for (const key of [
+    "Try the new layout",
+    "New layout",
+    "Workspace theme",
+    "Running work",
+    "Stop this session and pause queued work",
+    "Choose another account",
+    "Search history",
+    "Stage hunk",
+  ]) {
+    expect(translate(key, "en")).toBe(key);
+    expect(translate(key, "zh-CN")).not.toBe(key);
+  }
+});

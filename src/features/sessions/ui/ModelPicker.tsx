@@ -1615,18 +1615,16 @@ function ModelFlyout({
         if (item) onPick(item);
       }}
       data-model-picker
-      style={{
-        height: MODEL_MENU_HEIGHT,
-        minHeight: MODEL_MENU_HEIGHT,
-        maxHeight: MODEL_MENU_HEIGHT,
-      }}
-      className="relative flex min-h-0 overflow-hidden pb-10 font-sans"
+      // Popover caps the height to the viewport; a fixed max here would
+      // clip the bottom rows (and tabs) out of reach on short or zoomed windows.
+      style={{ height: MODEL_MENU_HEIGHT }}
+      className="flex min-h-0 overflow-hidden font-sans"
     >
       <nav
         role="tablist"
         aria-label={t("Providers")}
         aria-orientation="vertical"
-        className="flex w-11 shrink-0 flex-col items-center gap-1 border-r border-stroke p-1.5 overflow-y-auto overscroll-contain"
+        className="flex w-11 shrink-0 flex-col items-center gap-1 overflow-y-auto overscroll-none border-r border-stroke p-1.5"
       >
         <ProviderTabButton
           title={t("Favorites")}

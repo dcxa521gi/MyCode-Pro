@@ -139,9 +139,9 @@ export function WorkspaceIdentity({ worktree }: { worktree: boolean }) {
   const label = worktree ? "Worktree" : "Current checkout";
   return (
     <div
-      title={`Workspace: ${t(label)}`}
-      aria-label={`Workspace ${t(label)}`}
-      className="-ml-1.5 flex h-6 min-w-0 shrink-0 items-center gap-1.5 px-1.5 text-[12px] text-content/45"
+      title={`Workspace: ${label}`}
+      aria-label={`Workspace ${label}`}
+      className="-ml-1.5 flex h-6 min-w-0 shrink-0 items-center gap-1.5 px-1.5 text-[12px] text-content/55 opacity-40"
     >
       <Icon className="size-3.5 shrink-0" />
       <span className="truncate">{t(label)}</span>

@@ -99,30 +99,29 @@ it("invalidates the cached list when an automation changes", async () => {
   expect(peekAutomations()).toBeNull();
 });
 
-it("saves followed defaults with no old connection and can return to a concrete default", async () => {
-  let stored: Automation = {
-    ...newAutomationDraft("/work/project", "codex", "codex:default"),
-    modelSettings: { connectionId: "old-connection" },
-    id: "follow-default-test",
-    name: "Follow test",
-    prompt: "Review the project",
+it("lists only automations for the scoped project, plus project-less ones", async () => {
+  const automation = (id: string, name: string, cwd: string): Automation => ({
+    ...newAutomationDraft(cwd, "codex", "model"),
+    id,
+    name,
     nextRunAt: 0,
     createdAt: 1,
     updatedAt: 1,
-  };
-  invoke.mockImplementation(async (command, args) => {
-    if (command === "automations_list") return [stored];
-    if (command === "automations_upsert") {
-      stored = { ...stored, ...args.automation };
-      return stored;
-    }
-    return [];
   });
-  await listAutomations();
+  invoke.mockImplementation(async (command: string) =>
+    command.includes("run")
+      ? []
+      : [
+          automation("here", "Here review", "/work/project"),
+          automation("there", "There review", "/work/other"),
+          automation("home", "Home review", "~"),
+        ],
+  );
   await act(async () =>
     root.render(
       createElement(AutomationsView, {
         cwd: "/work/project",
+        scopeProject: "/work/project",
         recents: [],
         onClose: vi.fn(),
         onLaunch: vi.fn(),
@@ -130,30 +129,9 @@ it("saves followed defaults with no old connection and can return to a concrete 
       }),
     ),
   );
-  await act(async () =>
-    container
-      .querySelector<HTMLButtonElement>('[aria-label="Open Follow test"]')!
-      .click(),
-  );
-  const follow = () =>
-    [...container.querySelectorAll("label")]
-      .find((label) =>
-        label.textContent?.includes("Follow new conversation defaults"),
-      )!
-      .querySelector<HTMLInputElement>('input[type="checkbox"]')!;
-  expect(follow().checked).toBe(false);
-  await act(async () => follow().click());
-  expect(follow().checked).toBe(true);
-  const save = () =>
-    container.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-  expect(save().disabled).toBe(false);
-  await act(async () => save().click());
-  expect(stored.model).toBe("");
-  expect(stored.modelSettings).toEqual({});
-  expect(stored.id).toBe("follow-default-test");
-  await act(async () => follow().click());
-  expect(follow().checked).toBe(false);
-  await act(async () => save().click());
-  expect(stored.model.trim()).not.toBe("");
-  expect(stored.modelSettings?.connectionId).not.toBe("old-connection");
+  const shown = (name: string) =>
+    container.querySelector(`[aria-label="Open ${name}"]`) != null;
+  expect(shown("Here review")).toBe(true);
+  expect(shown("Home review")).toBe(true);
+  expect(shown("There review")).toBe(false);
 });

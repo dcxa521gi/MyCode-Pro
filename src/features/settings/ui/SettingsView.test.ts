@@ -14,9 +14,12 @@ import { searchSettings } from "../model/settings";
 import { rememberNotificationProjects } from "../../notifications/model/notificationProjects";
 import {
   SETTINGS_INDEX,
+  CLASSIC_LAYOUT_HIDDEN_SETTINGS,
+  INSET_LAYOUT_HIDDEN_SETTINGS,
   SETTINGS_SECTIONS,
   type SettingsSectionId,
 } from "../model/settings";
+import { loadInsetLayout } from "../model/appearance";
 import {
   providerAccounts,
   saveProviderAccount,
@@ -788,8 +791,11 @@ describe("settings pages", () => {
     "renders every indexed setting on the $section page",
     async ({ section }) => {
       await render(section);
+      const hidden = loadInsetLayout()
+        ? INSET_LAYOUT_HIDDEN_SETTINGS
+        : CLASSIC_LAYOUT_HIDDEN_SETTINGS;
       const expected = SETTINGS_INDEX.filter(
-        (entry) => entry.section === section,
+        (entry) => entry.section === section && !hidden.has(entry.id),
       ).map((entry) => entry.id);
       expect(renderedSettingIds().sort()).toEqual(expected.sort());
     },
