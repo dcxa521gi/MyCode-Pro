@@ -92,4 +92,5 @@ MonoCode 从 `399c303360686e804c8657d98db91d93f6ae99b6` 更新到 `e53e09aad2f19
 - Chromium 浏览器初轮曾因 Vite 首次加载超过 90 秒超时；重启后复跑新版布局单项通过，随后布局、应用标签、资源面板及差异审阅整组 12 项通过。以上为浏览器模拟验证，不等于安装后的桌面验收。
 - Windows NSIS 安装包由最终源码构建：`MyCode_0.23.4_x64-setup.exe`，40,617,706 字节，SHA-256 `98ad6626201316314b53fad66a269ae9ad6d996f4555357bac8bec0d7a96c4d4`。安装包和可执行文件的 ProductName/ProductVersion 均为 MyCode/0.23.4；安装包未签名，未执行覆盖安装。
 - 六个平台的 MyCode Host 0.23.4 压缩包已发布到独立 `mycode-host-v0.23.4` 分支；从公开地址逐包重读，6 个包的字节数和 SHA-256 与本地清单一致。Host 包未进入桌面发行页，旧版本分支未删除。
-- 桌面发行页及公开安装包校验以最终发布记录补齐。安装后升级、真实账号、macOS 实机与异地 Host 仍需对应环境验收。
+- [MyCode 0.23.4 公开发布页](https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.23.4)只含 MyCode 安装包和 `SHA256SUMS.txt` 两个附件；发行描述及附件白名单检查通过。公开下载安装包为 40,617,706 字节，SHA-256 与本地一致。
+- 安装后升级、真实账号、macOS 实机与异地 Host 仍需对应环境验收。完整前端、完整 Rust 和 WebKit 浏览器测试未在本轮跑完；不得将定向验证表述成这些全量验收。
