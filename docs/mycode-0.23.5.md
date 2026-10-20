@@ -42,3 +42,17 @@ MonoCode 从 `e53e09aad2f19663cae364266383eb6c251e0811` 更新到 `7508feaee84db
 - Windows NSIS 安装包由本版源码构建：`MyCode_0.23.5_x64-setup.exe`，41,412,386 字节，SHA-256 `1d351ded2b0cae9ad0ba40951f248f42f35009801fba1b8cf98f4c9e8157ded3`。安装包及可执行文件的 ProductName/ProductVersion 为 MyCode/0.23.5；安装包未签名。
 - [MyCode 0.23.5 公开发布页](https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.23.5)只含 MyCode 安装包和 `SHA256SUMS.txt` 两个附件；发行描述及附件白名单检查通过。公开下载安装包与本地包字节数、SHA-256 一致，公开校验文件中的值也一致。源码已推送到 `dcxa521gi/MyCode-Pro` 主分支。
 - 未进行手机原生编译、签名、真机配对、覆盖安装或真实账号/外网连接。完整前端、完整 Rust 与跨平台设备测试未在本轮跑完；这些结果仍需对应环境验收。
+
+## 同版本手机端补充交付（2026-10-20）
+
+以上“手机安装包未发布”和“未进行原生编译、签名”描述的是最初的 Windows 发布状态。本次按新增的逐版本交付规则，在保留原 Windows 安装包、桌面校验文件和 Host 下载分支的前提下，向 [MyCode 0.23.5 发布页](https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.23.5)补充了独立的手机伴侣安装包：
+
+| 附件 | 验证结果 |
+| --- | --- |
+| `MyCode_0.23.5_Android.apk` | ARM64，68,514,480 字节；SHA-256 `46bcf3978c18c404e523fb70a14e9c72fa7a746b10f62405b5a5af5cfdad4db8` |
+| `SHA256SUMS-Android-0.23.5.txt` | 校验值与 CI 产物及公开重新下载的 APK 一致 |
+
+- APK 由 [维护源码标签 `v0.23.5-mobile.7`](https://github.com/dcxa521gi/MyCode-Pro/tree/v0.23.5-mobile.7) 的 [Android 流水线](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/39378820766)构建。CI 用 `apksigner` 确认 APK v2 签名有效，用 `aapt` 确认包名 `com.dcxa521gi.mycodemobile`、`versionCode=235` 和 `versionName=0.23.5`。压缩包内包含 ARM64 的 `libmonocode_mobile_link.so`；公开 APK 与本地 CI 产物的字节数及 SHA-256 一致。
+- 手机伴侣与既有 Android 控制端使用不同包标识，不迁移或删除旧控制端、项目、凭据和会话。手机端构建时修正了 Gradle 的 Metaspace 不足、构建并发、生成配置换行及 NDK 版本不一致问题。桌面设置中的中英文安装提示已在源码主分支改为指向发布页和 iOS 自签；原 Windows 安装包未重打包。
+- iOS 不发布 IPA。用户可从上述维护标签的 `mobile/` 源码在 Mac 上运行 `npm ci` 和 `npm run ios -- --device`，并使用自己的 Apple 签名配置安装；具体依赖与构建说明见 `mobile/README.md`。未在本轮 Mac、iPhone 或 Android 真机上验收配对、覆盖安装及实际网络连接。
+- 从 0.23.5 起，每个 MyCode 新版发布都要求附带同版本、签名且经包名、版本与 SHA-256 验证的 Android APK 和校验文件；发布附件检查脚本已加入该门槛。iOS 保留源码自签方式，不发布 IPA。

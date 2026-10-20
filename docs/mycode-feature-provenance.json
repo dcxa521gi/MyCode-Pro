@@ -2945,10 +2945,11 @@
       ],
       "changes": [
         "MC-0.20.0-036",
-        "MC-0.21.0-034"
+        "MC-0.21.0-034",
+        "MC-0.23.5-004"
       ],
       "firstRecordedVersion": "0.20.0-release-maintenance",
-      "lastChangedVersion": "0.21.0"
+      "lastChangedVersion": "0.23.5"
     },
     {
       "id": "RESOURCE-PRESSURE",
@@ -9912,6 +9913,26 @@
         "src/shared/i18n/mycode0235.ts",
         "mobile/src/ui/i18n.ts",
         "mobile/scripts/check-i18n.mjs"
+      ]
+    },
+    {
+      "id": "MC-0.23.5-004",
+      "version": "0.23.5",
+      "feature": "RELEASE-ASSETS",
+      "origin": "MYCODE",
+      "action": "补充",
+      "requirements": [],
+      "title": "独立签名的 Android 手机伴侣安装包",
+      "detail": "在原 0.23.5 Windows 发行页补充 ARM64 手机伴侣 APK 和 SHA-256 文件；后续每版必须验证并附带同版本 Android APK。iOS 不发布 IPA，保留源码自签方式；旧 Android 控制端与用户数据不迁移。",
+      "evidence": [
+        "mycode-0.23.5.md"
+      ],
+      "sourceConfidence": "CI 原生编译、APK v2 签名、包名/版本及公开下载 SHA-256 已验证；Android/iOS 真机、覆盖安装和实际配对待验",
+      "maintenancePaths": [
+        ".github/workflows/mobile-apk.yml",
+        "mobile/plugins/with-mycode-android-signing.js",
+        "scripts/check-release-assets.mjs",
+        "mobile/README.md"
       ]
     }
   ],

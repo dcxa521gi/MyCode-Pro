@@ -2,7 +2,7 @@
 
 整理日期：2026-10-20；当前产品基线：**MyCode 0.23.5**，源码提交 `be0b47693281387475279f7630ab015f597430b9`。
 
-本文件按 **28 个交付阶段、360 条变更、111 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
+本文件按 **28 个交付阶段、361 条变更、111 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
 
 ## 如何使用
 
@@ -21,7 +21,7 @@
 | CINDY_CODE | Cindy 开源代码复用 | 2 |
 | CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 28 |
 | SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 10 |
-| MYCODE | MyCode 自有新增/修复 | 129 |
+| MYCODE | MyCode 自有新增/修复 | 130 |
 | VENDOR | 官方 CLI/SDK/接口适配 | 22 |
 | CODEX_REFERENCE | Codex 交互参考、MyCode 实现 | 4 |
 | USER_UI_REFERENCE | 用户截图布局参考、MyCode 实现 | 1 |
@@ -682,6 +682,7 @@
 | MC-0.23.5-001<br>`NAV` | 项目滑动、键盘上下文菜单与无项目入口 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**融合** | 融合 MonoCode v0.16.0 的侧栏项目切换、可访问菜单和空项目状态；保留 MyCode 首页、独立群任务与旧布局，新增中英文文案。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.23.5-002<br>`MOBILE` | 独立 MyCode 手机伴侣源码与桌面配对 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**融合** | 接入 Expo 手机工程、桌面配对及本地 QUIC/TLS 传输；使用 MyCode 图标、链接、密钥命名和中英文界面；旧 Android 控制端及其凭据入口保留，手机安装包未发布。 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 |
 | MC-0.23.5-003<br>`I18N` | 桌面配对与手机伴侣中英文界面 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**改造** | 新增桌面配对、状态和错误文案以及手机静态页面、常见连接、附件和会话反馈的简体中文/英文词条与检查脚本。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.23.5-004<br>`RELEASE-ASSETS` | 独立签名的 Android 手机伴侣安装包 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**补充** | 在原 0.23.5 Windows 发行页补充 ARM64 手机伴侣 APK 和 SHA-256 文件；后续每版必须验证并附带同版本 Android APK。iOS 不发布 IPA，保留源码自签方式；旧 Android 控制端与用户数据不迁移。 | 仅 MyCode 桌面产物；Host 独立下载 |
 
 ## 用户要求覆盖索引
 
@@ -1392,7 +1393,7 @@
 | `FILES` | 0.20.0<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/files](../src/features/files)<br>[src-tauri/src/fs.rs](../src-tauri/src/fs.rs) |
 | `REMOTE-SAFETY` | 0.20.0<br>0.20.0 | 已有等价安全能力核对并保留 | 不计作新移植 Synara WebSocket/Effect/完整 Hub；禁止失败后自动重放改变请求。 | [host/engine.ts](../host/engine.ts)<br>[host/store.ts](../host/store.ts)<br>[src/features/connections](../src/features/connections) |
 | `IME-INPUT` | 0.19.0 初版（历史快照）<br>0.19.0 初版（历史快照） | 保留，中文输入法候选处理与历史箭头不同 | IME 候选选择不误发送；不要把上下键历史当作输入法行为，维护 Enter/编号/引用时分别验证。 | [src/features/sessions/ui/Composer.tsx](../src/features/sessions/ui/Composer.tsx) |
-| `RELEASE-ASSETS` | 0.20.0 发布维护（2026-10-13）<br>0.21.0 | 仅 MyCode 桌面产物；Host 独立下载 | 发布前后执行附件白名单检查；不得把 Host 或上游安装包上传到桌面发行页。 | [scripts/check-release-assets.mjs](../scripts/check-release-assets.mjs)<br>[scripts/publish-host-downloads.mjs](../scripts/publish-host-downloads.mjs)<br>[src-tauri/src/remote_ssh.rs](../src-tauri/src/remote_ssh.rs) |
+| `RELEASE-ASSETS` | 0.20.0 发布维护（2026-10-13）<br>0.23.5 | 仅 MyCode 桌面产物；Host 独立下载 | 发布前后执行附件白名单检查；不得把 Host 或上游安装包上传到桌面发行页。 | [scripts/check-release-assets.mjs](../scripts/check-release-assets.mjs)<br>[scripts/publish-host-downloads.mjs](../scripts/publish-host-downloads.mjs)<br>[src-tauri/src/remote_ssh.rs](../src-tauri/src/remote_ssh.rs) |
 | `RESOURCE-PRESSURE` | 0.23.3<br>0.23.4 | 保留；资源进程操作需用户主动触发 | 保持进程身份与归属校验；停止操作须用户显式触发；中英文提示一致。 | [src/features/notifications/ui/ResourcePressureNotice.tsx](../src/features/notifications/ui/ResourcePressureNotice.tsx)<br>[src-tauri/src/resources.rs](../src-tauri/src/resources.rs) |
 
 ## 需要特别分清的演变
