@@ -91,13 +91,14 @@ jobs:
           arch: x86_64
           profile: pixel_6
           script: |
-            set -euo pipefail
+            set -eu
             apk=mobile/android/app/build/outputs/apk/release/app-release.apk
             adb install -r "$apk"
             adb logcat -c
             adb shell am start -n com.dcxa521gi.mycodemobile/.MainActivity
             sleep 25
             adb logcat -d -b crash > mobile-startup-crash.log
+            adb logcat -d -v brief > mobile-startup.log
             adb shell uiautomator dump /sdcard/mycode-startup.xml
             adb shell cat /sdcard/mycode-startup.xml > mobile-startup-ui.xml
             adb exec-out screencap -p > mobile-startup.png
@@ -110,6 +111,7 @@ jobs:
           name: MyCode-${{ env.MYCODE_MOBILE_VERSION }}-Android-startup-evidence
           path: |
             mobile-startup-crash.log
+            mobile-startup.log
             mobile-startup-ui.xml
             mobile-startup.png
           if-no-files-found: ignore
