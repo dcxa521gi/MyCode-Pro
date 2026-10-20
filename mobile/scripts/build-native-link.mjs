@@ -119,12 +119,15 @@ if (platform === "ios") {
     throw new Error("Set ANDROID_NDK_HOME to an installed Android NDK.");
   const host = process.platform === "darwin" ? "darwin-x86_64" : "linux-x86_64";
   const bin = join(ndkRoot, "toolchains/llvm/prebuilt", host, "bin");
-  for (const [target, abi, clang] of [
+  const androidTargets = [
     ["aarch64-linux-android", "arm64-v8a", "aarch64-linux-android"],
     ["armv7-linux-androideabi", "armeabi-v7a", "armv7a-linux-androideabi"],
     ["x86_64-linux-android", "x86_64", "x86_64-linux-android"],
     ["i686-linux-android", "x86", "i686-linux-android"],
-  ]) {
+  ];
+  for (const [target, abi, clang] of process.argv.includes("--device-only")
+    ? androidTargets.slice(0, 1)
+    : androidTargets) {
     const linker = join(bin, `${clang}24-clang`);
     build(target, {
       [`CARGO_TARGET_${target.toUpperCase().replaceAll("-", "_")}_LINKER`]:
