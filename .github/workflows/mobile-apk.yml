@@ -70,7 +70,14 @@ jobs:
         working-directory: mobile/android
         env:
           MYCODE_ANDROID_STORE_PASSWORD: ${{ secrets.MYCODE_ANDROID_STORE_PASSWORD }}
-        run: ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon --info
+        run: |
+          cat >> gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=1536m -Dfile.encoding=UTF-8
+          org.gradle.parallel=false
+          org.gradle.workers.max=2
+          kotlin.compiler.execution.strategy=in-process
+          EOF
+          ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=2 --no-parallel --no-daemon --stacktrace --info
       - name: Verify APK identity and signature
         run: |
           set -euo pipefail
