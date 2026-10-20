@@ -1,0 +1,36 @@
+{
+  "product": "MyCode Host",
+  "version": "0.23.5",
+  "files": [
+    {
+      "name": "MyCode-host-darwin-arm64.tar.gz",
+      "sha256": "e641925cab44c297059d16f21f373963f4a8e69a4fd79b96f8347efa0e3bd8ff",
+      "bytes": 40743393
+    },
+    {
+      "name": "MyCode-host-darwin-x64.tar.gz",
+      "sha256": "f78990e12a7e053ce71e172e3994e682362ada250d05c6827e6a144046350fd5",
+      "bytes": 41838653
+    },
+    {
+      "name": "MyCode-host-linux-arm64.tar.gz",
+      "sha256": "a495015a89c362c6914778809a15143fbb8c9c28aa01fc2c504ac99977c01cee",
+      "bytes": 45957251
+    },
+    {
+      "name": "MyCode-host-linux-x64.tar.gz",
+      "sha256": "6649efc4c0dae35212d5c7df6b6b4b766a517c69b9511499985e84384980ea59",
+      "bytes": 46022242
+    },
+    {
+      "name": "MyCode-host-win32-arm64.zip",
+      "sha256": "3227b26d1897327434e4b073f0b955d197fe8bc11f95e7893bdf94397288c081",
+      "bytes": 31188207
+    },
+    {
+      "name": "MyCode-host-win32-x64.zip",
+      "sha256": "d9852140dc330a4634561e9dad5178b1bd680e1da4f63585a6cf1932a49eb67a",
+      "bytes": 35270737
+    }
+  ]
+}
