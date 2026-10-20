@@ -38,4 +38,7 @@ MonoCode 从 `e53e09aad2f19663cae364266383eb6c251e0811` 更新到 `7508feaee84db
 - 桌面 TypeScript、Rust `cargo check -p monocode --lib` 和前端生产构建通过（3764 模块）。手机工程 TypeScript、词条检查和 lint 通过（0 错误、2 项既有警告）；18 个测试文件 94 项全部通过。
 - 桌面配对、设置、滑动、工作树等定向测试 161 项通过；侧栏语言切换曾发现父组件未订阅语言状态，修复后侧栏完整 86 项通过。Chromium 旧布局选择与设置往返 5 项通过。
 - Rust 手机传输测试 19 项中 18 项通过；IPv4+IPv6 组合用例先通过 IPv4，随后因本机 IPv6 回环不可用失败。`ping -6 ::1` 同样返回系统级失败；不将 IPv6 实机行为视为已验证。
-- 未进行手机原生编译、签名、真机配对、覆盖安装或真实账号/外网连接。Windows 安装包与公开下载的哈希校验结果在完成打包后补充。
+- 六个平台的 MyCode Host 0.23.5 压缩包已生成并发布到独立 `mycode-host-v0.23.5` 分支。逐包校验了 SHA-256 和压缩包内版本字段；远端分支提交 `b8c7f28e4c93b4d8f58f9e43b75854b364426dd2` 与本地提交一致，旧版本分支未删除。
+- Windows NSIS 安装包由本版源码构建：`MyCode_0.23.5_x64-setup.exe`，41,412,386 字节，SHA-256 `1d351ded2b0cae9ad0ba40951f248f42f35009801fba1b8cf98f4c9e8157ded3`。安装包及可执行文件的 ProductName/ProductVersion 为 MyCode/0.23.5；安装包未签名。
+- [MyCode 0.23.5 公开发布页](https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.23.5)只含 MyCode 安装包和 `SHA256SUMS.txt` 两个附件；发行描述及附件白名单检查通过。公开下载安装包与本地包字节数、SHA-256 一致，公开校验文件中的值也一致。源码已推送到 `dcxa521gi/MyCode-Pro` 主分支。
+- 未进行手机原生编译、签名、真机配对、覆盖安装或真实账号/外网连接。完整前端、完整 Rust 与跨平台设备测试未在本轮跑完；这些结果仍需对应环境验收。
