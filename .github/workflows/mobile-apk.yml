@@ -70,7 +70,7 @@ jobs:
         working-directory: mobile/android
         env:
           MYCODE_ANDROID_STORE_PASSWORD: ${{ secrets.MYCODE_ANDROID_STORE_PASSWORD }}
-        run: ./gradlew :app:assembleRelease --no-daemon
+        run: ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon --info
       - name: Verify APK identity and signature
         run: |
           set -euo pipefail
