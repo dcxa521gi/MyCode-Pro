@@ -74,8 +74,10 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     id: "connections",
     group: "app",
     label: "Connections",
-    description: "Connect your machines and run agents remotely through SSH.",
-    keywords: "ssh remote host machine server environment always on",
+    description:
+      "Run agents on your other machines, and pair your phone with this desktop.",
+    keywords:
+      "ssh remote host machine server environment always on mobile phone iphone qr pair router",
   },
   {
     id: "appearance",
@@ -215,9 +217,9 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   {
     id: "mobile",
     group: "workspace",
-    label: "Mobile connection",
+    label: "Previous Android controller",
     description:
-      "Pair an Android controller with this computer over a trusted local network.",
+      "Existing Android controller connections remain available here. New phone pairing is under Connections.",
     keywords: "android phone pairing mobile 手机 安卓 配对",
   },
   {
@@ -266,6 +268,12 @@ export const SETTINGS_INDEX: SettingsEntry[] = [
     section: "general",
     label: "Display language",
     keywords: "language locale 简体中文 中文 语言 English",
+  },
+  {
+    id: "mobile-access",
+    section: "connections",
+    label: "Your phones",
+    keywords: "mobile phone iphone qr pair code router device",
   },
   {
     id: "remote-machines",

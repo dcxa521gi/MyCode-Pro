@@ -1,6 +1,6 @@
 import { providerAccountDisplayLabel } from "../../providers/model/providerAccounts";
 import { DevelopmentToolsPage } from "./DevelopmentToolsPage";
-import { MobileSettings } from "./MobileSettings";
+import { MobileSettings as LegacyMobileSettings } from "./MobileSettings";
 import { TaskPowerSettings } from "./TaskPowerSettings";
 import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
 import { IMCompletionSettings } from "./IMCompletionSettings";
@@ -33,6 +33,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { createPortal } from "react-dom";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ConnectionsSettings } from "../../connections/ui/ConnectionsSettings";
+import { MobileSettings } from "../../mobile/ui/MobileSettings";
 import { ask } from "@tauri-apps/plugin-dialog";
 import {
   ArrowDownCircle,
@@ -676,7 +677,12 @@ export function SettingsView({
                   <TaskPowerSettings />
                 </>
               ) : null}
-              {section === "connections" ? <ConnectionsSettings /> : null}
+              {section === "connections" ? (
+                <div className="flex flex-col gap-10">
+                  <ConnectionsSettings />
+                  <MobileSettings />
+                </div>
+              ) : null}
               {section === "appearance" ? (
                 <AppearancePage appearance={appearance} />
               ) : null}
@@ -684,7 +690,7 @@ export function SettingsView({
               {section === "development" ? (
                 <DevelopmentToolsPage cwd={cwd} />
               ) : null}
-              {section === "mobile" ? <MobileSettings /> : null}
+              {section === "mobile" ? <LegacyMobileSettings /> : null}
               {section === "local-ai" ? (
                 <LocalCapabilitiesPage key={cwd} cwd={cwd} />
               ) : null}

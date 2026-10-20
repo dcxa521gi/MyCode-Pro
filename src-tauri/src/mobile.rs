@@ -130,7 +130,7 @@ fn authorize(inner: &mut Inner, generation: u64, value: &Value) -> Result<Option
 }
 
 #[tauri::command]
-pub async fn mobile_start(
+pub async fn legacy_mobile_start(
     app: AppHandle,
     window: WebviewWindow,
     host: State<'_, MobileHost>,
@@ -426,7 +426,7 @@ fn preferred_direct_address(addresses: &[Value]) -> Option<String> {
         })
 }
 #[tauri::command]
-pub async fn mobile_allow_firewall(
+pub async fn legacy_mobile_allow_firewall(
     window: WebviewWindow,
     host: State<'_, MobileHost>,
 ) -> Result<(), String> {
@@ -473,7 +473,10 @@ pub fn window_closed(app: &AppHandle, label: &str) {
     }
 }
 #[tauri::command]
-pub fn mobile_renew(window: WebviewWindow, host: State<'_, MobileHost>) -> Result<Value, String> {
+pub fn legacy_mobile_renew(
+    window: WebviewWindow,
+    host: State<'_, MobileHost>,
+) -> Result<Value, String> {
     let mut s = host.0.lock().map_err(|e| e.to_string())?;
     if !s.enabled || s.window != window.label() {
         return Err("Connection unavailable".into());
@@ -487,7 +490,7 @@ pub fn mobile_renew(window: WebviewWindow, host: State<'_, MobileHost>) -> Resul
     Ok(info.clone())
 }
 #[tauri::command]
-pub fn mobile_revoke(
+pub fn legacy_mobile_revoke(
     window: WebviewWindow,
     host: State<'_, MobileHost>,
     device_id: String,
@@ -501,7 +504,10 @@ pub fn mobile_revoke(
 }
 
 #[tauri::command]
-pub fn mobile_status(window: WebviewWindow, host: State<'_, MobileHost>) -> Result<Value, String> {
+pub fn legacy_mobile_status(
+    window: WebviewWindow,
+    host: State<'_, MobileHost>,
+) -> Result<Value, String> {
     let s = host.0.lock().map_err(|e| e.to_string())?;
     let owner = s.window == window.label();
     let mut info = if owner { s.pairing_info.clone() } else { None };
@@ -519,7 +525,7 @@ pub fn mobile_status(window: WebviewWindow, host: State<'_, MobileHost>) -> Resu
     )
 }
 #[tauri::command]
-pub fn mobile_stop(host: State<'_, MobileHost>) -> Result<(), String> {
+pub fn legacy_mobile_stop(host: State<'_, MobileHost>) -> Result<(), String> {
     let mut s = host.0.lock().map_err(|e| e.to_string())?;
     s.enabled = false;
     s.generation += 1;
@@ -531,7 +537,7 @@ pub fn mobile_stop(host: State<'_, MobileHost>) -> Result<(), String> {
     Ok(())
 }
 #[tauri::command]
-pub fn mobile_reply(
+pub fn legacy_mobile_reply(
     window: WebviewWindow,
     host: State<'_, MobileHost>,
     request_id: String,

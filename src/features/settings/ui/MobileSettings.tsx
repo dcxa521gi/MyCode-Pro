@@ -46,7 +46,7 @@ export function MobileSettings() {
   useEffect(() => {
     let live = true;
     const refresh = () =>
-      void invoke<Connection>("mobile_status")
+      void invoke<Connection>("legacy_mobile_status")
         .then((v) => {
           if (!live || !v) return;
           setEnabled(v.enabled);
@@ -103,7 +103,7 @@ export function MobileSettings() {
     setStatus("");
     try {
       if (enabled) {
-        await invoke("mobile_stop");
+        await invoke("legacy_mobile_stop");
         setEnabled(false);
         setPairing(null);
         setDevices([]);
@@ -111,7 +111,7 @@ export function MobileSettings() {
       } else {
         localStorage.setItem("mycode.mobileMode", mode);
         localStorage.setItem("mycode.relayUrl", relayUrl.trim());
-        const p = await invoke<Pairing>("mobile_start", {
+        const p = await invoke<Pairing>("legacy_mobile_start", {
           relayUrl: mode === "relay" ? relayUrl.trim() : null,
           registrationKey: mode === "relay" ? registrationKey : null,
         });
@@ -129,7 +129,7 @@ export function MobileSettings() {
   const renew = async () => {
     setBusy(true);
     try {
-      setPairing(await invoke<Pairing>("mobile_renew"));
+      setPairing(await invoke<Pairing>("legacy_mobile_renew"));
       setStatus(t("New pairing code ready."));
     } catch (e) {
       setStatus(t(String(e)));
@@ -301,7 +301,7 @@ export function MobileSettings() {
                     setBusy(true);
                     setStatus(t("Checking direct connection permissions…"));
                     try {
-                      await invoke("mobile_allow_firewall");
+                      await invoke("legacy_mobile_allow_firewall");
                       setStatus(
                         t(
                           "Direct connection allowed on private networks. Choose the same Wi-Fi address as your phone.",
@@ -352,7 +352,7 @@ export function MobileSettings() {
               <button
                 className={button}
                 onClick={() =>
-                  void invoke("mobile_revoke", { deviceId: d.id })
+                  void invoke("legacy_mobile_revoke", { deviceId: d.id })
                     .then(() =>
                       setDevices((prev) => prev.filter((v) => v.id !== d.id)),
                     )

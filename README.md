@@ -60,6 +60,8 @@ npm run check:rust
 npm run build:windows
 ```
 
+手机伴侣源码位于 [`mobile/`](mobile/README.md)，使用独立的 Expo 工程和原生 QUIC 模块。MyCode 手机安装包需另行完成签名与设备验证，不能使用上游 Expo 更新项目。
+
 更多实现边界、参考来源与验证说明见 [本地能力说明](docs/mycode-local-features.md) 和 [语言说明](docs/localization.md)。
 
 ## 来源与许可

@@ -1,0 +1,86 @@
+{
+  "expo": {
+    "name": "MyCode",
+    "slug": "mycode-mobile",
+    "version": "0.23.5",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "orientation": "portrait",
+    "icon": "./assets/images/mycode-icon.png",
+    "scheme": "mycode",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "icon": "./assets/images/mycode-icon.png",
+      "bundleIdentifier": "com.dcxa521gi.mycode-mobile",
+      "infoPlist": {
+        "CFBundleDisplayName": "MyCode",
+        "NSLocalNetworkUsageDescription": "Connect securely to your paired MyCode desktop."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#000000",
+        "foregroundImage": "./assets/images/mycode-mark.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/mycode-mark.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/mycode-icon.png"
+    },
+    "plugins": [
+      "./plugins/with-local-notifications",
+      "./plugins/with-scene-lifecycle",
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#000000",
+          "image": "./assets/images/mycode-mark.png",
+          "imageWidth": 76
+        }
+      ],
+      "expo-secure-store",
+      "expo-sqlite",
+      [
+        "expo-sensors",
+        {
+          "motionPermission": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Scan the pairing code from your MyCode desktop.",
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose photos to attach to messages, or as the background of new sessions.",
+          "cameraPermission": false
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Dictate messages to your MyCode sessions.",
+          "recordAudioAndroid": false,
+          "enableBackgroundRecording": false
+        }
+      ],
+      "expo-asset",
+      "expo-localization"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {}
+  }
+}
