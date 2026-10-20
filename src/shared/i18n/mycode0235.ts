@@ -8,7 +8,7 @@ export const mycode0235ZhCN: Record<string, string> = {
   "{name} is paired.": "{name} 已配对。",
   "{name} was removed.": "已移除 {name}。",
   "Check on projects and conversations from the MyCode mobile app. Your phone connects straight to this desktop.": "在 MyCode 手机端查看项目与对话。手机直接连接这台电脑。",
-  "Build and install the MyCode mobile companion before pairing. Mobile installers are not included in the desktop release.": "配对前请自行构建并安装 MyCode 手机伴侣。桌面发行版不包含手机安装包。",
+  "Install the MyCode mobile companion before pairing. Download the Android APK from MyCode releases; build and sign iOS yourself from source.": "配对前请安装 MyCode 手机伴侣。Android 安装包可从 MyCode 发布页下载；iOS 请使用源码自行签名安装。",
   "Pair phone": "配对手机",
   "Your phones can’t connect because this desktop isn’t accepting connections right now.": "这台电脑当前不接收连接，已配对的手机暂时无法连接。",
   "Reconnect": "重新连接",

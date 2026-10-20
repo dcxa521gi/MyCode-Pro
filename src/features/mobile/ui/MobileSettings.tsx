@@ -159,7 +159,7 @@ export function MobileSettings() {
             {t("Check on projects and conversations from the MyCode mobile app. Your phone connects straight to this desktop.")}
           </p>
           <p className="mt-1 text-[12px] leading-relaxed text-content/45">
-            {t("Build and install the MyCode mobile companion before pairing. Mobile installers are not included in the desktop release.")}
+            {t("Install the MyCode mobile companion before pairing. Download the Android APK from MyCode releases; build and sign iOS yourself from source.")}
           </p>
         </div>
         <button
