@@ -9,6 +9,8 @@ import {
   type WorktreeFocus,
 } from "../model/worktreeFocus";
 import { createWorktree, type Worktree } from "../model/worktrees";
+import { loadInsetLayout, saveInsetLayout } from "../../settings/model/appearance";
+import { setLanguage } from "../../../shared/i18n";
 import { SidebarWorktreeSwitcher } from "./SidebarWorktreeSwitcher";
 
 vi.mock("../hooks/useProjectWorktrees", () => ({
@@ -105,8 +107,27 @@ beforeEach(() => {
 });
 afterEach(async () => {
   await act(async () => root.unmount());
+  setLanguage("en");
   container.remove();
   vi.unstubAllGlobals();
+});
+
+it("offers a localized way back to the classic layout from the project menu", async () => {
+  setLanguage("zh-CN");
+  saveInsetLayout(true);
+  await act(async () => root.render(createElement(SidebarWorktreeSwitcher, {
+    cwd: "/picker",
+    onSelect: select,
+    project: { name: "项目", icon: null, onOpenSettings: vi.fn() },
+  })));
+  await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="项目 菜单"]')!.click());
+  const switchLayout = [...document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')]
+    .find((button) => button.textContent?.includes("切换到经典布局"));
+  expect(switchLayout).toBeDefined();
+  expect(document.body.textContent).toContain("切换工作树");
+  expect(document.body.textContent).toContain("设置");
+  await act(async () => switchLayout!.click());
+  expect(loadInsetLayout()).toBe(false);
 });
 
 it("requests a switch without publishing the destination and permits a newer selection", async () => {

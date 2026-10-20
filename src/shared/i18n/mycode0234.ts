@@ -1,4 +1,9 @@
 export const mycode0234ZhCN: Record<string, string> = {
+  "Switch worktree": "切换工作树",
+  "Switch project": "切换项目",
+  "Project settings": "项目设置",
+  "Switch to classic layout": "切换到经典布局",
+  "Switch to new layout": "切换到新版布局",
   "Try the new layout": "试用新版布局",
   "A redesigned sidebar, project switcher and workspace tabs. Switch back anytime in Settings → Appearance → Layout.": "侧边栏、项目切换和工作区标签页已重新设计。可随时在设置 → 外观 → 布局中切回。",
   "Not now": "暂不",

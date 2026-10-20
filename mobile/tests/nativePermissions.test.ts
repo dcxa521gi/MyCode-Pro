@@ -8,6 +8,9 @@ let ios: {
   infoPlist: { NSMicrophoneUsageDescription?: string };
   entitlements: Record<string, unknown>;
 };
+let android: {
+  manifest: { manifest: { "uses-permission": Array<{ $: Record<string, string> }> } };
+};
 
 beforeAll(() => {
   const output = execFileSync(
@@ -26,7 +29,9 @@ beforeAll(() => {
       timeout: 25_000,
     },
   );
-  ios = JSON.parse(output)._internal.modResults.ios;
+  const native = JSON.parse(output)._internal.modResults;
+  ios = native.ios;
+  android = native.android;
 }, 30_000);
 
 it("keeps a microphone purpose string after all Expo plugins run", () => {
@@ -40,4 +45,12 @@ it("keeps a microphone purpose string after all Expo plugins run", () => {
 
 it("keeps local session notifications compatible with signing profiles without APNs", () => {
   expect(ios.entitlements).not.toHaveProperty("aps-environment");
+});
+
+it("keeps Android camera permission available for QR pairing", () => {
+  const camera = android.manifest.manifest["uses-permission"].find(
+    (permission) => permission.$["android:name"] === "android.permission.CAMERA",
+  );
+  expect(camera).toBeDefined();
+  expect(camera?.$["tools:node"]).not.toBe("remove");
 });

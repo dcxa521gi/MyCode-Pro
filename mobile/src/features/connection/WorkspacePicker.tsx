@@ -25,7 +25,7 @@ import { withAlpha, radii, themedStyles, useColors } from "@/ui/theme";
 import { useConnection } from "./ConnectionProvider";
 import { connectionStyleSheet } from "./ConnectScreen";
 import { MONOS_ENABLED, type MobileSelection } from "./selection";
-import { t } from "@/ui/i18n";
+import { formatMobile, t } from "@/ui/i18n";
 
 /** Room the blur takes past the edge it covers. */
 const FADE = 24;
@@ -172,7 +172,7 @@ export function WorkspacePicker({
         <LiquidView
           onPress={() => void save()}
           disabled={disabled}
-          accessibilityLabel={t("Save")}
+          accessibilityLabel={editing ? t("Save") : count ? formatMobile(count === 1 ? "Continue with {count} item" : "Continue with {count} items", { count }) : t("Choose later")}
           tintColor={colors.inverseSurface}
           style={{ opacity: disabled ? 0.5 : 1 }}
           innerStyle={styles.save}
@@ -182,12 +182,10 @@ export function WorkspacePicker({
           ) : (
             <Text style={styles.saveLabel}>
               {editing
-                ? "Save"
+                ? t("Save")
                 : count
-                  ? "Continue with " +
-                    count +
-                    (count === 1 ? " item" : " items")
-                  : "Choose later"}
+                  ? formatMobile(count === 1 ? "Continue with {count} item" : "Continue with {count} items", { count })
+                  : t("Choose later")}
             </Text>
           )}
         </LiquidView>

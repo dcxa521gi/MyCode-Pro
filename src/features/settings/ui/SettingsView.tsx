@@ -1,6 +1,5 @@
 import { providerAccountDisplayLabel } from "../../providers/model/providerAccounts";
 import { DevelopmentToolsPage } from "./DevelopmentToolsPage";
-import { MobileSettings as LegacyMobileSettings } from "./MobileSettings";
 import { TaskPowerSettings } from "./TaskPowerSettings";
 import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
 import { IMCompletionSettings } from "./IMCompletionSettings";
@@ -690,7 +689,6 @@ export function SettingsView({
               {section === "development" ? (
                 <DevelopmentToolsPage cwd={cwd} />
               ) : null}
-              {section === "mobile" ? <LegacyMobileSettings /> : null}
               {section === "local-ai" ? (
                 <LocalCapabilitiesPage key={cwd} cwd={cwd} />
               ) : null}

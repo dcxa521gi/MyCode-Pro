@@ -27,7 +27,6 @@ export type SettingsSectionId =
   | "chat"
   | "providers"
   | "providers-cli"
-  | "mobile"
   | "development"
   | "storage"
   | "usage"
@@ -213,14 +212,6 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     label: "Worktrees",
     description: "Manage additional worktrees for each project.",
     keywords: "git branch worktree working copy project create delete",
-  },
-  {
-    id: "mobile",
-    group: "workspace",
-    label: "Previous Android controller",
-    description:
-      "Existing Android controller connections remain available here. New phone pairing is under Connections.",
-    keywords: "android phone pairing mobile 手机 安卓 配对",
   },
   {
     id: "development",
@@ -740,6 +731,7 @@ export function settingsSectionDescription(id: SettingsSectionId): string {
 export function loadSettingsSection(): SettingsSectionId {
   try {
     const raw = localStorage.getItem(SECTION_KEY);
+    if (raw === "mobile") return "connections";
     return isSettingsSectionId(raw) ? raw : SETTINGS_SECTION_DEFAULT;
   } catch {
     return SETTINGS_SECTION_DEFAULT;

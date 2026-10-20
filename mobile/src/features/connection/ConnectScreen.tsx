@@ -49,14 +49,21 @@ export function ConnectScreen() {
   const [pasting, setPasting] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const scan = async () => {
-    const result = permission?.granted ? permission : await requestPermission();
-    if (result.granted) {
-      setCameraError("");
-      setScanning(true);
-    } else
+    try {
+      const result = permission?.granted ? permission : await requestPermission();
+      if (result.granted) {
+        setCameraError("");
+        setScanning(true);
+        return;
+      }
       setCameraError(
         t("Allow camera access in your phone’s settings, or paste a pairing link."),
       );
+    } catch {
+      setCameraError(
+        t("Camera could not start. Check camera access in your phone’s settings, or paste a pairing link."),
+      );
+    }
   };
   const error = connection.error || cameraError;
   const colliders = useScreenColliders();

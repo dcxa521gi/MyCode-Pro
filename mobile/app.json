@@ -2,7 +2,7 @@
   "expo": {
     "name": "MyCode",
     "slug": "mycode-mobile",
-    "version": "0.23.5",
+    "version": "0.23.6",
     "runtimeVersion": {
       "policy": "fingerprint"
     },
@@ -27,13 +27,14 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
+        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
       "package": "com.dcxa521gi.mycodemobile",
-      "versionCode": 235
+      "versionCode": 236
     },
     "web": {
       "output": "static",
@@ -72,7 +73,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Choose photos to attach to messages, or as the background of new sessions.",
-          "cameraPermission": false
+          "cameraPermission": "Take photos to attach to MyCode messages."
         }
       ],
       [

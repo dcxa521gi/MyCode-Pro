@@ -1,4 +1,5 @@
 import { translate as t } from "../../../shared/i18n";
+import { loadInsetLayout, saveInsetLayout } from "../../settings/model/appearance";
 import {
   useEffect,
   useRef,
@@ -114,7 +115,7 @@ export function SidebarWorktreeSwitcher({
       path: tree.path,
       branch: tree.branch,
       isMain: false,
-      label: tree.branch ?? `Detached ${tree.head.slice(0, 7)}`,
+      label: tree.branch ?? `${t("Detached worktree")} ${tree.head.slice(0, 7)}`,
       detail: prettyCwd(tree.path),
     })),
   ].filter((tree) =>
@@ -226,9 +227,9 @@ export function SidebarWorktreeSwitcher({
     worktrees.find((tree) => pathKey(tree.path) === pathKey(focus.path));
   const title = focus
     ? (focused?.branch ?? focus.branch ?? t("Detached worktree"))
-    : "Workspace";
+    : t("Workspace");
   const worktreeTitle = focus
-    ? `${focus.branch ?? "detached"}\n${prettyCwd(focus.path)}`
+    ? `${focus.branch ?? t("Detached worktree")}\n${prettyCwd(focus.path)}`
     : (main?.branch ?? t("Project folder"));
   const busyIcon =
     pending || creating ? (
@@ -245,7 +246,7 @@ export function SidebarWorktreeSwitcher({
           type="button"
           data-tauri-drag-region="false"
           data-project-menu
-          aria-label={`${project.name} menu`}
+          aria-label={`${project.name} ${t("menu")}`}
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           aria-busy={pending || creating}
@@ -292,7 +293,7 @@ export function SidebarWorktreeSwitcher({
           <span className="min-w-0 truncate">{project.name}</span>
           {focus ? (
             <span className="min-w-0 shrink-[2] truncate font-normal text-content/45">
-              {focused?.branch ?? focus.branch ?? "detached"}
+              {focused?.branch ?? focus.branch ?? t("Detached worktree")}
             </span>
           ) : null}
           {busyIcon ?? (
@@ -351,10 +352,10 @@ export function SidebarWorktreeSwitcher({
                 className="size-4 shrink-0 text-content/55"
                 strokeWidth={1.75}
               />
-              <span className="min-w-0 flex-1 truncate">Switch worktree</span>
+              <span className="min-w-0 flex-1 truncate">{t("Switch worktree")}</span>
               <span className="min-w-0 max-w-24 shrink truncate text-[11px] text-content/40">
                 {focus
-                  ? (focused?.branch ?? focus.branch ?? "detached")
+                  ? (focused?.branch ?? focus.branch ?? t("Detached worktree"))
                   : (main?.branch ?? "")}
               </span>
               <ChevronRight
@@ -402,7 +403,7 @@ export function SidebarWorktreeSwitcher({
                 className="size-4 shrink-0 text-content/55"
                 strokeWidth={1.75}
               />
-              <span className="min-w-0 flex-1 truncate">Switch project</span>
+              <span className="min-w-0 flex-1 truncate">{t("Switch project")}</span>
               <ChevronRight
                 className="size-3.5 shrink-0 text-content/40"
                 strokeWidth={1.75}
@@ -433,7 +434,7 @@ export function SidebarWorktreeSwitcher({
                   strokeWidth={1.75}
                 />
                 <span className="min-w-0 flex-1 truncate">
-                  Project settings
+                  {t("Project settings")}
                 </span>
                 <ChevronRight
                   className="size-3.5 shrink-0 text-content/40"
@@ -462,7 +463,7 @@ export function SidebarWorktreeSwitcher({
                   className="size-4 shrink-0 text-content/55"
                   strokeWidth={1.75}
                 />
-                <span className="min-w-0 flex-1 truncate">Settings</span>
+                <span className="min-w-0 flex-1 truncate">{t("Settings")}</span>
                 {project.settingsShortcut ? (
                   <span className="shrink-0 text-[11px] text-content/40">
                     {project.settingsShortcut}
@@ -471,6 +472,19 @@ export function SidebarWorktreeSwitcher({
               </button>
             </>
           ) : null}
+          <div className="mx-2 my-1 h-px bg-stroke" />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              closePicker();
+              saveInsetLayout(!loadInsetLayout());
+            }}
+            className="flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left text-[13px] hover:bg-content/8"
+          >
+            <Check className="size-4 shrink-0 text-content/55" strokeWidth={1.75} />
+            {t(loadInsetLayout() ? "Switch to classic layout" : "Switch to new layout")}
+          </button>
         </Popover>
       ) : null}
       {project?.renderProjectPicker && menuOpen && projectPickerOpen

@@ -7,6 +7,10 @@ export function mobileLocale(): MobileLocale {
 }
 
 const zhCN: Record<string, string> = {
+  "Continue with {count} item": "进入 {count} 个项目",
+  "Continue with {count} items": "进入 {count} 个项目",
+  "Choose later": "稍后选择",
+  "Camera could not start. Check camera access in your phone’s settings, or paste a pairing link.": "无法启动相机。请检查手机设置中的相机权限，或粘贴配对链接。",
   "Workspace": "工作区",
   "All sessions": "全部会话",
   "Any agent": "任意智能体",

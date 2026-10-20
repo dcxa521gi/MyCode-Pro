@@ -23,7 +23,6 @@ import {
 
 const SECTION_ICONS: Record<SettingsSectionId, IconComponent> = {
   voice: SlidersHorizontal, computer: SlidersHorizontal,
-  mobile: MessageSquare,
   development: FolderTree,
   general: SlidersHorizontal,
   connections: Internet,
