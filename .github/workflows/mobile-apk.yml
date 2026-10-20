@@ -1,0 +1,86 @@
+name: MyCode mobile APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.3'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK and NDK
+        run: |
+          sdkmanager --install 'platforms;android-36' 'build-tools;36.0.0' 'ndk;27.2.12479018'
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
+      - name: Check version and signing inputs
+        env:
+          MYCODE_ANDROID_KEYSTORE_B64: ${{ secrets.MYCODE_ANDROID_KEYSTORE_B64 }}
+          MYCODE_ANDROID_STORE_PASSWORD: ${{ secrets.MYCODE_ANDROID_STORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$MYCODE_ANDROID_KEYSTORE_B64"
+          test -n "$MYCODE_ANDROID_STORE_PASSWORD"
+          VERSION=$(node -p "require('./mobile/app.json').expo.version")
+          VERSION_CODE=$(node -p "require('./mobile/app.json').expo.android.versionCode")
+          [[ "${GITHUB_REF_NAME#v}" == "$VERSION" || "${GITHUB_REF_NAME#v}" =~ ^${VERSION//./\\.}-mobile\.[0-9]+$ ]]
+          echo "MYCODE_MOBILE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "MYCODE_MOBILE_VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+          KEYSTORE="$RUNNER_TEMP/mycode-mobile-release.p12"
+          printf '%s' "$MYCODE_ANDROID_KEYSTORE_B64" | base64 --decode > "$KEYSTORE"
+          chmod 600 "$KEYSTORE"
+          echo "MYCODE_ANDROID_KEYSTORE_FILE=$KEYSTORE" >> "$GITHUB_ENV"
+      - name: Install mobile dependencies
+        working-directory: mobile
+        run: npm ci
+      - name: Build native phone transport
+        working-directory: mobile
+        env:
+          RUSTUP_TOOLCHAIN: '1.97.1'
+        run: |
+          rustup toolchain install 1.97.1 --profile minimal --no-self-update
+          npm run native:android
+      - name: Generate Android project
+        working-directory: mobile
+        env:
+          CI: '1'
+        run: npx expo prebuild --platform android --clean --no-install
+      - name: Build signed standalone APK
+        working-directory: mobile/android
+        env:
+          MYCODE_ANDROID_STORE_PASSWORD: ${{ secrets.MYCODE_ANDROID_STORE_PASSWORD }}
+        run: ./gradlew :app:assembleRelease --no-daemon
+      - name: Verify APK identity and signature
+        run: |
+          set -euo pipefail
+          APK=mobile/android/app/build/outputs/apk/release/app-release.apk
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | grep "package: name='com.dcxa521gi.mycodemobile' versionCode='$MYCODE_MOBILE_VERSION_CODE' versionName='$MYCODE_MOBILE_VERSION'"
+          cp "$APK" "MyCode_${MYCODE_MOBILE_VERSION}_Android.apk"
+          sha256sum "MyCode_${MYCODE_MOBILE_VERSION}_Android.apk" > "SHA256SUMS-Android-${MYCODE_MOBILE_VERSION}.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MyCode-${{ env.MYCODE_MOBILE_VERSION }}-Android-APK
+          path: |
+            MyCode_*_Android.apk
+            SHA256SUMS-Android-*.txt
+          if-no-files-found: error

@@ -9,6 +9,7 @@
 - Compare Cindy and https://github.com/Emanuele-web04/synara for locally runnable development and office capabilities to complement the MonoCode baseline and MyCode additions.
 - Use only Cindy's open-source, locally runnable capabilities. Do not integrate Cindy cloud services.
 - Deliver the source and Windows installer to dcxa521gi/MyCode-Pro. Always include an absolute local installer file link in the final handoff, as well as the release link.
+- Starting with MyCode 0.23.5, every release must also include a version-matched, installable, release-signed Android APK for the current MyCode phone companion, plus its checksum. Verify the APK package ID, version, signature, download bytes and SHA-256 before reporting delivery. Keep the legacy Android controller distinct from the new companion. iOS source and self-signing instructions remain available, but do not publish an iOS IPA or claim iOS device validation.
 - Group chats keep independent folders and memory. Automatic idle chat is off by default; users can enable it and set a Token limit.
 - Preserve existing user work, installed credentials and conversation history. Do not move or delete existing user data merely to change storage defaults.
 - Before future upgrades, consult `docs/mycode-feature-provenance.md` and its JSON registry for versioned requirements, source lineage and current removal/replacement decisions. Append new release events without rewriting earlier history; later explicit user removals override historical additions and dormant group-chat defaults.

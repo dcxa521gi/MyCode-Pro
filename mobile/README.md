@@ -4,6 +4,8 @@ The Expo app lives in this directory and has its own npm dependencies and lockfi
 
 This fork uses MyCode's own app name, icon, URL scheme and bundle identifier. It does not contain the upstream Expo account or update project. A MyCode mobile build requires separate signing and device validation before distribution.
 
+Starting with MyCode 0.23.5, each desktop release includes a separately signed Android APK for this phone companion and an Android checksum file. The APK uses package `com.dcxa521gi.mycodemobile`; the legacy Android controller remains a separate app. Android packages are built from the matching source tag by `.github/workflows/mobile-apk.yml` and verified before attachment to the MyCode release. iOS IPA files are not published. On a Mac, users can build and self-sign the iOS app from this source with their own Apple Developer team, certificate and provisioning profile; `npm run ios -- --device` is the local device build entry point. A successful source build or simulator run is not a signed device IPA.
+
 ## Run locally
 
 From the repository root:

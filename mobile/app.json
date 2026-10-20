@@ -25,13 +25,22 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/mycode-mark.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ],
+      "package": "com.dcxa521gi.mycodemobile",
+      "versionCode": 235
     },
     "web": {
       "output": "static",
       "favicon": "./assets/images/mycode-icon.png"
     },
     "plugins": [
+      "./plugins/with-mycode-android-signing",
       "./plugins/with-local-notifications",
       "./plugins/with-scene-lifecycle",
       "expo-router",
