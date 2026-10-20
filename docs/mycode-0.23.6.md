@@ -24,3 +24,10 @@ Cindy 提交清单中的相关本地候选包括手机新任务的远程目录�
 - 安卓 Expo 干净预构建清单确认 `CAMERA` 权限存在且不再标为移除；手机原有 95 项测试全部通过，新增导航保持挂载的定向测试另通过；手机类型检查、lint（0 错误，2 条既有警告）和词条检查通过。应用内扫码、项目进入、覆盖安装须在 Android 真机继续验证。
 - 桌面设置、工作树和双语定向测试 90 项通过；简体中文和英文菜单由同一词条表驱动。桌面 TypeScript 与安装包构建结果见最终交付记录。
 - 本版须随 Windows 安装包发布同版本的签名 Android APK，并分别验证安装包身份、签名、字节数与 SHA-256；构建产物或 CI 验证不能代替真机功能验收。
+
+## 交付记录
+
+- [MyCode 0.23.6 公开发布页](https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.23.6)只包含 MyCode 安装包和必要校验文件，发布描述与附件白名单检查通过；发布标签指向 `2df20066fb55f446c281ef039262fd3a158651e0`。
+- Windows `MyCode_0.23.6_x64-setup.exe`：41,410,487 字节，SHA-256 `414a42269cc16024042298171f227e24d1d7643bf928b4b245481f3c894c9738`。安装包和程序文件的 ProductName/ProductVersion 为 MyCode/0.23.6。发布页回下载与本地文件逐字节长度、SHA-256 一致；Windows 安装包未签名。
+- Android `MyCode_0.23.6_Android.apk`：68,511,884 字节，SHA-256 `6ba03cc59eaae03beeb476889b5b9fedaffeeec87e0ede2c5eb68fb01a2433cc`。由 `v0.23.6-mobile.1` 标签的 [签名构建流水线](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/39389115541)生成；CI 校验 APK v2 签名、证书 `CN=MyCode`、包名 `com.dcxa521gi.mycodemobile`、`versionCode=236`、`versionName=0.23.6`。发布页回下载与 CI 产物及校验文件的字节数、SHA-256 相同。Android 构建合并后的清单仍包含 `android.permission.CAMERA`。
+- 两份公开校验文件分别为 `SHA256SUMS.txt` 与 `SHA256SUMS-Android-0.23.6.txt`；未将手机运行时、其他品牌安装包或 Host 归档放入桌面发布页。未进行 Android 真机扫码、项目进入或覆盖安装验收。

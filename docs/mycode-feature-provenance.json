@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "recordedDate": "2026-10-20",
   "currentProductVersion": "0.23.6",
-  "sourceCommit": "v0.23.6（发布标签）",
+  "sourceCommit": "2df20066fb55f446c281ef039262fd3a158651e0",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -299,7 +299,7 @@
       "key": "0.23.6",
       "display": "0.23.6",
       "tag": "v0.23.6",
-      "tagCommit": "待发布",
+      "tagCommit": "2df20066fb55f446c281ef039262fd3a158651e0",
       "date": "2026-10-20",
       "releaseDoc": "mycode-0.23.6.md",
       "monoBaseline": "7508feaee8 → 7508feaee8；本轮无新增提交",
@@ -9961,7 +9961,7 @@
       "evidence": [
         "mycode-0.23.6.md"
       ],
-      "sourceConfidence": "干净预构建清单、类型检查及权限定向测试已验证；真机扫码与项目页面待验",
+      "sourceConfidence": "干净预构建清单、类型检查和权限定向测试通过；签名 APK 的包名/版本/签名及公开下载 SHA-256 已验证；真机扫码与项目页面待验",
       "maintenancePaths": [
         "mobile/app.json",
         "mobile/src/features/connection/WorkspaceGate.tsx",
