@@ -5,11 +5,20 @@ import { fileURLToPath } from "node:url";
 import { beforeAll, expect, it } from "vitest";
 
 let ios: {
-  infoPlist: { NSMicrophoneUsageDescription?: string };
+  infoPlist: {
+    NSMicrophoneUsageDescription?: string;
+    NSCameraUsageDescription?: string;
+    UIBackgroundModes?: string[];
+  };
   entitlements: Record<string, unknown>;
 };
 let android: {
-  manifest: { manifest: { "uses-permission": Array<{ $: Record<string, string> }> } };
+  manifest: {
+    manifest: {
+      "uses-permission": { $: { "android:name": string; "tools:node"?: string } }[];
+      application: { service?: { $: { "android:name": string } }[] }[];
+    };
+  };
 };
 
 beforeAll(() => {
@@ -53,4 +62,5 @@ it("keeps Android camera permission available for QR pairing", () => {
   );
   expect(camera).toBeDefined();
   expect(camera?.$["tools:node"]).not.toBe("remove");
+  expect(ios.infoPlist.NSCameraUsageDescription).toEqual(expect.any(String));
 });

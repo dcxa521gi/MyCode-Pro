@@ -7,6 +7,19 @@ export function mobileLocale(): MobileLocale {
 }
 
 const zhCN: Record<string, string> = {
+  "Back": "返回",
+  "Session": "会话",
+  "Session alerts": "会话提醒",
+  "Close menu": "关闭菜单",
+  "Projects and monos": "项目与常驻智能体",
+  "Copy Session ID": "复制会话 ID",
+  "Archive": "归档",
+  "Session name": "会话名称",
+  "Rename session": "重命名会话",
+  "Loading changes…": "正在载入改动…",
+  "Workspace: {branch}": "工作区：{branch}",
+  "Current checkout ({branch})": "当前检出目录（{branch}）",
+  "Changes, {count} files": "改动：{count} 个文件",
   "Continue with {count} item": "进入 {count} 个项目",
   "Continue with {count} items": "进入 {count} 个项目",
   "Choose later": "稍后选择",
@@ -132,6 +145,7 @@ const zhCN: Record<string, string> = {
   "No projects match.": "没有匹配的项目。",
   "Notifications": "通知",
   "Notifications are off for this app in iOS Settings.": "此应用的通知已在 iOS 设置中关闭。",
+  "Notifications are off for this app in system settings.": "此应用的通知已在系统设置中关闭。",
   "Open Settings": "打开设置",
   "Preferences": "偏好设置",
   "New sessions": "新会话",

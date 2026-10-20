@@ -6,6 +6,7 @@ import {
   type NativeStackNavigationOptions,
 } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -122,14 +123,46 @@ export default function RootLayout() {
           <SafeAreaProvider>
             <ConnectionProvider>
               <StatusBar style={scheme === "dark" ? "light" : "dark"} />
-              <WorkspaceGate>
-                <LinkedWorkspace />
-              </WorkspaceGate>
+              <WorkspaceEntry />
             </ConnectionProvider>
           </SafeAreaProvider>
         </ThemeProvider>
       </GestureHandlerRootView>
     </KeyboardProvider>
+  );
+}
+
+function WorkspaceEntry() {
+  const connection = useConnection();
+  const [activated, setActivated] = useState(false);
+  const ready = !connection.restoring && !!connection.pairing && connection.selection !== null;
+  if (ready && !activated) setActivated(true);
+
+  // Mount the router immediately, but defer session providers and native scene
+  // views until a workspace has been selected. Initializing them behind the
+  // pairing overlay can prevent Android's first frame from appearing.
+  if (!activated)
+    return (
+      <Stack screenOptions={{ headerShown: false, animation: "none" }}>
+        <Stack.Screen name="index" />
+        <Stack.Protected guard={false}>
+          <Stack.Screen name="file" />
+          <Stack.Screen name="diff" />
+          <Stack.Screen name="changes" />
+          <Stack.Screen name="mono/[monoId]" />
+          <Stack.Screen name="project/[projectId]/index" />
+          <Stack.Screen name="project/[projectId]/session/[sessionId]" />
+          <Stack.Screen name="projects" />
+          <Stack.Screen name="settings" />
+          <Stack.Screen name="models" />
+        </Stack.Protected>
+      </Stack>
+    );
+
+  return (
+    <WorkspaceGate>
+      <LinkedWorkspace />
+    </WorkspaceGate>
   );
 }
 

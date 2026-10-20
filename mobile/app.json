@@ -2,7 +2,7 @@
   "expo": {
     "name": "MyCode",
     "slug": "mycode-mobile",
-    "version": "0.23.6",
+    "version": "0.23.7",
     "runtimeVersion": {
       "policy": "fingerprint"
     },
@@ -34,7 +34,7 @@
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
       "package": "com.dcxa521gi.mycodemobile",
-      "versionCode": 236
+      "versionCode": 237
     },
     "web": {
       "output": "static",
@@ -81,7 +81,8 @@
         {
           "microphonePermission": "Dictate messages to your MyCode sessions.",
           "recordAudioAndroid": false,
-          "enableBackgroundRecording": false
+          "enableBackgroundRecording": false,
+          "enableBackgroundPlayback": false
         }
       ],
       "expo-asset",

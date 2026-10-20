@@ -78,7 +78,41 @@ jobs:
           org.gradle.workers.max=2
           kotlin.compiler.execution.strategy=in-process
           EOF
-          ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=2 --no-parallel --no-daemon --stacktrace --info
+          ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a,x86_64 --max-workers=2 --no-parallel --no-daemon --stacktrace --info
+      - name: Enable KVM for Android startup smoke test
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and launch the release APK in Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          script: |
+            set -euo pipefail
+            apk=mobile/android/app/build/outputs/apk/release/app-release.apk
+            adb install -r "$apk"
+            adb logcat -c
+            adb shell am start -n com.dcxa521gi.mycodemobile/.MainActivity
+            sleep 25
+            adb logcat -d -b crash > mobile-startup-crash.log
+            adb shell uiautomator dump /sdcard/mycode-startup.xml
+            adb shell cat /sdcard/mycode-startup.xml > mobile-startup-ui.xml
+            adb exec-out screencap -p > mobile-startup.png
+            test -n "$(adb shell pidof -s com.dcxa521gi.mycodemobile)"
+            grep -Eq '连接电脑|Connect to desktop|粘贴配对链接|Paste a pairing link' mobile-startup-ui.xml
+      - name: Keep Android startup evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyCode-${{ env.MYCODE_MOBILE_VERSION }}-Android-startup-evidence
+          path: |
+            mobile-startup-crash.log
+            mobile-startup-ui.xml
+            mobile-startup.png
+          if-no-files-found: ignore
       - name: Verify APK identity and signature
         run: |
           set -euo pipefail

@@ -6,6 +6,7 @@ import {
   sheetScreenLayout,
 } from "@/features/files/codeScreen";
 import { MONOS_ENABLED } from "@/features/connection/selection";
+import { androidBackHeader } from "@/ui/AndroidHeader";
 import { useColors } from "@/ui/theme";
 import { t } from "@/ui/i18n";
 
@@ -31,14 +32,26 @@ export default function SettingsLayout() {
           ),
         }}
       />
-      <Stack.Screen name="appearance" options={{ title: t("Appearance") }} />
-      <Stack.Screen name="providers" options={{ title: t("Providers") }} />
-      <Stack.Screen name="permissions" options={{ title: t("Permissions") }} />
+      <Stack.Screen
+        name="appearance"
+        options={{ title: t("Appearance"), ...androidBackHeader(t("Appearance")) }}
+      />
+      <Stack.Screen
+        name="providers"
+        options={{ title: t("Providers"), ...androidBackHeader(t("Providers")) }}
+      />
+      <Stack.Screen
+        name="permissions"
+        options={{ title: t("Permissions"), ...androidBackHeader(t("Permissions")) }}
+      />
       {/* The provider's models title themselves. */}
       <Stack.Screen name="models" options={{ title: "" }} />
       <Stack.Screen
         name="workspace"
-        options={{ title: MONOS_ENABLED ? "Projects and monos" : "Projects" }}
+        options={{
+          title: t(MONOS_ENABLED ? "Projects and monos" : "Projects"),
+          ...androidBackHeader(t(MONOS_ENABLED ? "Projects and monos" : "Projects")),
+        }}
       />
     </Stack>
   );

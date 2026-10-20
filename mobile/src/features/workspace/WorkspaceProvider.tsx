@@ -613,6 +613,11 @@ export function useWorkspace() {
     throw new Error(t("useWorkspace must be used inside WorkspaceProvider"));
   return workspace;
 }
+
+/** The startup route can render before a desktop workspace is available. */
+export function useWorkspaceOrNull() {
+  return use(WorkspaceContext);
+}
 /** The open conversations as they stream in. Re-renders with every frame. */
 function useLive() {
   const live = use(LiveContext);
