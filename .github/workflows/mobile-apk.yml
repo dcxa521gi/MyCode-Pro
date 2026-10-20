@@ -60,7 +60,7 @@ jobs:
           RUSTUP_TOOLCHAIN: '1.97.1'
         run: |
           rustup toolchain install 1.97.1 --profile minimal --no-self-update
-          npm run native:android -- --device-only
+          npm run native:android -- --with-emulator
       - name: Generate Android project
         working-directory: mobile
         env:

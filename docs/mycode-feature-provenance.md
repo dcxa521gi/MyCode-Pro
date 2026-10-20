@@ -1,8 +1,8 @@
 # MyCode 功能来源与版本台账
 
-整理日期：2026-10-20；当前产品基线：**MyCode 0.23.6**，源码提交 `2df20066fb55f446c281ef039262fd3a158651e0`。
+整理日期：2026-10-20；当前产品基线：**MyCode 0.23.7**，源码提交 `000ef71cf66c429c50af8dc44b867e155e7cee72`。
 
-本文件按 **29 个交付阶段、365 条变更、111 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
+本文件按 **30 个交付阶段、367 条变更、111 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
 
 ## 如何使用
 
@@ -17,11 +17,11 @@
 | 来源代码 | 含义 | 本次变更条数 |
 | --- | --- | --- |
 | MONO | MonoCode 上游直接同步 | 40 |
-| MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 127 |
+| MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 128 |
 | CINDY_CODE | Cindy 开源代码复用 | 2 |
 | CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 28 |
 | SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 10 |
-| MYCODE | MyCode 自有新增/修复 | 131 |
+| MYCODE | MyCode 自有新增/修复 | 132 |
 | VENDOR | 官方 CLI/SDK/接口适配 | 22 |
 | CODEX_REFERENCE | Codex 交互参考、MyCode 实现 | 4 |
 | USER_UI_REFERENCE | 用户截图布局参考、MyCode 实现 | 1 |
@@ -67,6 +67,7 @@
 | [0.23.4](#v-0-23-4) | 2026-10-19 / `v0.23.4` | `cc5faaca` | 399c3033 → e53e09aad2；61提交逐项融合与核对 | Cindy 77e2c32d → e6c54663，121提交；Synara b8cf9382 → 299fd573，4提交；本地候选核对 |
 | [0.23.5](#v-0-23-5) | 2026-10-20 / `v0.23.5` | `be0b4769` | e53e09aad2 → 7508feaee8；10提交逐项融合与核对 | Cindy e6c54663 与 Synara 299fd573 均无新增提交 |
 | [0.23.6](#v-0-23-6) | 2026-10-20 / `v0.23.6` | `2df20066` | 7508feaee8 → 7508feaee8；本轮无新增提交 | Cindy e6c54663 → 06435419；Synara 299fd573 无变化，候选核对见发行记录 |
+| [0.23.7](#v-0-23-7) | 2026-10-20 / `v0.23.7` | `000ef71c` | 7508feaee8 → 115f0e97c4；v0.16.0 Android 10 项改动融合、两笔合并提交核对 | Cindy 06435419 → 4acbce11；Synara 299fd573 无变化，候选核对见发行记录 |
 
 ## 按版本的功能明细
 
@@ -697,6 +698,17 @@
 | MC-0.23.6-002<br>`LAYOUT` | 新版布局菜单提供经典布局切换入口 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**修复** | 新版项目菜单直接提供切回经典布局的按钮；保留原设置与工作区，不重置布局以外的偏好。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.23.6-003<br>`I18N` | 新版项目菜单与手机进入按钮简体中文 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**修复** | 切换工作树、切换项目、项目设置、设置、布局切换及手机项目进入按钮在简体中文环境中使用中文，英文环境保持英文。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.23.6-004<br>`MOBILE` | 设置中移除旧 Android 控制器入口 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**移除** | 旧设置项从导航和页面移除；已有旧控制端代码、设备数据和凭据保留；持久化旧设置定位转到连接页面。 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 |
+
+<a id="v-0-23-7"></a>
+
+### 0.23.7（2026-10-20）
+
+证据：[docs/mycode-0.23.7.md](mycode-0.23.7.md)；本地标签 `v0.23.7` → `000ef71cf66c429c50af8dc44b867e155e7cee72`。
+
+| 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
+| --- | --- | --- | --- | --- | --- |
+| MC-0.23.7-001<br>`MOBILE` | Android 首屏启动与项目选择后导航 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**修复** | 配对前只挂载最小路由和引导页；选择项目后再挂载会话工作区。增加签名 APK 的模拟器启动冒烟检查，验证进程和配对页可见性；不清理旧配对与会话缓存。 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 |
+| MC-0.23.7-002<br>`MOBILE` | MonoCode v0.16.0 Android 输入、页头、项目与通知修复 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**同步适配** | 按 10 个实质提交融合 Android 项目/会话布局、工作区切换、输入框、通知和权限时序。MyCode 保留语音输入所需权限与品牌、中英文词条；Cindy/Synara 核对但没有误记为代码移植。 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 |
 
 ## 用户要求覆盖索引
 
@@ -1370,7 +1382,7 @@
 | `OPENCODE` | 0.15.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers/opencode](../src/integrations/harness/providers/opencode) |
 | `SCALE` | 0.16.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/model/appearance.ts](../src/features/settings/model/appearance.ts)<br>[src/features/settings/ui/SettingsView.tsx](../src/features/settings/ui/SettingsView.tsx) |
 | `PERSONALIZATION` | 0.16.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/PersonalizationSettings.tsx](../src/features/settings/ui/PersonalizationSettings.tsx) |
-| `MOBILE` | 0.16.0<br>0.23.6 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 | 保留设备授权、电脑权威状态及权限；不把轮询同步等同独立历史双向合并。 | [src-tauri/src/mobile.rs](../src-tauri/src/mobile.rs)<br>[android/app/src/main/java/com/mycode/mobile/MainActivity.java](../android/app/src/main/java/com/mycode/mobile/MainActivity.java)<br>[src-tauri/src/mobile_access.rs](../src-tauri/src/mobile_access.rs)<br>[crates/mobile-link](../crates/mobile-link)<br>[mobile](../mobile) |
+| `MOBILE` | 0.16.0<br>0.23.7 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 | 保留设备授权、电脑权威状态及权限；不把轮询同步等同独立历史双向合并。 | [src-tauri/src/mobile.rs](../src-tauri/src/mobile.rs)<br>[android/app/src/main/java/com/mycode/mobile/MainActivity.java](../android/app/src/main/java/com/mycode/mobile/MainActivity.java)<br>[src-tauri/src/mobile_access.rs](../src-tauri/src/mobile_access.rs)<br>[crates/mobile-link](../crates/mobile-link)<br>[mobile](../mobile) |
 | `DEV-TOOLS` | 0.16.0<br>0.18.0 | 工具入口及模拟器流程已实现，实环境验收仍有条件 | Mac/iOS 依赖 Mac/Xcode/签名；微信/鸿蒙依赖 SDK/登录/模拟器/项目，失败不得伪造通过。 | [src-tauri/src/development.rs](../src-tauri/src/development.rs)<br>[src/features/settings/ui/DevelopmentToolsPage.tsx](../src/features/settings/ui/DevelopmentToolsPage.tsx) |
 | `POWER` | 0.16.0<br>0.18.0 | 自动休眠/合盖策略已实现，非永不断连保证 | 不掩盖强制睡眠、关机、断电、断网；释放唤醒请求并恢复原电源计划。 | [src-tauri/src/power.rs](../src-tauri/src/power.rs)<br>[src/features/settings/ui/TaskPowerSettings.tsx](../src/features/settings/ui/TaskPowerSettings.tsx) |
 | `INBOX` | 0.16.0<br>0.23.4 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/inbox](../src/features/inbox) |

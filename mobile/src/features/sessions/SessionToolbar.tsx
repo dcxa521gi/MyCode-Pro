@@ -133,26 +133,26 @@ export function SessionToolbar({
   };
   const archive = (target: SessionSummary) =>
     Alert.alert(
-      `Archive “${target.title}”?`,
+      formatMobile("Archive “{title}”?", { title: target.title }),
       t("It moves to the archive on your desktop."),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("Cancel"), style: "cancel" },
         {
-          text: "Archive",
+          text: t("Archive"),
           isPreferred: true,
           onPress: () =>
-            leaveAnd(archiveSession, "Could not archive the session", target),
+            leaveAnd(archiveSession, t("Could not archive the session"), target),
         },
       ],
     );
   const remove = (target: SessionSummary) =>
-    Alert.alert(`Delete “${target.title}”?`, t("This can’t be undone."), [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(formatMobile("Delete “{title}”?", { title: target.title }), t("This can’t be undone."), [
+      { text: t("Cancel"), style: "cancel" },
       {
-        text: "Delete",
+        text: t("Delete"),
         style: "destructive",
         onPress: () =>
-          leaveAnd(deleteSession, "Could not delete the session", target),
+          leaveAnd(deleteSession, t("Could not delete the session"), target),
       },
     ]);
 
@@ -259,7 +259,7 @@ export function SessionToolbar({
                     setRenaming(false);
                     if (session && name.trim() && name.trim() !== session.title)
                       void renameSession(session, name.trim()).catch(
-                        failed("Could not rename the session"),
+                        failed(t("Could not rename the session")),
                       );
                   }}
                 >

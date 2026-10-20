@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "recordedDate": "2026-10-20",
-  "currentProductVersion": "0.23.6",
-  "sourceCommit": "2df20066fb55f446c281ef039262fd3a158651e0",
+  "currentProductVersion": "0.23.7",
+  "sourceCommit": "000ef71cf66c429c50af8dc44b867e155e7cee72",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -304,6 +304,16 @@
       "releaseDoc": "mycode-0.23.6.md",
       "monoBaseline": "7508feaee8 → 7508feaee8；本轮无新增提交",
       "complementBaseline": "Cindy e6c54663 → 06435419；Synara 299fd573 无变化，候选核对见发行记录"
+    },
+    {
+      "key": "0.23.7",
+      "display": "0.23.7",
+      "tag": "v0.23.7",
+      "tagCommit": "000ef71cf66c429c50af8dc44b867e155e7cee72",
+      "date": "2026-10-20",
+      "releaseDoc": "mycode-0.23.7.md",
+      "monoBaseline": "7508feaee8 → 115f0e97c4；v0.16.0 Android 10 项改动融合、两笔合并提交核对",
+      "complementBaseline": "Cindy 06435419 → 4acbce11；Synara 299fd573 无变化，候选核对见发行记录"
     }
   ],
   "requirements": [
@@ -2388,7 +2398,7 @@
     {
       "id": "MOBILE",
       "firstRecordedVersion": "0.16.0",
-      "lastChangedVersion": "0.23.6",
+      "lastChangedVersion": "0.23.7",
       "status": "旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列",
       "upgradePolicy": "保留设备授权、电脑权威状态及权限；不把轮询同步等同独立历史双向合并。",
       "maintenancePaths": [
@@ -2412,7 +2422,9 @@
         "MC-0.18.0-014",
         "MC-0.23.5-002",
         "MC-0.23.6-001",
-        "MC-0.23.6-004"
+        "MC-0.23.6-004",
+        "MC-0.23.7-001",
+        "MC-0.23.7-002"
       ]
     },
     {
@@ -10019,6 +10031,44 @@
       "maintenancePaths": [
         "src/features/settings/model/settings.ts",
         "src/features/settings/ui/SettingsView.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.7-001",
+      "version": "0.23.7",
+      "feature": "MOBILE",
+      "origin": "MYCODE",
+      "action": "修复",
+      "requirements": [],
+      "title": "Android 首屏启动与项目选择后导航",
+      "detail": "配对前只挂载最小路由和引导页；选择项目后再挂载会话工作区。增加签名 APK 的模拟器启动冒烟检查，验证进程和配对页可见性；不清理旧配对与会话缓存。",
+      "evidence": [
+        "mycode-0.23.7.md"
+      ],
+      "sourceConfidence": "源码测试通过；签名 APK 模拟器及用户实机验证另列",
+      "maintenancePaths": [
+        "mobile/src/app/_layout.tsx",
+        "mobile/src/app/index.tsx",
+        ".github/workflows/mobile-apk.yml"
+      ]
+    },
+    {
+      "id": "MC-0.23.7-002",
+      "version": "0.23.7",
+      "feature": "MOBILE",
+      "origin": "MONO_ADAPT",
+      "action": "同步适配",
+      "requirements": [],
+      "title": "MonoCode v0.16.0 Android 输入、页头、项目与通知修复",
+      "detail": "按 10 个实质提交融合 Android 项目/会话布局、工作区切换、输入框、通知和权限时序。MyCode 保留语音输入所需权限与品牌、中英文词条；Cindy/Synara 核对但没有误记为代码移植。",
+      "evidence": [
+        "mycode-0.23.7.md"
+      ],
+      "sourceConfidence": "Android 类型检查、lint、词条与 132 项测试通过；模拟器和用户实机另列",
+      "maintenancePaths": [
+        "mobile/src/features/workspace/ProjectScreen.tsx",
+        "mobile/src/features/sessions/Composer.tsx",
+        "mobile/src/features/notifications/SessionNotifications.tsx"
       ]
     }
   ],

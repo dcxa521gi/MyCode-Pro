@@ -125,9 +125,12 @@ if (platform === "ios") {
     ["x86_64-linux-android", "x86_64", "x86_64-linux-android"],
     ["i686-linux-android", "x86", "i686-linux-android"],
   ];
-  for (const [target, abi, clang] of process.argv.includes("--device-only")
+  const selectedTargets = process.argv.includes("--device-only")
     ? androidTargets.slice(0, 1)
-    : androidTargets) {
+    : process.argv.includes("--with-emulator")
+      ? [androidTargets[0], androidTargets[2]]
+      : androidTargets;
+  for (const [target, abi, clang] of selectedTargets) {
     const linker = join(bin, `${clang}24-clang`);
     build(target, {
       [`CARGO_TARGET_${target.toUpperCase().replaceAll("-", "_")}_LINKER`]:

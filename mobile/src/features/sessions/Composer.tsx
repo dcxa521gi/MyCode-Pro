@@ -411,9 +411,9 @@ function AddMenu({ onPhotos, onFiles }: { onPhotos: () => void; onFiles: () => v
   const styles = useStyles();
   const colors = useColors();
   if (Platform.OS === "android") return (
-    <ChoiceMenu label="Add photos or files" actions={[
-      { label: "Photo Library", onPress: onPhotos },
-      { label: "Files", onPress: onFiles },
+    <ChoiceMenu label={t("Add photos or files")} actions={[
+      { label: t("Photo Library"), onPress: onPhotos },
+      { label: t("Files"), onPress: onFiles },
     ]}>
       <View style={styles.round}><Icon name="add" size={18} color={colors.content} /></View>
     </ChoiceMenu>
