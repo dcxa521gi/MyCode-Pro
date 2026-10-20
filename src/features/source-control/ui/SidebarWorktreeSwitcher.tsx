@@ -321,7 +321,7 @@ export function SidebarWorktreeSwitcher({
                 }
           }
           role="menu"
-          aria-label={`${project.name} menu`}
+          aria-label={`${project.name} ${t("menu")}`}
           data-project-menu
           className="flex flex-col p-1"
         >
@@ -648,7 +648,7 @@ export function SidebarWorktreeSwitcher({
                 type="button"
                 disabled={creating}
                 onClick={() => void create()}
-                title={`Create worktree ${createName}`}
+                title={`${t("Create worktree")} ${createName}`}
                 className="flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[13px] text-content/75 hover:bg-content/8 hover:text-content disabled:opacity-60"
               >
                 {creating ? (
