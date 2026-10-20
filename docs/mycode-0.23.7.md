@@ -32,5 +32,7 @@
 ## 验证与交付
 
 - 手机端 TypeScript、Expo lint（0 错误；语音模块 2 条已有 warning）、中英文词条检查通过；27 个测试文件、132 项测试通过。权限/通知/工作区定向测试另通过 17 项。
-- Android 模拟器启动检查、签名 APK 的包名/版本/签名/下载 SHA-256，以及 Windows 安装包和公开发布页验证：待构建完成后填写。
+- Windows `MyCode_0.23.7_x64-setup.exe` 已构建：41,407,915 字节，SHA-256 `ba68c5fe3fa71447d3c1c145c6fb6d62d102272a6d8ce2f3d1520cd55a952708`。安装包及程序文件产品名均为 MyCode、版本均为 0.23.7；未在当前 Windows 主机上执行覆盖安装。
+- Android 签名 APK 已在 [CI 运行 39416752059](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/39416752059) 构建、安装到 API 35 x86_64 模拟器并冷启动。等待 25 秒后，进程存活，UI 树包含配对入口，截图显示已进入连接页，crash log 无启动崩溃。APK 为 103,430,167 字节；包名 `com.dcxa521gi.mycodemobile`、versionCode `237`、versionName `0.23.7`；签名证书 SHA-256 `6787e8f3283482fd6e860c38eeba47adb7e1606d272ce5730327865db1f1c69b`，与 0.23.6 一致。CI 产物下载后 SHA-256 为 `49a1a09d680f6adb66b4e35d2908cd36af230fd1fd89a23579928cd2248bc044`，与随包校验文件一致。
+- 公开发布页资产和重新下载校验：发布完成后填写。
 - 用户的原始实机 LOGO 卡住已确认为 0.23.6 未通过的验收项；0.23.7 在同一设备上的结果仍待重新验证。

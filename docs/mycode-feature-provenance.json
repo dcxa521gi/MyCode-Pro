@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "recordedDate": "2026-10-20",
   "currentProductVersion": "0.23.7",
-  "sourceCommit": "000ef71cf66c429c50af8dc44b867e155e7cee72",
+  "sourceCommit": "842a69a418",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -309,7 +309,7 @@
       "key": "0.23.7",
       "display": "0.23.7",
       "tag": "v0.23.7",
-      "tagCommit": "000ef71cf66c429c50af8dc44b867e155e7cee72",
+      "tagCommit": "842a69a418",
       "date": "2026-10-20",
       "releaseDoc": "mycode-0.23.7.md",
       "monoBaseline": "7508feaee8 → 115f0e97c4；v0.16.0 Android 10 项改动融合、两笔合并提交核对",
