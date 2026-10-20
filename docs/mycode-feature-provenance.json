@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedDate": "2026-10-19",
-  "currentProductVersion": "0.23.4",
-  "sourceCommit": "cc5faacad66e6db2729ae5e35150fbf2872112e8",
+  "recordedDate": "2026-10-20",
+  "currentProductVersion": "0.23.5",
+  "sourceCommit": "be0b47693281387475279f7630ab015f597430b9",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -284,6 +284,16 @@
       "releaseDoc": "mycode-0.23.4.md",
       "monoBaseline": "399c3033 → e53e09aad2；61提交逐项融合与核对",
       "complementBaseline": "Cindy 77e2c32d → e6c54663，121提交；Synara b8cf9382 → 299fd573，4提交；本地候选核对"
+    },
+    {
+      "key": "0.23.5",
+      "display": "0.23.5",
+      "tag": "v0.23.5",
+      "tagCommit": "be0b47693281387475279f7630ab015f597430b9",
+      "date": "2026-10-20",
+      "releaseDoc": "mycode-0.23.5.md",
+      "monoBaseline": "e53e09aad2 → 7508feaee8；10提交逐项融合与核对",
+      "complementBaseline": "Cindy e6c54663 与 Synara 299fd573 均无新增提交"
     }
   ],
   "requirements": [
@@ -1216,7 +1226,7 @@
     {
       "id": "I18N",
       "firstRecordedVersion": "0.5.0",
-      "lastChangedVersion": "0.23.4",
+      "lastChangedVersion": "0.23.5",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1239,7 +1249,8 @@
         "MC-0.22.0-006",
         "MC-0.23.0-010",
         "MC-0.23.3-005",
-        "MC-0.23.4-006"
+        "MC-0.23.4-006",
+        "MC-0.23.5-003"
       ]
     },
     {
@@ -1551,7 +1562,7 @@
     {
       "id": "NAV",
       "firstRecordedVersion": "0.7.0",
-      "lastChangedVersion": "0.22.0",
+      "lastChangedVersion": "0.23.5",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1566,7 +1577,8 @@
         "MC-0.13.0-001",
         "MC-0.13.0-014",
         "MC-0.20.0-021",
-        "MC-0.22.0-002"
+        "MC-0.22.0-002",
+        "MC-0.23.5-001"
       ]
     },
     {
@@ -2364,12 +2376,15 @@
     {
       "id": "MOBILE",
       "firstRecordedVersion": "0.16.0",
-      "lastChangedVersion": "0.18.0",
-      "status": "电脑控制/同步与网络修复已实现，实机验证另列",
+      "lastChangedVersion": "0.23.5",
+      "status": "旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列",
       "upgradePolicy": "保留设备授权、电脑权威状态及权限；不把轮询同步等同独立历史双向合并。",
       "maintenancePaths": [
         "src-tauri/src/mobile.rs",
-        "android/app/src/main/java/com/mycode/mobile/MainActivity.java"
+        "android/app/src/main/java/com/mycode/mobile/MainActivity.java",
+        "src-tauri/src/mobile_access.rs",
+        "crates/mobile-link",
+        "mobile"
       ],
       "changes": [
         "MC-0.16.0-008",
@@ -2382,7 +2397,8 @@
         "MC-0.18.0-010",
         "MC-0.18.0-011",
         "MC-0.18.0-013",
-        "MC-0.18.0-014"
+        "MC-0.18.0-014",
+        "MC-0.23.5-002"
       ]
     },
     {
@@ -9839,6 +9855,63 @@
       "maintenancePaths": [
         "src/app/App.tsx",
         "src/features/group-tasks/model/groupTasks.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.5-001",
+      "version": "0.23.5",
+      "feature": "NAV",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [],
+      "title": "项目滑动、键盘上下文菜单与无项目入口",
+      "detail": "融合 MonoCode v0.16.0 的侧栏项目切换、可访问菜单和空项目状态；保留 MyCode 首页、独立群任务与旧布局，新增中英文文案。",
+      "evidence": [
+        "mycode-0.23.5.md"
+      ],
+      "sourceConfidence": "侧栏 86 项及 Chromium 5 项通过；桌面触控待验",
+      "maintenancePaths": [
+        "src/app/shell/Sidebar.tsx",
+        "src/app/shell/useProjectSwipe.ts"
+      ]
+    },
+    {
+      "id": "MC-0.23.5-002",
+      "version": "0.23.5",
+      "feature": "MOBILE",
+      "origin": "MONO_ADAPT",
+      "action": "融合",
+      "requirements": [],
+      "title": "独立 MyCode 手机伴侣源码与桌面配对",
+      "detail": "接入 Expo 手机工程、桌面配对及本地 QUIC/TLS 传输；使用 MyCode 图标、链接、密钥命名和中英文界面；旧 Android 控制端及其凭据入口保留，手机安装包未发布。",
+      "evidence": [
+        "mycode-0.23.5.md"
+      ],
+      "sourceConfidence": "桌面 Rust 编译与 5 项配对测试、手机 94 项测试通过；IPv6 回环、原生签名与真机连接待验",
+      "maintenancePaths": [
+        "mobile",
+        "crates/mobile-link",
+        "src-tauri/src/mobile_access.rs",
+        "src/features/mobile"
+      ]
+    },
+    {
+      "id": "MC-0.23.5-003",
+      "version": "0.23.5",
+      "feature": "I18N",
+      "origin": "MYCODE",
+      "action": "改造",
+      "requirements": [],
+      "title": "桌面配对与手机伴侣中英文界面",
+      "detail": "新增桌面配对、状态和错误文案以及手机静态页面、常见连接、附件和会话反馈的简体中文/英文词条与检查脚本。",
+      "evidence": [
+        "mycode-0.23.5.md"
+      ],
+      "sourceConfidence": "词条检查、类型检查及手机 94 项测试通过；原生系统文案需设备验收",
+      "maintenancePaths": [
+        "src/shared/i18n/mycode0235.ts",
+        "mobile/src/ui/i18n.ts",
+        "mobile/scripts/check-i18n.mjs"
       ]
     }
   ],
