@@ -30,9 +30,12 @@
 
 ## 验证与交付
 
-- 桌面会话监听 4 项、手机协议往返 2 项、手机端完整 Vitest 28 文件/135 项、Rust 增量转录 2 项与网络监听唤醒 1 项通过。
+- 桌面会话监听 4 项、手机协议往返 2 项、手机端完整 Vitest 28 文件/135 项、Rust 增量转录 2 项与网络监听唤醒 1 项通过。Rust 手机传输全套 22 项中 21 项通过；`direct_quic_round_trip_with_pinned_mutual_tls_over_ipv4_and_ipv6` 在本机连接 `::1` 失败，单独串行重跑仍失败。不能把全套 Rust 测试记为通过，IPv4 和本轮新增的监听测试已通过。
 - 桌面 TypeScript、Rust `cargo check -p monocode --lib`、Rust 格式检查、手机 TypeScript 与中英文词条检查通过。手机 TypeScript 配置补入 DOM 可迭代类型，并修正测试工具 URL 类型，避免版本升级后类型检查失效。
-- Windows 安装包、Android 签名 APK、独立 Host 包和公开下载的结果在发行验证后补记。桌面覆盖安装、Android 实机配对/覆盖安装、iOS 真机行为属于独立验收，不由源码测试或模拟器代替。
+- Windows NSIS 安装包已构建，`MyCode_0.23.8_x64-setup.exe` 为 41,412,877 字节，SHA-256 `c7679f42984a367164d5172cc5b061a665bdf62c29d12299721fce9a410c2645`；应用文件产品名为 MyCode，文件/产品版本均为 0.23.8。发行附件重新下载的安装包与校验文件和本地逐字节哈希一致；安装包未在当前主机覆盖安装。
+- 六个平台的 0.23.8 MyCode Host 包已重新构建并按本地 SHA-256 校验后发布至独立 `mycode-host-v0.23.8` 下载分支；本地与远端分支提交均为 `c8605c60ca33633a59820cc1f569d57a2caad775`，桌面发行页不包含 Host 包。
+- [Android CI 运行 39579064551](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/39579064551) 成功生成发行签名 APK：包名 `com.dcxa521gi.mycodemobile`、versionCode `238`、versionName `0.23.8`，v2 签名验证通过；证书 SHA-256 为 `6787e8f3283482fd6e860c38eeba47adb7e1606d272ce5730327865db1f1c69b`，与 0.23.7 一致。APK 含 ARM64 和 x86_64 原生传输库，为 103,464,107 字节，SHA-256 `e8dec6df74376a4da3f574a2680560f415634ff0cc3bc93645c0eec7578e1b79`，与 CI 校验文件一致。
+- CI 将同一正式 APK 安装到 API 35 x86_64 模拟器并冷启动，25 秒后进程仍存活，UI 树出现连接电脑入口，截图展示配对页，crash log 为空。发行附件重新下载的 APK、Windows 安装包及两份校验文件均与本地哈希一致；发行附件白名单检查通过，仅有这四个 MyCode 文件。Android 实机配对/覆盖安装、iOS 真机行为属于独立验收，不由模拟器代替。
 
 ## Cindy 127 提交原始清单
 
