@@ -293,6 +293,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           watchId = await openWatch(pairing, "conversation.watch", {
             conversationId: id,
             tail: TAIL,
+            incremental: true,
             ...(from ? { from } : {}),
           });
           if (disposed) break;

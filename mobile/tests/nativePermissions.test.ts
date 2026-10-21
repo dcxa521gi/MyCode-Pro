@@ -25,14 +25,14 @@ beforeAll(() => {
   const output = execFileSync(
     process.execPath,
     [
-      fileURLToPath(new URL("../node_modules/expo/bin/cli", import.meta.url)),
+      fileURLToPath(new URL("../node_modules/expo/bin/cli", import.meta.url).href),
       "config",
       "--type",
       "introspect",
       "--json",
     ],
     {
-      cwd: fileURLToPath(new URL("..", import.meta.url)),
+      cwd: fileURLToPath(new URL("..", import.meta.url).href),
       encoding: "utf8",
       env: { ...process.env, EXPO_NO_DOTENV: "1" },
       timeout: 25_000,
