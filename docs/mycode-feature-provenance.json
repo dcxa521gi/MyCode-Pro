@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedDate": "2026-10-20",
-  "currentProductVersion": "0.23.7",
-  "sourceCommit": "842a69a418",
+  "recordedDate": "2026-10-21",
+  "currentProductVersion": "0.23.8",
+  "sourceCommit": "c167f18bcb",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -314,6 +314,16 @@
       "releaseDoc": "mycode-0.23.7.md",
       "monoBaseline": "7508feaee8 → 115f0e97c4；v0.16.0 Android 10 项改动融合、两笔合并提交核对",
       "complementBaseline": "Cindy 06435419 → 4acbce11；Synara 299fd573 无变化，候选核对见发行记录"
+    },
+    {
+      "key": "0.23.8",
+      "display": "0.23.8",
+      "tag": "v0.23.8",
+      "tagCommit": "c167f18bcb",
+      "date": "2026-10-21",
+      "releaseDoc": "mycode-0.23.8.md",
+      "monoBaseline": "115f0e97c4 → 74b8139c41；手机增量转录与测试隔离 2 提交融合",
+      "complementBaseline": "Cindy 57561101 → f7737772；127 提交分类核对；Synara 299fd573 无变化"
     }
   ],
   "requirements": [
@@ -2398,7 +2408,7 @@
     {
       "id": "MOBILE",
       "firstRecordedVersion": "0.16.0",
-      "lastChangedVersion": "0.23.7",
+      "lastChangedVersion": "0.23.8",
       "status": "旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列",
       "upgradePolicy": "保留设备授权、电脑权威状态及权限；不把轮询同步等同独立历史双向合并。",
       "maintenancePaths": [
@@ -2424,7 +2434,8 @@
         "MC-0.23.6-001",
         "MC-0.23.6-004",
         "MC-0.23.7-001",
-        "MC-0.23.7-002"
+        "MC-0.23.7-002",
+        "MC-0.23.8-001"
       ]
     },
     {
@@ -10069,6 +10080,26 @@
         "mobile/src/features/workspace/ProjectScreen.tsx",
         "mobile/src/features/sessions/Composer.tsx",
         "mobile/src/features/notifications/SessionNotifications.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.23.8-001",
+      "version": "0.23.8",
+      "feature": "MOBILE",
+      "origin": "MONO_ADAPT",
+      "action": "同步适配",
+      "requirements": [],
+      "title": "手机会话增量转录与事件唤醒",
+      "detail": "完整融合 MonoCode 601b7e1383 的桌面字段补丁、React Native 手机应用、Rust 转录内核及 iOS 事件唤醒；旧手机仍获完整变更回合，不迁移会话和配对数据。74b8139c41 的手机协议测试依赖隔离同步合入。",
+      "evidence": [
+        "mycode-0.23.8.md"
+      ],
+      "sourceConfidence": "协议往返和 Rust 定向测试通过；公开签名 APK、安装与实机结果另列",
+      "maintenancePaths": [
+        "src/features/mobile/model/mobileWatch.ts",
+        "mobile/src/features/workspace/watchUpdates.ts",
+        "crates/mobile-link/src/transcript.rs",
+        "mobile/modules/monocode-link/ios/TranscriptSession.swift"
       ]
     }
   ],
