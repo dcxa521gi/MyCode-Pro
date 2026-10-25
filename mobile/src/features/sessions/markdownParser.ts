@@ -27,9 +27,34 @@ const ITEM = /^(\s*)([-*+]|\d{1,9}[.)])\s+(.*)$/;
 const QUOTE = /^ {0,3}>\s?(.*)$/;
 const TABLE_DIVIDER = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$/;
 
+// Stable Markdown blocks are visited again as a reply grows. Keep their word
+// runs, while bounding both entry count and retained text from long replies.
+const WORD_CACHE_MAX_ENTRIES = 256;
+const WORD_CACHE_MAX_BYTES = 1024 * 1024;
+const wordCache = new Map<string, { parts: string[]; bytes: number }>();
+let wordCacheBytes = 0;
+
 /** A run of text split into words and the space between them. */
 export function splitWords(text: string): string[] {
-  return text.split(/(\s+)/).filter(Boolean);
+  const cached = wordCache.get(text);
+  if (cached) {
+    wordCache.delete(text);
+    wordCache.set(text, cached);
+    return cached.parts;
+  }
+  const parts = text.split(/(\s+)/).filter(Boolean);
+  // UTF-16 payload and array slots are an estimate, not an engine heap size.
+  const bytes = text.length * 2 + parts.reduce((size, part) => size + part.length * 2 + 8, 0);
+  if (bytes > WORD_CACHE_MAX_BYTES) return parts;
+  wordCache.set(text, { parts, bytes });
+  wordCacheBytes += bytes;
+  while (wordCache.size > WORD_CACHE_MAX_ENTRIES || wordCacheBytes > WORD_CACHE_MAX_BYTES) {
+    const oldest = wordCache.keys().next().value;
+    if (oldest === undefined) break;
+    wordCacheBytes -= wordCache.get(oldest)!.bytes;
+    wordCache.delete(oldest);
+  }
+  return parts;
 }
 
 /**
