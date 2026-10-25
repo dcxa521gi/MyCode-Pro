@@ -93,12 +93,17 @@ describe("agent-markdown Tailwind sources", () => {
 
     expect(sources.length).toBeGreaterThan(0);
     for (const source of sources) {
-      const directory = dirname(resolve(dirname(CSS_PATH), source));
-      expect(existsSync(directory), `${source} should resolve`).toBe(true);
-      expect(
-        readdirSync(directory).some((entry) => entry.endsWith(".js")),
-        `${source} should match package JavaScript`,
-      ).toBe(true);
+      const resolved = resolve(dirname(CSS_PATH), source);
+      if (source.endsWith("/*.js")) {
+        const directory = dirname(resolved);
+        expect(existsSync(directory), `${source} should resolve`).toBe(true);
+        expect(
+          readdirSync(directory).some((entry) => entry.endsWith(".js")),
+          `${source} should match package JavaScript`,
+        ).toBe(true);
+      } else {
+        expect(existsSync(resolved), `${source} should resolve`).toBe(true);
+      }
     }
   });
 });

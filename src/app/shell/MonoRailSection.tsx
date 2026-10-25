@@ -128,7 +128,7 @@ export function MonoRailSection({
             project ? "" : " px-1 text-xs leading-5 text-content/50"
           }`}
         >
-          Monos
+          {t("Monos")}
         </span>
         {monos.length ? (
           <button

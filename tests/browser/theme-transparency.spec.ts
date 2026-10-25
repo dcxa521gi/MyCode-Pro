@@ -68,8 +68,10 @@ test("keeps the window opaque when its workspace theme or color scheme changes",
     .toBe(false);
 
   for (const theme of ["Moss", "Ember"]) {
-    await page.getByRole("button", { name: /^Workspace theme:/ }).click();
-    await page.getByRole("option", { name: theme, exact: true }).click();
+    await page
+      .getByRole("radiogroup", { name: "Workspace theme" })
+      .getByRole("radio", { name: theme, exact: true })
+      .click();
     await expect(transparent).not.toBeChecked();
     await expect(root).not.toHaveClass(/has-native-glass/);
     expect(
