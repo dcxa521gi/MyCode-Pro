@@ -2,18 +2,18 @@
 
 2026-10-13 起，桌面发行页只介绍 MyCode，不列出上游产品介绍或其他产品安装包。源代码内的开源许可、归属和融合记录必须保留。
 
-上传附件限定为：`MyCode_<版本>_x64-setup.exe`、`SHA256SUMS.txt`，以及可选的 `verification-<版本>.json`。以后增加其他 MyCode 平台安装包或自动更新签名时，需要同时明确更新附件检查规则。
+0.23.5 起，上传附件为 `MyCode_<版本>_x64-setup.exe`、`SHA256SUMS.txt`、同版本发行签名的 `MyCode_<版本>_Android.apk` 和 `SHA256SUMS-Android-<版本>.txt`，以及可选的 `verification-<版本>.json`。Android 文件是 MyCode 手机伴侣，旧 Android 控制器不作为新发布包；iOS 保留源码供用户自行签名，不上传 IPA。以后增加其他 MyCode 平台安装包或自动更新签名时，需要同时明确更新附件检查规则。
 
 GitHub 自动生成的 Source code (zip/tar.gz) 是本仓库源码归档，不是额外上传的上游安装包，也无法按普通 release asset 删除。
 
 ## 发布流程
 
 1. 核对上游并维护版本来源台账；软件升级遵守 AGENTS.md，发布页整理不能冒充功能升级。
-2. 构建 MyCode 安装包，验证版本、运行时、界面资源与 SHA-256。
+2. 构建 MyCode Windows 安装包及同版本发行签名 Android 伴侣 APK；验证桌面版本、运行时和界面资源，并验证 APK 包名、versionCode、versionName、签名、安装启动及两份 SHA-256 校验文件。模拟器通过不代替真机验收。
 3. 需要发布 SSH Host 时，运行 `node scripts/publish-host-downloads.mjs`，下载组件使用独立的 `mycode-host-v<版本>` 分支，不进入桌面 Releases。外部附件名统一为 MyCode；内部入口和既有用户数据目录保留兼容。
 4. 完整下载并核验六种 Host 包。组件分支一经客户端引用，不删除、不挪动，不覆盖同版本的不同内容。
-5. 发布 MyCode 标题、介绍、安装包与校验文件。用 GitHub API 获取 release JSON，执行 `node scripts/check-release-assets.mjs <release.json>`，检查附件白名单和描述。
-6. 匿名下载公开安装包验证哈希；交付本地安装包绝对路径与发行链接。
+5. 发布 MyCode 标题、介绍、Windows 安装包、Android APK 与校验文件。用 GitHub API 获取 release JSON，执行 `node scripts/check-release-assets.mjs <release.json>`，检查附件白名单和描述。
+6. 重新下载公开 Windows 安装包、Android APK 及校验文件，验证尺寸与哈希；交付本地安装包绝对路径与发行链接。
 
 ## 0.20.0 发布页修正
 

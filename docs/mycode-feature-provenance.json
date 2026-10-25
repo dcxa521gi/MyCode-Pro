@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedDate": "2026-10-21",
-  "currentProductVersion": "0.23.8",
-  "sourceCommit": "c167f18bcb",
+  "recordedDate": "2026-10-25",
+  "currentProductVersion": "0.23.9",
+  "sourceCommit": "6df110502f946bc9a5368a3474a8a42a20ebe80d",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -324,6 +324,16 @@
       "releaseDoc": "mycode-0.23.8.md",
       "monoBaseline": "115f0e97c4 → 74b8139c41；手机增量转录与测试隔离 2 提交融合",
       "complementBaseline": "Cindy 57561101 → f7737772；127 提交分类核对；Synara 299fd573 无变化"
+    },
+    {
+      "key": "0.23.9",
+      "display": "0.23.9",
+      "tag": "v0.23.9",
+      "tagCommit": "6df110502f946bc9a5368a3474a8a42a20ebe80d",
+      "date": "2026-10-25",
+      "releaseDoc": "mycode-0.23.9.md",
+      "monoBaseline": "26465c6209 → 26465c6209；上游无新增产品提交",
+      "complementBaseline": "Cindy 08d178868c → 4ad25a97fb，10 提交；有界分词缓存独立适配。Synara 3f55b77ef1 无变化"
     }
   ],
   "requirements": [
@@ -2408,7 +2418,7 @@
     {
       "id": "MOBILE",
       "firstRecordedVersion": "0.16.0",
-      "lastChangedVersion": "0.23.8",
+      "lastChangedVersion": "0.23.9",
       "status": "旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列",
       "upgradePolicy": "保留设备授权、电脑权威状态及权限；不把轮询同步等同独立历史双向合并。",
       "maintenancePaths": [
@@ -2435,7 +2445,8 @@
         "MC-0.23.6-004",
         "MC-0.23.7-001",
         "MC-0.23.7-002",
-        "MC-0.23.8-001"
+        "MC-0.23.8-001",
+        "MC-0.23.9-001"
       ]
     },
     {
@@ -10100,6 +10111,24 @@
         "mobile/src/features/workspace/watchUpdates.ts",
         "crates/mobile-link/src/transcript.rs",
         "mobile/modules/monocode-link/ios/TranscriptSession.swift"
+      ]
+    },
+    {
+      "id": "MC-0.23.9-001",
+      "version": "0.23.9",
+      "feature": "MOBILE",
+      "origin": "CINDY_REFERENCE",
+      "action": "融合",
+      "requirements": [],
+      "title": "手机流式回复分词缓存容量限制",
+      "detail": "参考 Cindy 1192f2ae9 的有界分词缓存思路，在 MyCode 手机 Markdown 渲染器中为重复的文本段复用分词结果，同时按条数和估算载荷限制缓存；过大的单段不进入缓存。维持原有文本、链接、字词渐显及中英文显示行为，不迁移会话或配对数据。",
+      "evidence": [
+        "mycode-0.23.9.md"
+      ],
+      "sourceConfidence": "MyCode 独立适配，非 Cindy 源码移植；手机 Markdown 定向及完整测试、类型、lint、双语检查和发行 APK 结果见版本记录",
+      "maintenancePaths": [
+        "mobile/src/features/sessions/markdownParser.ts",
+        "mobile/src/features/sessions/Markdown.tsx"
       ]
     }
   ],
