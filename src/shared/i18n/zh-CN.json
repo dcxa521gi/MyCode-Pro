@@ -1907,6 +1907,7 @@
   "By model": "按模型",
   "By agent": "按智能体",
   "By task": "按任务",
+  "Models used in selected period": "所选时段使用过的模型",
   "Share": "占比",
   "Only provider-reported local usage is counted. Turns without dates appear only in All time. Missing usage is not estimated.": "仅统计服务商报告的本机用量；未记录日期的旧消息仅计入所有时间，不估算缺失的用量。",
   "Storage space": "存储空间",

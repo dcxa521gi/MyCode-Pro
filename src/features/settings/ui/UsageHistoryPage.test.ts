@@ -19,6 +19,20 @@ vi.mock("@tauri-apps/api/core", () => ({
       turns: 1,
       measuredTurns: 1,
     })),
+    {
+      sessionId: "pi",
+      title: "pi",
+      harness: "pi",
+      model: "Model-pi-new",
+      cwd: "/tmp",
+      updatedAt: Date.now(),
+      inputTokens: 100,
+      outputTokens: 20,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+      turns: 1,
+      measuredTurns: 1,
+    },
   ]),
 }));
 vi.mock("../../../shared/i18n", () => {
@@ -47,6 +61,14 @@ it("filters agent usage and charts using the selected actual agent value", async
       "Model-codex",
     );
     expect(host.querySelector('[title="pi · Model-pi: 120"]')).toBeTruthy();
+    const byTask = [...host.querySelectorAll<HTMLButtonElement>("button")].find(
+      (button) => button.textContent === "By task",
+    )!;
+    await act(async () => byTask.click());
+    expect(host.querySelector("tbody")?.textContent).toContain(
+      "Models used in selected period: Model-pi, Model-pi-new",
+    );
+    expect(host.querySelector("tbody")?.textContent).not.toContain("Model-codex");
   } finally {
     await act(async () => root.unmount());
     host.remove();

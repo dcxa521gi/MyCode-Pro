@@ -94,6 +94,7 @@ export function UsageHistoryPage() {
     {
       name: string;
       detail: string;
+      models: Set<string>;
       input: number;
       output: number;
       cached: number;
@@ -110,6 +111,7 @@ export function UsageHistoryPage() {
       name: group === "sessionId" ? row.title : row[group],
       detail:
         group === "model" ? row.harness : group === "sessionId" ? row.cwd : "",
+      models: new Set<string>(),
       input: 0,
       output: 0,
       cached: 0,
@@ -121,6 +123,7 @@ export function UsageHistoryPage() {
     item.cached += row.cacheReadTokens;
     item.turns += row.measuredTurns;
     item.total += tokens(row);
+    if (group === "sessionId" && row.model.trim()) item.models.add(row.model.trim());
     grouped.set(id, item);
   }
   const breakdown = [...grouped.entries()].sort(
@@ -377,6 +380,11 @@ export function UsageHistoryPage() {
                     <p className="truncate text-xs text-content/45">
                       {row.detail}
                     </p>
+                    {group === "sessionId" && row.models.size > 0 ? (
+                      <p className="text-xs text-content/55">
+                        {t("Models used in selected period")}: {[...row.models].sort().join(", ")}
+                      </p>
+                    ) : null}
                   </td>
                   {[row.input, row.output, row.cached].map((v, i) => (
                     <td key={i} className="p-2 tabular-nums">
