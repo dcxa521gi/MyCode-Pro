@@ -2,7 +2,9 @@ import { expect, test } from "@playwright/test";
 
 test("file preview decodes, plays and seeks a video, then pauses on tab change", async ({
   page,
+  browserName,
 }) => {
+  test.skip(browserName === "webkit", "Playwright WebKit runners lack a reliable video decoder for this fixture");
   await page.goto("/tests/browser/video-preview.html");
   const video = page.locator('video[aria-label="Video preview: clip.mp4"]');
   await expect(video).toBeVisible();
