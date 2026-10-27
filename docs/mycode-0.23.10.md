@@ -211,5 +211,10 @@
 
 ## 发行验证
 
-待双端构建、签名、下载哈希和 CI 验证后记录。
+- 产品实现提交为 `08d731fcf9967b2cd94547cca06af14014d69022`（10 月 26 日）；本轮模拟器验收与浏览器检查修复后，正式 `v0.23.10` 标签指向 `8c7b7f2110707c8fd34da369a4ba84639be7580b`。今天的 `a40dc1fb66`、`8c7b7f2110` 是审计和验证修复，不计为新的产品功能。
+- [主分支 CI 40438978643](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/40438978643) 的 10 项任务全部成功，含 Windows/macOS/Ubuntu、手机、浏览器、RPM 构建与干净安装。桌面用量定向测试 1 项、桌面和手机 TypeScript、手机中英文词条检查通过；手机 lint 无错误，保留 `dictation.ts` 两条既有警告。Playwright Chromium 的视频实际解码、跳转、暂停测试通过；WebKit 的 Playwright 媒体运行环境无法可靠解码测试素材，明确跳过该视频用例，不能据此宣称 WebKit 视频播放已验收。
+- 本地 Windows NSIS 安装包 `build/release-verify-0.23.10/MyCode_0.23.10_x64-setup.exe` 为 41,414,233 字节；产品名 MyCode，产品版本和文件版本均为 0.23.10，SHA-256 `2d822aae951c6ca4eb90561591b8500d20af54e6a0d9dd430542e99752a1d03b`，与 `SHA256SUMS.txt` 一致。未在已有用户安装上执行覆盖升级。
+- [正式标签 Android CI 40438998862](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/40438998862) 成功。APK `MyCode_0.23.10_Android.apk` 为 103,464,291 字节，SHA-256 `2e03086ae168b998335f0e9df16204214a2b240969c9c24fe87d7c7f7ce45eb8`，与 CI 校验文件一致。`aapt` 核对包名 `com.dcxa521gi.mycodemobile`、versionCode `2310`、versionName `0.23.10`；`apksigner` 确认 v2 发布签名，证书 SHA-256 `6787e8f3283482fd6e860c38eeba47adb7e1606d272ce5730327865db1f1c69b`，与上一版一致。API 35 x86_64 模拟器的配对页可见，无 Quickstep 弹窗，崩溃日志为 0 字节。Android 真机配对/覆盖安装和 iOS 真机未验收；不发布 IPA。
+- 六个平台 MyCode Host 归档均先与 CI SHA-256 文件核对，再发布到独立 [mycode-host-v0.23.10](https://github.com/dcxa521gi/MyCode-Pro/tree/mycode-host-v0.23.10) 分支；本地和远端提交同为 `b5dfe0e31384d469ebf4d9bc8a49cda1759292c8`，共有六包、六校验文件、清单和 README 共 14 个文件。桌面发布页不包含 Host 包。
+- [MyCode 0.23.10 公开发行](https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.23.10)于 2026-10-27 11:37:11 +08:00 发布，恰含 Windows 安装包、Android 伴侣 APK 和各自的 SHA-256 文件四个允许附件，没有上游品牌安装包或 Host 包。发行白名单检查通过；四个附件均从公开地址匿名重新下载，字节数和 SHA-256 与本地原件一致，两份公开校验文件也与对应包一致。发行页中的安装包和 APK 的 GitHub SHA-256 digest 同样匹配本地文件。
 

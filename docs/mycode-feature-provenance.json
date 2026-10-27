@@ -339,7 +339,7 @@
       "key": "0.23.10",
       "display": "0.23.10",
       "tag": "v0.23.10",
-      "tagCommit": "08d731fcf9967b2cd94547cca06af14014d69022",
+      "tagCommit": "8c7b7f2110707c8fd34da369a4ba84639be7580b",
       "date": "2026-10-26",
       "releaseDoc": "mycode-0.23.10.md",
       "monoBaseline": "26465c6209 → 26465c6209；正式产品主线无新增提交，独立 Native 预览另列",
