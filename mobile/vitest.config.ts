@@ -20,7 +20,9 @@ export default defineConfig({
     include: [
       "tests/**/*.test.ts",
       "tests/**/*.test.tsx",
-      "../tests/mobile/**/*.test.ts",
+      // Vite resolves a cross-root ../ glob as a URL on Windows and then
+      // cannot load the file. Run this protocol test from the root config there.
+      ...(process.platform === "win32" ? [] : ["../tests/mobile/**/*.test.ts"]),
     ],
     maxWorkers: 1,
     minWorkers: 1,

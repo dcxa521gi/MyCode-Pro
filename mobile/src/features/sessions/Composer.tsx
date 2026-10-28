@@ -32,6 +32,7 @@ import { DictationBar } from "./DictationBar";
 import { canDictate, insertDictation } from "./dictation";
 import { ProviderLogo } from "./ProviderLogo";
 import { COMPOSER_INPUT_ID } from "./SessionScreen";
+import { useAndroidPressFallback } from "./useAndroidPressFallback";
 import { t } from "@/ui/i18n";
 
 export const COMPOSER_PLACEHOLDER = "Plan, ask, build…";
@@ -357,20 +358,18 @@ export function Composer({
       <Animated.View
         style={[styles.modelChip, expandedOnly]}
       >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Model: ${model || "Desktop default"}${effort ? `, ${effort} effort` : ""}`}
-          accessibilityHint="Choose the model, account, effort and permissions"
+        <ModelButton
+          enabled={!blocked}
           onPress={onModelPress}
-          style={({ pressed }) => [styles.modelPill, pressed && styles.pressed]}
+          label={`${t("Model")}: ${model || t("Desktop default")}${effort ? `, ${effort} ${t("effort")}` : ""}`}
         >
           {harness ? <ProviderLogo harness={harness} size={16} color={colors.content} /> : null}
           <Text style={styles.model} numberOfLines={1}>
-            {model || "Desktop default"}
+            {model || t("Desktop default")}
             {effort ? <Text style={styles.effort}> {effort}</Text> : null}
           </Text>
           <Icon name="chevronDown" size={14} color={colors.muted} />
-        </Pressable>
+        </ModelButton>
       </Animated.View>
 
       <Animated.View
@@ -379,9 +378,9 @@ export function Composer({
       >
         {/* A draft mid-turn sends; without one the button stops the turn. */}
         {canSend ? (
-          <RoundButton icon="send" label={t("Send")} onPress={() => void send()} primary />
+          <RoundButton icon="send" label={t("Send")} onPress={() => void send()} primary pressFallback={!blocked} />
         ) : busy && onStop ? (
-          <RoundButton label={t("Stop")} onPress={() => { void onStop().catch(reason => Alert.alert(t("Could not stop"), String(reason))); }} primary>
+          <RoundButton label={t("Stop")} onPress={() => { void onStop().catch(reason => Alert.alert(t("Could not stop"), String(reason))); }} primary pressFallback={!blocked}>
             <View style={styles.stop} />
           </RoundButton>
         ) : (
@@ -481,27 +480,55 @@ function AttachmentChip({
   );
 }
 
+function ModelButton({ enabled, onPress, label, children }: {
+  enabled: boolean;
+  onPress?: () => void;
+  label: string;
+  children: ReactNode;
+}) {
+  const styles = useStyles();
+  const fallback = useAndroidPressFallback(Platform.OS === "android" && enabled && !!onPress, () => onPress?.());
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={t("Choose the model, account, effort and permissions")}
+      onPress={fallback.finish}
+      onPressIn={event => fallback.begin(event.nativeEvent.pageX, event.nativeEvent.pageY)}
+      onPressMove={event => fallback.move(event.nativeEvent.pageX, event.nativeEvent.pageY)}
+      style={({ pressed }) => [styles.modelPill, pressed && styles.pressed]}
+    >
+      {children}
+    </Pressable>
+  );
+}
+
 function RoundButton({
   icon,
   label,
   onPress,
   primary = false,
+  pressFallback = false,
   children,
 }: {
   icon?: IconName;
   label: string;
   onPress?: () => void;
   primary?: boolean;
+  pressFallback?: boolean;
   children?: ReactNode;
 }) {
   const colors = useColors();
   const styles = useStyles();
+  const fallback = useAndroidPressFallback(Platform.OS === "android" && pressFallback && !!onPress, () => onPress?.());
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={4}
-      onPress={onPress}
+      onPress={pressFallback ? fallback.finish : onPress}
+      onPressIn={pressFallback ? event => fallback.begin(event.nativeEvent.pageX, event.nativeEvent.pageY) : undefined}
+      onPressMove={pressFallback ? event => fallback.move(event.nativeEvent.pageX, event.nativeEvent.pageY) : undefined}
       style={({ pressed }) => [
         styles.round,
         primary && styles.roundPrimary,

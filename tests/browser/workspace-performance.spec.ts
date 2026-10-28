@@ -194,8 +194,17 @@ test("preserves following and a reader's position through real file-pane resizin
   test.setTimeout(90_000);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  page.on("response", (response) => {
+    if (response.status() === 403 && new URL(response.url()).origin === new URL(page.url()).origin) {
+      errors.push(`Workspace resource denied: ${response.url()}`);
+    }
+  });
   page.on("console", (message) => {
-    if (message.type() === "error") errors.push(message.text());
+    // WebKit's generic 403 console text omits the URL; same-origin denials
+    // are checked above while external resource policy varies by CI network.
+    if (message.type() === "error" && !message.text().startsWith("Failed to load resource: the server responded with a status of 403")) {
+      errors.push(message.text());
+    }
   });
   await page.goto("/tests/browser/workspace-performance.html");
   const pane = page.locator('[data-session-drop="workspace-session-0"]');
