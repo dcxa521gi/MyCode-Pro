@@ -1,8 +1,8 @@
 # MyCode 功能来源与版本台账
 
-整理日期：2026-10-26；当前产品基线：**MyCode 0.23.10**，源码提交 `08d731fcf9967b2cd94547cca06af14014d69022`。
+整理日期：2026-10-28；当前产品基线：**MyCode 0.23.11**，源码提交 `dbc6cc31f84940f4850784d0024d057680af67cf`。
 
-本文件按 **33 个交付阶段、370 条变更、111 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
+本文件按 **34 个交付阶段、371 条变更、111 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
 
 ## 如何使用
 
@@ -19,7 +19,7 @@
 | MONO | MonoCode 上游直接同步 | 40 |
 | MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 129 |
 | CINDY_CODE | Cindy 开源代码复用 | 2 |
-| CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 30 |
+| CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 31 |
 | SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 10 |
 | MYCODE | MyCode 自有新增/修复 | 132 |
 | VENDOR | 官方 CLI/SDK/接口适配 | 22 |
@@ -71,6 +71,7 @@
 | [0.23.8](#v-0-23-8) | 2026-10-21 / `v0.23.8` | `c167f18b` | 115f0e97c4 → 74b8139c41；手机增量转录与测试隔离 2 提交融合 | Cindy 57561101 → f7737772；127 提交分类核对；Synara 299fd573 无变化 |
 | [0.23.9](#v-0-23-9) | 2026-10-25 / `v0.23.9` | `6df11050` | 26465c6209 → 26465c6209；上游无新增产品提交 | Cindy 08d178868c → 4ad25a97fb，10 提交；有界分词缓存独立适配。Synara 3f55b77ef1 无变化 |
 | [0.23.10](#v-0-23-10) | 2026-10-26 / `v0.23.10` | `8c7b7f21` | 26465c6209 → 26465c6209；正式产品主线无新增提交，独立 Native 预览另列 | Cindy 4ad25a97fb → 7c5bd270c9，152 提交；用量语义独立适配。Synara 3f55b77ef1 → 257b4de844，22 提交；v1.0.9 候选核对 |
+| [0.23.11](#v-0-23-11) | 2026-10-28 / `v0.23.11` | `cccf5f6a` | 26465c6209 → 26465c6209；正式主线无新增提交 | Cindy abe4d6574b → cdfec9aa5b，426 提交；Android 点击恢复独立适配。Synara ea912dcf14 无变化 |
 
 ## 按版本的功能明细
 
@@ -742,6 +743,16 @@
 | 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
 | --- | --- | --- | --- | --- | --- |
 | MC-0.23.10-001<br>`USAGE` | 任务历史用量显示所选时段实际模型 | 上游/维护/历史记录 | Cindy 本地设计参考、MyCode 实现<br>**适配** | 参考 Cindy 656036b80d 对当前模型与累计用量的语义区分，在 MyCode 按任务历史统计中显示选定时段各轮记录过的去重模型；不把当前任务模型当作全部历史用量来源，保留原有真实用量与本地会话数据。 | 保留；具体范围/实测条件见版本记录 |
+
+<a id="v-0-23-11"></a>
+
+### 0.23.11（2026-10-28）
+
+证据：[docs/mycode-0.23.11.md](mycode-0.23.11.md)；本地标签 `v0.23.11` → `cccf5f6a390ca58dcec67e8b4cba19f4a3d531b4`。
+
+| 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
+| --- | --- | --- | --- | --- | --- |
+| MC-0.23.11-001<br>`MOBILE` | Android 输入法中断点击后的会话操作恢复 | 上游/维护/历史记录 | Cindy 本地设计参考、MyCode 实现<br>**适配** | 参考 Cindy bb52c26d2c 的 Android composer 点击恢复思路，在 MyCode 手机伴侣中独立适配发送、停止和模型按钮的有界补发、漂移取消及单次执行；保留 iOS 正常点击、原有会话与草稿数据，补齐模型按钮简体中文辅助提示。 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 |
 
 ## 用户要求覆盖索引
 
@@ -1415,7 +1426,7 @@
 | `OPENCODE` | 0.15.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers/opencode](../src/integrations/harness/providers/opencode) |
 | `SCALE` | 0.16.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/model/appearance.ts](../src/features/settings/model/appearance.ts)<br>[src/features/settings/ui/SettingsView.tsx](../src/features/settings/ui/SettingsView.tsx) |
 | `PERSONALIZATION` | 0.16.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/PersonalizationSettings.tsx](../src/features/settings/ui/PersonalizationSettings.tsx) |
-| `MOBILE` | 0.16.0<br>0.23.9 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 | 保留设备授权、电脑权威状态及权限；不把轮询同步等同独立历史双向合并。 | [src-tauri/src/mobile.rs](../src-tauri/src/mobile.rs)<br>[android/app/src/main/java/com/mycode/mobile/MainActivity.java](../android/app/src/main/java/com/mycode/mobile/MainActivity.java)<br>[src-tauri/src/mobile_access.rs](../src-tauri/src/mobile_access.rs)<br>[crates/mobile-link](../crates/mobile-link)<br>[mobile](../mobile) |
+| `MOBILE` | 0.16.0<br>0.23.11 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 | 保留设备授权、电脑权威状态及权限；不把轮询同步等同独立历史双向合并。 | [src-tauri/src/mobile.rs](../src-tauri/src/mobile.rs)<br>[android/app/src/main/java/com/mycode/mobile/MainActivity.java](../android/app/src/main/java/com/mycode/mobile/MainActivity.java)<br>[src-tauri/src/mobile_access.rs](../src-tauri/src/mobile_access.rs)<br>[crates/mobile-link](../crates/mobile-link)<br>[mobile](../mobile) |
 | `DEV-TOOLS` | 0.16.0<br>0.18.0 | 工具入口及模拟器流程已实现，实环境验收仍有条件 | Mac/iOS 依赖 Mac/Xcode/签名；微信/鸿蒙依赖 SDK/登录/模拟器/项目，失败不得伪造通过。 | [src-tauri/src/development.rs](../src-tauri/src/development.rs)<br>[src/features/settings/ui/DevelopmentToolsPage.tsx](../src/features/settings/ui/DevelopmentToolsPage.tsx) |
 | `POWER` | 0.16.0<br>0.18.0 | 自动休眠/合盖策略已实现，非永不断连保证 | 不掩盖强制睡眠、关机、断电、断网；释放唤醒请求并恢复原电源计划。 | [src-tauri/src/power.rs](../src-tauri/src/power.rs)<br>[src/features/settings/ui/TaskPowerSettings.tsx](../src/features/settings/ui/TaskPowerSettings.tsx) |
 | `INBOX` | 0.16.0<br>0.23.4 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/inbox](../src/features/inbox) |
@@ -1490,6 +1501,7 @@
 - Synara 参考必须记录实际改动或等价性验证；未复制架构的部分不宣称整合。
 - 新 UI、提示、菜单、错误与反馈支持简体中文/英文，用户名称与历史原文保留。
 - 用户后续明确移除/替换要求优先于早期增加要求；群聊、Freebuff、旧更新提示不得自动复活。
+- 新近用户要求允许经三端核对成熟且本地可运行的上游同类能力重新适配；须新增来源事件并保留现行数据、群聊隔离、闲聊默认关闭及 Token 上限，Cindy 云服务仍排除。
 - 保留用户项目、凭据、会话与既有数据位置；文档/版本修改不擅自迁移旧文件。
 - 每次交付保留完整版本记录、源码与 Windows 安装包，并提供绝对本地安装包与发行链接。
 - 桌面发布页只能有 MyCode 介绍、MyCode 安装包与必要校验/更新文件；Host 组件独立下载，源码开源归属记录保留。

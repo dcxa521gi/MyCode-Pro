@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedDate": "2026-10-26",
-  "currentProductVersion": "0.23.10",
-  "sourceCommit": "08d731fcf9967b2cd94547cca06af14014d69022",
+  "recordedDate": "2026-10-28",
+  "currentProductVersion": "0.23.11",
+  "sourceCommit": "dbc6cc31f84940f4850784d0024d057680af67cf",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -344,6 +344,16 @@
       "releaseDoc": "mycode-0.23.10.md",
       "monoBaseline": "26465c6209 → 26465c6209；正式产品主线无新增提交，独立 Native 预览另列",
       "complementBaseline": "Cindy 4ad25a97fb → 7c5bd270c9，152 提交；用量语义独立适配。Synara 3f55b77ef1 → 257b4de844，22 提交；v1.0.9 候选核对"
+    },
+    {
+      "key": "0.23.11",
+      "display": "0.23.11",
+      "tag": "v0.23.11",
+      "tagCommit": "cccf5f6a390ca58dcec67e8b4cba19f4a3d531b4",
+      "date": "2026-10-28",
+      "releaseDoc": "mycode-0.23.11.md",
+      "monoBaseline": "26465c6209 → 26465c6209；正式主线无新增提交",
+      "complementBaseline": "Cindy abe4d6574b → cdfec9aa5b，426 提交；Android 点击恢复独立适配。Synara ea912dcf14 无变化"
     }
   ],
   "requirements": [
@@ -2429,7 +2439,7 @@
     {
       "id": "MOBILE",
       "firstRecordedVersion": "0.16.0",
-      "lastChangedVersion": "0.23.9",
+      "lastChangedVersion": "0.23.11",
       "status": "旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列",
       "upgradePolicy": "保留设备授权、电脑权威状态及权限；不把轮询同步等同独立历史双向合并。",
       "maintenancePaths": [
@@ -2457,7 +2467,8 @@
         "MC-0.23.7-001",
         "MC-0.23.7-002",
         "MC-0.23.8-001",
-        "MC-0.23.9-001"
+        "MC-0.23.9-001",
+        "MC-0.23.11-001"
       ]
     },
     {
@@ -10159,6 +10170,25 @@
         "src/features/settings/ui/UsageHistoryPage.tsx",
         "src/shared/i18n/zh-CN.json"
       ]
+    },
+    {
+      "id": "MC-0.23.11-001",
+      "version": "0.23.11",
+      "feature": "MOBILE",
+      "origin": "CINDY_REFERENCE",
+      "action": "适配",
+      "requirements": [],
+      "title": "Android 输入法中断点击后的会话操作恢复",
+      "detail": "参考 Cindy bb52c26d2c 的 Android composer 点击恢复思路，在 MyCode 手机伴侣中独立适配发送、停止和模型按钮的有界补发、漂移取消及单次执行；保留 iOS 正常点击、原有会话与草稿数据，补齐模型按钮简体中文辅助提示。",
+      "evidence": [
+        "mycode-0.23.11.md"
+      ],
+      "sourceConfidence": "MyCode 独立适配，非 Cindy 源码移植；手机单测、双语、Windows 构建及 Android 签名 APK 验证见版本记录；实体设备输入法待验收",
+      "maintenancePaths": [
+        "mobile/src/features/sessions/Composer.tsx",
+        "mobile/src/features/sessions/useAndroidPressFallback.ts",
+        "mobile/src/ui/i18n.ts"
+      ]
     }
   ],
   "caveats": [
@@ -10181,6 +10211,7 @@
     "Synara 参考必须记录实际改动或等价性验证；未复制架构的部分不宣称整合。",
     "新 UI、提示、菜单、错误与反馈支持简体中文/英文，用户名称与历史原文保留。",
     "用户后续明确移除/替换要求优先于早期增加要求；群聊、Freebuff、旧更新提示不得自动复活。",
+    "新近用户要求允许经三端核对成熟且本地可运行的上游同类能力重新适配；须新增来源事件并保留现行数据、群聊隔离、闲聊默认关闭及 Token 上限，Cindy 云服务仍排除。",
     "保留用户项目、凭据、会话与既有数据位置；文档/版本修改不擅自迁移旧文件。",
     "每次交付保留完整版本记录、源码与 Windows 安装包，并提供绝对本地安装包与发行链接。",
     "桌面发布页只能有 MyCode 介绍、MyCode 安装包与必要校验/更新文件；Host 组件独立下载，源码开源归属记录保留。"
