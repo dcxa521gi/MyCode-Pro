@@ -208,7 +208,8 @@ async fn start(app: &AppHandle, host: &MobileHost) -> Result<(), String> {
         .inner
         .lock()
         .map_err(|_| "Mobile service unavailable")?;
-    if inner.endpoint.is_some() {
+    // Identity loading can outlive a request to disable mobile access.
+    if !inner.config.enabled || inner.endpoint.is_some() {
         return Ok(());
     }
     let endpoint = monocode_mobile_link::server_endpoint(
