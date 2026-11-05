@@ -2271,6 +2271,7 @@
   "Update": "更新",
   "Could not compare CLI versions. Retry the version check.": "无法可靠比较 CLI 版本，请重试检测。",
   "Nothing to attach from that drop — the file may have been moved, renamed, or deleted.": "没有可添加的文件，文件可能已被移动、重命名或删除。",
+  "Could not read the image. Attach it again before sending.": "无法读取图片，请重新添加后再发送。",
   "Meet Monos": "认识常驻智能体",
   "Monos": "常驻智能体",
   "New mono": "新建常驻智能体",

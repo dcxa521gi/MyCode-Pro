@@ -412,6 +412,9 @@ async function attachmentFromBlob(file: File): Promise<Attachment | null> {
   }
   if (data === null) {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (kind === "image") {
+      throw new Error("Could not read the image. Attach it again before sending.");
+    }
     return null;
   }
   try {

@@ -62,6 +62,14 @@ describe("file attachment preparation", () => {
     expect(invoke).toHaveBeenCalledTimes(1);
   });
 
+  it("rejects an unreadable pasted image instead of silently dropping it", async () => {
+    const image = new File(["image"], "broken.png", { type: "image/png" });
+    Object.defineProperty(image, "size", { value: MAX_EMBED_BYTES + 1 });
+    await expect(attachmentsFromFiles([image])).rejects.toThrow(
+      "Could not read the image. Attach it again before sending.",
+    );
+  });
+
   it("retains the image path when byte loading fails", async () => {
     invoke.mockImplementation(async (command: string) => {
       if (command === "inspect_paths")

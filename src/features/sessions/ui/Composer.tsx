@@ -454,6 +454,7 @@ export function Composer({
   const pasteFlightRef = useRef<Promise<void> | null>(null);
   const submitLockRef = useRef(false);
   const [pasteError, setPasteError] = useState<string | null>(null);
+  const attachmentReadFailedRef = useRef(false);
   const positionedInitialDraft = useRef(false);
   const slashRef = useRef<SlashToken | null>(null);
   const mentionRef = useRef<MentionToken | null>(null);
@@ -795,6 +796,7 @@ export function Composer({
       attachmentsRef.current = next;
       setAttachments(next);
       setPasteError(null);
+      attachmentReadFailedRef.current = false;
       draftRevisionRef.current += 1;
       syncHasValue(ref.current?.value ?? "", next);
       ref.current?.focus();
@@ -838,6 +840,7 @@ export function Composer({
               return;
             }
             if (incoming.length === 0) {
+              attachmentReadFailedRef.current = true;
               setPasteError(
                 "Nothing to attach from that drop — the file may have been moved, renamed, or deleted.",
               );
@@ -847,6 +850,7 @@ export function Composer({
           })
           .catch((reason: unknown) => {
             if (pasteGenerationRef.current !== generation) return;
+            attachmentReadFailedRef.current = true;
             setPasteError(
               reason instanceof Error ? reason.message : String(reason),
             );
@@ -1390,6 +1394,7 @@ export function Composer({
       if (pasteGenerationRef.current !== generation) return;
       pending = pasteFlightRef.current;
     }
+    if (attachmentReadFailedRef.current) return;
     const value = ref.current?.value ?? submittedValue;
     if (disabled || worktreeRemoved) return;
     if (isMcpCommand(value)) {
@@ -1805,6 +1810,7 @@ export function Composer({
 
   const onPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     setPasteError(null);
+    attachmentReadFailedRef.current = false;
     const messageFiles = messageFilesFromClipboard(e.clipboardData);
     if (messageFiles) {
       e.preventDefault();
@@ -1820,6 +1826,10 @@ export function Composer({
             return;
           }
           addAttachments(pasted);
+        }).catch((reason: unknown) => {
+          if (pasteGenerationRef.current !== generation) return;
+          attachmentReadFailedRef.current = true;
+          setPasteError(reason instanceof Error ? reason.message : String(reason));
         }),
       );
       return;
@@ -1855,10 +1865,13 @@ export function Composer({
               if (captured) dropPastedText(captured, text);
               addAttachments(pasted);
             } else if (captured) insertRestoredText(captured, text);
-            if (warning) setPasteError(warning);
+            if (warning) {
+              setPasteError(warning);
+            }
           })
           .catch((reason: unknown) => {
             if (pasteGenerationRef.current !== generation) return;
+            attachmentReadFailedRef.current = true;
             setPasteError(
               reason instanceof Error ? reason.message : String(reason),
             );
@@ -1876,6 +1889,10 @@ export function Composer({
           return;
         }
         addAttachments(pasted);
+      }).catch((reason: unknown) => {
+        if (pasteGenerationRef.current !== generation) return;
+        attachmentReadFailedRef.current = true;
+        setPasteError(reason instanceof Error ? reason.message : String(reason));
       }),
     );
   };

@@ -2,7 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { MAX_ATTACHMENTS } from "../model/attachments";
+import { MAX_ATTACHMENTS, MAX_EMBED_BYTES } from "../model/attachments";
 import { Composer } from "./Composer";
 
 const { invoke } = vi.hoisted(() => ({ invoke: vi.fn() }));
@@ -469,4 +469,19 @@ it("reports why a clipboard image could not be attached", async () => {
   expect(
     container.querySelector('[aria-label^="Open clipboard-image"]'),
   ).toBeNull();
+});
+
+it("keeps the draft when a pasted image cannot be read", async () => {
+  const field = render("keep this draft");
+  const image = new File(["image"], "broken.png", { type: "image/png" });
+  Object.defineProperty(image, "size", { value: MAX_EMBED_BYTES + 1 });
+  const event = new Event("paste", { bubbles: true, cancelable: true });
+  Object.defineProperty(event, "clipboardData", {
+    value: { files: [image], items: [], getData: () => "" },
+  });
+  act(() => field.dispatchEvent(event));
+  await waitForAlert();
+  await send();
+  expect(submit).not.toHaveBeenCalled();
+  expect(field.value).toBe("keep this draft");
 });
