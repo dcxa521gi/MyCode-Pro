@@ -67,6 +67,8 @@ const zhCN: Record<string, string> = {
   "Providers": "服务商",
   "Reconnect": "重新连接",
   "Reconnecting to desktop": "正在重新连接电脑",
+  "Reconnecting to desktop…": "正在重新连接电脑…",
+  "Available once your desktop reconnects": "电脑重新连接后即可发送",
   "Reconnecting to your desktop. Messages can't be sent until it's back.": "正在重新连接电脑；连接恢复后才能发送消息。",
   "Reconnecting to your desktop. Tap to try again now.": "正在重新连接电脑，点击立即重试。",
   "Refresh account usage": "刷新账号用量",

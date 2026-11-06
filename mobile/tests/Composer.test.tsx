@@ -5,6 +5,7 @@ import { Composer } from "@/features/sessions/Composer";
 
 const runtime = vi.hoisted(() => ({
   os: "android",
+  offline: false,
   values: [] as { get: () => unknown; set: (value: unknown) => void }[],
   photos: vi.fn(async () => []),
   files: vi.fn(async () => []),
@@ -159,7 +160,7 @@ vi.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ bottom: 24 }),
 }));
 vi.mock("@/features/connection/ConnectionNotice", () => ({
-  useOffline: () => false,
+  useOffline: () => runtime.offline,
   PulsingDot: () => null,
 }));
 vi.mock("@/features/files/FileTypeIcon", () => ({ FileTypeIcon: () => null }));
@@ -214,11 +215,32 @@ const button = (label: string) =>
   container.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!;
 const modelTouches = () =>
   button("Model: GPT").parentElement!.style.pointerEvents;
+it("keeps an offline draft editable and prevents sending until reconnect", async () => {
+  runtime.offline = true;
+  render();
+  const input = container.querySelector("textarea")!;
+  expect(input.disabled).toBe(false);
+  expect(input.placeholder).toBe("Reconnecting to desktop…");
+  act(() => {
+    input.value = "Draft while offline";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  expect(button("Send").disabled).toBe(true);
+  act(() => button("Send").click());
+  expect(send).not.toHaveBeenCalled();
+  expect(input.value).toBe("Draft while offline");
+  runtime.offline = false;
+  render();
+  expect(button("Send").disabled).toBe(false);
+  await act(async () => button("Send").click());
+  expect(send).toHaveBeenCalledWith("Draft while offline", []);
+});
 beforeEach(() => {
   (
     globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
   ).IS_REACT_ACT_ENVIRONMENT = true;
   runtime.os = "android";
+  runtime.offline = false;
   runtime.values = [];
   vi.clearAllMocks();
   container = document.createElement("div");

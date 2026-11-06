@@ -38,6 +38,7 @@ import { t } from "@/ui/i18n";
 export const COMPOSER_PLACEHOLDER = "Plan, ask, build…";
 /** Mid-turn the desktop steers with the message or queues it, as its setting says. */
 const BUSY_PLACEHOLDER = "Send a follow-up…";
+const OFFLINE_PLACEHOLDER = "Reconnecting to desktop…";
 
 const BUTTON = 36;
 /** Gap between the round buttons and the composer's edge. */
@@ -103,7 +104,7 @@ export function Composer({
   const colors = useColors();
   const styles = useStyles();
   const offline = useOffline();
-  const blocked = offline ? "offline" : notice ? "error" : null;
+  const blocked = !offline && !!notice;
   const input = useRef<TextInput>(null);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
@@ -221,7 +222,7 @@ export function Composer({
   // draft comes back if the desktop never takes it.
   const send = async () => {
     // The draft stays put until the desktop can take it.
-    if (!canSend || blocked) return;
+    if (!canSend || blocked || offline) return;
     const message = text.trim();
     const files = attachments;
     setSending(true);
@@ -301,7 +302,7 @@ export function Composer({
               Math.min(INPUT_MAX, Math.max(INPUT_MIN, event.nativeEvent.contentSize.height + 12)),
             )
           }
-          placeholder={busy ? BUSY_PLACEHOLDER : COMPOSER_PLACEHOLDER}
+          placeholder={offline ? t(OFFLINE_PLACEHOLDER) : busy ? BUSY_PLACEHOLDER : COMPOSER_PLACEHOLDER}
           placeholderTextColor={colors.muted}
           multiline
           keyboardAppearance={scheme}
@@ -309,19 +310,7 @@ export function Composer({
           selectionColor={colors.accent}
           style={[styles.input, blocked && styles.hidden]}
         />
-        {blocked === "offline" ? (
-          <Animated.View
-            key="offline"
-            entering={FadeIn.duration(DICTATION_FADE.duration)}
-            exiting={FadeOut.duration(DICTATION_FADE.duration)}
-            accessibilityRole="text"
-            accessibilityLabel={t("Reconnecting to your desktop. Messages can't be sent until it's back.")}
-            style={styles.status}
-          >
-            <PulsingDot />
-            <Text style={styles.statusLabel} numberOfLines={1}>{t("Reconnecting to desktop")}</Text>
-          </Animated.View>
-        ) : blocked === "error" && notice ? (
+        {blocked && notice ? (
           <Animated.View
             key="error"
             entering={FadeIn.duration(DICTATION_FADE.duration)}
@@ -378,14 +367,15 @@ export function Composer({
       >
         {/* A draft mid-turn sends; without one the button stops the turn. */}
         {canSend ? (
-          <RoundButton icon="send" label={t("Send")} onPress={() => void send()} primary pressFallback={!blocked} />
+          <RoundButton icon="send" label={t("Send")} onPress={() => void send()} primary pressFallback={!blocked && !offline} disabled={offline} hint={offline ? t("Available once your desktop reconnects") : undefined} />
         ) : busy && onStop ? (
-          <RoundButton label={t("Stop")} onPress={() => { void onStop().catch(reason => Alert.alert(t("Could not stop"), String(reason))); }} primary pressFallback={!blocked}>
+          <RoundButton label={t("Stop")} onPress={() => { void onStop().catch(reason => Alert.alert(t("Could not stop"), String(reason))); }} primary pressFallback={!blocked && !offline} disabled={offline}>
             <View style={styles.stop} />
           </RoundButton>
         ) : (
           <RoundButton icon="mic" label={t("Dictate")} onPress={dictate} />
         )}
+        {offline && canSend ? <View pointerEvents="none" style={styles.sendStatus}><PulsingDot /></View> : null}
       </Animated.View>
 
       {dictating ? (
@@ -506,16 +496,20 @@ function ModelButton({ enabled, onPress, label, children }: {
 function RoundButton({
   icon,
   label,
+  hint,
   onPress,
   primary = false,
   pressFallback = false,
+  disabled = false,
   children,
 }: {
   icon?: IconName;
   label: string;
+  hint?: string;
   onPress?: () => void;
   primary?: boolean;
   pressFallback?: boolean;
+  disabled?: boolean;
   children?: ReactNode;
 }) {
   const colors = useColors();
@@ -525,6 +519,9 @@ function RoundButton({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityHint={hint}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       hitSlop={4}
       onPress={pressFallback ? fallback.finish : onPress}
       onPressIn={pressFallback ? event => fallback.begin(event.nativeEvent.pageX, event.nativeEvent.pageY) : undefined}
@@ -533,6 +530,7 @@ function RoundButton({
         styles.round,
         primary && styles.roundPrimary,
         pressed && styles.pressed,
+        disabled && styles.disabled,
       ]}
     >
       {children ??
@@ -715,6 +713,11 @@ const useStyles = themedStyles((colors) => ({
   },
   hidden: {
     opacity: 0,
+  },
+  sendStatus: {
+    position: "absolute",
+    top: 0,
+    right: 0,
   },
   disabled: {
     opacity: 0.4,
