@@ -7,6 +7,9 @@ export function mobileLocale(): MobileLocale {
 }
 
 const zhCN: Record<string, string> = {
+  "Copy": "复制",
+  "Copied": "已复制",
+  "Copy code": "复制代码",
   "Back": "返回",
   "Session": "会话",
   "Session alerts": "会话提醒",

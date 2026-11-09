@@ -7,10 +7,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Linking, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import * as Clipboard from "expo-clipboard";
+import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { FileTypeIcon } from "@/features/files/FileTypeIcon";
 import { withAlpha, themedStyles, useColors } from "@/ui/theme";
+import { t } from "@/ui/i18n";
 
 import {
   numberWords,
@@ -133,18 +135,7 @@ const BlockView = memo(function BlockView({ block, fade }: { block: MarkdownBloc
         </Text>
       );
     case "code":
-      return (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.codeBlock}
-          contentContainerStyle={styles.codeContent}
-        >
-          <Text style={styles.codeText} selectable>
-            {block.text}
-          </Text>
-        </ScrollView>
-      );
+      return <CodeFence lang={block.lang} text={block.text} />;
     case "list":
       return (
         <View style={styles.list}>
@@ -172,6 +163,33 @@ const BlockView = memo(function BlockView({ block, fade }: { block: MarkdownBloc
       return <View style={styles.rule} />;
   }
 }, sameBlock);
+
+function CodeFence({ lang, text }: { lang: string; text: string }) {
+  const styles = useStyles();
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+  const copied = copiedText === text;
+  const copy = async () => {
+    try {
+      await Clipboard.setStringAsync(text);
+      setCopiedText(text);
+    } catch {
+      setCopiedText(null);
+    }
+  };
+  return (
+    <View style={styles.codeBlock}>
+      <View style={styles.codeHeader}>
+        <Text style={styles.codeText}>{lang || "text"}</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel={copied ? t("Copied") : t("Copy code")} onPress={() => void copy()}>
+          <Text style={styles.codeText}>{copied ? t("Copied") : t("Copy")}</Text>
+        </Pressable>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.codeContent}>
+        <Text style={styles.codeText} selectable>{text}</Text>
+      </ScrollView>
+    </View>
+  );
+}
 
 /** Columns share the screen's width, down to a floor; past it, the table scrolls. */
 const MIN_COLUMN_WIDTH = 140;
@@ -388,6 +406,12 @@ const useStyles = themedStyles((colors) => ({
     borderRadius: 10,
     borderCurve: "continuous",
     backgroundColor: withAlpha(colors.content, 0.05),
+  },
+  codeHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingTop: 8,
   },
   codeContent: {
     padding: 12,
