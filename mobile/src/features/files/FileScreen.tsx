@@ -11,6 +11,7 @@ import { themedStyles, useColors } from "@/ui/theme";
 
 import { CodeView, type CodeRow } from "./CodeView";
 import { FileMissing } from "./FileMissing";
+import { fileErrorText } from "./fileError";
 import {
   CodeHeaderTitle,
   HeaderButton,
@@ -63,8 +64,7 @@ export function FileScreen({
         if (!disposed) setFile(value);
       })
       .catch((reason: unknown) => {
-        if (!disposed)
-          setError(reason instanceof Error ? reason.message : String(reason));
+        if (!disposed) setError(fileErrorText(reason));
       });
     return () => {
       disposed = true;
