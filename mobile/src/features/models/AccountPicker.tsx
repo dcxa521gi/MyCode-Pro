@@ -13,7 +13,7 @@ import { themedStyles, useColors, withAlpha } from "@/ui/theme";
 
 import type { ModelAccount } from "./types";
 import type { AccountUsageSnapshot, useAccountUsage } from "./useAccountUsage";
-import { t } from "@/ui/i18n";
+import { formatMobile, t } from "@/ui/i18n";
 
 /** The selected account when folded; one compact row per account when open. */
 export function AccountPicker({
@@ -196,16 +196,21 @@ function AccountUsage({
             : meter.usedPercent >= 80
               ? colors.caution
               : colors.muted;
-        const reset = /^Resets in |^reset due/.test(meter.reset)
-          ? ` · ${meter.reset.replace(/^Resets in /, "")}`
-          : "";
+        const countdown = meter.reset.startsWith("Resets in ")
+          ? meter.reset.slice("Resets in ".length)
+          : null;
+        const reset = countdown
+          ? ` · ${formatMobile("Resets in {duration}", { duration: countdown })}`
+          : meter.reset === "reset due"
+            ? ` · ${t("Reset due")}`
+            : "";
         return (
           <View key={meter.title} style={styles.meter}>
             <View style={styles.meterLabels}>
               <Text
                 style={[styles.meta, styles.window]}
                 numberOfLines={1}
-                accessibilityLabel={`${meter.title}, ${meter.reset}`}
+                accessibilityLabel={`${meter.title}${reset}`}
               >
                 {meter.title}
                 {reset}

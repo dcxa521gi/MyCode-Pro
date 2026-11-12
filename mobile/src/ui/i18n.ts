@@ -185,6 +185,8 @@ const zhCN: Record<string, string> = {
   "Got it": "知道了",
   "Working...": "工作中…",
   "Account": "账号",
+  "Resets in {duration}": "{duration}后重置",
+  "Reset due": "即将重置",
   "Options": "选项",
   "No matching models.": "没有匹配的模型。",
   "View details": "查看详情",
