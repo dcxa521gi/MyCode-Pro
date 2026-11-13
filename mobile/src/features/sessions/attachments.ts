@@ -28,6 +28,10 @@ const MAX_IMAGE_SIDE = 2048;
 /** Sent as picked when already small and in a format every provider reads. */
 const SENT_AS_IS = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 const MAX_AS_IS_BYTES = 1.5 * 1024 * 1024;
+/** Keep screenshot text lossless when a PNG fits the link and device limits. */
+const MAX_AS_IS_PNG_BYTES = 5 * 1024 * 1024;
+const MAX_AS_IS_PNG_PIXELS = 6 * 1024 * 1024;
+const MAX_AS_IS_PNG_SIDE = 4096;
 
 const MIME_BY_EXT: Record<string, string> = {
   png: "image/png",
@@ -93,11 +97,17 @@ export function merge(existing: Attachment[], added: Attachment[]): Attachment[]
 
 async function fromPhoto(asset: ImagePickerAsset): Promise<Attachment> {
   const mimeType = asset.mimeType ?? mimeFor(asset.fileName ?? "", null);
+  const side = Math.max(asset.width, asset.height);
+  const screenshotPng =
+    mimeType === "image/png" &&
+    (asset.fileSize ?? Infinity) <= MAX_AS_IS_PNG_BYTES &&
+    asset.width * asset.height <= MAX_AS_IS_PNG_PIXELS &&
+    side <= MAX_AS_IS_PNG_SIDE;
   const small =
     SENT_AS_IS.has(mimeType) &&
     (asset.fileSize ?? Infinity) <= MAX_AS_IS_BYTES &&
-    Math.max(asset.width, asset.height) <= MAX_IMAGE_SIDE;
-  if (small) {
+    side <= MAX_IMAGE_SIDE;
+  if (small || screenshotPng) {
     const file = new File(asset.uri);
     return {
       id: makeId(),
