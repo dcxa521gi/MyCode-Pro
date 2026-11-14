@@ -511,10 +511,12 @@ export function ModelPicker({
   useEffect(() => {
     if (!open) return;
     source.refresh([current.harness]);
-    setTab(
-      coerceModelPickerTab(current.harness, (id) =>
-        pickerHarnesses.includes(id),
-      ),
+    setTab((previous) =>
+      previous === "favorites"
+        ? previous
+        : coerceModelPickerTab(current.harness, (id) =>
+            pickerHarnesses.includes(id),
+          ),
     );
     setActive(0);
     // Beside-picker mode leaves only the Model row; open its list directly
@@ -612,7 +614,8 @@ export function ModelPicker({
   const pickModel = (item: AgentModel) => {
     if (!source.available(item.harness)) return;
     onChange(item.harness, item.id);
-    dismiss(true);
+    // Starred choices are often compared in sequence; keep their list available.
+    if (visibleTab !== "favorites") dismiss(true);
   };
 
   useEffect(() => {

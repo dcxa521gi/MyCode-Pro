@@ -528,13 +528,14 @@ describe("model picker", () => {
       ]),
     );
 
+    const onChange = vi.fn();
     act(() =>
       root.render(
         createElement(ModelPicker, {
           harness: "cursor",
           model: "cursor:auto",
           values: {},
-          onChange: vi.fn(),
+          onChange,
           onSettingsChange: vi.fn(),
         }),
       ),
@@ -561,6 +562,13 @@ describe("model picker", () => {
       "Muse Spark 1.3, Cursor",
       "Muse Spark 1.3, OpenCode Go",
     ]);
+    const starred = container.querySelector<HTMLButtonElement>(
+      '[role="option"][aria-label="Muse Spark 1.3, Cursor"]',
+    )!;
+    act(() => starred.click());
+    expect(onChange).toHaveBeenCalledWith("cursor", "cursor:muse-spark-1.3");
+    expect(container.querySelector('[role="dialog"][aria-label="Models"]')).not.toBeNull();
+    expect(favoritesTab.getAttribute("aria-selected")).toBe("true");
   });
 
   it("can move effort into a dedicated composer control", () => {
