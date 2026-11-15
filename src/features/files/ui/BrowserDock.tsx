@@ -13,6 +13,8 @@ export function BrowserDock({ hidden = false }: { hidden?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [revision, setRevision] = useState(0);
   const generation = useRef(0);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const restoreFrameFocus = useRef(false);
   const current = useRef(page);
   current.current = page;
   useEffect(() => {
@@ -66,7 +68,12 @@ export function BrowserDock({ hidden = false }: { hidden?: boolean }) {
             ? t("Loading…")
             : page?.path.split(/[\\/]/).pop() || t("Built-in browser")}
         </span>
-        <button onClick={() => setRevision((n) => n + 1)}>
+        <button
+          onPointerDown={() => {
+            restoreFrameFocus.current = document.activeElement === frameRef.current;
+          }}
+          onClick={() => setRevision((n) => n + 1)}
+        >
           {t("Refresh")}
         </button>
         <button disabled={!page} onClick={() => page && void openUrl(page.url)}>
@@ -92,7 +99,14 @@ export function BrowserDock({ hidden = false }: { hidden?: boolean }) {
       ) : (
         page && (
           <iframe
+            ref={frameRef}
             key={revision + page.url}
+            onLoad={() => {
+              if (restoreFrameFocus.current) {
+                restoreFrameFocus.current = false;
+                frameRef.current?.focus();
+              }
+            }}
             src={page.url}
             title={t("Local page preview")}
             sandbox="allow-scripts allow-forms"
