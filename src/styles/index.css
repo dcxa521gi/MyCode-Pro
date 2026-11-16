@@ -2488,6 +2488,13 @@ html:not(.theme-light) .markdown-code-token {
   vertical-align: top;
 }
 
+/* Keep numbers, hashes and IDs intact inside the horizontally scrolling table. */
+.agent-markdown [data-streamdown="table-header-cell"],
+.agent-markdown [data-streamdown="table-cell"] {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
 .agent-markdown [data-streamdown="horizontal-rule"] {
   border: 0;
   border-top: 1px solid
