@@ -246,7 +246,7 @@ describe("account picker in the model sheet", () => {
   it("shows usage in the collapsed account card and refreshes without switching", async () => {
     await render();
     expect(container.textContent).toContain("30% used");
-    expect(container.textContent).toContain("5h · 2h");
+    expect(container.textContent).toContain("5h · Resets in 2h");
     await act(async () => {
       click("Refresh account usage");
     });

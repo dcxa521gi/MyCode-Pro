@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseInline, parseMarkdown } from "@/features/sessions/markdownParser";
+import { parseInline, parseMarkdown, tableToTsv } from "@/features/sessions/markdownParser";
 import {
   formatWorkingDuration,
   hasTurnMetrics,
@@ -8,6 +8,13 @@ import {
 } from "@/features/sessions/transcriptFormat";
 
 describe("reply markdown", () => {
+  it("copies table cells as spreadsheet text without losing formatting or IDs", () => {
+    expect(tableToTsv([
+      [parseInline("Name"), parseInline("ID")],
+      [parseInline("**A** and [B](https://example.com)"), parseInline("`001-02`")],
+      [parseInline('value\twith "quotes"'), parseInline("line\nbreak")],
+    ])).toBe('Name\tID\nA and B\t001-02\n"value\twith ""quotes"""\t"line\nbreak"');
+  });
   it("reads the blocks agents write", () => {
     const blocks = parseMarkdown(
       [

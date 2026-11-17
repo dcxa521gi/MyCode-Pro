@@ -20,6 +20,18 @@ export type MarkdownBlock =
   | { type: "table"; rows: Inline[][][] }
   | { type: "rule" };
 
+/** Preserve the visible text and column order when a native table is copied. */
+export function tableToTsv(rows: Inline[][][]): string {
+  const text = (nodes: Inline[]): string => nodes.map((node) => {
+    if (node.type === "text" || node.type === "code") return node.text;
+    return text(node.children);
+  }).join("");
+  const field = (value: string) => /[\t\r\n"]/.test(value)
+    ? `"${value.replace(/"/g, '""')}"`
+    : value;
+  return rows.map((row) => row.map((cell) => field(text(cell))).join("\t")).join("\n");
+}
+
 const FENCE = /^ {0,3}(`{3,}|~{3,})\s*([\w+-]*)/;
 const HEADING = /^ {0,3}(#{1,6})\s+(.*?)\s*#*\s*$/;
 const RULE = /^ {0,3}([-*_])(\s*\1){2,}\s*$/;

@@ -18,6 +18,7 @@ import {
   numberWords,
   parseMarkdown,
   splitWords,
+  tableToTsv,
   type Inline,
   type MarkdownBlock,
 } from "./markdownParser";
@@ -197,31 +198,47 @@ const MIN_COLUMN_WIDTH = 140;
 function Table({ rows, fade }: { rows: Inline[][][]; fade?: Fade }) {
   const styles = useStyles();
   const [width, setWidth] = useState(0);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+  const tableText = useMemo(() => tableToTsv(rows), [rows]);
+  const copied = copiedText === tableText;
+  const copy = async () => {
+    try {
+      await Clipboard.setStringAsync(tableText);
+      setCopiedText(tableText);
+    } catch {
+      setCopiedText(null);
+    }
+  };
   const columns = Math.max(1, ...rows.map((row) => row.length));
   const inner = width - StyleSheet.hairlineWidth * 2;
   const cellWidth = Math.max(MIN_COLUMN_WIDTH, Math.floor(inner / columns));
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
-    >
-      <View style={styles.table}>
-        {rows.map((row, rowIndex) => (
-          <View key={rowIndex} style={[styles.row, rowIndex > 0 && styles.rowDivider]}>
-            {row.map((cell, cellIndex) => (
-              <Text
-                key={cellIndex}
-                style={[styles.cell, { width: cellWidth }, rowIndex === 0 && styles.headerCell]}
-                selectable
-              >
-                <Inlines nodes={cell} fade={fade} />
-              </Text>
-            ))}
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+    <View>
+      <Pressable accessibilityRole="button" accessibilityLabel={copied ? t("Copied") : t("Copy table")} onPress={() => void copy()} style={styles.tableCopy}>
+        <Text style={styles.tableCopyText}>{copied ? t("Copied") : t("Copy table")}</Text>
+      </Pressable>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
+      >
+        <View style={styles.table}>
+          {rows.map((row, rowIndex) => (
+            <View key={rowIndex} style={[styles.row, rowIndex > 0 && styles.rowDivider]}>
+              {row.map((cell, cellIndex) => (
+                <Text
+                  key={cellIndex}
+                  style={[styles.cell, { width: cellWidth }, rowIndex === 0 && styles.headerCell]}
+                  selectable
+                >
+                  <Inlines nodes={cell} fade={fade} />
+                </Text>
+              ))}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -446,6 +463,15 @@ const useStyles = themedStyles((colors) => ({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.stroke,
     borderRadius: 8,
+  },
+  tableCopy: {
+    alignSelf: "flex-end",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+  tableCopyText: {
+    color: colors.muted,
+    fontSize: 12,
   },
   row: {
     flexDirection: "row",
