@@ -118,14 +118,22 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
         throw new Error(t("Desktop sent an invalid workspace"));
       if (next.addresses?.length) {
         value.desktop.addresses = next.addresses;
-        await Storage.setItem(PAIRING, JSON.stringify(value.desktop));
+        try {
+          await Storage.setItem(PAIRING, JSON.stringify(value.desktop));
+        } catch {
+          // A cache failure must not turn a healthy desktop response into offline.
+        }
       }
       // The poll repeats every few seconds; only a changed workspace is saved
       // and re-rendered.
       const { addresses: _, ...workspace } = next;
       const serialized = JSON.stringify(workspace);
       if (serialized !== lastCatalog.current) {
-        await Storage.setItem(key(value.desktop.fingerprint, "catalog"), serialized);
+        try {
+          await Storage.setItem(key(value.desktop.fingerprint, "catalog"), serialized);
+        } catch {
+          // Keep the live catalog even when the on-device cache is unavailable.
+        }
         if (active.current !== value) return;
         lastCatalog.current = serialized;
         setCatalog((previous) => withUnchanged(previous, next));
