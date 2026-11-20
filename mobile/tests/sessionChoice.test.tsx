@@ -93,4 +93,33 @@ describe("mobile account choices", () => {
     expect(draft.accounts).toEqual({});
     expect(draft.chosen).toBeNull();
   });
+
+  it("reverts an existing session's model when the desktop rejects the change", async () => {
+    vi.useFakeTimers();
+    desktop.configure.mockRejectedValueOnce(new Error("offline"));
+    try {
+      act(() => existing.pickModel(pick, "GPT"));
+      expect(existing.chosen?.name).toBe("GPT");
+      await act(async () => {
+        vi.advanceTimersByTime(400);
+        await Promise.resolve();
+      });
+      expect(existing.chosen).toBeNull();
+      expect(desktop.configure).toHaveBeenCalledWith("existing", pick);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not send a queued model change after leaving the session", () => {
+    vi.useFakeTimers();
+    try {
+      act(() => existing.pickModel(pick, "GPT"));
+      act(() => root.unmount());
+      vi.advanceTimersByTime(400);
+      expect(desktop.configure).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

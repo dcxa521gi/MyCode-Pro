@@ -84,14 +84,20 @@ export function useSessionChoice(
     DEFAULT_ACCESS;
 
   const pickModel = (pick: ModelPick, name: string) => {
-    set(scope, { model: { pick, name } });
+    const model = { pick, name };
+    set(scope, { model });
     if (!sessionId) return;
     clearTimeout(applying.get(scope));
     applying.set(
       scope,
       setTimeout(() => {
         applying.delete(scope);
-        configureSession(sessionId, pick).catch(failed);
+        configureSession(sessionId, pick).catch((reason) => {
+          // A failed desktop update must not leave an unconfirmed model shown
+          // as the session's choice. Keep any newer selection made meanwhile.
+          if (picks.get(scope)?.model === model) set(scope, { model: null });
+          failed(reason);
+        });
       }, 400),
     );
   };
@@ -146,6 +152,8 @@ export function useForgetChoiceOnLeave(
   const scope = choiceScope(desktop, projectId, sessionId);
   useEffect(
     () => () => {
+      clearTimeout(applying.get(scope));
+      applying.delete(scope);
       picks.delete(scope);
     },
     [scope],
