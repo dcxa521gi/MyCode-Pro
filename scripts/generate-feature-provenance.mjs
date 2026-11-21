@@ -121,7 +121,7 @@ for(const r of d.rules)md+=`- ${r}\n`;
 const cols=['变更ID','MyCode版本阶段','标签提交日期','本地标签','标签提交','功能ID','功能变更','需求定位','实现来源代码','实现来源','变更性质','本版细节及来源依据','当前状态','后续升级策略','当前维护入口','证据文档','证据等级'];
 const csvEsc=v=>{const text=String(v??'');return '"'+(/^[=+\-@\t\r]/.test(text)?"'"+text:text).replaceAll('"','""')+'"';};
 const lines=d.events.map(e=>{const v=versionOf(e.version),f=featureOf(e.feature);return[e.id,v.display,v.date,v.tag,v.tagCommit,e.feature,e.title,e.requirements.join(';'),e.origin,d.origins[e.origin],e.action,e.detail,f.status,f.upgradePolicy,e.maintenancePaths.join(';'),e.evidence.map(p=>'docs/'+p).join(';'),e.sourceConfidence].map(csvEsc).join(',');});
-const csv='\uFEFF'+[cols.map(csvEsc).join(','),...lines].join('\r\n')+'\r\n';
+const csv='\uFEFF'+[cols.map(csvEsc).join(','),...lines].join('\n')+'\n';
 for(const[p,content]of [['docs/mycode-feature-provenance.md',md],['docs/mycode-feature-provenance.csv',csv]]){
  const target=path.join(root,p);if(check){if(!fs.existsSync(target)||fs.readFileSync(target,'utf8')!==content)throw Error('Regenerate '+p);}else fs.writeFileSync(target,content);
 }
