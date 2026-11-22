@@ -25,10 +25,11 @@ export function useAccountUsage(
   projectId: string | undefined,
   provider: string | undefined,
 ) {
-  const { command, pairing } = useConnection();
+  const { command, pairing, connected } = useConnection();
   const desktop = pairing?.desktop.fingerprint;
   const enabled =
     !!projectId && (provider === "claude" || provider === "codex");
+  const canLoad = enabled && connected;
   const key = `${desktop}\n${projectId}\n${provider}`;
   const [state, setState] = useState<{
     key: string;
@@ -46,7 +47,7 @@ export function useAccountUsage(
 
   const load = useCallback(
     function fetchUsage(refresh: boolean): Promise<void> {
-      if (!enabled || active.current !== key) return Promise.resolve();
+      if (!canLoad || active.current !== key) return Promise.resolve();
       const running = pending.current;
       if (running?.key === key) {
         // A manual refresh during first load must still force a fresh probe.
@@ -98,24 +99,24 @@ export function useAccountUsage(
       pending.current = { key, refresh, result };
       return result;
     },
-    [command, enabled, key, projectId, provider],
+    [command, canLoad, key, projectId, provider],
   );
 
   useEffect(() => {
     active.current = key;
-    void load(false);
+    if (canLoad) void load(false);
     return () => {
       active.current = null;
       pending.current = null;
       generation.current += 1;
     };
-  }, [key, load]);
+  }, [canLoad, key, load]);
 
   const current = state?.key === key ? state : null;
   return {
     accounts: current?.accounts ?? {},
     error: current?.error ?? null,
-    refreshing: current?.refreshing ?? enabled,
+    refreshing: canLoad && (current?.refreshing ?? true),
     refresh: useCallback(() => {
       void load(true);
     }, [load]),
