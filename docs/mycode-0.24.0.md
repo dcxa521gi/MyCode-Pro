@@ -17,8 +17,8 @@
 - 桌面前端生产构建通过；MyCode Host 运行时下载的 30 项单元测试通过。
 - 手机 TypeScript 和中文词条检查通过；安卓权限聚焦 5 项测试通过；完整手机测试首轮有 34 个文件通过、1 个权限用例因本机资源并发导致 25 秒子进程超时，放宽超时后单独重跑通过。
 - Rust 格式检查及 DeepSeek 图片输入回归用例通过。
-- Windows NSIS 安装包已在本机 MSVC 环境构建并核对产品名和版本号。`MyCode_0.24.0_x64-setup.exe` 为 41,435,992 字节，SHA-256 为 `b1bb9ddc57d9d8f5801439eca3dce8fe3e80de05226022fc1617927a7d32d810`。
-- 桌面全量 Vitest 首轮 554 个文件通过、1 个文件中的 2 项等待超时；该文件单独重跑 4/4 通过。是否满足发行门槛以干净 CI 复核为准。
+- Windows NSIS 安装包已按最终产品代码在本机 MSVC 环境重建并核对产品名和版本号。`MyCode_0.24.0_x64-setup.exe` 为 41,438,705 字节，SHA-256 为 `2b2b2f6de6091d16fa2b298f305588204699cb9ec31950638ac803cab750b9ba`。
+- 桌面全量 Vitest 本机首轮 554 个文件通过、1 个文件中的 2 项等待超时；该文件单独重跑 4/4 通过。[主线干净 CI](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/45165712584) 的 Windows、macOS、Ubuntu、手机、浏览器与发行隔离检查均通过，Fedora/AlmaLinux RPM 构建及安装检查通过。
 - Host 六个平台归档已打包，逐一校验 SHA-256，并独立上传至 `mycode-host-v0.24.0` 分支；它们不属于桌面发布页附件。
 - [第二轮安卓签名构建 CI](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/45157014432) 成功，核对了签名、包名 `com.dcxa521gi.mycodemobile`、版本号 0.24.0、versionCode 2400，并在 API 35 模拟器安装启动。最终本地 APK 为 103,922,159 字节，SHA-256 为 `0c410f7e510b88683a97b276f70403f847cdb39913de0639bb3104bf8ab5b244`，与 CI 校验文件一致。实机配对与图片发送尚未验收。
 
