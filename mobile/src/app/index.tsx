@@ -1,10 +1,13 @@
 import { Redirect, router } from "expo-router";
+import { useConnection } from "@/features/connection/ConnectionProvider";
+import { readLastPlace } from "@/features/workspace/lastPlace";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { useWorkspaceOrNull } from "@/features/workspace/WorkspaceProvider";
 import { SessionScreen } from "@/features/sessions/SessionScreen";
 import { ConnectScreen, useConnectionStyles } from "@/features/connection/ConnectScreen";
 import { WorkspacePicker } from "@/features/connection/WorkspacePicker";
-import { useConnection } from "@/features/connection/ConnectionProvider";
+import { useMonoOnlyLayout } from "@/features/settings/monoOnly";
+import { MonoHome } from "@/features/workspace/MonoHome";
 import { useColors } from "@/ui/theme";
 import { t } from "@/ui/i18n";
 export default function Index() {
@@ -19,8 +22,24 @@ export default function Index() {
 }
 
 function LinkedIndex() {
+  const [monoOnly] = useMonoOnlyLayout();
+  // Monos only: the list of them, each chat pushed over it.
+  if (monoOnly)
+    return <MonoHome />;
+  return <WorkspaceIndex />;
+}
+
+function WorkspaceIndex() {
   const styles = useConnectionStyles();
   const { projects, monos } = useWorkspaceOrNull()!;
+  // Back where the user last was, while it is still on the phone.
+  const last = readLastPlace(useConnection().pairing?.desktop.fingerprint);
+  if (last?.kind === "project" && projects.some((project) => project.id === last.id))
+    return (
+      <Redirect href={{ pathname: "/project/[projectId]", params: { projectId: last.id } }} />
+    );
+  if (last?.kind === "mono" && monos.some((mono) => mono.id === last.id))
+    return <Redirect href={{ pathname: "/mono/[monoId]", params: { monoId: last.id } }} />;
   if (projects[0])
     return (
       <Redirect

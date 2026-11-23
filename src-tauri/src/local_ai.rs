@@ -1090,6 +1090,21 @@ fn model_metadata(item: &Value, source: &str) -> Value {
                 .filter(|s| matches!(*s, "text" | "image" | "audio" | "video" | "pdf"))
                 .map(str::to_owned)
                 .collect::<Vec<_>>()
+        })
+        .or_else(|| {
+            // Cindy's model catalog identifies these DeepSeek Flash variants as
+            // image-capable even when the provider omits modality metadata.
+            let id = item.get("id")?.as_str()?.to_ascii_lowercase();
+            let id = id.strip_prefix("codex/").unwrap_or(&id);
+            let id = id.split('[').next().unwrap_or(id);
+            matches!(
+                id,
+                "deepseek-flash"
+                    | "deepseek/deepseek-flash"
+                    | "deepseek-v4.1-flash"
+                    | "deepseek/deepseek-v4.1-flash"
+            )
+            .then(|| vec!["text".to_owned(), "image".to_owned()])
         });
     let output_modalities = [
         "/outputModalities",
@@ -1380,6 +1395,25 @@ mod tests {
         assert_eq!(exact["maxOutput"], 131072);
         assert_eq!(exact["modalities"], json!(["text", "image", "pdf"]));
         assert_eq!(exact["reasoningEfforts"], json!(["low", "high"]));
+    }
+    #[test]
+    fn deepseek_flash_image_input_fallback_matches_known_model_ids() {
+        for id in [
+            "deepseek-flash",
+            "deepseek/deepseek-flash",
+            "deepseek-v4.1-flash",
+            "codex/DeepSeek-V4.1-Flash[1m]",
+        ] {
+            let metadata = model_metadata(&json!({"id": id}), "fixture");
+            assert_eq!(metadata["modalities"], json!(["text", "image"]), "{id}");
+        }
+        assert!(
+            model_metadata(&json!({"id":"deepseek-v4-flash"}), "fixture")["modalities"].is_null()
+        );
+        assert!(
+            model_metadata(&json!({"id":"deepseek-v4.1-flash-text"}), "fixture")["modalities"]
+                .is_null()
+        );
     }
     fn connection(url: &str) -> Connection {
         Connection {

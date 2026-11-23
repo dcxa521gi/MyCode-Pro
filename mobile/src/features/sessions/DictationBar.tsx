@@ -116,10 +116,10 @@ export function DictationBar({ onClose }: { onClose: (words: string | null) => v
           t("Microphone access"),
           t("MyCode needs the microphone to take dictation."),
           permission.canAskAgain
-            ? [{ text: "OK" }]
+            ? [{ text: t("OK") }]
             : [
-                { text: "Cancel", style: "cancel" },
-                { text: "Open Settings", onPress: () => void Linking.openSettings() },
+                { text: t("Cancel"), style: "cancel" },
+                { text: t("Open Settings"), onPress: () => void Linking.openSettings() },
               ],
         );
         close.current(null);

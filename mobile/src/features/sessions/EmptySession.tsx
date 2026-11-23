@@ -10,12 +10,14 @@ import Animated, {
 import { AsciiField } from "@/features/background/AsciiField";
 import { FadingBackground } from "@/features/background/FadingBackground";
 import type { EmptyBackground } from "@/features/background/useEmptyBackground";
+import { PixelMascot } from "@/features/mascots/PixelMascot";
 import type { Project } from "@/features/workspace/types";
 import { MYCODE_MARK } from "@/ui/brand";
 import { t } from "@/ui/i18n";
 import { themedStyles } from "@/ui/theme";
 
 import { COMPOSER_FADE, useSessionLayout } from "./SessionScreen";
+import type { TranscriptAgent } from "./TranscriptTurn";
 
 export const EMPTY_HEADLINE = "What should we work on?";
 
@@ -29,16 +31,20 @@ const ACCESSORY_GAP = 10;
 /** The photo is drawn a moment after the screen opens, so it eases in slower. */
 const BACKGROUND_ENTER = FadeIn.duration(520).easing(Easing.out(Easing.quad));
 
-// Empty conversation: a dimmed Monocode logo above the prompt, and the
+// Empty conversation: a dimmed MyCode logo above the prompt, and the
 // project's name under it, over the background set for it on this phone, or
 // a still frame of the connect screen's ASCII field where no photo is set.
+// A Mono's chat greets with its own mascot instead, on a plain background.
 export function EmptySession({
   project,
+  mono,
   background,
   hasPhoto = false,
   accessory,
 }: {
   project?: Project;
+  /** A Mono's chat that has nothing in it yet. */
+  mono?: TranscriptAgent;
   /** From useEmptyBackground; none until a photo is picked and drawn. */
   background?: EmptyBackground | null;
   /** Whether a photo is set, drawn yet or not; without one, the ASCII field. */
@@ -70,7 +76,7 @@ export function EmptySession({
         >
           <FadingBackground {...background} />
         </Animated.View>
-      ) : hasPhoto ? null : (
+      ) : hasPhoto || mono ? null : (
         <Animated.View
           pointerEvents="none"
           style={StyleSheet.absoluteFill}
@@ -92,13 +98,22 @@ export function EmptySession({
         ]}
       >
         <Animated.View style={[styles.intro, fade]}>
-          <Image
-            source={MYCODE_MARK}
-            style={styles.mark}
-            accessibilityIgnoresInvertColors
-          />
-          <Text style={styles.headline}>{t(EMPTY_HEADLINE)}</Text>
-          {project ? (
+          {mono ? (
+            <>
+              <PixelMascot name={mono.mascot} color={mono.color} size={MARK_SIZE} />
+              <Text style={styles.headline}>{t("Say hi to {name}").replace("{name}", mono.name)}</Text>
+            </>
+          ) : (
+            <>
+              <Image
+                source={MYCODE_MARK}
+                style={styles.mark}
+                accessibilityIgnoresInvertColors
+              />
+              <Text style={styles.headline}>{t(EMPTY_HEADLINE)}</Text>
+            </>
+          )}
+          {project && !mono ? (
             <Text style={styles.projectName} numberOfLines={1}>
               {project.name}
             </Text>

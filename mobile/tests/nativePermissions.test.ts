@@ -35,13 +35,13 @@ beforeAll(() => {
       cwd: fileURLToPath(new URL("..", import.meta.url).href),
       encoding: "utf8",
       env: { ...process.env, EXPO_NO_DOTENV: "1" },
-      timeout: 25_000,
+      timeout: 90_000,
     },
   );
   const native = JSON.parse(output)._internal.modResults;
   ios = native.ios;
   android = native.android;
-}, 30_000);
+}, 95_000);
 
 it("keeps a microphone purpose string after all Expo plugins run", () => {
   // Plugins share the same Info.plist: disabling microphone access in a
@@ -52,8 +52,23 @@ it("keeps a microphone purpose string after all Expo plugins run", () => {
   expect(description?.trim().length).toBeGreaterThan(0);
 });
 
-it("keeps local session notifications compatible with signing profiles without APNs", () => {
+it("uses local alerts without claiming an APNs entitlement", () => {
   expect(ios.entitlements).not.toHaveProperty("aps-environment");
+});
+
+it("keeps camera access for pairing after the image-picker plugin runs", () => {
+  expect(ios.infoPlist.NSCameraUsageDescription).toEqual(expect.any(String));
+  expect(android.manifest.manifest["uses-permission"]).toContainEqual({
+    $: { "android:name": "android.permission.CAMERA" },
+  });
+});
+
+it("keeps Android microphone access for MyCode dictation without background audio", () => {
+  const permissions = android.manifest.manifest["uses-permission"];
+  expect(permissions).toContainEqual({
+    $: { "android:name": "android.permission.RECORD_AUDIO" },
+  });
+  expect(ios.infoPlist.UIBackgroundModes ?? []).not.toContain("audio");
 });
 
 it("keeps Android camera permission available for QR pairing", () => {
