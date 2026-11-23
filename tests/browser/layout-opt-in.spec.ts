@@ -14,7 +14,7 @@ test("keeps projects and Settings reachable when opting in without projects", as
   page,
 }, testInfo) => {
   await page.goto("/tests/browser/workspace-performance.html?empty");
-  const notice = page.getByRole("status", { name: "Try the Focused layout" });
+  const notice = page.getByRole("status", { name: "Try the new layout" });
   await notice.getByRole("button", { name: "Try it", exact: true }).click();
 
   const sidebar = page.locator(".inset-sidebar");
@@ -94,7 +94,7 @@ test("opts in from the invitation and switches back without changing glass", asy
     localStorage.setItem("monocode.insetGlass", "0");
   });
   await page.goto("/tests/browser/workspace-performance.html");
-  const notice = page.getByRole("status", { name: "Try the Focused layout" });
+  const notice = page.getByRole("status", { name: "Try the new layout" });
   await expect(notice).toBeVisible();
   await expect(page.locator(".inset-shell")).toHaveCount(0);
   await page.screenshot({
@@ -160,7 +160,7 @@ test("remembers Not now and still allows opting in from Settings", async ({
   page,
 }) => {
   await page.goto("/tests/browser/workspace-performance.html");
-  const notice = page.getByRole("status", { name: "Try the Focused layout" });
+  const notice = page.getByRole("status", { name: "Try the new layout" });
   await notice.getByRole("button", { name: "Not now", exact: true }).click();
   await expect(notice).toHaveCount(0);
   await expect(page.locator(".inset-shell")).toHaveCount(0);
@@ -210,3 +210,4 @@ function layoutOption(page: Page, name: "Classic" | "Focused") {
     .getByRole("radiogroup", { name: "Layout", exact: true })
     .getByRole("radio", { name, exact: true });
 }
+
