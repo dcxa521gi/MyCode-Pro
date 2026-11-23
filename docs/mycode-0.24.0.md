@@ -20,6 +20,6 @@
 - Windows NSIS 安装包已按最终产品代码在本机 MSVC 环境重建并核对产品名和版本号。`MyCode_0.24.0_x64-setup.exe` 为 41,438,705 字节，SHA-256 为 `2b2b2f6de6091d16fa2b298f305588204699cb9ec31950638ac803cab750b9ba`。
 - 桌面全量 Vitest 本机首轮 554 个文件通过、1 个文件中的 2 项等待超时；该文件单独重跑 4/4 通过。[主线干净 CI](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/45165712584) 的 Windows、macOS、Ubuntu、手机、浏览器与发行隔离检查均通过，Fedora/AlmaLinux RPM 构建及安装检查通过。
 - Host 六个平台归档已打包，逐一校验 SHA-256，并独立上传至 `mycode-host-v0.24.0` 分支；它们不属于桌面发布页附件。
-- [第二轮安卓签名构建 CI](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/45157014432) 成功，核对了签名、包名 `com.dcxa521gi.mycodemobile`、版本号 0.24.0、versionCode 2400，并在 API 35 模拟器安装启动。最终本地 APK 为 103,922,159 字节，SHA-256 为 `0c410f7e510b88683a97b276f70403f847cdb39913de0639bb3104bf8ab5b244`，与 CI 校验文件一致。实机配对与图片发送尚未验收。
+- [正式标签的安卓签名构建 CI](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/45168559655) 成功，核对了签名、包名 `com.dcxa521gi.mycodemobile`、版本号 0.24.0、versionCode 2400，并在 API 35 模拟器安装启动。最终本地 APK 为 103,922,155 字节，SHA-256 为 `678435a3e8e3b386900f6083b53b656339d139bc3cc788723d9c5dd67384a04e`，与 CI 校验文件一致。实机配对与图片发送尚未验收。
 
 正式源码标签为 [`v0.24.0`](https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.24.0)，提交 `f57b6b1d629b08bf182d1650ba120aa8c26fb0c4`。发布页仅含 MyCode Windows 安装包、安卓 APK 和必要的两份校验文件，公开下载后逐个核对字节数和 SHA-256，均与本地交付目录一致。源码验证分支为 `codex/0.24.0-upstream-unification`；测试用预发布标签只用于签名 APK 构建。当前凭据不能通过 GitHub API 创建 PR 或手动触发 Windows 工作流，Windows 在本机 MSVC 环境构建。
