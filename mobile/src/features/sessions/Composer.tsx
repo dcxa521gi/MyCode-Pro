@@ -328,9 +328,7 @@ export function Composer({
       Alert.alert(
         t("Message not sent"),
         dropped.length
-          ? `${why}\n\nA message can carry up to ${MAX_ATTACHMENTS} files within its size limit, so ` +
-              `${dropped.map((attachment) => attachment.name).join(", ")}, added while it was sending, ` +
-              `${dropped.length === 1 ? "was" : "were"} removed.`
+          ? `${why}\n\n${formatMobile("The message allows up to {count} attachments within the size limit. Files added during sending were removed: {names}.", { count: MAX_ATTACHMENTS, names: dropped.map((attachment) => attachment.name).join(", ") })}`
           : why,
       );
     } finally {

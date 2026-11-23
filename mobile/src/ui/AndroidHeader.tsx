@@ -21,7 +21,7 @@ function AndroidBackTitle({ children }: { children: ReactNode }) {
   const styles = useStyles();
   return (
     <View style={styles.row}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Back"
+      <Pressable accessibilityRole="button" accessibilityLabel={t("Back")}
         onPress={() => router.back()} style={styles.back}>
         <Svg width={24} height={24} viewBox="0 0 24 24">
           <Path d="M20 12H4m7-7-7 7 7 7" fill="none" stroke={colors.content}

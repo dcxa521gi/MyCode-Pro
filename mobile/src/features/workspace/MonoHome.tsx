@@ -17,7 +17,7 @@ import { HeaderBlur } from "@/features/files/codeScreen";
 import { plainText } from "@/features/sessions/markdownParser";
 import { useKeyboardLift } from "@/features/sessions/SessionScreen";
 import { MYCODE_MARK } from "@/ui/brand";
-import { t } from "@/ui/i18n";
+import { formatMobile, t } from "@/ui/i18n";
 import { CircleButton } from "@/ui/CircleButton";
 import { GradualBlur } from "@/ui/GradualBlur";
 import { Icon } from "@/ui/Icon";
@@ -163,12 +163,12 @@ export function MonoHome() {
     reset: tools
       ? (mono) =>
           Alert.alert(
-            "Reset conversation?",
-            `The chat with ${mono.name} will be cleared. Its soul, memory and habits stay.`,
+            t("Reset conversation?"),
+            formatMobile("The chat with {name} will be cleared. Its soul, memory and habits stay.", { name: mono.name }),
             [
-              { text: "Cancel", style: "cancel" },
+              { text: t("Cancel"), style: "cancel" },
               {
-                text: "Reset",
+                text: t("Reset"),
                 style: "destructive",
                 onPress: () => void act(() => command("mono.reset", { monoId: mono.id })),
               },
@@ -185,12 +185,12 @@ export function MonoHome() {
     remove: tools
       ? (mono) =>
           Alert.alert(
-            `Delete ${mono.name}?`,
-            "Its scheduled habits stop. Sessions and notes it created stay saved.",
+            formatMobile("Delete {name}?", { name: mono.name }),
+            t("Its scheduled habits stop. Sessions and notes it created stay saved."),
             [
-              { text: "Cancel", style: "cancel" },
+              { text: t("Cancel"), style: "cancel" },
               {
-                text: "Delete",
+                text: t("Delete"),
                 style: "destructive",
                 onPress: () => removeNow(mono, () => command("mono.delete", { monoId: mono.id })),
               },
@@ -378,10 +378,10 @@ const MonoRow = memo(function MonoRow({
   const styles = useStyles();
   const detail =
     mono.status === "working"
-      ? "Working…"
+      ? t("Working…")
       : mono.status === "needs-you"
-        ? "Needs you"
-        : oneLine(mono.lastMessage) || "No messages yet";
+        ? t("Needs you")
+        : oneLine(mono.lastMessage) || t("No messages yet");
   return (
     <Link
       href={{ pathname: "/mono/[monoId]", params: { monoId: mono.id } }}
@@ -436,24 +436,24 @@ const MonoRow = memo(function MonoRow({
           icon={unread ? "message" : "message.badge"}
           onPress={() => actions.toggleRead(mono)}
         >
-          {unread ? "Mark as Read" : "Mark as Unread"}
+          {unread ? t("Mark as Read") : t("Mark as Unread")}
         </Link.MenuAction>
         {tools ? (
           <Link.MenuAction icon="info.circle" onPress={() => actions.details?.(mono)}>
-            View Details
+            {t("View Details")}
           </Link.MenuAction>
         ) : null}
         {tools ? (
           <Link.MenuAction icon="arrow.counterclockwise" onPress={() => actions.reset?.(mono)}>
-            Reset Conversation
+            {t("Reset Conversation")}
           </Link.MenuAction>
         ) : null}
         <Link.MenuAction icon="eye.slash" onPress={() => actions.hide?.(mono)}>
-          Hide
+          {t("Hide")}
         </Link.MenuAction>
         {tools ? (
           <Link.MenuAction icon="trash" destructive onPress={() => actions.remove?.(mono)}>
-            Delete Mono
+            {t("Delete Mono")}
           </Link.MenuAction>
         ) : null}
       </Link.Menu>
@@ -467,8 +467,8 @@ function MonoPreview({ mono }: { mono: Mono }) {
   const styles = useStyles();
   const text =
     mono.status === "working"
-      ? "Working…"
-      : plainText(mono.lastMessage.slice(0, 1200)).trim() || "No messages yet";
+      ? t("Working…")
+      : plainText(mono.lastMessage.slice(0, 1200)).trim() || t("No messages yet");
   return (
     <View style={styles.previewCard}>
       <View style={styles.previewHeader}>
