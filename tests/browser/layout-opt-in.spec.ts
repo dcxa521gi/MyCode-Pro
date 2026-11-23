@@ -210,4 +210,3 @@ function layoutOption(page: Page, name: "Classic" | "Focused") {
     .getByRole("radiogroup", { name: "Layout", exact: true })
     .getByRole("radio", { name, exact: true });
 }
-
