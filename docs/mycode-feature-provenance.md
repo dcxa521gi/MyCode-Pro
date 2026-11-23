@@ -1,8 +1,8 @@
 # MyCode 功能来源与版本台账
 
-整理日期：2026-10-28；当前产品基线：**MyCode 0.23.11**，源码提交 `dbc6cc31f84940f4850784d0024d057680af67cf`。
+整理日期：2026-11-23；当前产品基线：**MyCode 0.24.0**，源码提交 `6880698cf9`。
 
-本文件按 **34 个交付阶段、371 条变更、111 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
+本文件按 **35 个交付阶段、374 条变更、111 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
 
 ## 如何使用
 
@@ -17,10 +17,10 @@
 | 来源代码 | 含义 | 本次变更条数 |
 | --- | --- | --- |
 | MONO | MonoCode 上游直接同步 | 40 |
-| MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 129 |
+| MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 130 |
 | CINDY_CODE | Cindy 开源代码复用 | 2 |
-| CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 31 |
-| SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 10 |
+| CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 32 |
+| SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 11 |
 | MYCODE | MyCode 自有新增/修复 | 132 |
 | VENDOR | 官方 CLI/SDK/接口适配 | 22 |
 | CODEX_REFERENCE | Codex 交互参考、MyCode 实现 | 4 |
@@ -72,6 +72,7 @@
 | [0.23.9](#v-0-23-9) | 2026-10-25 / `v0.23.9` | `6df11050` | 26465c6209 → 26465c6209；上游无新增产品提交 | Cindy 08d178868c → 4ad25a97fb，10 提交；有界分词缓存独立适配。Synara 3f55b77ef1 无变化 |
 | [0.23.10](#v-0-23-10) | 2026-10-26 / `v0.23.10` | `8c7b7f21` | 26465c6209 → 26465c6209；正式产品主线无新增提交，独立 Native 预览另列 | Cindy 4ad25a97fb → 7c5bd270c9，152 提交；用量语义独立适配。Synara 3f55b77ef1 → 257b4de844，22 提交；v1.0.9 候选核对 |
 | [0.23.11](#v-0-23-11) | 2026-10-28 / `v0.23.11` | `cccf5f6a` | 26465c6209 → 26465c6209；正式主线无新增提交 | Cindy abe4d6574b → cdfec9aa5b，426 提交；Android 点击恢复独立适配。Synara ea912dcf14 无变化 |
+| [0.24.0](#v-0-24-0) | 2026-11-23 / `v0.24.0` | `待正式标签创建后` | 115f0e97c4 → 09d04436ba，10 月 20 日以来 460 提交；实际合并以 0.23.11 为基线，新增 457 提交 | Cindy 4acbce110f → e6ba8ebcf5，13,422 提交中选取 DeepSeek 模态适配；Synara 299fd573b1 → 35f8d842d0，873 提交中选取 Markdown 阅读方向适配 |
 
 ## 按版本的功能明细
 
@@ -754,6 +755,18 @@
 | --- | --- | --- | --- | --- | --- |
 | MC-0.23.11-001<br>`MOBILE` | Android 输入法中断点击后的会话操作恢复 | 上游/维护/历史记录 | Cindy 本地设计参考、MyCode 实现<br>**适配** | 参考 Cindy bb52c26d2c 的 Android composer 点击恢复思路，在 MyCode 手机伴侣中独立适配发送、停止和模型按钮的有界补发、漂移取消及单次执行；保留 iOS 正常点击、原有会话与草稿数据，补齐模型按钮简体中文辅助提示。 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 |
 
+<a id="v-0-24-0"></a>
+
+### 0.24.0（2026-11-23）
+
+证据：[docs/mycode-0.24.0.md](mycode-0.24.0.md)；本地标签 `v0.24.0` → `待正式标签创建后补录`。
+
+| 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
+| --- | --- | --- | --- | --- | --- |
+| MC-0.24.0-001<br>`MOBILE` | 同步新版手机会话与智能体能力 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**融合** | 合并 MonoCode 0.23.11 后手机端图片粘贴、发送失败恢复、会话恢复、离线编辑、代码块操作、智能体列表和布局切换，保留 MyCode 配对与项目数据，并补充简体中文入口。GPUI 原生预览源码不计作正式桌面交付。 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 |
+| MC-0.24.0-002<br>`MODEL-AUTH` | DeepSeek Flash 图片输入模态回退 | 上游/维护/历史记录 | Cindy 本地设计参考、MyCode 实现<br>**适配** | 参考 Cindy 283afddc65，在服务商缺少输入模态元数据时仅补齐已知 Flash 型号的图片输入能力，明确元数据仍优先。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.24.0-003<br>`MARKDOWN` | Markdown 主导文字方向 | 上游/维护/历史记录 | Synara 设计参考/等价能力核对<br>**适配** | 参考 Synara 9d7b556057，让会话 Markdown 块按正文主导文字决定阅读方向，并排除链接与代码片段的干扰。 | 保留；具体范围/实测条件见版本记录 |
+
 ## 用户要求覆盖索引
 
 原始要求拆分为可追踪项，不按用户多次从“1”重新编号的消息混在一起。后提出的细化要求可能关联更早已有的基础功能；该关联不证明早期功能当时就是此条需求首次触发。
@@ -1416,17 +1429,17 @@
 | `MINIMAX` | 0.13.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers](../src/integrations/harness/providers)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
 | `THEME` | 0.13.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/styles/index.css](../src/styles/index.css)<br>[src/features/settings/model/appearance.ts](../src/features/settings/model/appearance.ts) |
 | `REVIEW` | 0.13.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/SessionReview.tsx](../src/features/sessions/ui/SessionReview.tsx)<br>[src-tauri/src/checkpoint](../src-tauri/src/checkpoint) |
-| `MARKDOWN` | 0.13.0<br>0.23.2 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/AgentMarkdown.tsx](../src/features/sessions/ui/AgentMarkdown.tsx) |
+| `MARKDOWN` | 0.13.0<br>0.24.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/AgentMarkdown.tsx](../src/features/sessions/ui/AgentMarkdown.tsx) |
 | `UPSTREAM-CONTROL` | 0.14.0<br>0.22.0 | 治理规则持续执行；历史遗漏已补齐 | 先记录新基线与完整增量，MonoCode 新能力必须适配，不能因架构差异跳过；仅审查与真整合分开。 | [AGENTS.md](../AGENTS.md)<br>[docs](../docs) |
 | `SETTINGS-OPTIONS` | 0.15.0<br>0.23.3 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/ui/SettingsDropdown.tsx](../src/shared/ui/SettingsDropdown.tsx)<br>[src/features/settings/ui/SettingsView.tsx](../src/features/settings/ui/SettingsView.tsx) |
-| `MODEL-AUTH` | 0.15.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers](../src/features/providers)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
+| `MODEL-AUTH` | 0.15.0<br>0.24.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers](../src/features/providers)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `IM-NOTIFY` | 0.15.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/IMCompletionSettings.tsx](../src/features/settings/ui/IMCompletionSettings.tsx)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs) |
 | `IM-CONTINUE` | 0.15.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs)<br>[src/app/App.tsx](../src/app/App.tsx) |
 | `WORKTREE` | 0.15.0<br>0.19.0 初版（历史快照） | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/source-control](../src/features/source-control)<br>[src-tauri/src](../src-tauri/src) |
 | `OPENCODE` | 0.15.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers/opencode](../src/integrations/harness/providers/opencode) |
 | `SCALE` | 0.16.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/model/appearance.ts](../src/features/settings/model/appearance.ts)<br>[src/features/settings/ui/SettingsView.tsx](../src/features/settings/ui/SettingsView.tsx) |
 | `PERSONALIZATION` | 0.16.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/PersonalizationSettings.tsx](../src/features/settings/ui/PersonalizationSettings.tsx) |
-| `MOBILE` | 0.16.0<br>0.23.11 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 | 保留设备授权、电脑权威状态及权限；不把轮询同步等同独立历史双向合并。 | [src-tauri/src/mobile.rs](../src-tauri/src/mobile.rs)<br>[android/app/src/main/java/com/mycode/mobile/MainActivity.java](../android/app/src/main/java/com/mycode/mobile/MainActivity.java)<br>[src-tauri/src/mobile_access.rs](../src-tauri/src/mobile_access.rs)<br>[crates/mobile-link](../crates/mobile-link)<br>[mobile](../mobile) |
+| `MOBILE` | 0.16.0<br>0.24.0 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 | 保留设备授权、电脑权威状态及权限；不把轮询同步等同独立历史双向合并。 | [src-tauri/src/mobile.rs](../src-tauri/src/mobile.rs)<br>[android/app/src/main/java/com/mycode/mobile/MainActivity.java](../android/app/src/main/java/com/mycode/mobile/MainActivity.java)<br>[src-tauri/src/mobile_access.rs](../src-tauri/src/mobile_access.rs)<br>[crates/mobile-link](../crates/mobile-link)<br>[mobile](../mobile) |
 | `DEV-TOOLS` | 0.16.0<br>0.18.0 | 工具入口及模拟器流程已实现，实环境验收仍有条件 | Mac/iOS 依赖 Mac/Xcode/签名；微信/鸿蒙依赖 SDK/登录/模拟器/项目，失败不得伪造通过。 | [src-tauri/src/development.rs](../src-tauri/src/development.rs)<br>[src/features/settings/ui/DevelopmentToolsPage.tsx](../src/features/settings/ui/DevelopmentToolsPage.tsx) |
 | `POWER` | 0.16.0<br>0.18.0 | 自动休眠/合盖策略已实现，非永不断连保证 | 不掩盖强制睡眠、关机、断电、断网；释放唤醒请求并恢复原电源计划。 | [src-tauri/src/power.rs](../src-tauri/src/power.rs)<br>[src/features/settings/ui/TaskPowerSettings.tsx](../src/features/settings/ui/TaskPowerSettings.tsx) |
 | `INBOX` | 0.16.0<br>0.23.4 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/inbox](../src/features/inbox) |
