@@ -537,7 +537,7 @@ it("keeps a failed send's full set and says which image pasted meanwhile didn't 
   expect(held()).toEqual(ten.map((item) => item.name));
   expect(Alert.alert).toHaveBeenCalledWith(
     "Message not sent",
-    expect.stringMatching(/^Desktop went away\n\nA message can carry up to 10 files.*Late\.png.*was removed\.$/s),
+    expect.stringMatching(/^Desktop went away\n\nThe message allows up to 10 attachments.*Files added during sending were removed: Late\.png\.$/s),
   );
 });
 
