@@ -1,0 +1,91 @@
+# 0.24.0 构建期间的 Cindy 后续增量
+
+本版锁定的 Cindy 基线为 e6ba8ebcf5d1c52105f44979e8d6e4880630192c。在 2026-11-23 19:35（北京时间）复核到 2c501339e301b5b95a715e2e349d66c918bc571b，期间又出现 83 个提交。以下条目未并入已经发布的 MyCode 0.24.0，列为下版逐项核对范围。MonoCode 和 Synara 在同次复核时主线未变化。
+
+重点复核：模型服务商预设与定价、远端模型目录与共享、群任务卡同步、机器人默认模型继承和权限超时提示。云账户与仅服务端功能仍需按 MyCode 本地架构筛选。
+
+## 提交清单
+
+- 3b5db75c1d fix(bots): 默认记忆整理跟随伙伴主模型
+- 0cb259a9b8 fix(bots): 用轻量查询确认自动化项目归属
+- 119da058ee fix(bots): 统一默认定时任务的模型继承机制
+- d18fe63d45 fix(bots): 避免测试注释被识别为色值
+- 361ebd8496 fix(usage,models): prioritize provider pricing and handle Magpie opaque models
+- 9da7f1ddc4 fix(usage,device-link): preserve selected opaque routing and read catalog without refreshes
+- 3cdc443045 chore(usage): merge upstream/main and port opaque pricing to turn usage cores
+- 1940412d74 perf(desktop): 群任务卡同步只跟进进行中的卡片，卡片存储按文件未变复用读取
+- 346142333f perf(desktop): 群专线权限对账档位没变不广播，复用专线后不再立即重复对账
+- 0d47cba3eb perf(desktop): open a companion's main chat directly and keep unchanged roster rows
+- 70f6b274c4 perf(desktop): 回应审阅：热切换失败时补发已保存的档位，任务卡缓存只留一份
+- 3392beb737 fix(desktop): address review on direct companion entry and roster load state
+- d3255b286c fix(teammates): count memory review activity since the last review
+- a0360e1fd3 fix(input-handoff): 锁屏时发起代输入当场返回 SCREEN_LOCKED，并说明主人不在电脑旁时的办法
+- 27d3c9e2f9 fix(teammates): upgrade only the exact last-day review prompt
+- 835f5e9f3b fix(maker-core): say a timed-out permission confirmation is not a user rejection
+- 872112b0a6 chore(usage): merge upstream/main into fix/provider-pricing-magpie-opaque
+- 0158c21cd3 fix(usage,device-link): verify official Anthropic routes and scope main opaque model pricing
+- d0890e6a0a fix(media): 本机路径确认超时说清是没人在电脑上确认，并与拒绝区分
+- 81c0cce978 fix(media): 超时提示按卡片已撤下给出恢复顺序
+- 7edd04a0d0 fix(input-handoff): 按 #12017 写准锁屏预检的触发条件并统一两处指引
+- 4879107282 docs(maker-core): state accurately what Codex showed before the timeout wording
+- 7ce2a1543d ci: 重新触发 CI（Windows 3/8 的 ownerScopedStorage 偶发失败，与本 PR 无关）
+- 7ab94b9b03 test(desktop): cover roster timing on companion entry with the real store
+- 6832c4af68 fix(desktop): 一轮结束的全量同步不推迟空闲任务卡的分钟检查
+- 97cf6e5bbf ci: retrigger checks after an unrelated Windows host flake
+- 7a14c38a55 ci: 再次重新触发 CI（Windows 8/8 的 remote-agent-installer 偶发超时，与本 PR 无关）
+- e45eec1ace Merge origin/main: build on the review state from #12080
+- a7ad7a0d71 fix(desktop): show all own remote subscription accounts
+- bdb9502b93 fix(desktop): forward native permission guide hits in parent coordinates
+- caf02e100a fix(desktop): 富回答里并排的发送按钮贴底对齐
+- c625250db2 Merge origin/main into cindy/calm-edison
+- 6f94477b19 fix(subscription): hand off accepted account route before send
+- 63548fe8da test(subscription): isolate recovery wiring account ports
+- 314979fa5e chore(usage): merge upstream/main into fix/provider-pricing-magpie-opaque
+- 134711d6c6 feat: multiple accounts for plugin engine providers
+- be3ae7c52d test(ui-check): plugin engine account pool fixtures
+- 217d5dcfb1 fix(desktop): SSH 远程 Codex 底栏无额度无金额时回退会话 token
+- 336358a6b6 fix(desktop): 在供应商设置显示同账号远程插件引擎
+- 80141b0d36 Merge origin/main into cindy/calm-edison
+- e59a1324f1 fix(imessage): 原件写入遇短暂文件锁时重试原子替换
+- db43c82faa fix(desktop): 嵌套在容器里的发送按钮也贴底对齐
+- 38b018a10d fix(desktop): 修复订阅供应商空账号池登录报错
+- 262d8fd379 fix: address review of plugin engine accounts
+- 5b98024101 Merge pull request #12239 from makecindy/fix/remote-plugin-engine-settings
+- a148e9b1c7 fix: settings search markers and send-path guard for plugin engine accounts
+- 6715246e69 Merge pull request #12187 from MagicLizi/fix/own-remote-subscription-accounts
+- 82d8c41fea Merge pull request #10847 from nanaco666/cindy/calm-edison
+- a0f8aab965 Merge pull request #12169 from joei4cm/fix/ssh-codex-spend-chip-tokens
+- bba66dc9c2 fix: retire a plugin engine runtime when its task changes accounts
+- 2ea6ae7fc6 fix(desktop): 同账号远程插件引擎详情显示那台电脑的账号用量
+- 35b8d1114e Merge upstream fix for Windows download publication CI failure
+- 2cf4d050af fix(host): list the account-handoff runtime port in the Host recovery assembly
+- 99aef87bf8 fix: let the engine default model start on accounts that list their models
+- be1df4761d Merge pull request #12249 from makecindy/fix/remote-plugin-engine-usage
+- 49a7484ef7 Merge pull request #12030 from elfcv/fix/permission-timeout-and-forwarded-source-wording
+- a01140c03e Merge pull request #12012 from elfcv/fix/teammate-blocked-by-permission-and-lock
+- 3bd5357acb Merge pull request #11998 from elfcv/perf/bot-open-direct-and-roster-diff
+- b8181af8a8 Merge pull request #12042 from elfcv/fix/local-path-reveal-timeout-wording
+- aea2cc4687 fix: keep the original login identity before any account setting is saved
+- 829bc5f48c Merge pull request #11464 from jjaychen1e/fix/provider-pricing-magpie-opaque
+- 15be5d235e Merge origin/main: keep default-task model inheritance with the review upgrade
+- a2cbc7e2ef Merge pull request #11993 from elfcv/perf/group-task-card-sync
+- f4e307a85e Merge pull request #12229 from kirozeng/fix/rich-answer-send-align
+- 673fa26d59 fix(desktop): 远程 owner 切模被窗口门拦下时带上具体原因
+- 33fc13a1f3 Merge pull request #12234 from xuzini-xzn/fix/issue-11322-subscription-fallback-handoff
+- 70e6b2edef Merge origin/main into feat/plugin-engine-accounts
+- a252d16944 Merge pull request #12245 from WZBbiao/fix/empty-subscription-login
+- dd6755b4ca feat(agent-net): 被移除的设备可在本机「重新加入」 (#12214)
+- 6cda9e958c fix(desktop): 远控时列出收到的插件供应商分享 (#12255)
+- 4fd8db08d1 fix: pick a usable directory for a login added twice; keep task usage reads
+- 2965b7c7f0 fix(remote-catalog): one freshness and availability rule for remote model catalogs
+- d133d201bf fix(model-selector): do not flag a temporary catalog read failure while a bounded snapshot is shown
+- 1f44a7e6f1 fix(model-selector): keep other computers and controlled-host shares through temporary read failures
+- a135750c3d fix(mobile): keep a listed share in the model picker while it has no models or its list is re-read
+- 32beeb3b7f fix(model-selector): do not bring a hidden share back into the rail while its owner is offline
+- c829ea9b05 fix: bind a handed-off task through its own route
+- 338ccedf89 Merge pull request #12220 from xuzini-xzn/fix/issue-11429-native-guide-hit-test
+- e44a0b4d10 Merge pull request #12246 from zqchris/unify-remote-catalog
+- a7ccd4a23e Merge pull request #12007 from elfcv/fix/teammate-memory-review-cumulative-gate
+- ed4fcb1921 Merge pull request #12262 from zyjisdog/cindy/happy-panini
+- ffffe6faba Merge pull request #12242 from makecindy/feat/plugin-engine-accounts
+- 2c501339e3 feat(model-providers): add Token Rhythm connection preset (#12256)
