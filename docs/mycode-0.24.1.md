@@ -34,4 +34,26 @@ MyCode 和电脑必须保持运行。定时任务中的工具审批仍在电脑�
 
 完整核对清单见 [三家上游核对](upstream-audits/2026-11-24-0.24.1.md)，功能来源见 [版本台账](mycode-feature-provenance.md)。MonoCode 本次主分支没有新增提交；Cindy 与 Synara 是有界适配，不将未融合条目列作本版功能。
 
-Windows 隔离安装验证：Claude Code 2.1.331、Codex 0.172.0、OpenCode 1.19.6 均 `--version` 退出 0；不覆盖全局安装或用户凭据。其他测试、安装包和签名 APK 校验结果在交付完成后记录。
+Windows 隔离安装验证：Claude Code 2.1.331、Codex 0.172.0、OpenCode 1.19.6 均 `--version` 退出 0；不覆盖全局安装或用户凭据。升级应用后，对损坏的现有 CLI 点击“修复安装”，验证成功后使用新的应用内路径。
+
+- TypeScript 检查、Rust 格式检查与 Clippy 通过；插件清单安全检查、CLI 管理原生定向测试通过。
+- 前端定向回归通过；全量运行中发现的已移除代理数量断言已修正，受并发负载影响的会话保存、远程会话和粘贴测试单独复验通过。
+- Chromium 浅色/深色界面验证通过，覆盖主题切换、中文插件更新按钮及命令教程。
+- IM 传输与微信运行时隔离集成测试通过，覆盖授权、去重、回复回执、项目续接与日常聊天分流。未使用用户真实机器人凭据发送消息；真实渠道仍待实机验收。
+- Windows Host 首次安装、重复启动、升级服务和错误校验包拒绝测试通过。一次云端运行遇到临时文件占用，已补充失败位置诊断并进行独立复验。
+- IM 插件已发布至 `mycode-im-runtime` 专用分支，远端下载 SHA-256 与脚本语法校验通过。六个平台的 Host 包已发布至 `mycode-host-v0.24.1`，逐一下载校验通过，均不作为桌面发布附件。
+- Windows 最终 NSIS 构建完成，产品名 `MyCode`、产品版本 `0.24.1`。
+- 安装程序解包校验通过：主程序与最终构建仅存在 Tauri 预期的 `UNK → NSS` 安装类型标记差异；Node 与 IM 运行时文件摘要一致，包内 Node 能执行版本查询、IM 脚本语法校验。
+- Android 构建 [45324117536](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/45324117536) 成功：包名 `com.dcxa521gi.mycodemobile`，版本 `0.24.1 / 2401`，APK v2 签名验证通过；API 35 模拟器安装并进入可操作的连接页面，崩溃日志为空。不是物理手机或远程网络实测。
+- APK 签名证书 SHA-256 为 `6787e8f3283482fd6e860c38eeba47adb7e1606d272ce5730327865db1f1c69b`，与 0.24.0 APK 中提取的证书一致。移动端构建提交 `dfbf3e7524` 与本版最终代码的 `mobile`、`crates/mobile-link` 目录没有差异。
+- 最终完整 CI [45326744677](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/45326744677) 全部成功：Windows/macOS/Linux 代码检查和测试、Chromium/WebKit 界面检查、移动端检查、Fedora/AlmaLinux RPM 构建与干净环境安装。此前的 Windows 文件占用与 Linux 依赖下载超时均已在此轮通过复验。
+- 发布附件已重新下载并与本地逐一核对字节数及 SHA-256。产品源码标签 `v0.24.1` 对应 `5dbac421d7bb57a2d47a51fcf8bdf345d25649a5`；本记录与来源台账在标签之后补充交付结果。
+
+## 本地交付文件
+
+目录：`D:\VibeCoding\Codex\MyCode\build\release-verify-0.24.1`。
+
+| 文件 | 字节数 | SHA-256 |
+| --- | ---: | --- |
+| MyCode_0.24.1_x64-setup.exe | 41447174 | `490c78caae2029e448d94545a8e41f2f1375ff2b8112b83c89ab2fe4a3a9fd73` |
+| MyCode_0.24.1_Android.apk | 103922151 | `1b3e8fee2e62dcd187c34b73b6b40b9f70b40f2f12c2ccc27b764b901e72b3c0` |

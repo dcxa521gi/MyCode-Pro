@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "recordedDate": "2026-11-24",
   "currentProductVersion": "0.24.1",
-  "sourceCommit": "0.24.1 release candidate",
+  "sourceCommit": "5dbac421d7bb57a2d47a51fcf8bdf345d25649a5",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
     "MONO_ADAPT": "MonoCode 为主、MyCode 适配融合",
@@ -369,7 +369,7 @@
       "key": "0.24.1",
       "display": "0.24.1",
       "tag": "v0.24.1",
-      "tagCommit": "pending verification",
+      "tagCommit": "5dbac421d7bb57a2d47a51fcf8bdf345d25649a5",
       "date": "2026-11-24",
       "releaseDoc": "mycode-0.24.1.md",
       "monoBaseline": "09d04436ba → 09d04436ba；主分支 0 新增提交",
