@@ -1,0 +1,283 @@
+2b1e3393847d78b8a354093be305405c52670f94	Merge pull request #12386 from makecindy/cindy/bold-curie
+b0191efeb174de8c1ef842f0707fb31dea4b264f	Merge pull request #12385 from amanayayatu-tech/cindy/keen-mclean
+e0e0b4c07559c22c172d740644d3ed47d582e4f0	Merge pull request #12384 from amanayayatu-tech/fix/4841-expo-android-dns
+1c33d971681c3d367bfd21cc2065e506eba06b12	Merge pull request #12392 from amanayayatu-tech/fix/desktop-bot-project-profile-db-timeout
+ce9ddbfe0ef0fccfff9040a39ddfdcb6e825a436	Merge pull request #12309 from woniuxia/fix/pi-snapshot-entry-limit
+7c99823940b3763420f194e0c1f397d93ec5c383	Merge pull request #12387 from makecindy/cindy/safe-storage-renderer-allowlist
+cb3ac9aa2eef75421b2d7efdb22acaff9d3b567e	Merge pull request #12380 from amanayayatu-tech/fix/11306-hosted-codex-model-refusal
+a35d15651b329c3d84c83f51221133d7c6b577ba	Merge pull request #12383 from amanayayatu-tech/fix/12198-relay-join-retry
+98f41c4a4156f8bce4e649f5ce583db747002ee3	test(desktop): isolate project automation from profile file fixture
+b2c92e39a62e6bf7587d838bdec1521049779bcb	Merge pull request #12379 from amanayayatu-tech/fix/10161-snapshot-send-diagnosis
+e05048ac940257c26300cbbd0577c05e1d2dc125	Merge pull request #12381 from amanayayatu-tech/fix/8151-guest-host-disposal
+dc0cdab6f53dd4f1dd3e4d2e07f59358c7651a95	Merge pull request #12374 from amanayayatu-tech/cindy/wise-engelbart
+b9f514cde5e758e114247661d8e25ea8ca79ba23	Merge pull request #12377 from makecindy/ci/host-linux-release
+a12856ffe1eb5a0e1edb6d4bc9ce2c78232825df	Merge pull request #12372 from amanayayatu-tech/fix/10710-remote-list-serialization
+e16e7cff45d101e81c23bc481f03aa48e685deb4	Merge pull request #12373 from amanayayatu-tech/cindy/fierce-hawking
+98177812780f501c07a0c0cb19c287a6066fe52e	Merge pull request #12369 from amanayayatu-tech/fix/12183-claude-pool-handoff
+e9b1059b379cb7120806b492b5f624d0ca38f351	Merge pull request #12370 from amanayayatu-tech/fix/session-hold-timeout-test
+efac6e45b780cb512d7d26ce1cca4ca8007693f6	fix(orca): offer manual Continue after an explicit Worker assignment failure
+6c4d6d9198fbdad957ce4c53071363373a0b4e80	fix(desktop): 显示空远程任务列表的离线状态
+e860f4729979b7546ab3288c587a7127168063d1	fix(mobile): 本地化 Expo Android DNS 失败提示
+cf610e49a191018975d323e85d2b41501fb462c4	test(desktop): cover each renderer safe-storage operation separately
+4b6786719dc7a5da19eb6c2de44fd77108c3b9f8	fix(desktop): allow renderer safe-storage access by key purpose
+a932f63fb3eb5757afc8eb21d23db6f3c5f4a8a9	fix(mobile): show relay join errors before an invite arrives
+3044732220c735506706d81ddd4072ccba14ba99	fix(mobile): localize snapshot dispatch intent timeouts
+9a60a19eeab2ffd05801e79a1305e3764bb7c878	ci(host): build the tag the release workflow runs on
+c3079cad82255eac40edc361ea04312aed276c0c	test(remote-agent): await guest host disposal
+f818fe8a83d9e4c2dc625de9364c43b2223ea99d	fix(codex): clarify hosted built-in model refusal
+c76b9df5080c00a050743ac581ee2cc795442916	fix(desktop): explain when snapshot preparation blocks sending
+e4c9778eae0728f84b510d08f143328feac8337c	ci(host): build the Linux Host release from a tag
+4090b6a9ae2339d522df174a0d6f299e081d7749	Merge pull request #12358 from amanayayatu-tech/fix/4932-browser-toggle-guidance
+6b6e7b328332cc5ea91a0bf5f77c958327be0a23	test(codex): make MCP readiness retry deterministic
+0b171b67d8ceb5005f12af0afe8262a9cb38a835	test(remote-agent): gate the close retry during connection opening
+2df5872f364abe25d512e68ae0990c915bab53c8	Merge pull request #12364 from amanayayatu-tech/cindy/humble-hodgkin
+846a589b5d422385de3b1cf47b4285251fbd3194	Merge pull request #12366 from amanayayatu-tech/fix/10758-remote-companion-online-home
+252aab2c9e6e265cefa4f4cae0ab22bd9196e07a	Merge pull request #12361 from amanayayatu-tech/fix/10721-tool-search-recovery
+ab256cc0f0c41a757ae7e23fb32f6204a458502e	Merge pull request #12363 from amanayayatu-tech/fix/12240-queued-send-feedback
+8cf49121c7637f026038bd1ef299d52afc519fcc	perf(desktop): 减少远端任务列表的重复序列化
+da844a67f80bb838566707e91979de6027c35ffe	Merge pull request #12368 from amanayayatu-tech/fix/10933-claude-usage-process-exit
+b9683c62441adaa5ad418e03875a7244b0f32142	test(maker-core): synchronize the session hold timeout test
+8fd40d10c9708cd2961c7b47a9a17f3e1204a1e3	fix(desktop): recover Claude handoff after default account removal
+fb428b64e7a10ab3c0c0f627afa814fe1956e668	fix(claude): let quota CLI finish after replying
+be8107dd42028eaa784193b47a6d2fe77feb5fe0	fix(bots): avoid offline recovery for a confirmed online home
+e886361bb4bf253e0ccce84d0a4847e91695a778	fix(providers): explain models excluded from a fixed remote scope
+5019fe59d4c97c15da80da80a9b18f95abdcc1f6	Merge pull request #12352 from amanayayatu-tech/fix/7354-ssh-alias-conflict-hint
+ac67f6309f5da8b36654e28d20d5269db52920bf	fix(desktop): explain how to retry an unsent remote message
+8eb415d4758c39144a36a39ad2acbdf6d8311616	fix(desktop): index Browser toggle scope hints in settings search
+7f1420da17eb6a9c9eb5a6316f9c454fa535b31a	fix(mcps): guide recovery after an unmatched tool query
+54a2a01bdd78da21fa65dfab433e4af36a3e3c47	fix(desktop): clarify Browser toggle timing for local Codex
+34d4658121413b4fdd832492c4adca4edd2b61e7	Merge pull request #12346 from amanayayatu-tech/cindy/serene-goldberg
+c8dce00885e9f95dc565fe3d2e02fdd835c2e56c	Merge pull request #11749 from qqqqqcy/cindy/plugin-open-session
+f7aa3fca528d820d5832949683f2d6f4d8d8974f	fix(desktop): label the existing project folder picker (#12318)
+c26d2f3ce1ecb0d09724e23716d16380621c5d14	Merge pull request #12347 from amanayayatu-tech/cindy/sincere-dijkstra
+edfb572e3e6ae5be1d59cef145089b4e01f3f85a	Merge pull request #12351 from amanayayatu-tech/fix/message-delete-running-feedback
+8d622f8cba0039781d09c4537b314f6a46e431fc	fix(i18n): clarify German SSH alias conflict copy
+669b5ad1fce8b48588df66b4267107d086340416	fix(settings): explain managed SSH alias conflicts
+0fcd92ab5bb72425a370be8b382bfcdc8caf0e11	fix(desktop): explain when a running task blocks message deletion
+966f807088d09007ed9315e721e3a3b4ab2b2bbf	Merge pull request #12335 from amanayayatu-tech/cindy/elegant-mendeleev
+1242263ab17c768713acfad9a2afd638c6fca618	Merge pull request #12339 from amanayayatu-tech/fix/local-agent-claude-provider-12325
+9b4590718f2d6abc705cac355395fc340629abcd	Merge pull request #12333 from amanayayatu-tech/fix/8170-responses-web-search-dialect
+8dd2f89e7f9ce2b24d59a9fcba69d29528d3e203	Merge pull request #12280 from FilthyFrost/fix/provider-share-probe-recovery
+8f3228a1794912c2d039e4bdfd44917d93f0ee99	fix(browser): guide recovery when user-browser tabs time out
+9592a704268349e3f100d30e2f040fc34cff360f	fix(desktop): keep cold ACP project tasks sendable
+9a7d1d7a493d81fb43f62aac3edd4daedb5a83e5	Merge pull request #12303 from fmfsaisai/cindy/wise-torvalds
+aa7b37cc6953d34304380ed50d272800c7233328	Merge pull request #12327 from amanayayatu-tech/fix/12252-minimax-native-mcp
+7b32442200958c6b72bf02d5d76ed6c2789b76d8	Merge pull request #12326 from amanayayatu-tech/fix/ssh-exec-trailing-comment
+e4a74e72487e2157669a9a7c78f8ff7c29ce0f3c	Merge pull request #12320 from amanayayatu-tech/fix/model-list-withdrawn-status
+e4c16cf712c71338dc52760e4f4164e31d600fbe	Merge pull request #12321 from amanayayatu-tech/fix/discord-blank-leading-final-chunk
+d74b7378100d2fa4fddb4e92fbaf62f657129eb3	Merge pull request #12294 from zqchris/plugin-engine-briefing
+abd764545e4c08ca9184cd3737a4d91a020fbaf5	Merge pull request #12319 from amanayayatu-tech/fix/memory-like-candidate-exclusion
+28c6d0319c752436012f718df235b17768ea1a52	fix(desktop): 绑定本机 Agent API 的 Claude 供应商路由
+fa4d01ae99e831d491fc260d777a588bbcb2faed	Merge pull request #11937 from xuzini-xzn/cindy/happy-panini
+9bd8ad596517463acef59a3448ea0cc692fae8ae	Merge pull request #12192 from xuzini-xzn/fix/issue-11506-windows-input-error
+a3c912c678184d354247eef9479526a6b76abd19	fix(goal): preserve continuation after ordinary input settles
+c6d9c964f876c79c850c16fcd016f9dbf15f2ce8	fix(proxy): support legacy Responses web search tools
+29452ecc5ca9f363e913f438759d8c1912487605	fix(desktop): 保留正常模型行的名称结构
+b3552640c4ed946ae24a3faef1f30bcb234f5a86	Merge pull request #12302 from xuzini-xzn/feat/glm54-coding-plan
+352a8283700d46a6b47211d0732d51454b468e64	Merge pull request #12261 from xuzini-xzn/feat/official-model-plugin-list
+cedf56f97a53b6aeb5cfe56336bb80251e806717	fix(desktop): resume queued input after companion capability refresh (#12232)
+b990d14a47ee72c92c960108ab91de8000646577	fix(proxy): replay rejected native MCP history as text
+e0636a24ee37df0193d1ddd5b3eb5604f36ec0d3	fix(ssh): preserve trailing comments when setting cwd
+07a35aa488722f47afde823595d12a4163382697	fix(chat): 限制旧群历史导入重试 (#12219)
+ad739e06c74731cea48c15a06d580c4c66d0acb9	fix(discord): deliver final text after blank chunks
+2736f06c378b86cb10ce6cf2c26f0948136c7a56	fix(desktop): 标出上游刷新未列出的模型
+5bd1a71479fa7e8e4b5162c594c5705759c98730	fix(memory): exclude full-text matches before capping substring candidates
+43d7b2b39dff746fefb496580ae10bfc1c01574e	test(desktop): flush avatar updates before fallback assertions
+c09798656bf462f030a9441adcff521deed44f79	test(desktop): replace auxiliary settings atomically in external edit fixture
+4ced326af6fdeac1f2236dae8ef0fe5b6eae2463	Merge origin/main for Windows auxiliary settings verification
+ce62d0f1f1b883b479f31b5e17dab92588eb4cf0	perf(acp): resolve each Skill path once when filtering the briefing list
+38b3ed4498b4501f0d721bec877fe3a831860b29	fix(models): complete GLM-5.4 tool reasoning replay
+a1b4fe2d65f523f7603b6b588257d337b6616afb	fix(pi-packages): 提高包快照预算并按预算版本重试旧失败
+c5b7e53361ed174936afe8a1fd568f69d4b93dd4	Merge pull request #12299 from zqchris/cindy/silly-darwin
+1e628202b623313411361c7dcccb9aa4473c67c1	fix(acp): give hosted plugin-engine tasks the task computer's roster
+8a90e65e36e139d060784dee5eab50295b085c7c	Merge pull request #12295 from zqchris/teammate-plugin-engine-models
+ca3f9c9c54b693a1190397086305d653e6411a56	Merge origin/main for auxiliary model regression checks
+6a935b70cbf06656b2571b35b0aecfa24b3779bb	Merge pull request #12287 from makecindy/feat/feishu-im-group-settings
+03f185c1a764f08ff0c997121d94df1c1d16ac47	fix(desktop): track effective auxiliary config and failed route preparation
+4bf8a46a51bdd78f626d0ca72997b7c971952f3c	fix(pi): avoid subagent tool collisions with native user extensions (#12221)
+7d3abcdf417c03ed59fcd37b3d1c9008345d3514	Merge pull request #12271 from makecindy/cindy/upbeat-archimedes
+30210bcd0b50c9e5d6b20943932f9f8692c4d5a9	Merge pull request #12203 from xuzini-xzn/fix/issue-11716-remote-context
+94b26165f11f7328657f536bb6405cc8bcb71a77	Merge pull request #12266 from joei4cm/fix/cc-proxy-v1-dup-12233
+175deb6e95820008ce09a7a45e93c7673123690a	fix(desktop): retire auxiliary outage notices when the saved chain recovers
+90f4c34d5f28924be67f5fe26417725b60c18a73	Merge upstream main to pick up Windows BlueBubbles CI fix
+fb85499a1e570b9042f1940026d582a37c212182	fix(models): map new catalog entries to translated descriptions
+b90a0dc043064b1062343db157685e0399461f5d	fix(settings): repair official provider discovery and reviewed updates
+e6b9a57aceb3c4c085f7d9883a89036813bb4a93	fix(model-providers): sync Bailian capability references
+42118bfe23f1428c2a0ba66bf8f05b00b5078d41	Merge origin/main to verify auxiliary model changes on the current base
+98155ce9fde15f5bb71b4f1aa498218cf21e854a	fix(proxy): 自定义供应商 baseUrl 带 /v1 时转发路径去重（#12233）
+c8ef24eeea1f4591a6d368105a0fa9c23bad4640	feat(plugins): 新增插件表单弹窗 form，由 Cindy 画表单并交回填写结果 (#12296)
+bd9b3318a07e4960b9a91d2c7de3bb09312e199e	test(desktop): cover auxiliary model save and outage recovery in Electron
+4d484b69926aa9fbb33e508bb88132c58fe2dab8	feat(models): add GLM-5.4 to Coding Plan presets
+b489b11772889dfcf416340a1985095646b06742	Merge pull request #12291 from makecindy/cindy/sincere-hertz
+caf519d9347eaa4afff0fa2f0dd1834c3815a5af	Merge pull request #12289 from zqchris/cindy/jolly-ritchie
+03f2898259f218fa8fb06a5ab5e52347edb5fda8	Merge pull request #12283 from dashhuang/cindy/jolly-einstein
+1a398499ac6c9454140a0a186fe3bf4f87aed431	Merge pull request #12288 from makecindy/feat/official-discord-bot
+9dcaf5997caca4c4f1f49e31f7ab7a7fa5698e74	Merge pull request #12285 from makecindy/cindy/silent-hertz
+ddb44d18728784c3764a8d9379c12c744a5c54b6	fix(imessage): 将后续提问和回复关联到已接受的插话
+86d10d722d9bb3287b1d2dc0f9f2c9db72858456	perf(desktop): 限制历史插件卡片缓存，保留远程卡片离线回看 (#12260)
+053b48e51d9aeadd95ebd4f25917b112e97f3afc	Merge upstream main and retain Settings diagnostics alongside session outages
+2d0773a4c109dfb21998c12c4d899ca84a8dfa1c	feat(desktop): validate auxiliary models before saving and show scoped outages
+c4f87ddda8d1b53c9af3a1e38598a1b99f8c04fa	Merge pull request #12241 from xuzini-xzn/fix/7210-quit-crash-diagnostics
+4dbe0a15e1eabea9d5103bc2d5a9d4a97ac3ec22	fix(settings): bind configuration updates to the installed market namespace
+410a13d2a36df748f3bdcbcbad52bfc682a5aaca	fix(pricing): sync server cache tariffs and preserve native currency
+640366c6bd2d2262b690ce2a5d7a474d18f04a83	fix(acp): discover the briefing Skills in the isolated scan process
+0a9de322724ffba499cb7a7c6ef8ee59a9425eb1	fix(bots): keep the engine default among a teammate's plugin-engine choices
+a171204c1d09ab90e7d5cec2a81b6f84c35e2cda	fix(settings): preserve open plugin forms across unrelated updates
+9766b90a462b62e7a44ad5f61a738a2ae6bcbb83	fix(acp): brief project-context companions and skip reads on resume
+515658c0158592744cbd3dd2fa2d7e3f96763d0d	fix(feishu): show group summary before expanding the list
+a9072fb6b5392cdc326e8ddb560a88dc3db68925	feat(settings): configure official engine plugins in the provider wizard
+a33fd3370afd403750620b117a8cb6b7909c09b8	Merge branch 'main' of https://github.com/makecindy/cindy into teammate-plugin-engine-models
+0932325440933149064077da6d0231c193bb3ddc	fix(device-link): probe offline shared hosts without waiting for handshake
+a07eb2ad3f468c99734b8526b0923ae670fd76cb	fix(desktop): sample screenshot colors in the export color space
+a96f414c79751cc6de478e2f8e905ae4d41aa873	fix(subscription-accounts): ChatGPT 套餐用完先换号，没得换才用 credits (#12279)
+d58d6c84044a50f078636d77f373cff38d95b53b	fix(feishu): preserve Lark settings search ranking
+8512c234fe46a5e7a61b3b456c9bca094b9e7270	test(desktop): 设置搜索锚点守卫纳入官方 Discord 卡
+ac476df4bc33df84ad125ad25edc69a5bbdaf741	fix(imessage): reuse complete HEIC previews in reply history
+3420ca6e37de103c57406b81af55cb1b6e8a20ce	Merge pull request #12275 from makecindy/cindy/bold-curie
+050bcaea976b5eb5b5f456ff7fd9f0fb1006645a	feat(model-groups): 新增用完再换、余量最多的先用、按权重三种选法，时段例外可按星期 (#12268)
+6d841bb0e5b9166bfb84001d7da4831bc7be005e	Merge remote-tracking branch 'origin/main' into cindy/sincere-hertz
+ad7444c030c40d8df9f6f0ae0ed56beed5fc06c8	fix(subscriptions): 暂停旧连接的原登录后保留它的模型清单
+162d83a4f89415b824267df87ab39e2fd6368d66	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/jolly-einstein
+1b6cfc8dfba0ea5e76c722499f6b6688ad406acb	fix(desktop): 升级含未加引号脚本命令的旧 Codex 配置
+2423cb29ff0d9b81e8f7085e3dcce73f9fb92d2a	Merge pull request #12247 from zqchris/feat/plugin-engine-usage-display
+8c80b263c767fa2b1d4e2e1896c82827ee53212b	fix(feishu): use Traditional Chinese wording for group projects
+d960b5d61efa504e1f6ed354bffc219e70173db9	feat(bots): let a teammate pick a plugin engine for its own model chain
+bc7dd478948c320cb6b8c3b9170984c0c9a8e946	Merge pull request #12009 from elfcv/chore/prune-empty-routine-history-sessions
+3628bc923b8d400b40be0717cba5b3853ecbaae2	Merge pull request #12274 from makecindy/cindy/trusty-curie
+e449bd0862c1746bb130f4bbfdbd7d83b4913845	Merge pull request #12270 from xuzini-xzn/fix/6926-pi-mcp-unknown-server
+cbfa39163199af92037e95dc4b0f9b678fef6a2b	feat(imessage): 指定伙伴聊天的忙时消息可补进当前轮
+9b513936a4d0aaaec8cfb3308ea249554c208518	fix(imessage): deliver HEIC previews and retain original access
+88040c4f6889f3a1174c57f18a11a5cf934041fa	feat(acp): tell plugin engines which plugins and Skills they can use
+e17b46b1fd09c176d0e68f7f461efde68c176105	fix(feishu): honor group resets and register settings search
+931db348ab7fe6ba9acdaa8868afba8d355f8815	fix(desktop): backfill logs for fatal errors during quit
+db0186af35febf6699d0a1ecca5d7938489efbf0	feat(feishu): support per-group IM settings
+d272505e7a063e2347c52110215a492551579c06	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/jolly-einstein
+e761a8efbc8fedabc8a4b9b6c00b5c86be16c364	fix(desktop): 补齐已有 Codex 项目规则引用的脚本
+b283152c82523b66aa23028684f234d74620b287	fix(desktop): use the panel name in shell denial guidance
+2884cc8f5e8b71ea362118952ce212cbfa7a17c3	fix(desktop): point computer automation guidance to the task device settings
+b0ce050d012555df3337ff0178128e44c0c5537e	feat(desktop): 官方 IM 机器人增加 Discord
+c997ae32f67f01a8783331f6f77d4c6a1a462475	feat(protocol): hook provider 增加 discord
+8624bc0a9818122f3acc03dbad1a9926e81f4aaa	fix(desktop): 只提示可添加到 Codex 的项目脚本
+4269972180fb9aed23438a2f4db13c9ed210cd81	fix(device-link): 两台电脑共用设备身份时提示用户给其中一台换身份 (#12278)
+38b0850fae669a80b95a0385693840c2a03c013c	Merge pull request #12277 from makecindy/fix/plugin-provider-usage-and-sharing
+73c44e9410e926fb7a2a84fbf01e8fcddb62bf7c	Merge pull request #12248 from makecindy/cindy/curious-ritchie
+efd9b1b49d24685cb31f66b9f6399fa39832b1b5	fix(device-link): restore provider-share probes after reconnect
+87cb469f3659adf663607bb80caaf96a1a8c9aac	Merge upstream main into plugin engine usage display
+8e07a1e5836631227729d6d4775f6fd9871364f5	Merge origin/main into fix/plugin-provider-usage-and-sharing
+2c501339e301b5b95a715e2e349d66c918bc571b	feat(model-providers): add Token Rhythm connection preset (#12256)
+ffffe6fabae63d7c3e81819ad30e269b02d66317	Merge pull request #12242 from makecindy/feat/plugin-engine-accounts
+ed4fcb1921faee5415bcab093f84335e57eb0577	Merge pull request #12262 from zyjisdog/cindy/happy-panini
+34ac8c512b60192755f34c37e1df81ccf57d74ad	test(agent-net): 只解析新发出的 UDP 登记包
+a7ccd4a23ed0d2765e6b5099f3361c2f34dd795d	Merge pull request #12007 from elfcv/fix/teammate-memory-review-cumulative-gate
+084fdcbbea33dcd30f4d0ffa090067e1445c8dac	fix(desktop): convert profiled screenshot selections to sRGB on export
+e44a0b4d108ec97e629d126347bab46d8d9c4277	Merge pull request #12246 from zqchris/unify-remote-catalog
+338ccedf89a3b5f58caa22605ff974886e702cb6	Merge pull request #12220 from xuzini-xzn/fix/issue-11429-native-guide-hit-test
+56b7c2598c3d0b912355225f13a0f19c9972faf6	fix(usage): preserve remote quota on transient worker failures
+612ac47700391dcdbc592176d46a57d29581aae7	Merge remote-tracking branch 'upstream/main' into feat/plugin-engine-usage-display
+8594d1c045ccbb89bf1b23d7d7f3ee44afde331b	test(agent-net): 验证短暂恢复不会重置中继 UDP 冷却
+c829ea9b05fc12a32ef8cf1cef3ab20e17b1143b	fix: bind a handed-off task through its own route
+ca321415142e674d3120594361abfb2f5d120cb9	fix(agent-net): 持续确认上传成功后再重置中继 UDP 冷却
+9577bc3c228e42273818a452a8a85d066f5bb057	fix(usage): stabilize empty mobile plugin quota snapshot and route local plugin draft to local task
+34ffa74a2b93f1b602b37526565d97beccb34b39	fix(mobile): 灵动岛去掉过期画面，到期后照常显示直到被结束
+cf085b92ac3cbf18e111e0f18615e77c42eed372	fix(desktop): preserve Windows screenshot preview colors
+1c84d0059f973eb691a046c483e5ee2a7076ce06	fix(providers): record plugin usage and group outgoing shares
+32beeb3b7fedcd4342a7681c73f884ede5b883b9	fix(model-selector): do not bring a hidden share back into the rail while its owner is offline
+a135750c3db7aefef3b26b4b8ce1d66449e135ea	fix(mobile): keep a listed share in the model picker while it has no models or its list is re-read
+1f44a7e6f18c4f958ecab951bb95fe19a784d9df	fix(model-selector): keep other computers and controlled-host shares through temporary read failures
+d133d201bf50b81c3ae8e3213a0eb25a783252fb	fix(model-selector): do not flag a temporary catalog read failure while a bounded snapshot is shown
+2965b7c7f0d5c2b91ef73a833f30cafcce62beb0	fix(remote-catalog): one freshness and availability rule for remote model catalogs
+4fd8db08d11c4fc9301c94937d3606ff4b1e12a7	fix: pick a usable directory for a login added twice; keep task usage reads
+6cda9e958ca222cfda7fce14844f4731089a1d99	fix(desktop): 远控时列出收到的插件供应商分享 (#12255)
+dd6755b4cacb449b133ba011e5fce0e1be45a767	feat(agent-net): 被移除的设备可在本机「重新加入」 (#12214)
+a252d16944ea11494e79f20266f90b4bc724d85d	Merge pull request #12245 from WZBbiao/fix/empty-subscription-login
+cc4b847def6dd3baadb44a3d04bba85c90b61650	fix(pi): report unregistered MCP servers during tool lookup
+70e6b2edefc177b80d2f37860b352a225e9fcb76	Merge origin/main into feat/plugin-engine-accounts
+33fc13a1f38e72f7f741fb4d18b94907fa2d3432	Merge pull request #12234 from xuzini-xzn/fix/issue-11322-subscription-fallback-handoff
+08cf76098c11ac1ec33f98e4b75f041da36152b5	fix(usage): address PR #12247 review feedback on clocks, remote retention, and draft route
+673fa26d59c52594f4c1a8f65b5987115ef13dd4	fix(desktop): 远程 owner 切模被窗口门拦下时带上具体原因
+f4e307a85e4b68bc2a08f479a6c1fed1834f9153	Merge pull request #12229 from kirozeng/fix/rich-answer-send-align
+a2cbc7e2ef8d695321d51301642409c35f698949	Merge pull request #11993 from elfcv/perf/group-task-card-sync
+15be5d235ea7a5b6223c592e5984d3637c1742d1	Merge origin/main: keep default-task model inheritance with the review upgrade
+829bc5f48c1ce293d050a4e1a0855b6829283860	Merge pull request #11464 from jjaychen1e/fix/provider-pricing-magpie-opaque
+aea2cc4687734f775abc032995607109491cc129	fix: keep the original login identity before any account setting is saved
+b8181af8a8585bf8319983e420adf2637c854b86	Merge pull request #12042 from elfcv/fix/local-path-reveal-timeout-wording
+3bd5357acbe50bb33b79d9be700dfd7dba002ff0	Merge pull request #11998 from elfcv/perf/bot-open-direct-and-roster-diff
+a01140c03ed9d1a50e73dc4a703b1ae718212629	Merge pull request #12012 from elfcv/fix/teammate-blocked-by-permission-and-lock
+7dd680bd51691d58ba39c44d5190a1d6d2548003	perf(settings): stop provider reads when discovery finishes or closes
+49a7484ef7a836a21cafa1520f90813076471c41	Merge pull request #12030 from elfcv/fix/permission-timeout-and-forwarded-source-wording
+be1df4761dfe1eea76624386e06b75b014c20a71	Merge pull request #12249 from makecindy/fix/remote-plugin-engine-usage
+c8e6e2e49d28dc552276cce3d669a804f52cc498	perf(settings): discover official engines without scanning local plugins
+99aef87bf87c29e9ffcf22d0417e715667018d4e	fix: let the engine default model start on accounts that list their models
+95d1bfa902447d56ccd40d2083f6c48885572eb9	fix(host): 登记具名工具索引的内部入口
+2cf4d050af61ae5a7b8a94b4d7d1616be078287b	fix(host): list the account-handoff runtime port in the Host recovery assembly
+35b8d1114efcd16f65a325506c05ef7aa99f58ee	Merge upstream fix for Windows download publication CI failure
+64c662dadeacc98e2a2dcccb6d72d81cc9569c53	fix(plugins): 完善具名工具目录、审批与进度卡
+912132a1dfddfb2383fe1a8ff354c8d4e81a3f4a	feat(settings): list official model plugins in the provider picker
+2ea6ae7fc637f9c005b8999319870a8a2a39c63b	fix(desktop): 同账号远程插件引擎详情显示那台电脑的账号用量
+bba66dc9c2e3a2674e30445e05a6ca3e0483cc80	fix: retire a plugin engine runtime when its task changes accounts
+a0f8aab965274e11e7652b56709ff58ac0a2c528	Merge pull request #12169 from joei4cm/fix/ssh-codex-spend-chip-tokens
+82d8c41fea7d7f9b826890c30ca734afcdc97a04	Merge pull request #10847 from nanaco666/cindy/calm-edison
+9afc828cfe6f9085160ce14ee576f9ea743a6896	feat(plugins): 支持具名工具挂载与预览页签复用
+6715246e6951ed83f4fa8cb02c1cdb2417913d2c	Merge pull request #12187 from MagicLizi/fix/own-remote-subscription-accounts
+a148e9b1c73435e01013470469c3be4f1e847183	fix: settings search markers and send-path guard for plugin engine accounts
+6709c8a8879f076e491e2d671f35097d9d2bb49a	feat(usage): surface plugin engine quotas in menubar, widgets, and model pickers
+5b980241013ac54cee7a031e9c31a615ed59447c	Merge pull request #12239 from makecindy/fix/remote-plugin-engine-settings
+262d8fd37903dd4041c65d2a5856e4e094d5eef5	fix: address review of plugin engine accounts
+38b018a10d4f5680461c0d2025f39b40ad44ba83	fix(desktop): 修复订阅供应商空账号池登录报错
+db43c82faa6a422323b8f8aa9f164861f951f825	fix(desktop): 嵌套在容器里的发送按钮也贴底对齐
+e59a1324f10f60727b1839e5ce2bebe328a63a15	fix(imessage): 原件写入遇短暂文件锁时重试原子替换
+80141b0d360fc875e2551fec107b0c1663422bd2	Merge origin/main into cindy/calm-edison
+336358a6b61814348c36ad62606fd59f31c6e1d3	fix(desktop): 在供应商设置显示同账号远程插件引擎
+c2681ed0bf28be727d2e698e8dfe20f437630aed	fix(desktop): classify fatal exceptions during native exit
+217d5dcfb1a9b1950caf3ce3a4b10b1c1a3bddfa	fix(desktop): SSH 远程 Codex 底栏无额度无金额时回退会话 token
+be3ae7c52d8d9243d82eb2cc299f9f18ddf1febb	test(ui-check): plugin engine account pool fixtures
+134711d6c697ed25f1cc4aa8314c15c5da2de4b4	feat: multiple accounts for plugin engine providers
+d6ac072b801bd4f31b5167362deefb4bebbfc45e	fix(desktop): keep repeated quit on the active cleanup chain
+314979fa5eaa153979a3c21714f6062f9826b26c	chore(usage): merge upstream/main into fix/provider-pricing-magpie-opaque
+63548fe8da0b2bdf0b9f912142127771cff350ef	test(subscription): isolate recovery wiring account ports
+7e2c9208603bcc9cfba88b0ae185385bbed55c09	fix(desktop): record fatal exceptions during quit cleanup
+6f94477b19774fe81097d38d8920fa73ae67faef	fix(subscription): hand off accepted account route before send
+c625250db2cba5d8619ee3b42ddeebb8fcc41320	Merge origin/main into cindy/calm-edison
+caf02e100a1fe26d5a63c9b9569118d9441b9470	fix(desktop): 富回答里并排的发送按钮贴底对齐
+bdb9502b9373ce1cfd857fed73be0017538fc95b	fix(desktop): forward native permission guide hits in parent coordinates
+d63448ed2df694467d5641f962e169f6ed83eba4	test(codex): align remote model picker native context fixtures
+c1898cd88919c8a15648cb92c60fb49c8372d437	fix(codex): read remote context windows on the execution device
+d2e4cfc1efd2559d6e50d548d83c669533d8cca2	fix(remote-desktop): classify Windows input startup failures
+a7ad7a0d71befde056f8af1cfd38c64b6b52b3e0	fix(desktop): show all own remote subscription accounts
+e45eec1ace62893826ee8912efd9200d36c63cd5	Merge origin/main: build on the review state from #12080
+7a14c38a55786a746755aad25042601544954838	ci: 再次重新触发 CI（Windows 8/8 的 remote-agent-installer 偶发超时，与本 PR 无关）
+017e3b4a8a1be4c2e5ed5d1983961529e91d3e92	fix(bots): 删除空任务后通知已打开的伙伴历史刷新
+97cf6e5bbf5d87c55bfe7da1e5a459c62e97a6b5	ci: retrigger checks after an unrelated Windows host flake
+6832c4af687e6525247560c7826c4da074fedb76	fix(desktop): 一轮结束的全量同步不推迟空闲任务卡的分钟检查
+7ab94b9b03fc5a5e39e5624f44f4d48648a0f31c	test(desktop): cover roster timing on companion entry with the real store
+3c8d2f940316eadead26154444af142bd7c2541d	fix(bots): 空任务清理收窄为已证实未派发的单次例行任务
+7ce2a1543de50fe2c8fca4da53efa143b0ee51b0	ci: 重新触发 CI（Windows 3/8 的 ownerScopedStorage 偶发失败，与本 PR 无关）
+4879107282be5e45ec848d7edda3cc01bbaf8cd5	docs(maker-core): state accurately what Codex showed before the timeout wording
+7edd04a0d01b7a57e695e692d1e14d4a26307d8a	fix(input-handoff): 按 #12017 写准锁屏预检的触发条件并统一两处指引
+81c0cce978aa7544b03b580bd4479515081f8c3b	fix(media): 超时提示按卡片已撤下给出恢复顺序
+d0890e6a0ac267afbbebc498d6173d1ea883e1c9	fix(media): 本机路径确认超时说清是没人在电脑上确认，并与拒绝区分
+0158c21cd3386c5b0ea04b6ef27bccd90a645028	fix(usage,device-link): verify official Anthropic routes and scope main opaque model pricing
+872112b0a64f5a819c9870cdc282fa5b96d5a8a2	chore(usage): merge upstream/main into fix/provider-pricing-magpie-opaque
+835f5e9f3b70fa4c12d56a4250fb05aab771430b	fix(maker-core): say a timed-out permission confirmation is not a user rejection
+21113560d863101e2506355e5836144f93357a42	fix(bots): 空任务清理按全库取值判断引用，覆盖附件等多态引用
+27d3c9e2f931b1a5db7e86a1dd97e776051cb4b4	fix(teammates): upgrade only the exact last-day review prompt
+a0360e1fd349696036bb5cdd86b57c15c16f77ee	fix(input-handoff): 锁屏时发起代输入当场返回 SCREEN_LOCKED，并说明主人不在电脑旁时的办法
+a484aea9a94e0a2f7e504a5cbb7c7c75ab9c2b22	test(bots): 分别覆盖按列名与按外键发现的任务引用
+12707a777a06447b54490b2109cec9dff730045a	chore(bots): 清理旧版例行任务留在伙伴历史里的空任务
+d3255b286cce60d6e78881f8c603fc174a847448	fix(teammates): count memory review activity since the last review
+3392beb7371c1077969b81386874c56bc0e4647d	fix(desktop): address review on direct companion entry and roster load state
+70f6b274c457682ac1e83031caf672f1fa2bc9a2	perf(desktop): 回应审阅：热切换失败时补发已保存的档位，任务卡缓存只留一份
+0d47cba3eb115f7f501c3c0281a6c606d77ee754	perf(desktop): open a companion's main chat directly and keep unchanged roster rows
+346142333f1ae26284e1d60ac6efc7e2964cabdb	perf(desktop): 群专线权限对账档位没变不广播，复用专线后不再立即重复对账
+1940412d74dac39075d31b0c526e9d37a5fa3bc7	perf(desktop): 群任务卡同步只跟进进行中的卡片，卡片存储按文件未变复用读取
+e5a41091b90b268eb28e16e51567665b8238e777	fix(pricing): show published tariffs and discovered prices in model settings
+2828203e4e64fa5a16a716d788e3b08ef7885746	fix(model-providers): 同步大陆直连模型人民币参考价
+3cdc4430455703708c2d9cb3ff5b81dadbaef139	chore(usage): merge upstream/main and port opaque pricing to turn usage cores
+47430961d534272c8902042328f3fb6a37c40a3d	fix(plugins): preserve verified session origin and missing-target errors
+c0216c7479b8325ae7be06b6fbc40047fcb1ba45	feat(plugins): let plugins open a visible session on a chosen computer
+9da7f1ddc45c7db5df455133484724a6b1d1d614	fix(usage,device-link): preserve selected opaque routing and read catalog without refreshes
+361ebd8496acb968db7f81e4aa1b172729984330	fix(usage,models): prioritize provider pricing and handle Magpie opaque models
+d18fe63d45306cc8142d677b69531af974adfded	fix(bots): 避免测试注释被识别为色值
+119da058eeda6922c5925999cad38daed1096ae5	fix(bots): 统一默认定时任务的模型继承机制
+0cb259a9b8de5ab35e90365df283f52c9b8e5333	fix(bots): 用轻量查询确认自动化项目归属
+3b5db75c1d2e7772daf19d69778a94d55338165f	fix(bots): 默认记忆整理跟随伙伴主模型

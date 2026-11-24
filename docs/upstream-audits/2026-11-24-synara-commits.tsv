@@ -1,0 +1,24 @@
+27c667c2cefc077e296e6d587a7c4e31e7312e0b	Show Antigravity account quotas in Usage through the official CLI (#2270)
+15346651102eb0faa6cd84f13cf6e3d755d07d76	[codex] Support multi-folder projects in Antigravity (#2261)
+2e10554d8bde7d5f6411bd282514c0a9240ac1d2	Merge pull request #2271 from Emanuele-web04/codex/antigravity-native-approvals
+430e756a8208b3db5576cef960d117336157e389	Merge pull request #2269 from Emanuele-web04/codex/orchestration-provider-readiness
+885385497af73a1010129a0c9b29ccb5705c6782	Merge pull request #2263 from Emanuele-web04/feat/antigravity-acp-interactions
+c60e86f870dfb80d36cd79121460dd4762055aa6	Integrate repaired steering with native Antigravity approvals
+9c100a69c91be9816c4878650efe724a2e44dace	Fix Antigravity native permission restoration and turn ownership
+7f7999788418e6a6d55a1a28bca669bd5cc50018	Sync repaired Antigravity ACP interactions into orchestration delegation
+50007efa592b44a0e959d7b8bb719f6e198f7ec6	Integrate current main into Antigravity ACP interactions
+398de3238360bc742281faec7fe547f22274264f	Keep branded identity for failed steering messages
+d2150217debd00bd4fbf4a5824efcbfe448449fa	Attach failed Antigravity steering to its user message
+b56e19a2c913f8f4327f6db0945d504a28797dec	Fix Devin ACP login, session MCP, and restart after Stop on Windows (#2268)
+fbe54987b9f2ed1a3b37dc8812be9a6ed2da8b74	fix(web): show "This Device" instead of "This Mac" on non-Mac platforms in usage analytics (#2260)
+99673f8b65c91fad183f292d648d9292567775ef	Merge commit 'c1bc6ec721ffc2c8e661c03189b574a50f8ab5df' into HEAD
+c1bc6ec721ffc2c8e661c03189b574a50f8ab5df	Validate gateway wake against the committed user message
+fbde5344eada4ab4ae288358b2cfcdfccab2a1b4	Merge commit '6f3455c1d9abe7fbdbee500065d7a687ce221885' into HEAD
+b627008c5ce31a58f1914f0802716d1465987c6b	Honor Antigravity config modes and Stop during approval delivery
+6f3455c1d9abe7fbdbee500065d7a687ce221885	Sync Antigravity ACP parent branch
+ebf66378f9672bc8f9b2f3bb0d1f40f69f952a46	Preserve terminal outcomes from Antigravity steers
+dad8ae23811df4206654a0b32b9ba1d8d3fe67bd	Route Antigravity tool permissions through native ACP
+706b08740a16dbacd59a7fbb5c2585d437a353e3	Respect committed Stop for gateway continuations
+1acc71bc43c800a1271ae67be84c0261d3575059	Apply orchestration migration review fixes
+c217ced4e63fa4150e358297a97841e6e08504a4	Improve provider readiness and staged orchestration delegation
+c1840f38bd6881a14397f93d54483c9d41ebff93	Handle native Antigravity questions, planners, subagents and steering
