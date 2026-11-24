@@ -22,6 +22,7 @@ for (const theme of ["light", "dark"]) {
     });
     await page.goto(`/tests/browser/connections.html?im-bots&theme=${theme}`);
     await expect(page.getByText("IM 插件更新", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "检查更新", exact: true })).toBeVisible();
     await expect(
       page.getByRole("checkbox", { name: "自动检查并下载兼容的 IM 插件更新" }),
     ).toBeChecked();
