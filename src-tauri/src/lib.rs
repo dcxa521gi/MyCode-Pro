@@ -32,6 +32,7 @@ mod group_tasks;
 mod harness;
 mod harness_updates;
 mod im_bridge;
+mod im_plugin;
 mod inbox_media;
 mod jira;
 mod jsonc;
@@ -434,6 +435,8 @@ pub fn run() {
             managed_cli::managed_cli_latest,
             managed_cli::managed_cli_install,
             im_bridge::im_bridge_request,
+            im_plugin::im_plugin_update,
+            cache_location::im_chat_workspace,
             language::app_set_locale,
             local_ai::local_ai_save_connection,
             local_ai::local_ai_remove_connection,

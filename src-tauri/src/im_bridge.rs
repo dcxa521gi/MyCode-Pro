@@ -12,6 +12,7 @@ type Reply = Result<Value, String>;
 struct Process {
     child: Child,
     input: ChildStdin,
+    runtime: std::path::PathBuf,
 }
 #[derive(Default)]
 pub struct ImBridge {
@@ -59,11 +60,12 @@ fn ensure(app: &AppHandle, bridge: &ImBridge) -> Result<(), String> {
         {
             return Ok(());
         }
+        crate::im_plugin::reject_runtime(app, &existing.runtime);
     }
-    let runtime = crate::managed_cli::runtime_dir(app)?;
+    let runtime = crate::im_plugin::runtime_path(app)?;
     let mut command = Command::new(crate::managed_cli::node(app)?);
     command
-        .arg(runtime.join("im-bridge.cjs"))
+        .arg(&runtime)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null());
@@ -123,7 +125,11 @@ fn ensure(app: &AppHandle, bridge: &ImBridge) -> Result<(), String> {
             }
         }
     });
-    *process = Some(Process { child, input });
+    *process = Some(Process {
+        child,
+        input,
+        runtime,
+    });
     Ok(())
 }
 #[tauri::command(async)]

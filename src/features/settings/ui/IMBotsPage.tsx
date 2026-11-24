@@ -3,6 +3,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useTranslation } from "../../../shared/i18n";
+import { IM_PLUGIN_AUTO_KEY, imPluginAutoUpdate, updateIMPlugin, type IMPluginState } from "../model/imPlugin";
 import {
   allModels,
   subscribeModels,
@@ -46,6 +47,16 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [autoPlugin, setAutoPlugin] = useState(imPluginAutoUpdate);
+  const [plugin, setPlugin] = useState<IMPluginState>();
+  const [pluginBusy, setPluginBusy] = useState(false);
+  const [pluginError, setPluginError] = useState("");
+  const checkPlugin = async (install = false) => {
+    setPluginBusy(true); setPluginError("");
+    try { setPlugin(await updateIMPlugin(install)); }
+    catch (error) { setPluginError(t(String(error))); }
+    finally { setPluginBusy(false); }
+  };
   const request = async (action: string) => {
     setBusy(true);
     setError("");
@@ -289,6 +300,15 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
   );
   return (
     <section className="space-y-5">
+      <section className="rounded-2xl border border-content/10 bg-content/[0.035] p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><h3 className="text-sm font-semibold">{t("IM plugin updates")}</h3><p className="mt-1 text-xs text-content/60">{t("Update local messaging transports independently. Active conversations stay connected; downloaded updates apply on the next MyCode launch.")}</p></div>
+          <button type="button" disabled={pluginBusy} onClick={() => void checkPlugin(Boolean(plugin?.available))} className="shrink-0 rounded-lg border border-content/20 bg-content/5 px-3 py-2 text-xs hover:bg-content/10 disabled:opacity-50">{t(pluginBusy ? "Checking / updating…" : plugin?.available ? "Update plugin" : "Check updates")}</button>
+        </div>
+        <label className="mt-3 flex items-center gap-2 text-xs"><input type="checkbox" checked={autoPlugin} onChange={(e) => { setAutoPlugin(e.target.checked); localStorage.setItem(IM_PLUGIN_AUTO_KEY, String(e.target.checked)); }} />{t("Automatically check and download compatible IM plugin updates")}</label>
+        {plugin && <p role="status" className="mt-2 text-xs text-content/65">{plugin.staged ? `${t("Plugin ready. Restart MyCode to activate it.")} ${plugin.latest}` : `${t("Installed")}: ${plugin.current} · ${plugin.available ? t("New version") + ": " + plugin.latest : t("No new version")}`}</p>}
+        {pluginError && <p role="alert" className="mt-2 break-words text-xs text-red-500">{pluginError}</p>}
+      </section>
       <p className="text-sm leading-relaxed text-content/55">
         {t(
           "Bots connect directly from MyCode. Only your allowed user can start tasks. Tool approvals remain in the desktop app; keep MyCode running.",
@@ -346,6 +366,10 @@ export function IMBotsPage({ cwd }: { cwd?: string }) {
             ["直接发送任务内容", "Start or continue a task in the currently selected project."],
             ["回复任务完成通知", "Reply to a completion message to continue that exact session when remote continuation is enabled."],
             ["/continue 会话ID 下一步任务", "Continue an authorized session explicitly with its ID and your instruction."],
+            ["/聊天 今天想聊什么", "Switch to everyday AI chat in an independent conversation. Send /task to return to project work."],
+            ["/自动化创建 每天 09:00 | 日报 | 整理项目进展", "Create a daily task in the selected project using this computer's local time. Tool approvals remain on the desktop."],
+            ["/自动化", "List schedules created by you through this bot, including their IDs and state."],
+            ["/暂停自动化 任务ID · /恢复自动化 任务ID", "Pause or resume one of your bot-created schedules. Send /help for all commands."],
           ] as const).map(([command, description]) => (
             <div key={command} className="rounded-xl border border-content/10 bg-content/[0.035] p-3">
               <code className="block break-all text-xs font-semibold text-accent">{command}</code>

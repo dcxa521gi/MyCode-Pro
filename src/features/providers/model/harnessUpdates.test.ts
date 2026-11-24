@@ -62,14 +62,12 @@ function find(harnesses: HarnessId[]) {
 }
 
 describe("harness update check", () => {
-  it("uses each vendor managed feed for the six added CLIs", async () => {
+  it("uses each vendor managed feed for active CLIs", async () => {
     native.invoke.mockClear();
     for (const harness of [
       "cursor",
       "grok",
       "hermes",
-      "minimax",
-      "mimo",
       "devin",
     ] as const) {
       expect(await fetchLatestHarnessVersion(harness)).toBe("1.2.3");
@@ -99,12 +97,12 @@ describe("harness update check", () => {
     expect([...UPDATABLE_HARNESSES].sort()).toEqual([...HARNESSES].sort());
     expect(
       await findHarnessUpdates({
-        harnesses: ["hermes", "devin", "minimax", "mimo", "cursor", "grok"],
+        harnesses: ["hermes", "devin", "cursor", "grok"],
         installedVersion: async (id) =>
           id === "hermes" ? "Hermes Agent v0.21.5 (2026.9.20)" : "1.0.0",
         latestVersion: async (id) => (id === "hermes" ? "v2026.9.24" : "1.1.0"),
       }),
-    ).toHaveLength(6);
+    ).toHaveLength(4);
   });
   it("reports only harnesses behind the published release", async () => {
     expect(await find(["claude", "codex", "opencode"])).toEqual([
@@ -139,10 +137,12 @@ describe("harness update check", () => {
   });
 });
 
-it("bridges managed installation events while ignoring retired Freebuff", async () => {
+it("bridges managed installation events while ignoring retired agents", async () => {
   const changed = vi.fn();
   const stop = await onHarnessUpdated(changed);
   await events.emit("mycode-cli-updated", "freebuff");
+  await events.emit("mycode-cli-updated", "minimax");
+  await events.emit("mycode-cli-updated", "mimo");
   expect(changed).not.toHaveBeenCalled();
   await events.emit("mycode-cli-updated", "devin");
   expect(changed).toHaveBeenCalledWith("devin", "installed");

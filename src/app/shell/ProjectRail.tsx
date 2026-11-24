@@ -1,5 +1,4 @@
 import { translate as t, formatMessage } from "../../shared/i18n";
-import { AccountCenter } from "./AccountCenter";
 import { DevModeSlot } from "./TitleBar";
 import { UsageSummary } from "../../features/settings/ui/UsageHistoryPage";
 import { ComputerControlStop } from "../../features/settings/ui/ComputerSettings";
@@ -627,7 +626,6 @@ export function ProjectRail({
               shortcut={`${MOD},`}
               ariaLabel={`${t("Settings")} (${MOD},)`}
             />
-            <AccountCenter onManageModels={() => { onOpenSettings?.(); onSelectSettingsSection?.("providers"); }} />
           </div>
         </>
       )}

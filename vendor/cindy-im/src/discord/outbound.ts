@@ -1,5 +1,5 @@
 import { encodeMessageId } from './codec.js';
-import { chunkDiscordText } from './chunk.js';
+import { chunkDiscordFinalText } from './chunk.js';
 
 export interface SentMessageLike {
   id: string;
@@ -40,7 +40,7 @@ export async function sendChunked(
   ch: DMChannelLike,
   text: string,
 ): Promise<{ firstMessageId: string }> {
-  const chunks = chunkDiscordText(text);
+  const chunks = chunkDiscordFinalText(text);
   let firstMessageId = '';
 
   for (const chunk of chunks) {

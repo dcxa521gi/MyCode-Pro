@@ -2886,6 +2886,7 @@ fn resolve_devin() -> Option<PathBuf> {
     if let Some(local_app_data) = std::env::var_os("LOCALAPPDATA").map(PathBuf::from) {
         // The Windows installer keeps its launcher beside versioned builds.
         candidates.push(local_app_data.join("devin/cli/bin/devin"));
+        candidates.push(local_app_data.join("devin/bin/devin"));
     }
     #[cfg(target_os = "macos")]
     candidates.push(PathBuf::from("/opt/homebrew/bin/devin"));

@@ -1,8 +1,8 @@
 # MyCode 功能来源与版本台账
 
-整理日期：2026-11-23；当前产品基线：**MyCode 0.24.0**，源码提交 `f57b6b1d629b08bf182d1650ba120aa8c26fb0c4`。
+整理日期：2026-11-24；当前产品基线：**MyCode 0.24.1**，源码提交 `0.24.1 release candidate`。
 
-本文件按 **35 个交付阶段、374 条变更、111 个稳定功能 ID、74 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
+本文件按 **36 个交付阶段、383 条变更、111 个稳定功能 ID、81 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
 
 ## 如何使用
 
@@ -18,13 +18,13 @@
 | --- | --- | --- |
 | MONO | MonoCode 上游直接同步 | 40 |
 | MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 130 |
-| CINDY_CODE | Cindy 开源代码复用 | 2 |
+| CINDY_CODE | Cindy 开源代码复用 | 3 |
 | CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 32 |
-| SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 11 |
-| MYCODE | MyCode 自有新增/修复 | 132 |
+| SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 12 |
+| MYCODE | MyCode 自有新增/修复 | 138 |
 | VENDOR | 官方 CLI/SDK/接口适配 | 22 |
 | CODEX_REFERENCE | Codex 交互参考、MyCode 实现 | 4 |
-| USER_UI_REFERENCE | 用户截图布局参考、MyCode 实现 | 1 |
+| USER_UI_REFERENCE | 用户截图布局参考、MyCode 实现 | 2 |
 
 “直接同步”说明功能基础来自 MonoCode，不表示整文件未改。MONO_ADAPT 专门标记 MyCode 模型路由、Windows、交互、存储与双语言融合。Cindy 的 IM/iLink 有开源传输代码复用；供应商、存储、记忆、调度等多数是设计参考后在 Tauri 架构实现。Synara 本表为设计借鉴或等价安全能力核对，不宣称移植完整 Hub/Effect/WebSocket。
 
@@ -73,6 +73,7 @@
 | [0.23.10](#v-0-23-10) | 2026-10-26 / `v0.23.10` | `8c7b7f21` | 26465c6209 → 26465c6209；正式产品主线无新增提交，独立 Native 预览另列 | Cindy 4ad25a97fb → 7c5bd270c9，152 提交；用量语义独立适配。Synara 3f55b77ef1 → 257b4de844，22 提交；v1.0.9 候选核对 |
 | [0.23.11](#v-0-23-11) | 2026-10-28 / `v0.23.11` | `cccf5f6a` | 26465c6209 → 26465c6209；正式主线无新增提交 | Cindy abe4d6574b → cdfec9aa5b，426 提交；Android 点击恢复独立适配。Synara ea912dcf14 无变化 |
 | [0.24.0](#v-0-24-0) | 2026-11-23 / `v0.24.0` | `f57b6b1d` | 115f0e97c4 → 09d04436ba，10 月 20 日以来 460 提交；实际合并以 0.23.11 为基线，新增 457 提交 | Cindy 4acbce110f → e6ba8ebcf5，13,422 提交中选取 DeepSeek 模态适配；Synara 299fd573b1 → 35f8d842d0，873 提交中选取 Markdown 阅读方向适配 |
+| [0.24.1](#v-0-24-1) | 2026-11-24 / `v0.24.1` | `pending ` | 09d04436ba → 09d04436ba；主分支 0 新增提交 | Cindy e6ba8ebcf5 → acfe0a4a3f：选择 Discord 分段修复；Synara 35f8d842d0 → 27c667c2ce：选择 Devin Windows 路径与账户隔离适配；ZCode v4.0.0 样式参考 |
 
 ## 按版本的功能明细
 
@@ -130,8 +131,8 @@
 | MC-0.7.0-002<br>`MODEL-ROUTING` | 多 CLI 自定义连接路由 | [R32](#r32) | MonoCode 为主、MyCode 适配融合<br>**改造** | Pi/OpenCode/MiMo；Claude 用 Anthropic、Codex 用 Responses；封闭目录不伪装可接外部模型。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.7.0-003<br>`CLI-INSTALL` | Windows 内置 Node/npm 资源路径 | [R10](#r10) | MyCode 自有新增/修复<br>**修复** | 显示当前/最新版本/错误；支持应用内与系统全局作用范围。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.7.0-004<br>`CLI-INSTALL` | Cursor/Grok/MiMo 安装 | [R10](#r10) | 官方 CLI/SDK/接口适配<br>**新增** | 按各 CLI 官方发行与命令实现 MyCode 应用内安装适配，不称为 Cindy 代码。 | 保留；具体范围/实测条件见版本记录 |
-| MC-0.7.0-005<br>`CLI-RETIRED` | OMP 安装与 ZCode 会话入口 | 上游/维护/历史记录 | 官方 CLI/SDK/接口适配<br>**新增** | 历史功能；后在 0.11.0 移除相关可选/运行入口。 | OMP/FX/Antigravity/ZCode 新入口已移除 |
-| MC-0.7.0-006<br>`MIMO` | MiMo Code ACP 会话 | 上游/维护/历史记录 | 官方 CLI/SDK/接口适配<br>**新增** | 参考官方协议接入原有会话链路。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.7.0-005<br>`CLI-RETIRED` | OMP 安装与 ZCode 会话入口 | 上游/维护/历史记录 | 官方 CLI/SDK/接口适配<br>**新增** | 历史功能；后在 0.11.0 移除相关可选/运行入口。 | OMP/FX/Antigravity/ZCode/MiniMax Code/MiMo Code 新入口已移除；保留历史数据 |
+| MC-0.7.0-006<br>`MIMO` | MiMo Code ACP 会话 | 上游/维护/历史记录 | 官方 CLI/SDK/接口适配<br>**新增** | 参考官方协议接入原有会话链路。 | 0.24.1 按用户要求移除 CLI 运行入口；小米 API 模型服务商保留 |
 | MC-0.7.0-007<br>`WECHAT` | 个人微信二维码连接 | [R12](#r12) | Cindy 开源代码复用<br>**新增** | 复用 Cindy 开源腾讯 iLink 传输，凭据加密，仅允许绑定用户发起任务。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.7.0-008<br>`NAV` | 新建任务与搜索入口 | [R02](#r02)、[R15](#r15) | MyCode 自有新增/修复<br>**改造** | 搜索移到项目上方；新建任务入口增强，非 Git 文件夹不再导致收件箱失败。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.7.0-009<br>`IMPORT` | 来源选择与扫描状态保留 | [R33](#r33) | Cindy 本地设计参考、MyCode 实现<br>**改进** | 横向胶囊切换；设置内切页不丢选择，退出应用需重新扫描。 | 保留；具体范围/实测条件见版本记录 |
@@ -151,10 +152,10 @@
 | MC-0.8.0-002<br>`MODEL-CHOICE` | 新建任务按文件夹/代理/模型选择 | [R09](#r09) | MyCode 自有新增/修复<br>**改进** | 记住模式目录，优先选择支持服务商协议的可用代理。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.8.0-003<br>`VOICE` | 录音、ASR 与语音快捷键 | 上游/维护/历史记录 | 官方 CLI/SDK/接口适配<br>**新增** | MiMo-V2.5-ASR 或 OpenAI 兼容本地服务；只进入草稿，不自动发送，非内置语音权重。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.8.0-004<br>`VOICE` | 中英文语音命令 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**新增** | 识别完整命令；不把普通句子当作软件操作。 | 保留；具体范围/实测条件见版本记录 |
-| MC-0.8.0-005<br>`COMPUTER` | Cua Driver 电脑控制 | [R11](#r11) | 官方 CLI/SDK/接口适配<br>**新增** | 本地开源驱动，MCP 接入兼容 CLI，独立应用进程，默认关闭；不是 Cindy 云端电脑控制。 | 保留；具体范围/实测条件见版本记录 |
-| MC-0.8.0-006<br>`COMPUTER` | 控制启停与快速停止 | [R11](#r11) | MyCode 自有新增/修复<br>**改造** | 设置页与侧栏停止、停止后拒绝新操作，不虚构撤销已经执行的动作。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.8.0-005<br>`COMPUTER` | Cua Driver 电脑控制 | [R11](#r11) | 官方 CLI/SDK/接口适配<br>**新增** | 本地开源驱动，MCP 接入兼容 CLI，独立应用进程，默认关闭；不是 Cindy 云端电脑控制。 | 0.24.1 移除电脑控制设置入口；紧急停止与历史数据保留 |
+| MC-0.8.0-006<br>`COMPUTER` | 控制启停与快速停止 | [R11](#r11) | MyCode 自有新增/修复<br>**改造** | 设置页与侧栏停止、停止后拒绝新操作，不虚构撤销已经执行的动作。 | 0.24.1 移除电脑控制设置入口；紧急停止与历史数据保留 |
 | MC-0.8.0-007<br>`IMPORT` | WorkBuddy 历史导入 | [R33](#r33) | MyCode 自有新增/修复<br>**新增** | 读取本地可读记录、来源/序号/数量、全选和 20 条分页。 | 保留；具体范围/实测条件见版本记录 |
-| MC-0.8.0-008<br>`CLI-RETIRED` | ZCode 历史/技能读取 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**新增** | 读取本地数据库及目录；原生 ID 和授权不冒用，后移除新增入口。 | OMP/FX/Antigravity/ZCode 新入口已移除 |
+| MC-0.8.0-008<br>`CLI-RETIRED` | ZCode 历史/技能读取 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**新增** | 读取本地数据库及目录；原生 ID 和授权不冒用，后移除新增入口。 | OMP/FX/Antigravity/ZCode/MiniMax Code/MiMo Code 新入口已移除；保留历史数据 |
 | MC-0.8.0-009<br>`SKILLS` | 技能来源与更多本地目录 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**改进** | 显示来源，扫描 WorkBuddy/MiMo 等；共享技能独立标记。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.8.0-010<br>`MODEL-CONNECTION` | 小米 API/Token Plan 分开 | [R09](#r09)、[R50](#r50) | 官方 CLI/SDK/接口适配<br>**改造** | 协议在表单选择，地址与账号计费方案对应，不混用 Key。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.8.0-011<br>`STORAGE` | 默认工作区与附件/截图缓存位置 | [R05](#r05)、[R06](#r06) | MyCode 自有新增/修复<br>**新增** | 新增常规设置中的路径；不迁移已有文件，后移到存储空间。 | 已实现应用控制路径；存在系统/厂商边界 |
@@ -207,7 +208,7 @@
 
 | 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
 | --- | --- | --- | --- | --- | --- |
-| MC-0.10.0-001<br>`LOGIN` | MyCode 账号中心浏览器登录 | [R14](#r14) | MyCode 自有新增/修复<br>**新增** | PKCE、登记回环、串行刷新、DPAPI；早期测试标签后移除，不是 Cindy 账号接入。 | 旧账号入口已替换为词元跳动；旧凭据文件保留不读取 |
+| MC-0.10.0-001<br>`LOGIN` | MyCode 账号中心浏览器登录 | [R14](#r14) | MyCode 自有新增/修复<br>**新增** | PKCE、登记回环、串行刷新、DPAPI；早期测试标签后移除，不是 Cindy 账号接入。 | 0.24.1 移除左下角词元跳动登录入口；模型服务商授权保留 |
 | MC-0.10.0-002<br>`TOKEN-DANCE` | 词元跳动（原 TokenDance）合作授权 | [R56](#r56) | 官方 CLI/SDK/接口适配<br>**新增** | 官方 PKCE/一次性码、协议模型筛选及应用归因；实际计费验收需账号。 | 保留，显示名称词元跳动 |
 | MC-0.10.0-003<br>`MODEL-METADATA` | 模型上下文/输出/输入模态/推理元数据 | [R50](#r50) | 官方 CLI/SDK/接口适配<br>**新增** | 优先官方模型接口，MiMo 补官方表；缺失保持未提供。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.10.0-004<br>`CONTEXT` | Codex 压缩完成事件/超时 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**修复** | 兼容 thread/compacted 与 contextCompaction，不等全部 turn 完成。 | 保留；具体范围/实测条件见版本记录 |
@@ -232,7 +233,7 @@
 | MC-0.11.0-002<br>`USAGE` | 热力图/趋势/排名/日期/分页 | [R04](#r04)、[R08](#r08) | Cindy 本地设计参考、MyCode 实现<br>**改进** | 参考 UsageHistorySection，在 MyCode 每轮 startedAt/连接 ID 上统计，不混算同名模型。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.11.0-003<br>`STORAGE` | 存储容量/阈值/清理/附件备份 | [R05](#r05)、[R07](#r07) | Cindy 本地设计参考、MyCode 实现<br>**新增** | 参考 StorageManagementCard，适配 SQLite/草稿引用；不照搬 Cindy 媒体 CAS。 | 已实现应用控制路径；存在系统/厂商边界 |
 | MC-0.11.0-004<br>`STORAGE` | 数据库检查/备份压缩与恢复保护 | [R07](#r07) | MyCode 自有新增/修复<br>**新增** | VACUUM INTO 后压缩，附件转备份不虚称释放总空间，保留正文。 | 已实现应用控制路径；存在系统/厂商边界 |
-| MC-0.11.0-005<br>`CLI-RETIRED` | OMP/FX/Antigravity/ZCode 新运行入口 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**移除** | 旧会话可读，不恢复可选/安装/导入/扫描入口。 | OMP/FX/Antigravity/ZCode 新入口已移除 |
+| MC-0.11.0-005<br>`CLI-RETIRED` | OMP/FX/Antigravity/ZCode 新运行入口 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**移除** | 旧会话可读，不恢复可选/安装/导入/扫描入口。 | OMP/FX/Antigravity/ZCode/MiniMax Code/MiMo Code 新入口已移除；保留历史数据 |
 | MC-0.11.0-006<br>`GITCODE` | GitCode 接入收件箱列表/详情 | 上游/维护/历史记录 | MyCode 自有新增/修复<br>**改造** | 先验证访问再保存新令牌，失败不覆盖已有值。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.11.0-007<br>`LAYOUT` | 新配置工作区默认右置 | [R22](#r22) | MyCode 自有新增/修复<br>**改进** | 明确设置过左置的不覆盖。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.11.0-008<br>`ACTIVITY` | 运行组自动展开/完成收起 | [R03](#r03) | MyCode 自有新增/修复<br>**改进** | 手动折叠优先，只展示实际事件。 | 保留；具体范围/实测条件见版本记录 |
@@ -260,7 +261,7 @@
 | MC-0.12.0-006<br>`STORAGE` | 项目临时/计划/附件/工作副本到 .mycode | [R05](#r05) | MyCode 自有新增/修复<br>**改造** | TEMP/TMP/TMPDIR、npm/pip/uv/XDG 缓存与 Claude plans；账号/厂商数据库/系统缓存不强搬，非文件系统沙箱。 | 已实现应用控制路径；存在系统/厂商边界 |
 | MC-0.12.0-007<br>`STORAGE` | 默认工作区和软件缓存按设置走 | [R05](#r05) | MyCode 自有新增/修复<br>**改造** | 临时任务用默认工作区；下载、更新、安装缓存读取缓存设置；旧数据原位。 | 已实现应用控制路径；存在系统/厂商边界 |
 | MC-0.12.0-008<br>`STORAGE` | 位置设置去重与导航归位 | [R06](#r06)、[R07](#r07) | MyCode 自有新增/修复<br>**改造** | 仅存储空间保留路径，置工作区分组最后，刷新/附件操作状态更清楚。 | 已实现应用控制路径；存在系统/厂商边界 |
-| MC-0.12.0-009<br>`LOGIN` | 登录图标/卡片与测试标签 | [R14](#r14) | MyCode 自有新增/修复<br>**改进** | 图标对齐、改善已/未登录卡片，移除测试文案。 | 旧账号入口已替换为词元跳动；旧凭据文件保留不读取 |
+| MC-0.12.0-009<br>`LOGIN` | 登录图标/卡片与测试标签 | [R14](#r14) | MyCode 自有新增/修复<br>**改进** | 图标对齐、改善已/未登录卡片，移除测试文案。 | 0.24.1 移除左下角词元跳动登录入口；模型服务商授权保留 |
 | MC-0.12.0-010<br>`PROVIDER-UI` | 连接列表/详情/编辑弹窗/模型开关 | [R09](#r09) | Cindy 本地设计参考、MyCode 实现<br>**改进** | 以 Cindy 交互参考在本项目实现，保留合作商。 | 当前以 MonoCode 官方账户式列表为主 |
 | MC-0.12.0-011<br>`MODEL-CHOICE` | 可用模型全选/取消全选 | [R09](#r09) | MyCode 自有新增/修复<br>**新增** | 保留主模型及手动模型。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.12.0-012<br>`IM` | IM 配置折叠卡片 | [R12](#r12)、[R35](#r35) | Cindy 本地设计参考、MyCode 实现<br>**改造** | 本地渠道传输仍来自先前开源复用，页面排版为 MyCode 适配。 | 保留；具体范围/实测条件见版本记录 |
@@ -296,7 +297,7 @@
 | MC-0.13.0-009<br>`HTML-PREVIEW` | HTML/HTM/SVG 内置/外置预览 | [R18](#r18) | MyCode 自有新增/修复<br>**新增** | 左键看代码，右键选择浏览器；静态服务有 Host/令牌/路径边界，不开放 Tauri IPC。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.13.0-010<br>`RECALL` | 短时间暂停回填与撤回消息 | [R19](#r19) | Codex 交互参考、MyCode 实现<br>**新增** | 限条件、草稿保护、旧消息先撤回后续；行为参考 Codex，在 MyCode 自行实现。 | 有条件实现，非任意副作用回滚 |
 | MC-0.13.0-011<br>`RECALL` | 修改文件快照/哈希冲突保护 | [R19](#r19) | MyCode 自有新增/修复<br>**新增** | 捕获的新建/改动/删除可恢复；命令、数据库、网络及项目外副作用不保证回滚，见版本边界。 | 有条件实现，非任意副作用回滚 |
-| MC-0.13.0-012<br>`MINIMAX` | 官方 MiniMax Code ACP | [R21](#r21)、[R32](#r32) | 官方 CLI/SDK/接口适配<br>**新增** | @minimax-ai/code / mcode；独立认证/模型，实包初始化验证不等于已登录计费。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.13.0-012<br>`MINIMAX` | 官方 MiniMax Code ACP | [R21](#r21)、[R32](#r32) | 官方 CLI/SDK/接口适配<br>**新增** | @minimax-ai/code / mcode；独立认证/模型，实包初始化验证不等于已登录计费。 | 0.24.1 按用户要求移除 CLI 运行入口；API 模型服务商保留 |
 | MC-0.13.0-013<br>`THEME` | 浅色对比与模型选项反馈 | [R22](#r22) | MonoCode 为主、MyCode 适配融合<br>**改进** | 在主题变量和已有模型选择器上调整。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.13.0-014<br>`NAV` | 空闲预加载/设置关闭恢复原视图 | 上游/维护/历史记录 | MonoCode 上游直接同步<br>**同步** | 7ce63cb..1e97594 增量。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.13.0-015<br>`REVIEW` | 变更审阅范围与逐行差异 | 上游/维护/历史记录 | MonoCode 上游直接同步<br>**同步** | 不和 MyCode 撤回快照混为完全同一实现。 | 保留；具体范围/实测条件见版本记录 |
@@ -336,7 +337,7 @@
 | MC-0.15.0-006<br>`MODEL-CONNECTION` | NVIDIA NIM/Hugging Face/Vercel 模板 | [R27](#r27)、[R30](#r30) | 官方 CLI/SDK/接口适配<br>**新增** | 官方接口，目录模板共 30 个，不自带额度。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.15.0-007<br>`MODEL-AUTH` | OpenRouter PKCE/官方 CLI 登录入口 | [R30](#r30) | 官方 CLI/SDK/接口适配<br>**新增** | 按各服务官方认证，自有应用归因与合作商保留。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.15.0-008<br>`HERMES` | Hermes 自定义 Chat Completions | [R32](#r32) | MyCode 自有新增/修复<br>**修复** | 项目隔离配置/环境传 Key，不搬原认证与历史。 | 保留；具体范围/实测条件见版本记录 |
-| MC-0.15.0-009<br>`MINIMAX` | MiniMax 自定义 Completions/Messages | [R32](#r32) | MyCode 自有新增/修复<br>**修复** | 模型索引/命名修正，项目 .mycode/cli-homes，不明文写 Key。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.15.0-009<br>`MINIMAX` | MiniMax 自定义 Completions/Messages | [R32](#r32) | MyCode 自有新增/修复<br>**修复** | 模型索引/命名修正，项目 .mycode/cli-homes，不明文写 Key。 | 0.24.1 按用户要求移除 CLI 运行入口；API 模型服务商保留 |
 | MC-0.15.0-010<br>`MODEL-ROUTING` | 重启隔离进程的有限可见历史 | [R32](#r32) | MyCode 自有新增/修复<br>**改进** | 不复制隐藏思考或冒用原生会话 ID。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.15.0-011<br>`IMPORT` | MiniMax/Cursor 编辑器与 CLI/OpenCode 导入 | [R33](#r33) | MyCode 自有新增/修复<br>**新增** | 保留原有来源、只读扫描、去重与独立历史。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.15.0-012<br>`IMPORT` | 统计/搜索/预览/结果弹窗/局部失败重试 | [R33](#r33) | Cindy 本地设计参考、MyCode 实现<br>**改造** | 参考 Cindy 流程，在本软件深浅主题实现。 | 保留；具体范围/实测条件见版本记录 |
@@ -445,7 +446,7 @@
 
 | 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
 | --- | --- | --- | --- | --- | --- |
-| MC-0.19.0-complete-001<br>`CLI-UNIFIED-UPDATES` | 首次合入上游 HarnessUpdateNotice | [R10](#r10)、[R52](#r52) | MonoCode 为主、MyCode 适配融合<br>**同步** | 上游 1595870；Tag 对照初版无此文件、补齐版有。此时与 MyCode 额外提示并存，0.20 才统一。 | 保留，唯一上游式更新提示覆盖活动 10 CLI |
+| MC-0.19.0-complete-001<br>`CLI-UNIFIED-UPDATES` | 首次合入上游 HarnessUpdateNotice | [R10](#r10)、[R52](#r52) | MonoCode 为主、MyCode 适配融合<br>**同步** | 上游 1595870；Tag 对照初版无此文件、补齐版有。此时与 MyCode 额外提示并存，0.20 才统一。 | 唯一上游式更新提示覆盖当前 8 个活动 CLI |
 | MC-0.19.0-complete-002<br>`MONOS` | 常驻智能体角色/形象/项目/权限 | [R13](#r13)、[R38](#r38)、[R54](#r54) | MonoCode 上游直接同步<br>**同步** | 完整融合至 d26871f，不是恢复旧群聊。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.19.0-complete-003<br>`MONOS-MEMORY` | SOUL 与独立长期记忆/持久会话 | [R36](#r36) | MonoCode 为主、MyCode 适配融合<br>**同步** | 新目录遵循默认工作区，旧目录原位读取，和 MyCode 个人/项目记忆分别保留。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.19.0-complete-004<br>`HABITS` | 主动习惯/定时/预算/暂停/恢复 | 上游/维护/历史记录 | MonoCode 上游直接同步<br>**同步** | 独立于已移除群聊随机闲聊，单次最长一小时。 | 保留；具体范围/实测条件见版本记录 |
@@ -524,7 +525,7 @@
 | MC-0.20.0-025<br>`FREEBUFF` | 彻底退出检测/更新/安装/解析/设置 | [R57](#r57) | MyCode 自有新增/修复<br>**移除** | 忽略旧配置及旧事件；已安装文件、凭据和历史不删除。 | 已移除集成，旧文件/凭据/历史保留 |
 | MC-0.20.0-026<br>`CLI-LEGACY-NOTICE` | 删除额外 CLIUpdateNotice | [R52](#r52) | MonoCode 为主、MyCode 适配融合<br>**移除** | 取消重复启动扫描，上游 HarnessUpdateNotice 为唯一更新提示。 | 额外启动通知已移除 |
 | MC-0.20.0-027<br>`CLI-LEGACY-DIALOG` | 取消已安装 CLI 的旧版本弹窗 | [R52](#r52) | MonoCode 为主、MyCode 适配融合<br>**移除** | 已安装不查最新、不被离线阻塞；CliReadyDialog 只用于确实缺失后的安装准备。 | 已安装 CLI 更新弹窗已移除；缺失安装保留 |
-| MC-0.20.0-028<br>`CLI-UNIFIED-UPDATES` | 上游唯一更新提示融入 10 CLI | [R10](#r10)、[R52](#r52) | MonoCode 为主、MyCode 适配融合<br>**改造** | 上游 4 条更新链保留，额外 6 用管理安装器；并发 2/日期比较/视口滚动/验证后激活/跨窗口刷新。 | 保留，唯一上游式更新提示覆盖活动 10 CLI |
+| MC-0.20.0-028<br>`CLI-UNIFIED-UPDATES` | 上游唯一更新提示融入 10 CLI | [R10](#r10)、[R52](#r52) | MonoCode 为主、MyCode 适配融合<br>**改造** | 上游 4 条更新链保留，额外 6 用管理安装器；并发 2/日期比较/视口滚动/验证后激活/跨窗口刷新。 | 唯一上游式更新提示覆盖当前 8 个活动 CLI |
 | MC-0.20.0-029<br>`MONOS-IDENTITY` | 每轮 MyCode 身份与旧上下文纠正 | [R54](#r54) | MyCode 自有新增/修复<br>**修复** | MONO_PROMPT_VERSION 19、当前昵称、旧 SOUL/记忆只视历史；不改原文。 | 保留，每轮纠正当前产品身份 |
 | MC-0.20.0-030<br>`I18N` | Open 动作和待处理状态拆上下文 | [R03](#r03)、[R53](#r53) | MyCode 自有新增/修复<br>**修复** | translateInContext，技术 ID/状态比较保持原值；Ticker/Host 错误继续双语。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.20.0-031<br>`AUTOMATION` | 自动化跟随当前项目会话默认 | 上游/维护/历史记录 | Cindy 本地设计参考、MyCode 实现<br>**改造** | 28afb1e98；未固定模型/连接时运行时读取默认，明确路由及权限不改。 | 保留；具体范围/实测条件见版本记录 |
@@ -615,7 +616,7 @@
 | MC-0.23.0-003<br>`SESSION-REFERENCE` | 回复末段整段选择 | [R70](#r70) | MonoCode 为主、MyCode 适配融合<br>**融合** | 同步 MonoCode #1001；保留 MyCode 选区加入对话操作。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.23.0-004<br>`DIFF` | Diff 滚动条按渲染行定位 | [R70](#r70) | MonoCode 上游直接同步<br>**同步** | 同步 MonoCode #1002；不改变现有 diff 数据。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.23.0-005<br>`BASE` | 隐藏仅网页命令右键菜单 | [R70](#r70) | MonoCode 为主、MyCode 适配融合<br>**融合** | 同步 MonoCode #1003；保留文本、链接、媒体、终端原生菜单。 | 保留；具体范围/实测条件见版本记录 |
-| MC-0.23.0-006<br>`LOGIN` | 词元跳动成为唯一账号入口 | [R67](#r67) | MyCode 自有新增/修复<br>**替换** | 停用旧 OAuth 命令及 UI，旧凭据文件不迁移不删除；现有词元跳动 Key 可识别。 | 旧账号入口已替换为词元跳动；旧凭据文件保留不读取 |
+| MC-0.23.0-006<br>`LOGIN` | 词元跳动成为唯一账号入口 | [R67](#r67) | MyCode 自有新增/修复<br>**替换** | 停用旧 OAuth 命令及 UI，旧凭据文件不迁移不删除；现有词元跳动 Key 可识别。 | 0.24.1 移除左下角词元跳动登录入口；模型服务商授权保留 |
 | MC-0.23.0-007<br>`TOKEN-DANCE` | 词元跳动余额与可得资料 | [R67](#r67) | 官方 CLI/SDK/接口适配<br>**接入** | 官方开放平台 API 查余额和用量关联 ID；资料接口若不可用于 Key 则字段缺省。 | 保留，显示名称词元跳动 |
 | MC-0.23.0-008<br>`INPUT-HISTORY` | 发送历史上下键聚焦与失焦均可用 | [R68](#r68) | MyCode 自有新增/修复<br>**修复** | 会话用户消息传入输入框，排除其他输入控件与输入法。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.23.0-009<br>`IM` | IM 全项目目录与项目切换创建 | [R69](#r69) | MyCode 自有新增/修复<br>**增强** | 历史会话库与工作区项目合并；仅已配置 owner 可使用，显式引用继续原会话。 | 保留；具体范围/实测条件见版本记录 |
@@ -633,7 +634,7 @@
 | --- | --- | --- | --- | --- | --- |
 | MC-0.23.1-001<br>`GROUP-TASK` | 独立群任务、安排卡与逐步执行 | [R71](#r71) | Cindy 本地设计参考、MyCode 实现<br>**本地重构** | 参考 Cindy 开源群任务交互；MyCode 新建本地数据和多 CLI 运行，旧群聊数据不读取。 | 独立本地群任务，不复用旧群聊数据 |
 | MC-0.23.1-002<br>`IM` | IM 页面内对话命令教程 | [R72](#r72) | MyCode 自有新增/修复<br>**文档化** | 列出已实现的项目、会话继续命令及前提。 | 保留；具体范围/实测条件见版本记录 |
-| MC-0.23.1-003<br>`LOGIN` | 账号退出与模型授权分离 | [R73](#r73) | MyCode 自有新增/修复<br>**增强** | 退出仅隐藏账号会话，不调用模型连接删除或清除密钥。 | 旧账号入口已替换为词元跳动；旧凭据文件保留不读取 |
+| MC-0.23.1-003<br>`LOGIN` | 账号退出与模型授权分离 | [R73](#r73) | MyCode 自有新增/修复<br>**增强** | 退出仅隐藏账号会话，不调用模型连接删除或清除密钥。 | 0.24.1 移除左下角词元跳动登录入口；模型服务商授权保留 |
 | MC-0.23.1-004<br>`CLI-LEGACY-NOTICE` | 上游 CLI 更新提示一行折叠 | [R74](#r74) | MyCode 自有新增/修复<br>**增强** | 沿用 HarnessUpdateNotice；折叠只显示一行，优先当前更新项。 | 额外启动通知已移除 |
 
 <a id="v-0-23-2"></a>
@@ -766,6 +767,24 @@
 | MC-0.24.0-001<br>`MOBILE` | 同步新版手机会话与智能体能力 | 上游/维护/历史记录 | MonoCode 为主、MyCode 适配融合<br>**融合** | 合并 MonoCode 0.23.11 后手机端图片粘贴、发送失败恢复、会话恢复、离线编辑、代码块操作、智能体列表和布局切换，保留 MyCode 配对与项目数据，并补充简体中文入口。GPUI 原生预览源码不计作正式桌面交付。 | 旧 Android 控制端保留；新 Expo 手机伴侣源码与桌面配对已融合，实机验证另列 |
 | MC-0.24.0-002<br>`MODEL-AUTH` | DeepSeek Flash 图片输入模态回退 | 上游/维护/历史记录 | Cindy 本地设计参考、MyCode 实现<br>**适配** | 参考 Cindy 283afddc65，在服务商缺少输入模态元数据时仅补齐已知 Flash 型号的图片输入能力，明确元数据仍优先。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.24.0-003<br>`MARKDOWN` | Markdown 主导文字方向 | 上游/维护/历史记录 | Synara 设计参考/等价能力核对<br>**适配** | 参考 Synara 9d7b556057，让会话 Markdown 块按正文主导文字决定阅读方向，并排除链接与代码片段的干扰。 | 保留；具体范围/实测条件见版本记录 |
+
+<a id="v-0-24-1"></a>
+
+### 0.24.1（2026-11-24）
+
+证据：[docs/mycode-0.24.1.md](mycode-0.24.1.md)；本地标签 `v0.24.1` → `pending verification`。
+
+| 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
+| --- | --- | --- | --- | --- | --- |
+| MC-0.24.1-001<br>`CLI-RETIRED` | 移除 MiniMax Code 与 MiMo Code CLI | [R75](#r75) | MyCode 自有新增/修复<br>**移除** | 移除注册、设置、选择器、版本检测和安装入口；保留历史 HarnessId 与会话数据。MiniMax/小米 API 模型服务商不受影响。 | OMP/FX/Antigravity/ZCode/MiniMax Code/MiMo Code 新入口已移除；保留历史数据 |
+| MC-0.24.1-002<br>`CLI-INSTALL` | 损坏 CLI 可修复安装 | [R76](#r76) | MyCode 自有新增/修复<br>**修复** | 区分安装损坏和联网检查失败；缺依赖/启动失败可点击修复安装，安装完整可选依赖及脚本。Grok 修复采用新目录，版本验证成功后才激活。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.24.1-003<br>`COMPUTER` | 移除电脑控制设置入口 | [R77](#r77) | MyCode 自有新增/修复<br>**移除** | 移除菜单和页面挂载，旧设置页选择自动回退；保留既有数据与紧急停止能力。 | 0.24.1 移除电脑控制设置入口；紧急停止与历史数据保留 |
+| MC-0.24.1-004<br>`IM` | IM 插件独立更新、自动化与日常聊天 | [R78](#r78) | MyCode 自有新增/修复<br>**新增** | 插件通过专用分支发布，校验版本、兼容性、大小、SHA-256 与 JS 语法，保持进行中的对话，下次启动生效；增加独立日常聊天、每日定时任务创建/查看/暂停/恢复、按渠道与授权用户隔离管理。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.24.1-005<br>`CONTEXT` | 合并输入框上下文用量展示 | [R79](#r79) | MyCode 自有新增/修复<br>**优化** | 移除工作目录栏重复 ContextMeter，保留发送区域的上下文与本轮用量详情及压缩操作。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.24.1-006<br>`LOGIN` | 移除侧栏词元跳动账户入口 | [R80](#r80) | MyCode 自有新增/修复<br>**移除** | 移除 AccountCenter 挂载，不删除模型连接凭据与词元跳动授权入口。 | 0.24.1 移除左下角词元跳动登录入口；模型服务商授权保留 |
+| MC-0.24.1-007<br>`THEME` | 简约工作室浅色/深色主题 | [R81](#r81) | 用户截图布局参考、MyCode 实现<br>**新增** | 参考 zai-org/ZCode v4.0.0 共享 UI 中性表面、侧栏、输入框与 Codex 专注对话设计，独立实现 Studio 调色、圆角、细边框与一键启用专注布局；原主题可继续选择。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.24.1-008<br>`IM-NOTIFY` | Discord 长消息空白分段与 Emoji 修复 | 上游/维护/历史记录 | Cindy 开源代码复用<br>**融合** | 适配 Cindy ad739e06c7：发送终稿前滤除纯空白片段，UTF-16 代理对不跨分段拆开；修复空白开头导致正文无法发送的场景，保留既有本地机器人授权。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.24.1-009<br>`DEVIN` | Devin Windows 发现与账户隔离 | 上游/维护/历史记录 | Synara 设计参考/等价能力核对<br>**适配** | 参考 Synara b56e19a2c9：补充 LocalAppData/devin/bin 可执行路径；使用当前执行设备 auth status 的凭据路径，不复用前一账户缓存或在已指定账户无法读取时回落至其他账户。未声称移植完整 Synara ACP 栈。 | 保留；具体范围/实测条件见版本记录 |
 
 ## 用户要求覆盖索引
 
@@ -1363,6 +1382,62 @@
 - 变更记录：`MC-0.23.1-004`。
 - 当前范围：折叠时优先显示正在更新的 CLI。
 
+<a id="r75"></a>
+
+**R75：移除 MiniMax Code 与 MiMo Code CLI**
+
+- 关联阶段：0.24.1。
+- 变更记录：`MC-0.24.1-001`。
+- 当前范围：移除注册、设置、选择器、版本检测和安装入口；保留历史 HarnessId 与会话数据。MiniMax/小米 API 模型服务商不受影响。
+
+<a id="r76"></a>
+
+**R76：损坏 CLI 可修复安装**
+
+- 关联阶段：0.24.1。
+- 变更记录：`MC-0.24.1-002`。
+- 当前范围：区分安装损坏和联网检查失败；缺依赖/启动失败可点击修复安装，安装完整可选依赖及脚本。Grok 修复采用新目录，版本验证成功后才激活。
+
+<a id="r77"></a>
+
+**R77：移除电脑控制设置入口**
+
+- 关联阶段：0.24.1。
+- 变更记录：`MC-0.24.1-003`。
+- 当前范围：移除菜单和页面挂载，旧设置页选择自动回退；保留既有数据与紧急停止能力。
+
+<a id="r78"></a>
+
+**R78：IM 插件独立更新、自动化与日常聊天**
+
+- 关联阶段：0.24.1。
+- 变更记录：`MC-0.24.1-004`。
+- 当前范围：插件通过专用分支发布，校验版本、兼容性、大小、SHA-256 与 JS 语法，保持进行中的对话，下次启动生效；增加独立日常聊天、每日定时任务创建/查看/暂停/恢复、按渠道与授权用户隔离管理。
+
+<a id="r79"></a>
+
+**R79：合并输入框上下文用量展示**
+
+- 关联阶段：0.24.1。
+- 变更记录：`MC-0.24.1-005`。
+- 当前范围：移除工作目录栏重复 ContextMeter，保留发送区域的上下文与本轮用量详情及压缩操作。
+
+<a id="r80"></a>
+
+**R80：移除侧栏词元跳动账户入口**
+
+- 关联阶段：0.24.1。
+- 变更记录：`MC-0.24.1-006`。
+- 当前范围：移除 AccountCenter 挂载，不删除模型连接凭据与词元跳动授权入口。
+
+<a id="r81"></a>
+
+**R81：简约工作室浅色/深色主题**
+
+- 关联阶段：0.24.1。
+- 变更记录：`MC-0.24.1-007`。
+- 当前范围：参考 zai-org/ZCode v4.0.0 共享 UI 中性表面、侧栏、输入框与 Codex 专注对话设计，独立实现 Studio 调色、圆角、细边框与一键启用专注布局；原主题可继续选择。
+
 ## 当前功能处置与升级维护入口
 
 | 功能 ID | 首次记录 / 最近变化 | 当前状态 | 升级保留或替换策略 | 当前维护入口 |
@@ -1379,22 +1454,22 @@
 | `CREDENTIALS` | 0.5.0<br>0.6.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs) |
 | `PROVIDER-UI` | 0.6.0<br>0.21.0 | 当前以 MonoCode 官方账户式列表为主 | 保留 MyCode 连接/主模型/模型开关与词元跳动；不要复原为旧独立 Cindy 风格全页。 | [src/features/providers/ui/ModelConnections.tsx](../src/features/providers/ui/ModelConnections.tsx)<br>[src/features/providers/ui/ProviderGallery.tsx](../src/features/providers/ui/ProviderGallery.tsx) |
 | `MODEL-DISCOVERY` | 0.6.0<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
-| `IM` | 0.6.0<br>0.23.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/IMBotsPage.tsx](../src/features/settings/ui/IMBotsPage.tsx)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs)<br>[vendor/cindy-im](../vendor/cindy-im) |
+| `IM` | 0.6.0<br>0.24.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/IMBotsPage.tsx](../src/features/settings/ui/IMBotsPage.tsx)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs)<br>[vendor/cindy-im](../vendor/cindy-im) |
 | `IMPORT` | 0.6.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/TaskImportPage.tsx](../src/features/settings/ui/TaskImportPage.tsx)<br>[src-tauri/src/task_import.rs](../src-tauri/src/task_import.rs)<br>[src-tauri/src/task_import_external.rs](../src-tauri/src/task_import_external.rs) |
-| `CLI-INSTALL` | 0.6.0<br>0.19.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers/ui/ManagedCLIControls.tsx](../src/features/providers/ui/ManagedCLIControls.tsx)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
+| `CLI-INSTALL` | 0.6.0<br>0.24.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers/ui/ManagedCLIControls.tsx](../src/features/providers/ui/ManagedCLIControls.tsx)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
 | `USAGE` | 0.6.0<br>0.23.10 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/UsageHistoryPage.tsx](../src/features/settings/ui/UsageHistoryPage.tsx)<br>[src/features/sessions/model/sessionUsage.ts](../src/features/sessions/model/sessionUsage.ts) |
 | `MODEL-CHOICE` | 0.7.0<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/ModelPicker.tsx](../src/features/sessions/ui/ModelPicker.tsx)<br>[src/features/providers/ui/ModelConnections.tsx](../src/features/providers/ui/ModelConnections.tsx) |
-| `CLI-RETIRED` | 0.7.0<br>0.11.0 | OMP/FX/Antigravity/ZCode 新入口已移除 | 兼容类型、历史记录或上游列表出现其名，不代表重新支持运行。 | [src/features/sessions/model/session.ts](../src/features/sessions/model/session.ts)<br>[host/providers.ts](../host/providers.ts) |
-| `MIMO` | 0.7.0<br>0.7.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers](../src/integrations/harness/providers)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
+| `CLI-RETIRED` | 0.7.0<br>0.24.1 | OMP/FX/Antigravity/ZCode/MiniMax Code/MiMo Code 新入口已移除；保留历史数据 | 兼容类型、历史记录或上游列表出现其名，不代表重新支持运行。 | [src/features/sessions/model/session.ts](../src/features/sessions/model/session.ts)<br>[host/providers.ts](../host/providers.ts) |
+| `MIMO` | 0.7.0<br>0.7.0 | 0.24.1 按用户要求移除 CLI 运行入口；小米 API 模型服务商保留 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers](../src/integrations/harness/providers)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
 | `WECHAT` | 0.7.0<br>0.22.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [vendor/cindy-wechat-ilink](../vendor/cindy-wechat-ilink)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs) |
 | `NAV` | 0.7.0<br>0.23.5 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/App.tsx](../src/app/App.tsx) |
 | `LAYOUT` | 0.7.0<br>0.23.6 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/shell](../src/app/shell)<br>[src/features/workspace](../src/features/workspace) |
 | `PROMPT-ENHANCE` | 0.7.0<br>0.7.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/Composer.tsx](../src/features/sessions/ui/Composer.tsx) |
 | `MODE` | 0.8.0<br>0.12.0 | 顶部模式按钮已移除 | 不要按旧 0.8 说明恢复按钮；/plan 等会话命令保留。 | [src/app/shell/TitleBar.tsx](../src/app/shell/TitleBar.tsx) |
 | `VOICE` | 0.8.0<br>0.9.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/voice.rs](../src-tauri/src/voice.rs)<br>[src/features/settings/ui/VoiceSettings.tsx](../src/features/settings/ui/VoiceSettings.tsx) |
-| `COMPUTER` | 0.8.0<br>0.8.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/computer.rs](../src-tauri/src/computer.rs)<br>[src/features/settings/ui/ComputerSettings.tsx](../src/features/settings/ui/ComputerSettings.tsx) |
+| `COMPUTER` | 0.8.0<br>0.24.1 | 0.24.1 移除电脑控制设置入口；紧急停止与历史数据保留 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/computer.rs](../src-tauri/src/computer.rs)<br>[src/features/settings/ui/ComputerSettings.tsx](../src/features/settings/ui/ComputerSettings.tsx) |
 | `STORAGE` | 0.8.0<br>0.12.0 | 已实现应用控制路径；存在系统/厂商边界 | 保留现有位置、账号凭据及历史，不把工作目录当文件系统沙箱。 | [src-tauri/src/storage_management.rs](../src-tauri/src/storage_management.rs)<br>[src/features/settings/ui/StorageSettings.tsx](../src/features/settings/ui/StorageSettings.tsx) |
-| `CONTEXT` | 0.8.0<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/model/contextUsage.ts](../src/features/sessions/model/contextUsage.ts)<br>[src/features/sessions/ui/Composer.tsx](../src/features/sessions/ui/Composer.tsx) |
+| `CONTEXT` | 0.8.0<br>0.24.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/model/contextUsage.ts](../src/features/sessions/model/contextUsage.ts)<br>[src/features/sessions/ui/Composer.tsx](../src/features/sessions/ui/Composer.tsx) |
 | `USAGE-CACHE-RATE` | 0.8.0<br>0.8.1 | 用量历史的缓存命中率显示已移除 | 不影响上下文缓存信息；真实 Token 与配额不可混算。 | [src/features/settings/ui/UsageHistoryPage.tsx](../src/features/settings/ui/UsageHistoryPage.tsx) |
 | `MODEL-ERRORS` | 0.8.1<br>0.8.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers/model/cliErrors.ts](../src/features/providers/model/cliErrors.ts) |
 | `CLI-LEGACY-DIALOG` | 0.9.0<br>0.20.0 | 已安装 CLI 更新弹窗已移除；缺失安装保留 | ensureCliReady 已安装直接通过；CliReadyDialog 仅安装准备，不再升级或离线阻塞。 | [src/features/providers/model/cliReady.ts](../src/features/providers/model/cliReady.ts)<br>[src/features/providers/ui/CliReadyDialog.tsx](../src/features/providers/ui/CliReadyDialog.tsx) |
@@ -1403,7 +1478,7 @@
 | `SESSION-REFERENCE` | 0.9.0<br>0.23.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/agent-app/model/sessionConversation.ts](../src/features/agent-app/model/sessionConversation.ts) |
 | `ACTIVITY` | 0.9.0<br>0.23.2 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/AgentTranscript.tsx](../src/features/sessions/ui/AgentTranscript.tsx)<br>[src/features/sessions/model/monoWorkStatus.ts](../src/features/sessions/model/monoWorkStatus.ts) |
 | `BROWSER` | 0.9.0<br>0.22.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/browser.rs](../src-tauri/src/browser.rs)<br>[src/features/settings/ui/BrowserSettings.tsx](../src/features/settings/ui/BrowserSettings.tsx) |
-| `LOGIN` | 0.10.0<br>0.23.1 | 旧账号入口已替换为词元跳动；旧凭据文件保留不读取 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/shell/AccountCenter.tsx](../src/app/shell/AccountCenter.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
+| `LOGIN` | 0.10.0<br>0.24.1 | 0.24.1 移除左下角词元跳动登录入口；模型服务商授权保留 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/shell/AccountCenter.tsx](../src/app/shell/AccountCenter.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `TOKEN-DANCE` | 0.10.0<br>0.23.0 | 保留，显示名称词元跳动 | tokendance 内部 ID/API/已有授权不更改；合作卡片随主题与中文显示。 | [src/features/providers/ui/ModelConnections.tsx](../src/features/providers/ui/ModelConnections.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `MODEL-METADATA` | 0.10.0<br>0.18.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers/model/modelProtocols.ts](../src/features/providers/model/modelProtocols.ts)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `UPDATER` | 0.10.0<br>0.19.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src](../src-tauri/src)<br>[src/features/settings](../src/features/settings) |
@@ -1426,14 +1501,14 @@
 | `NUMBERED-INPUT` | 0.13.0<br>0.13.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/Composer.tsx](../src/features/sessions/ui/Composer.tsx) |
 | `HTML-PREVIEW` | 0.13.0<br>0.14.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/files](../src/features/files)<br>[src-tauri/src](../src-tauri/src) |
 | `RECALL` | 0.13.0<br>0.13.0 | 有条件实现，非任意副作用回滚 | 仅明确捕获且无后续冲突的文件编辑可恢复，哈希保护不得去掉。 | [src/features/sessions/model/checkpoint.ts](../src/features/sessions/model/checkpoint.ts)<br>[src-tauri/src/checkpoint.rs](../src-tauri/src/checkpoint.rs) |
-| `MINIMAX` | 0.13.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers](../src/integrations/harness/providers)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
-| `THEME` | 0.13.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/styles/index.css](../src/styles/index.css)<br>[src/features/settings/model/appearance.ts](../src/features/settings/model/appearance.ts) |
+| `MINIMAX` | 0.13.0<br>0.15.0 | 0.24.1 按用户要求移除 CLI 运行入口；API 模型服务商保留 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers](../src/integrations/harness/providers)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
+| `THEME` | 0.13.0<br>0.24.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/styles/index.css](../src/styles/index.css)<br>[src/features/settings/model/appearance.ts](../src/features/settings/model/appearance.ts) |
 | `REVIEW` | 0.13.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/SessionReview.tsx](../src/features/sessions/ui/SessionReview.tsx)<br>[src-tauri/src/checkpoint](../src-tauri/src/checkpoint) |
 | `MARKDOWN` | 0.13.0<br>0.24.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/AgentMarkdown.tsx](../src/features/sessions/ui/AgentMarkdown.tsx) |
 | `UPSTREAM-CONTROL` | 0.14.0<br>0.22.0 | 治理规则持续执行；历史遗漏已补齐 | 先记录新基线与完整增量，MonoCode 新能力必须适配，不能因架构差异跳过；仅审查与真整合分开。 | [AGENTS.md](../AGENTS.md)<br>[docs](../docs) |
 | `SETTINGS-OPTIONS` | 0.15.0<br>0.23.3 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/ui/SettingsDropdown.tsx](../src/shared/ui/SettingsDropdown.tsx)<br>[src/features/settings/ui/SettingsView.tsx](../src/features/settings/ui/SettingsView.tsx) |
 | `MODEL-AUTH` | 0.15.0<br>0.24.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers](../src/features/providers)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
-| `IM-NOTIFY` | 0.15.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/IMCompletionSettings.tsx](../src/features/settings/ui/IMCompletionSettings.tsx)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs) |
+| `IM-NOTIFY` | 0.15.0<br>0.24.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/IMCompletionSettings.tsx](../src/features/settings/ui/IMCompletionSettings.tsx)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs) |
 | `IM-CONTINUE` | 0.15.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs)<br>[src/app/App.tsx](../src/app/App.tsx) |
 | `WORKTREE` | 0.15.0<br>0.19.0 初版（历史快照） | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/source-control](../src/features/source-control)<br>[src-tauri/src](../src-tauri/src) |
 | `OPENCODE` | 0.15.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers/opencode](../src/integrations/harness/providers/opencode) |
@@ -1449,7 +1524,7 @@
 | `PHONE-STANDALONE` | 0.18.0<br>0.18.0 | 手机独立文本模型会话已实现 | HTTPS 模型调用不等同手机运行桌面 CLI；配置与历史加密，电脑密钥不下发。 | [android/app/src/main/java/com/mycode/mobile/StandaloneModel.java](../android/app/src/main/java/com/mycode/mobile/StandaloneModel.java) |
 | `DIFF` | 0.18.0<br>0.23.4 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/source-control](../src/features/source-control) |
 | `CLI-STATES` | 0.19.0 初版（历史快照）<br>0.19.0 初版（历史快照） | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers/model/cliVersions.ts](../src/features/providers/model/cliVersions.ts)<br>[src/features/providers/ui/ManagedCLIControls.tsx](../src/features/providers/ui/ManagedCLIControls.tsx) |
-| `CLI-UNIFIED-UPDATES` | 0.19.0 功能补齐版<br>0.20.0 | 保留，唯一上游式更新提示覆盖活动 10 CLI | 上游 UI/运行行为优先，融合 MyCode 6 个额外代理的管理安装、日期比较、低并发和跨窗口状态。 | [src/features/providers/ui/HarnessUpdateNotice.tsx](../src/features/providers/ui/HarnessUpdateNotice.tsx)<br>[src/features/providers/model/harnessUpdates.ts](../src/features/providers/model/harnessUpdates.ts) |
+| `CLI-UNIFIED-UPDATES` | 0.19.0 功能补齐版<br>0.20.0 | 唯一上游式更新提示覆盖当前 8 个活动 CLI | 上游 UI/运行行为优先，融合 MyCode 6 个额外代理的管理安装、日期比较、低并发和跨窗口状态。 | [src/features/providers/ui/HarnessUpdateNotice.tsx](../src/features/providers/ui/HarnessUpdateNotice.tsx)<br>[src/features/providers/model/harnessUpdates.ts](../src/features/providers/model/harnessUpdates.ts) |
 | `MONOS` | 0.19.0 功能补齐版<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/monos](../src/features/monos) |
 | `MONOS-MEMORY` | 0.19.0 功能补齐版<br>0.19.0 功能补齐版 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/monos/model/monoMemory.ts](../src/features/monos/model/monoMemory.ts)<br>[src/features/monos/model/monoFiles.ts](../src/features/monos/model/monoFiles.ts) |
 | `HABITS` | 0.19.0 功能补齐版<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/monos](../src/features/monos) |
@@ -1463,7 +1538,7 @@
 | `IMAGE-ZOOM` | 0.19.1<br>0.19.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/platform/tauri/trackpadZoom.ts](../src/platform/tauri/trackpadZoom.ts)<br>[src/features/files](../src/features/files) |
 | `CLI-SETTINGS` | 0.19.1<br>0.19.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/SettingsView.tsx](../src/features/settings/ui/SettingsView.tsx) |
 | `MONOS-IDENTITY` | 0.19.1<br>0.20.0 | 保留，每轮纠正当前产品身份 | MyCode 产品名、用户昵称/人格与历史事实区分，不能批量改旧 SOUL/记忆/会话。 | [src/features/monos/model/monoFiles.ts](../src/features/monos/model/monoFiles.ts)<br>[src/app/App.tsx](../src/app/App.tsx) |
-| `DEVIN` | 0.20.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers/devin](../src/integrations/harness/providers/devin)<br>[src-tauri/src/devin_config.rs](../src-tauri/src/devin_config.rs)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
+| `DEVIN` | 0.20.0<br>0.24.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness/providers/devin](../src/integrations/harness/providers/devin)<br>[src-tauri/src/devin_config.rs](../src-tauri/src/devin_config.rs)<br>[src-tauri/src/managed_cli.rs](../src-tauri/src/managed_cli.rs) |
 | `GIT-SELECTED` | 0.20.0<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/monos/ui/MonoProjectCommit.tsx](../src/features/monos/ui/MonoProjectCommit.tsx)<br>[host/workspace-commands.ts](../host/workspace-commands.ts) |
 | `MONOS-RAIL` | 0.20.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/shell/MonoRailSection.tsx](../src/app/shell/MonoRailSection.tsx) |
 | `MONOS-UNREAD` | 0.20.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/hooks/useUnseenReplyCounts.ts](../src/features/sessions/hooks/useUnseenReplyCounts.ts) |

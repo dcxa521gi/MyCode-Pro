@@ -20,7 +20,7 @@ import {
 } from './gateway.js';
 import { normalizeDmMessage } from './inbound.js';
 import type { MessageLike } from './inbound.js';
-import { chunkDiscordText } from './chunk.js';
+import { chunkDiscordText, chunkDiscordFinalText } from './chunk.js';
 import { decodeMessageId, encodeMessageId } from './codec.js';
 import { markdownToDiscord } from './markdown.js';
 import { createDmResolver, sendChunked } from './outbound.js';
@@ -315,7 +315,7 @@ export class DiscordIM extends BaseIM implements ChannelIM {
       return { messageId: result.firstMessageId };
     }
 
-    const chunks = chunkDiscordText(text);
+    const chunks = chunkDiscordFinalText(text);
     const fileBatches = batchDiscordUploadFiles(files);
     const firstBatch = fileBatches[0];
     if (!firstBatch) {

@@ -28,6 +28,7 @@ export function ManagedCLIControls({
   const version = useCLIVersion(provider);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
+  const needsRepair = version.phase === "error" && !version.installed;
   const [scope, setScope] = useState(
     () => localStorage.getItem("mycode.cliScope." + provider) || "app",
   );
@@ -151,11 +152,13 @@ export function ManagedCLIControls({
           version.phase === "current"
             ? "No new version"
             : version.phase === "error"
-              ? "Retry check"
+              ? needsRepair
+                ? "Repair installation"
+                : "Retry check"
               : "Install / update in MyCode",
         )}
         className="inline-flex items-center gap-1.5 rounded-md bg-accent/10 px-2 py-1 text-accent disabled:cursor-default disabled:bg-content/5 disabled:text-content/35"
-        onClick={() => void run(version.phase !== "error")}
+        onClick={() => void run(needsRepair || version.phase !== "error")}
       >
         {busy || ["idle", "checking"].includes(version.phase) ? (
           <Loader className="size-3 animate-spin" />
@@ -172,7 +175,9 @@ export function ManagedCLIControls({
                 : version.phase === "current"
                   ? "No new version"
                   : version.phase === "error"
-                    ? "Retry check"
+                    ? needsRepair
+                      ? "Repair installation"
+                      : "Retry check"
                     : "Checking version…",
         )}
       </button>
@@ -186,7 +191,14 @@ export function ManagedCLIControls({
           role="status"
           className="max-w-72 text-content/50 [overflow-wrap:anywhere]"
         >
-          {t("Version check failed")} · {t(version.error || "Unknown")}
+          <details>
+            <summary className="cursor-pointer">
+              {t("Version check failed")}
+            </summary>
+            <span className="block max-h-32 overflow-auto py-2">
+              {cliErrorMessage(version.error || "Unknown")}
+            </span>
+          </details>
         </span>
       )}
       {version.installed && (

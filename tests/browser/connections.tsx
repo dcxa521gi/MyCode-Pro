@@ -5,19 +5,23 @@ import { MonoRailSection } from "../../src/app/shell/MonoRailSection";
 import { ConnectionsSettings } from "../../src/features/connections/ui/ConnectionsSettings";
 import { createMono } from "../../src/features/monos/model/mono";
 import { setLanguage, useTranslation } from "../../src/shared/i18n";
-import { applyThemePreference } from "../../src/features/settings/model/appearance";
+import { applyThemePreference, saveThemePreference, loadInsetLayout, subscribeInsetLayout } from "../../src/features/settings/model/appearance";
 import "../../src/styles/index.css";
 const query = new URLSearchParams(location.search);
 setLanguage(query.get("lang") === "en" ? "en" : "zh-CN");
 applyThemePreference(query.get("theme") === "light" ? "light" : "dark");
+saveThemePreference(query.get("theme") === "light" ? "light" : "dark");
+const syncLayout = () => document.documentElement.classList.toggle("layout-inset", loadInsetLayout());
+syncLayout();
+subscribeInsetLayout(syncLayout);
 createMono();
 function Fixture() {
   useTranslation();
-  if (new URLSearchParams(location.search).has("cli"))
+  if (query.has("cli") || query.has("appearance") || query.has("im-bots"))
     return (
       <main className="relative h-full bg-background-base text-content">
         <SettingsView
-          section="providers-cli"
+          section={query.has("appearance") ? "appearance" : query.has("im-bots") ? "im-bots" : "providers-cli"}
           cwd="/demo"
           sessions={[]}
           onClose={() => {}}

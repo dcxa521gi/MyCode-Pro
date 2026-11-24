@@ -12,7 +12,6 @@ import { StorageManagementPage } from "./StorageManagementPage";
 import { GitCodeInbox } from "../../inbox/ui/GitCodeInbox";
 import { useShowThinking, setShowThinking } from "../model/showThinking";
 import { VoiceSettings } from "./VoiceSettings";
-import { ComputerSettings } from "./ComputerSettings";
 import { useWorkspaceSide, setWorkspaceSide } from "../model/workspaceSide";
 import { getLocale as uiLocale } from "../../../shared/i18n";
 import {
@@ -598,7 +597,7 @@ export function SettingsView({
           /
         </span>
         <span className="min-w-0 truncate text-content">
-          {settingsSectionLabel(section)}
+          {t(settingsSectionLabel(section))}
         </span>
       </div>
       <div
@@ -706,7 +705,6 @@ export function SettingsView({
                 <ProvidersPage cwd={cwd} recents={recents} />
               ) : null}
               {section === "voice" ? <VoiceSettings /> : null}
-              {section === "computer" ? <ComputerSettings /> : null}
               {section === "usage" ? <UsageHistoryPage /> : null}
               {section === "storage" ? <StorageManagementPage /> : null}
               {section === "task-import" ? (
@@ -2502,6 +2500,16 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
             onChange={appearance.onThemePreference}
           />
         </Row>
+        <Row
+          id="studio-preset"
+          label={t("Studio workspace")}
+          description={t("A calm ZCode-inspired workspace with a focused conversation, neutral sidebar and clear controls. Available in light and dark mode.")}
+        >
+          <button type="button" className="rounded-lg border border-content/15 bg-content/5 px-3 py-2 text-sm hover:bg-content/10" onClick={() => {
+            appearance.onInsetLayout(true);
+            appearance.onWorkspaceTheme("studio");
+          }}>{t("Use Studio theme")}</button>
+        </Row>
         {inset ? (
           <Row
             id="workspace-theme"
@@ -2572,7 +2580,7 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
             label={t("Diff colors")}
             value={appearance.diffPalette}
             options={[
-              { value: "default", label: "Default" },
+              { value: "default", label: t("Default") },
               { value: "colorblind", label: t("Colorblind") },
               { value: "high-contrast", label: t("High contrast") },
             ]}

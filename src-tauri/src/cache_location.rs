@@ -115,6 +115,18 @@ pub fn create_project_folder(parent: String, name: String) -> Result<String, Str
 }
 
 #[tauri::command]
+pub fn im_chat_workspace(app: AppHandle, owner: String) -> Result<String, String> {
+    use sha2::{Digest, Sha256};
+    let hash = format!("{:x}", Sha256::digest(owner.as_bytes()));
+    let path = PathBuf::from(workspace(&app)?)
+        .join(".mycode")
+        .join("im-chats")
+        .join(hash);
+    fs::create_dir_all(&path).map_err(|e| e.to_string())?;
+    Ok(crate::fs::path_to_js(&path))
+}
+
+#[tauri::command]
 pub fn workspace_projects(app: AppHandle) -> Result<Vec<String>, String> {
     let root = PathBuf::from(workspace(&app)?);
     let mut projects = Vec::new();

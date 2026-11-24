@@ -125,6 +125,20 @@ it("does not treat failed release checks as no update and can retry", async () =
   await act(async () => button("Retry check").click());
   expect(button("Update").disabled).toBe(false);
 });
+it("offers a verified app repair for a broken global npm launcher", async () => {
+  vi.mocked(inspectHarnessBinary).mockResolvedValueOnce({
+    path: "C:/Users/example/AppData/Roaming/npm/codex.cmd",
+    error: "Missing optional dependency @openai/codex-win32-x64",
+  });
+  await render();
+  expect(button("Repair installation").disabled).toBe(false);
+  expect(container.querySelector("details")?.open).toBe(false);
+  await act(async () => button("Repair installation").click());
+  expect(invoke).toHaveBeenCalledWith("managed_cli_install", { provider: "codex" });
+  expect(applyProviderBinaryPath).toHaveBeenCalledWith("codex", "/app/codex");
+  expect(localStorage.getItem("mycode.cliScope.codex")).toBe("app");
+  expect(button("No new version").disabled).toBe(true);
+});
 it("does not activate an installed binary that fails version verification", async () => {
   latest = "1.1.0";
   await render();

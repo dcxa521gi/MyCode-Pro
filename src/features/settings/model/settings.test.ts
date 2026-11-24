@@ -629,7 +629,6 @@ describe("settings navigation", () => {
       "chat",
       "providers",
       "providers-cli",
-      "computer",
       "im-bots",
       "local-ai",
       "mcp",

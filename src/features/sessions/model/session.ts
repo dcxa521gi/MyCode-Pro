@@ -39,8 +39,6 @@ export const HARNESSES: HarnessId[] = [
   "opencode",
   "pi",
   "hermes",
-  "minimax",
-  "mimo",
   "devin",
 ];
 

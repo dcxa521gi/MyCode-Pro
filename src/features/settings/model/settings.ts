@@ -32,7 +32,6 @@ export type SettingsSectionId =
   | "usage"
   | "task-import"
   | "voice"
-  | "computer"
   | "im-bots"
   | "local-ai"
   | "mcp"
@@ -126,13 +125,6 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     label: "Voice input",
     description: "Configure speech recognition and voice commands.",
     keywords: "voice speech microphone 语音 麦克风",
-  },
-  {
-    id: "computer",
-    group: "agents",
-    label: "Computer control",
-    description: "Use the local open-source Cua Driver through MCP.",
-    keywords: "computer desktop cua 电脑 控制",
   },
   {
     id: "im-bots",
@@ -386,8 +378,12 @@ export const SETTINGS_INDEX: SettingsEntry[] = [
     section: "appearance",
     label: "Workspace theme",
     keywords:
-      "color colour palette scheme preset inset harbor moss ember orchid",
+      "color colour palette scheme preset inset harbor moss ember orchid studio zcode codex 工作室",
   },
+    {
+      id: "studio-preset", section: "appearance", label: "Studio workspace",
+      keywords: "zcode codex studio focused theme light dark 工作室 简约",
+    },
   {
     id: "accent-color",
     section: "appearance",

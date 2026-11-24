@@ -1,5 +1,7 @@
 # Cindy IM transport
 
+MyCode 0.24.1 adapts Discord final-message blank-chunk filtering and Unicode-safe splitting from Cindy commit ad739e06c7 (2026-11-24), packages/lizi-im/src/discord/chunk.ts. Outbound and attachment sends use the filtered final chunks. Other transport files retain the baseline below.
+
 Source: https://github.com/makecindy/cindy/tree/bfb95c3492e8732497e08d296c8baeae04971e8f/packages/lizi-im
 
 Copyright XD Inc. and Cindy contributors. Licensed under Apache-2.0; see LICENSE.

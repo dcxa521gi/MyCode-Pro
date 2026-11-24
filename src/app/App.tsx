@@ -757,6 +757,9 @@ import {
   type Automation,
   type AutomationRun,
 } from "../features/automations/model/automations";
+import { parseIMControlCommand, imChatEnabled, setIMChatEnabled } from "../features/settings/model/imCommands";
+import { handleIMAutomation } from "../features/settings/model/imAutomations";
+import { autoUpdateIMPlugin } from "../features/settings/model/imPlugin";
 import { useQuickComposerLaunches } from "../features/quick-composer/hooks/useQuickComposerLaunches";
 import type { QuickLaunch } from "../features/quick-composer/model/quickComposer";
 import { claimInboxAutomationRuns } from "../features/automations/model/automationEvents";
@@ -965,6 +968,7 @@ type SubmitOptions = ComposerTurnOptions & {
   monoSessionCompletion?: Block["monoSessionCompletion"];
   onSettled?: (outcome: ControlOutcome) => void;
   imOrigin?: boolean;
+  imChat?: boolean;
   imSource?: { channel: string; ownerId: string };
   /** Generate a fresh title even when this is not the session's first turn. */
   refreshTitle?: boolean;
@@ -7579,7 +7583,9 @@ function Workspace({
           ? submittedText
           : importedContextPrompt(
               current,
-              composeNoteMessage(noteCard, promptText),
+              composeNoteMessage(noteCard, options?.imChat
+                ? `${uiTranslate("You are MyCode in everyday chat mode. Answer the user's question conversationally. Do not modify files or execute commands. This conversation is separate from project tasks.")}\n\n${promptText}`
+                : promptText),
             ));
 
       const pendingSwitch = pendingComposerSwitch(current);
@@ -9272,6 +9278,7 @@ function Workspace({
       route: { cwd: string; harness: HarnessId; model: string };
       baseRoute?: { cwd: string; harness: HarnessId; model: string };
     };
+    void autoUpdateIMPlugin();
     void listen<IncomingIM>("mycode-im-message", (event) => {
       void (async () => {
         let message = event.payload;
@@ -9285,6 +9292,31 @@ function Workspace({
             },
           }).catch(() => undefined);
         const ownerKey = `${message.channel}:${message.senderId}`;
+        const control = parseIMControlCommand(message.text);
+        if (control) {
+          try {
+            const response = await handleIMAutomation(control, ownerKey, {
+              ...(message.baseRoute ?? message.route),
+              cwd: imSelectedProjects.current.get(ownerKey) ?? (message.baseRoute ?? message.route).cwd,
+            }, uiLocale() === "zh-CN");
+            if (response !== null) { void reply(response); return; }
+          } catch {
+            void reply(uiTranslate("Could not save the automation. Check desktop storage and try again."));
+            return;
+          }
+          if (control.kind === "chat" || control.kind === "task") {
+            setIMChatEnabled(ownerKey, control.kind === "chat");
+            if (control.kind === "task" && !imSelectedProjects.current.has(ownerKey)) {
+              imSelectedProjects.current.set(ownerKey, (message.baseRoute ?? message.route).cwd);
+              persistIMProjectSelections(imSelectedProjects.current);
+            }
+            if (!control.prompt) {
+              void reply(uiTranslate(control.kind === "chat" ? "Everyday chat enabled. Send /task to return to project work." : "Project task mode enabled. Send /chat for everyday chat."));
+              return;
+            }
+            message = { ...message, text: control.prompt, sessionId: undefined, explicitContinuation: false };
+          }
+        }
         const command = parseIMProjectCommand(message.text);
         const projectCatalog = async () => {
           const [stored, workspace] = await Promise.all([
@@ -9344,6 +9376,7 @@ function Workspace({
             return;
           }
           imSelectedProjects.current.set(ownerKey, selected);
+          setIMChatEnabled(ownerKey, false);
           persistIMProjectSelections(imSelectedProjects.current);
           void reply(
             uiLocale() === "zh-CN"
@@ -9359,6 +9392,7 @@ function Workspace({
               name: command.name,
             });
             imSelectedProjects.current.set(ownerKey, cwd);
+            setIMChatEnabled(ownerKey, false);
             persistIMProjectSelections(imSelectedProjects.current);
             setRecents(rememberProject(cwd));
             if (!command.prompt) {
@@ -9383,11 +9417,16 @@ function Workspace({
         const selectedProject = !message.explicitContinuation
           ? imSelectedProjects.current.get(ownerKey)
           : undefined;
-        const route = selectedProject
+        let route = selectedProject
           ? { ...(message.baseRoute ?? message.route), cwd: selectedProject }
           : message.route;
-        const sessionId = selectedProject ? undefined : message.sessionId;
-        const lane = `${message.channel}:${message.senderId}:${route.cwd}:${route.harness}:${route.model}`;
+        const chatting = !message.explicitContinuation && imChatEnabled(ownerKey);
+        if (chatting) {
+          const cwd = await invoke<string>("im_chat_workspace", { owner: ownerKey });
+          route = { ...(message.baseRoute ?? message.route), cwd };
+        }
+        const sessionId = selectedProject || chatting ? undefined : message.sessionId;
+        const lane = `${chatting ? "chat:" : ""}${message.channel}:${message.senderId}:${route.cwd}:${route.harness}:${route.model}`;
         let session = sessionsRef.current.find(
           (s) => s.id === (sessionId ?? imSessions.current.get(lane)),
         );
@@ -9427,10 +9466,11 @@ function Workspace({
           sessionsRef.current = [...sessionsRef.current, session];
           setSessions(sessionsRef.current);
           appendTab(newTab(session.id), session.cwd);
-          setRecents(rememberProject(session.cwd));
+          if (!chatting) setRecents(rememberProject(session.cwd));
         }
         const accepted = submitSession(session.id, message.text, [], {
           imOrigin: true,
+          imChat: chatting,
           imSource: { channel: message.channel, ownerId: message.senderId },
           onSettled: (outcome) => {
             void reply(

@@ -667,6 +667,27 @@ html.theme-light .sidebar-peek-backdrop {
   --color-stroke: var(--inset-stroke);
 }
 
+/* Studio is an optional focused workspace; other palettes keep their own geometry. */
+html.layout-inset[data-workspace-theme="studio"] .inset-card {
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.04);
+}
+html.layout-inset[data-workspace-theme="studio"] [data-composer-box] {
+  --composer-radius: 16px;
+  --composer-blur: 0px;
+  border: 1px solid color-mix(in srgb, var(--color-content) 14%, transparent);
+  box-shadow: 0 4px 18px rgb(0 0 0 / 0.06);
+}
+html.layout-inset[data-workspace-theme="studio"] [data-composer-box]:focus-within {
+  border-color: color-mix(in srgb, var(--color-content) 28%, transparent);
+}
+html.layout-inset[data-workspace-theme="studio"] [data-inset-title-bar] [data-title-tab] {
+  border-radius: 8px;
+}
+html.layout-inset[data-workspace-theme="studio"] .sidebar-session-scroll {
+  padding-inline: 6px;
+}
+
 /* Dim inactive tabs together so their plate, label and icons recede. */
 [data-inset-title-bar] [data-title-tab]:not([data-title-tab-active]) {
   background: color-mix(in srgb, var(--color-content) 4%, transparent);

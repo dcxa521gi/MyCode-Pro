@@ -6,8 +6,6 @@ import {
   devinCredentialsPathFromStatus,
 } from "./devinProtocol";
 
-let credentialsPath: string | null = null;
-
 /**
  * Devin's ACP server ignores the CLI's stored login and waits for its host to
  * authenticate. Reuse the key `devin auth login` saved — on the machine that
@@ -19,7 +17,6 @@ export async function readDevinApiKey(binaryPath: string): Promise<string | null
     try {
       const key = devinApiKeyFromCredentials(await readHarnessTextFile(path));
       if (key) {
-        credentialsPath = path;
         return key;
       }
     } catch {
@@ -31,11 +28,12 @@ export async function readDevinApiKey(binaryPath: string): Promise<string | null
 
 async function credentialPaths(binaryPath: string): Promise<string[]> {
   const paths: string[] = [];
-  if (credentialsPath) paths.push(credentialsPath);
   try {
     const status = await execChild(binaryPath, ["auth", "status"], undefined, "devin");
     const reported = devinCredentialsPathFromStatus(status);
-    if (reported) paths.push(reported);
+    // The current execution device/profile is authoritative. A previous
+    // process-wide path could silently reuse another account after switching.
+    if (reported) return [reported];
   } catch {
     // Older CLIs or a failing status call still leave the default locations.
   }
@@ -49,5 +47,5 @@ async function credentialPaths(binaryPath: string): Promise<string[]> {
 
 /** Test seam. */
 export function resetDevinAuthCache(): void {
-  credentialsPath = null;
+  // Retained for callers; credentials are now resolved for every process.
 }

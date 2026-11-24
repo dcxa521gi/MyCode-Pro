@@ -99,7 +99,8 @@ export function probeHarnessAvailability(options?: {
   }
   inflight = Promise.all(
     HARNESSES.map(async (id) => {
-      if (id === "minimax" || id === "mimo" || id === "zcode") {
+      if (!isLiveHarness(id)) return [id, false] as const;
+      if (id === "zcode") {
         try {
           await resolveHarnessBinary(id);
           return [id, true] as const;
@@ -107,7 +108,6 @@ export function probeHarnessAvailability(options?: {
           return [id, false] as const;
         }
       }
-      if (!isLiveHarness(id)) return [id, false] as const;
       if (id === "cursor") {
         try {
           await resolveCursorBinary();

@@ -239,13 +239,11 @@ export type LastModelChoice = {
 const HARNESS_ORDER: HarnessId[] = [
   "claude",
   "codex",
-  "minimax",
   "cursor",
   "grok",
   "opencode",
   "pi",
   "hermes",
-  "mimo",
   "devin",
 ];
 
@@ -955,7 +953,7 @@ export function loadHiddenPickerProviders(): HarnessId[] {
 }
 
 export function isPickerProviderVisible(id: HarnessId): boolean {
-  return !loadHiddenPickerProviders().includes(id);
+  return HARNESSES.includes(id) && !loadHiddenPickerProviders().includes(id);
 }
 
 export function savePickerProviderVisible(id: HarnessId, visible: boolean) {
@@ -983,9 +981,10 @@ export function showProviderInModelPicker(
   installed: boolean,
   probed: boolean,
 ): boolean {
+  if (id === "minimax" || id === "mimo") return false;
   if (!isPickerProviderVisible(id)) return false;
   return (
-    id === "codex" || id === "mimo" || id === "zcode" || !probed || installed
+    id === "codex" || id === "zcode" || !probed || installed
   );
 }
 
@@ -1073,7 +1072,7 @@ export function firstEnabledHarness(
       hasProbedHarnessAvailability(),
     );
   if (enabled(preferred)) return preferred;
-  return HARNESSES.find(enabled) ?? preferred;
+  return HARNESSES.find(enabled) ?? (HARNESSES.includes(preferred) ? preferred : "codex");
 }
 
 /** Provider + model new conversations should start with. */

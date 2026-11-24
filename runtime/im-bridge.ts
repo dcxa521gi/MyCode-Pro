@@ -5,6 +5,7 @@ import readline from "node:readline";
 import { randomUUID } from "node:crypto";
 import { assertIMNotificationOwner } from "./im-notification-route";
 import { parseIMProjectCommand } from "../src/features/settings/model/imProjects";
+import { parseIMControlCommand } from "../src/features/settings/model/imCommands";
 import {
   createFeishuIM,
   createDingTalkIM,
@@ -228,8 +229,13 @@ function init(data: { secrets: Record<string, string>; directory: string }) {
       const command = event.text
         .trim()
         .match(/^\/continue\s+(\S+)\s+([\s\S]+)$/);
-      const projectCommand = parseIMProjectCommand(event.text);
+      const control = parseIMControlCommand(event.text);
+      if (control?.kind === "chat" || control?.kind === "task" || parseIMProjectCommand(event.text)?.kind === "switch" || parseIMProjectCommand(event.text)?.kind === "create") {
+        secrets[`mycode_chat_${channel}:${route.ownerId}`] = control?.kind === "chat" ? "true" : "false";
+        save();
+      }
       const quoted = quotedMessageId(event);
+      const projectCommand = parseIMProjectCommand(event.text) || control || (secrets[`mycode_chat_${channel}:${route.ownerId}`] === "true" && !command && !quoted && !event.replyContext);
       const quotedSession =
         event.replyContext?.text.match(/\/continue\s+(\S+)/)?.[1];
       const hasQuote = !projectCommand && (!!quoted || !!event.replyContext);

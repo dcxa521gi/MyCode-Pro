@@ -46,18 +46,28 @@ export function chunkDiscordText(text: string, limit = MAX_MESSAGE_LEN): string[
       }
 
       const reserve = inFence ? 4 : 0;
-      const take = Math.max(1, limit - current.length - reserve);
+      let take = Math.max(0, limit - current.length - reserve);
+      const whitespace = /\s+\S*$/u.exec(token.slice(0, take));
+      if (whitespace && whitespace.index > 0) {
+        take = whitespace.index + whitespace[0].length - whitespace[0].trimStart().length;
+      }
+      // Preserve UTF-16 code points when Discord/Telegram splits long text.
+      if (take < token.length && /[\uD800-\uDBFF]/.test(token[take - 1] ?? '') && /[\uDC00-\uDFFF]/.test(token[take] ?? '')) take--;
+      if (take === 0) throw new RangeError('chunk limit cannot fit a code point with its fence');
       current += token.slice(0, take);
       token = token.slice(take);
       flush();
     }
   }
 
-  if (current.length > 0) {
-    chunks.push(current);
-  }
+  flush();
 
   return chunks;
+}
+
+export function chunkDiscordFinalText(text: string): string[] {
+  if (!text.trim()) return [];
+  return chunkDiscordText(text).filter((chunk) => chunk.trim().length > 0);
 }
 
 function splitPreservingNewlines(text: string): string[] {

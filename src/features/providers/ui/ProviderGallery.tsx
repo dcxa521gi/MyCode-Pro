@@ -80,7 +80,6 @@ export function ProviderGallery({
                   ["claude", "Claude"],
                   ["codex", "ChatGPT / Codex"],
                   ["cursor", "Cursor"],
-                  ["minimax", "MiniMax Code"],
                   ["grok", "Grok"],
                   ["devin", "Devin"],
                 ] as const

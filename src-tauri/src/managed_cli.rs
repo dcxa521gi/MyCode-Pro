@@ -86,7 +86,7 @@ pub fn managed_cli_save_path(
 ) -> Result<(), String> {
     let _lock = INSTALL_LOCK.lock().map_err(|e| e.to_string())?;
     if ![
-        "claude", "codex", "cursor", "grok", "opencode", "pi", "hermes", "minimax", "mimo", "devin",
+        "claude", "codex", "cursor", "grok", "opencode", "pi", "hermes", "devin",
     ]
     .contains(&provider.as_str())
     {
@@ -154,7 +154,17 @@ pub(crate) fn system_proxy() -> Option<String> {
     None
 }
 fn package(provider: &str) -> Result<(&'static str, &'static str), String> {
-    match provider { "minimax" => Ok(("@minimax-ai/code", "mcode")), "browser" => Ok(("@playwright/mcp", "playwright-mcp")), "mimo" => Ok(("@mimo-ai/cli", "mimo")), "claude" => Ok(("@anthropic-ai/claude-code", "claude")), "codex" => Ok(("@openai/codex", "codex")), "pi" => Ok(("@earendil-works/pi-coding-agent", "pi")), "opencode" => Ok(("opencode-ai", "opencode")), _ => Err("This CLI requires its official platform installer. Configure its executable path after installation.".into()) }
+    if matches!(provider, "minimax" | "mimo") {
+        return Err("This CLI is no longer supported in MyCode.".into());
+    }
+    match provider {
+        "browser" => Ok(("@playwright/mcp", "playwright-mcp")),
+        "claude" => Ok(("@anthropic-ai/claude-code", "claude")),
+        "codex" => Ok(("@openai/codex", "codex")),
+        "pi" => Ok(("@earendil-works/pi-coding-agent", "pi")),
+        "opencode" => Ok(("opencode-ai", "opencode")),
+        _ => Err("This CLI requires its official platform installer. Configure its executable path after installation.".into()),
+    }
 }
 pub(crate) fn download_agent() -> ureq::Agent {
     let mut builder = ureq::AgentBuilder::new().timeout(std::time::Duration::from_secs(300));
@@ -419,12 +429,10 @@ fn install_grok(app: &AppHandle) -> Result<String, String> {
         .app_data_dir()
         .map_err(|e| e.to_string())?
         .join("cli/grok")
-        .join(version);
+        .join(version)
+        .join(uuid::Uuid::new_v4().to_string());
     fs::create_dir_all(&directory).map_err(|e| e.to_string())?;
     let binary = directory.join("grok.exe");
-    if binary.is_file() {
-        return Ok(binary.to_string_lossy().into());
-    }
     let url = format!("https://x.ai/cli/grok-{version}-windows-{arch}.exe");
     let mut bytes = Vec::new();
     download_agent()
@@ -673,20 +681,20 @@ fn install_cli(app: &AppHandle, provider: &str) -> Result<String, String> {
         crate::cache_location::root().join("npm"),
     );
     cmd.arg(runtime.join("npm/bin/npm-cli.js"))
-        .args(["install", "--global", "--no-audit", "--no-fund", "--prefix"])
+        .args([
+            "install",
+            "--global",
+            "--no-audit",
+            "--no-fund",
+            "--include=optional",
+            "--ignore-scripts=false",
+            "--prefix",
+        ])
         .arg(&prefix)
         .arg(format!("{pkg}@latest"))
         .stdin(Stdio::null())
         .stdout(Stdio::from(log.try_clone().map_err(|e| e.to_string())?))
         .stderr(Stdio::from(log));
-    if provider == "minimax" {
-        cmd.args([
-            "--ignore-scripts=false",
-            "--include=optional",
-            "--allow-scripts=@minimax-ai/code,better-sqlite3",
-            "--registry=https://registry.npmjs.org/",
-        ]);
-    }
     crate::harness::apply_gui_env(&mut cmd);
     apply_path(&mut cmd);
     crate::hide_window_console(&mut cmd);
@@ -876,6 +884,8 @@ mod devin_release_tests {
     #[test]
     fn retired_freebuff_has_no_package_installation_path() {
         assert!(package("freebuff").is_err());
+        assert!(package("minimax").is_err());
+        assert!(package("mimo").is_err());
     }
     #[test]
     fn maps_official_devin_platform_targets() {

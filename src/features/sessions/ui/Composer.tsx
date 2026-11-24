@@ -1974,15 +1974,6 @@ export function Composer({
           />
         </>
       )}
-      <div className="ml-auto flex shrink-0 items-center">
-        <ContextMeter
-          usage={context}
-          onCompact={
-            compactSupported && !worktreeRemoved ? onCompactContext : undefined
-          }
-          compactDisabled={busy}
-        />
-      </div>
     </div>
   );
   return (

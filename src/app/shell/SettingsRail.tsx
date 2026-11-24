@@ -22,7 +22,7 @@ import {
 } from "../../features/settings/model/settings";
 
 const SECTION_ICONS: Record<SettingsSectionId, IconComponent> = {
-  voice: SlidersHorizontal, computer: SlidersHorizontal,
+  voice: SlidersHorizontal,
   development: FolderTree,
   general: SlidersHorizontal,
   connections: Internet,

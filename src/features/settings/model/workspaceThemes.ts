@@ -5,6 +5,7 @@
 
 export type WorkspaceThemeId =
   | "default"
+  | "studio"
   | "harbor"
   | "moss"
   | "ember"
@@ -59,6 +60,20 @@ export const WORKSPACE_THEME_DEFAULT: WorkspaceThemeId = "default";
 // VS Code's Dark+ and Light+); it is only read for previews and the native
 // tint, never written as variables.
 export const WORKSPACE_THEMES: readonly WorkspaceTheme[] = [
+  {
+    id: "studio",
+    label: "Studio",
+    dark: {
+      surface: "#161616", panel: "#202020", panelSolid: "#202020", content: "#f0f0f0",
+      accent: "#b4c9e8", link: "#9cc4f4", heading: "#f0f0f0",
+      syntax: { keyword: "#b4a4e8", callable: "#dfd2a0", string: "#a9c4a0", type: "#92c7cb", tag: "#a7c5eb", number: "#d9b68c", comment: "#929292", property: "#bdd4ef", meta: "#c4b2de", invalid: "#f18b8b" },
+    },
+    light: {
+      surface: "#f0f0f0", panel: "#fcfcfc", panelSolid: "#fcfcfc", content: "#252525",
+      accent: "#365d89", link: "#315f96", heading: "#252525",
+      syntax: { keyword: "#7853a1", callable: "#805b23", string: "#397346", type: "#247278", tag: "#365d89", number: "#945825", comment: "#707070", property: "#315f96", meta: "#7853a1", invalid: "#b43232" },
+    },
+  },
   {
     id: "default",
     label: "Default",
@@ -574,7 +589,7 @@ export function isWorkspaceThemeId(value: unknown): value is WorkspaceThemeId {
 }
 
 export function workspaceTheme(id: WorkspaceThemeId): WorkspaceTheme {
-  return BY_ID.get(id) ?? WORKSPACE_THEMES[0];
+  return BY_ID.get(id) ?? BY_ID.get(WORKSPACE_THEME_DEFAULT)!;
 }
 
 const PALETTE_KEYS = [

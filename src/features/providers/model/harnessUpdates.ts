@@ -14,8 +14,6 @@ export const UPDATABLE_HARNESSES: ReadonlySet<HarnessId> = new Set([
   "cursor",
   "grok",
   "hermes",
-  "minimax",
-  "mimo",
   "devin",
 ]);
 
@@ -85,6 +83,7 @@ export function claimLaunchHarnessUpdateCheck(): Promise<boolean> {
 export async function fetchLatestHarnessVersion(
   harness: HarnessId,
 ): Promise<string> {
+  if (!UPDATABLE_HARNESSES.has(harness)) throw new Error("CLI updates are unavailable for this agent.");
   if (["claude", "codex", "opencode", "pi"].includes(harness))
     return invoke<string>("harness_latest_version", { provider: harness });
   return (

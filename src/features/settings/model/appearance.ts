@@ -386,6 +386,7 @@ export function applyWorkspaceTheme(value: WorkspaceThemeId) {
   const next = isWorkspaceThemeId(value) ? value : WORKSPACE_THEME_DEFAULT;
   appliedWorkspaceTheme = next;
   const root = document.documentElement;
+  root.dataset.workspaceTheme = next;
   for (const name of WORKSPACE_THEME_VARIABLE_NAMES)
     root.style.removeProperty(name);
   for (const [name, color] of Object.entries(workspaceThemeVariables(next)))

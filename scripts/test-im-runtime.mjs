@@ -212,6 +212,15 @@ try {
       .at(-1).value;
     assert.equal(restored.sessionId, second.id);
     assert.equal(restored.route.cwd, second.cwd);
+    for (const text of ["/聊天", "ordinary conversation", "/自动化"]) {
+      await request({ action: "notify", channel, session: second, remoteContinue: true, text: `TEST:${text}` });
+      const chat = messages.filter((m) => m.kind === "message").at(-1).value;
+      assert.equal(chat.sessionId, undefined, "chat and automation commands must not resume the last notified task");
+      assert.equal(chat.route.cwd, "/workspace");
+    }
+    await request({ action: "notify", channel, session: second, remoteContinue: true, text: `QUOTE:${session.id} explicit task reply` });
+    assert.equal(messages.filter((m) => m.kind === "message").at(-1).value.sessionId, session.id);
+    await request({ action: "notify", channel, session: second, remoteContinue: true, text: "TEST:/任务" });
     await request({
       action: "notify",
       channel,

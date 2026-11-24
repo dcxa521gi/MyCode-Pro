@@ -330,10 +330,10 @@ describe("provider defaults", () => {
     expect(loadRecentModelChoices()).toEqual([
       { harness: "cursor", model: "cursor:composer-2.5" },
       { harness: "hermes", model: "hermes:default" },
-      { harness: "mimo", model: "mimo:default" },
       { harness: "pi", model: "pi:default" },
       { harness: "opencode", model: "opencode:glm-5" },
       { harness: "grok", model: "grok:grok-4.6" },
+      { harness: "claude", model: "claude:opus-5" },
     ]);
   });
 });
@@ -381,10 +381,10 @@ describe("picker provider visibility", () => {
     expect(isPickerProviderVisible("pi")).toBe(false);
     expect(isPickerProviderVisible("mimo")).toBe(false);
     expect(isPickerProviderVisible("claude")).toBe(true);
-    expect(loadHiddenPickerProviders()).toEqual(["pi", "mimo"]);
+    expect(loadHiddenPickerProviders()).toEqual(["pi"]);
     savePickerProviderVisible("pi", true);
     expect(isPickerProviderVisible("pi")).toBe(true);
-    expect(loadHiddenPickerProviders()).toEqual(["mimo"]);
+    expect(loadHiddenPickerProviders()).toEqual([]);
   });
 
   it("omits hidden providers even before an install probe", () => {
@@ -847,7 +847,7 @@ it("keeps explicit speech models out of chat routing and scopes identical IDs by
   }
 });
 
-it("binds compatible custom connections to Hermes and MiniMax without losing model namespaces", () => {
+it("binds compatible custom connections to Hermes and excludes retired agents from the picker", () => {
   setConnectionModels([
     {
       id: "qa",
@@ -861,12 +861,10 @@ it("binds compatible custom connections to Hermes and MiniMax without losing mod
   ]);
   try {
     const hermes = modelsFor("hermes").find((m) => m.connectionId === "qa")!;
-    const minimax = modelsFor("minimax").find((m) => m.connectionId === "qa")!;
     expect(hermes).toBeDefined();
     expect(nativeModelId(hermes.id)).toBe("vendor/model");
-    expect(nativeModelId(minimax.id)).toBe(
-      "custom_provider:mycode-qa/vendor/model",
-    );
+    expect(showProviderInModelPicker("minimax", true, true)).toBe(false);
+    expect(showProviderInModelPicker("mimo", true, true)).toBe(false);
     setConnectionModels([
       {
         id: "qa",
