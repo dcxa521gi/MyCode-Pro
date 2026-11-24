@@ -62,6 +62,9 @@ export type OrchestrationDispatch = {
 
 export type OrchestrationTask = {
   id: string;
+  /** Atomic delegation wave; dependencies still require explicit review. */
+  waveId?: string;
+  waveTitle?: string;
   assignmentId?: string;
   sessionId: string;
   title: string;

@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { translate } from "../../../shared/i18n";
 import {
   HARNESSES,
   type HarnessId,
@@ -207,6 +208,7 @@ function strings(value: unknown, label: string, max = 64): string[] {
 const FIELDS = new Map<string, string[]>([
   ["list", []],
   ["delegate", ["title", "harness", "model", "prompt", "files", "dependsOn"]],
+  ["delegate_wave", ["title", "tasks", "after"]],
   ["get", ["taskId"]],
   ["message", ["taskId", "text"]],
   ["retry", ["taskId", "text", "files"]],
@@ -1024,6 +1026,40 @@ export class Orchestrator {
           waitingFor: this.waitingFor(this.run(run.leadId)!, target),
           needsInput: this.pendingInput(target),
         };
+      }
+      case "delegate_wave": {
+        // Synara c217ced4e6: validate and reserve a whole stage with one durable receipt.
+        const lead = this.host!.session(run.leadId);
+        const turnIdentity = (session: Session | undefined) => session?.blocks.filter(block => block.role === "user" && !block.draft).slice(-1)[0]?.id;
+        const originTurn = turnIdentity(lead);
+        const title = text(input.title, "wave title", 160);
+        const after = strings(input.after ?? [], "after", 40);
+        if (after.some(id => !run.tasks.some(task => task.id === id && task.status !== "cancelled")))
+          throw Error(translate("A previous stage dependency is missing or cancelled"));
+        const choices = this.host!.choices().flatMap(choice =>
+          run.allowedHarnesses.includes(choice.harness) ? choice.models.filter(model => !run.allowedModels || run.allowedModels.some(allowed => allowed.harness === choice.harness && allowed.model === model.id)).map(model => ({ harness: choice.harness, model: model.id, name: model.name })) : []);
+        const proposed = validateProposedTasks(input.tasks, { choices, maxWorkers: run.maxWorkers }, orchestrationCheckoutCwd(run));
+        if (proposed.length > 20 || run.tasks.length + proposed.length > 40)
+          throw Error(translate("A stage supports up to 20 tasks; a run supports up to 40"));
+        const ids = new Map(proposed.map(task => [task.id, crypto.randomUUID()]));
+        const waveId = crypto.randomUUID();
+        const tasks: OrchestrationTask[] = [];
+        for (const task of proposed) {
+          const scopes = await this.store.scopes(orchestrationCheckoutCwd(run), task.files);
+          tasks.push({ ...task, id: ids.get(task.id)!, assignmentId: task.id, sessionId: crypto.randomUUID(), waveId, waveTitle: title, scopes,
+            dependsOn: [...new Set([...after, ...task.dependsOn.map(id => ids.get(id)!)])],
+            status: "queued", accepted: false, result: "", delivered: true, workspacePolicy: "isolated-child" });
+        }
+        const latest = this.run(run.leadId);
+        const currentLead = this.host!.session(run.leadId);
+        if (!latest || latest.status !== "active" || latest.tasks.length + tasks.length > 40 || !currentLead || currentLead.runtimeMode !== lead?.runtimeMode || turnIdentity(currentLead) !== originTurn || after.some(id => !latest.tasks.some(task => task.id === id && task.status !== "cancelled")))
+          throw Error(translate("The run changed while preparing this stage. Review its state before retrying."));
+        // Check again after asynchronous path resolution. Never create partial worker resources.
+        if (tasks.some(task => !this.host!.choices().some(choice => choice.harness === task.harness && choice.models.some(model => model.id === task.model))))
+          throw Error(translate("A stage agent is no longer ready. Check its installation, account and model."));
+        return record({ ...latest, tasks: [...latest.tasks, ...tasks] }, {
+          waveId, title, tasks: tasks.map(task => ({ assignmentId: task.assignmentId, taskId: task.id, sessionId: task.sessionId, status: task.status })),
+        });
       }
       case "delegate": {
         if (run.tasks.length >= 40)

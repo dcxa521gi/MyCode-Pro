@@ -4,6 +4,7 @@ import { reportedProtocols, supportsProtocol } from "../model/modelProtocols";
 import { usageTokens } from "../../settings/model/usageTokens";
 import type { UsageRow } from "../../settings/ui/UsageHistoryPage";
 import { ProviderGallery } from "./ProviderGallery";
+import { ModelGroupsPanel } from "./ModelGroupsPanel";
 import { Modal } from "../../../shared/ui/Modal";
 import { formatTokenCount } from "../../../shared/lib/tokenCount";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -222,7 +223,7 @@ export function ModelConnections({
       </p>
       <p className="text-xs leading-relaxed text-content/55">
         {t(
-          "Custom models work in Pi, OpenCode and MiMo Code. Hermes supports OpenAI Chat Completions; MiniMax Code supports OpenAI Chat Completions and Anthropic Messages. Claude requires Anthropic Messages (MiMo switches automatically); Codex requires OpenAI Responses. Other agents use their own model catalogs.",
+          "Custom models work in Pi and OpenCode. Hermes supports OpenAI Chat Completions; Claude requires Anthropic Messages; Codex requires OpenAI Responses. Other agents use their own model catalogs.",
         )}
       </p>
       <p className="text-xs leading-relaxed text-content/55">
@@ -230,6 +231,7 @@ export function ModelConnections({
           "Official models require this CLI’s own login or API credentials and quota. MyCode does not share a Codex subscription with other agents.",
         )}
       </p>
+      <ModelGroupsPanel />
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-content/10 bg-content/[0.03] px-4 py-3.5">
         <div>
           <strong className="text-sm">{t("TokenDance")}</strong>

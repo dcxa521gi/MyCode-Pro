@@ -1,4 +1,6 @@
 import { isHarnessAvailable } from "../../../integrations/harness/core/availability";
+import { pluginToolCatalog } from "../../plugins/model/localPlugins";
+import { requestPluginTool, pluginResult } from "../../plugins/model/pluginForms";
 import { looksLikeProject } from "../../projects/model/recents";
 import {
   mergeModelSettings,
@@ -169,6 +171,9 @@ export type AgentAppHost = {
 };
 
 const FIELDS = new Map<string, readonly string[]>([
+  ["plugins.list", []],
+  ["plugins.run", ["pluginId", "toolId", "values"]],
+  ["plugins.result", ["operationId"]],
   ["models.list", []],
   ["sessions.list", ["project"]],
   ["sessions.read", ["sessionId", "before", "limit", "maxChars", "project"]],
@@ -948,6 +953,9 @@ export async function handleAgentApp(
   host: AgentAppHost,
 ): Promise<unknown> {
   fields(action, input);
+  if (action === "plugins.list") return { tools: pluginToolCatalog() };
+  if (action === "plugins.run") return requestPluginTool(source.id, requestId, input);
+  if (action === "plugins.result") return pluginResult(source.id, input.operationId);
   if (action.startsWith("artifacts."))
     return handleArtifacts(source, requestId, action, input, host);
   if (action.startsWith("soul."))

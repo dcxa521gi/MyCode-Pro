@@ -116,6 +116,38 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+describe("staged delegation", () => {
+  const wave = (extra = {}) => ({ title: "Implement and review", tasks: [
+    { id: "implement", title: "Implement", harness: "codex", model: "codex:test", prompt: "Implement A", files: ["a"], dependsOn: [] },
+    { id: "review", title: "Review", harness: "codex", model: "codex:test", prompt: "Review A", files: ["b"], dependsOn: ["implement"] },
+  ], ...extra });
+  it("persists a whole stage and replays its receipt without duplicating workers", async () => {
+    const s = setup(); await s.start();
+    const result = await s.call("delegate_wave", wave(), "stage-1");
+    expect(await s.call("delegate_wave", wave(), "stage-1")).toEqual(result);
+    expect(s.tasks()).toHaveLength(2);
+    expect(s.tasks()[1].dependsOn).toEqual([s.tasks()[0].id]);
+    expect(s.tasks()[1].status).toBe("queued");
+    expect(s.tasks()[0].waveId).toBe(s.tasks()[1].waveId);
+    await expect(s.call("delegate_wave", wave({ title: "Changed" }), "stage-1")).rejects.toThrow("different input");
+  });
+  it("rejects an unavailable model or cycle before admitting any task", async () => {
+    const s = setup(); await s.start();
+    const invalid = wave(); invalid.tasks[1].model = "codex:missing";
+    await expect(s.call("delegate_wave", invalid)).rejects.toThrow();
+    const cyclic = wave(); cyclic.tasks[0].dependsOn = ["review"];
+    await expect(s.call("delegate_wave", cyclic)).rejects.toThrow();
+    expect(s.tasks()).toHaveLength(0); expect(s.host.createWorker).not.toHaveBeenCalled();
+  });
+  it("does not revive a stopped run after asynchronous stage preparation", async () => {
+    const s = setup(); await s.start();
+    s.store.scopes.mockImplementationOnce(async () => { await s.manager.stopRun("lead"); return ["/repo/a"]; });
+    await expect(s.call("delegate_wave", wave())).rejects.toThrow("changed");
+    expect(s.manager.run("lead")?.status).toBe("stopped");
+    expect(s.tasks()).toHaveLength(0); expect(s.host.createWorker).not.toHaveBeenCalled();
+  });
+});
+
 describe("worker assignment prompts", () => {
   it("keeps the task text and wraps it in the assignment envelope", () => {
     const sent = workerTurnPrompt("Review the branch.", ["src/App.tsx"]);

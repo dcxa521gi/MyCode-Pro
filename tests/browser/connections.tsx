@@ -1,5 +1,8 @@
 import { SettingsView } from "../../src/features/settings/ui/SettingsView";
 import { ModelConnections } from "../../src/features/providers/ui/ModelConnections";
+import { LocalPluginsPanel } from "../../src/features/plugins/ui/LocalPluginsPanel";
+import { PluginFormHost } from "../../src/features/plugins/ui/PluginFormHost";
+import { requestPluginTool, pluginResult } from "../../src/features/plugins/model/pluginForms";
 import { createRoot } from "react-dom/client";
 import { MonoRailSection } from "../../src/app/shell/MonoRailSection";
 import { ConnectionsSettings } from "../../src/features/connections/ui/ConnectionsSettings";
@@ -17,6 +20,7 @@ subscribeInsetLayout(syncLayout);
 createMono();
 function Fixture() {
   useTranslation();
+  if (query.has("plugins")) return <main className="mx-auto max-w-4xl bg-background-base p-6 text-content"><LocalPluginsPanel /><button data-request-plugin onClick={() => requestPluginTool("demo", crypto.randomUUID(), { pluginId: "project-review", toolId: "review" })}>Request form</button><output data-plugin-result /><PluginFormHost sessionName={() => "Demo"} onComplete={(id, operation) => { document.querySelector("[data-plugin-result]")!.textContent = JSON.stringify(pluginResult(id, operation)); }}/></main>;
   if (query.has("cli") || query.has("appearance") || query.has("im-bots"))
     return (
       <main className="relative h-full bg-background-base text-content">

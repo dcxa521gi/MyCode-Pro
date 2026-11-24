@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "project-review",
+  "version": "1.0.0",
+  "name": { "en": "Project review", "zh-CN": "项目审查" },
+  "description": { "en": "A reusable review workflow with explicit scope and validation preferences.", "zh-CN": "可重复使用的项目审查工作流，明确审查范围与验证偏好。" },
+  "tools": [{
+    "id": "review",
+    "name": { "en": "Review this project", "zh-CN": "审查当前项目" },
+    "description": { "en": "Choose a focus and describe the boundaries before the agent starts reviewing.", "zh-CN": "选择关注点并说明边界，再由智能体开始审查。" },
+    "instructions": {
+      "en": "Review the current project within the confirmed scope. Read repository instructions first. Focus on the selected category. Report findings with file references and distinguish confirmed defects from hypotheses. If checks is enabled, run only relevant existing non-destructive checks. Do not modify files, install dependencies, publish, or access unrelated projects without a separate user instruction. This workflow does not expand existing permissions.",
+      "zh-CN": "在用户确认的范围内审查当前项目。先阅读仓库约定，重点检查所选类别。给出带文件位置的发现，区分已确认缺陷与待验证推测。如果勾选验证检查，只运行相关的已有非破坏性检查。未经用户另行指示，不修改文件、不安装依赖、不发布、不访问无关项目。本工作流不会扩大已有权限。"
+    },
+    "fields": [
+      { "key": "scope", "type": "textarea", "required": true, "label": { "en": "Review scope", "zh-CN": "审查范围" } },
+      { "key": "focus", "type": "select", "required": true, "label": { "en": "Focus", "zh-CN": "关注点" }, "options": [
+        { "value": "correctness", "label": { "en": "Correctness", "zh-CN": "功能正确性" } },
+        { "value": "security", "label": { "en": "Security", "zh-CN": "安全边界" } },
+        { "value": "usability", "label": { "en": "Usability", "zh-CN": "使用体验" } }
+      ] },
+      { "key": "checks", "type": "switch", "label": { "en": "Run relevant existing checks", "zh-CN": "运行相关的已有检查" } }
+    ]
+  }]
+}

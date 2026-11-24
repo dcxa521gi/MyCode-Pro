@@ -1,8 +1,8 @@
 # MyCode 功能来源与版本台账
 
-整理日期：2026-11-24；当前产品基线：**MyCode 0.24.1**，源码提交 `5dbac421d7bb57a2d47a51fcf8bdf345d25649a5`。
+整理日期：2026-11-24；当前产品基线：**MyCode 0.25.0**，源码提交 `pending-0.25.0`。
 
-本文件按 **36 个交付阶段、383 条变更、111 个稳定功能 ID、81 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
+本文件按 **37 个交付阶段、390 条变更、113 个稳定功能 ID、82 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
 
 ## 如何使用
 
@@ -19,9 +19,9 @@
 | MONO | MonoCode 上游直接同步 | 40 |
 | MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 130 |
 | CINDY_CODE | Cindy 开源代码复用 | 3 |
-| CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 32 |
-| SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 12 |
-| MYCODE | MyCode 自有新增/修复 | 138 |
+| CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 36 |
+| SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 13 |
+| MYCODE | MyCode 自有新增/修复 | 140 |
 | VENDOR | 官方 CLI/SDK/接口适配 | 22 |
 | CODEX_REFERENCE | Codex 交互参考、MyCode 实现 | 4 |
 | USER_UI_REFERENCE | 用户截图布局参考、MyCode 实现 | 2 |
@@ -74,6 +74,7 @@
 | [0.23.11](#v-0-23-11) | 2026-10-28 / `v0.23.11` | `cccf5f6a` | 26465c6209 → 26465c6209；正式主线无新增提交 | Cindy abe4d6574b → cdfec9aa5b，426 提交；Android 点击恢复独立适配。Synara ea912dcf14 无变化 |
 | [0.24.0](#v-0-24-0) | 2026-11-23 / `v0.24.0` | `f57b6b1d` | 115f0e97c4 → 09d04436ba，10 月 20 日以来 460 提交；实际合并以 0.23.11 为基线，新增 457 提交 | Cindy 4acbce110f → e6ba8ebcf5，13,422 提交中选取 DeepSeek 模态适配；Synara 299fd573b1 → 35f8d842d0，873 提交中选取 Markdown 阅读方向适配 |
 | [0.24.1](#v-0-24-1) | 2026-11-24 / `v0.24.1` | `5dbac421` | 09d04436ba → 09d04436ba；主分支 0 新增提交 | Cindy e6ba8ebcf5 → acfe0a4a3f：选择 Discord 分段修复；Synara 35f8d842d0 → 27c667c2ce：选择 Devin Windows 路径与账户隔离适配；ZCode v4.0.0 样式参考 |
+| [0.25.0](#v-0-25-0) | 2026-11-24 / `v0.25.0` | `pending` | 09d04436ba → 同一提交；主分支无新增 | Cindy acfe0a4a3f → e8f3ff0026，并推进此前待融合的模型组/账号/插件/远程目录；Synara 27c667c2ce 无新增，适配此前 c217ced4e6 分阶段编排 |
 
 ## 按版本的功能明细
 
@@ -786,6 +787,22 @@
 | MC-0.24.1-008<br>`IM-NOTIFY` | Discord 长消息空白分段与 Emoji 修复 | 上游/维护/历史记录 | Cindy 开源代码复用<br>**融合** | 适配 Cindy ad739e06c7：发送终稿前滤除纯空白片段，UTF-16 代理对不跨分段拆开；修复空白开头导致正文无法发送的场景，保留既有本地机器人授权。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.24.1-009<br>`DEVIN` | Devin Windows 发现与账户隔离 | 上游/维护/历史记录 | Synara 设计参考/等价能力核对<br>**适配** | 参考 Synara b56e19a2c9：补充 LocalAppData/devin/bin 可执行路径；使用当前执行设备 auth status 的凭据路径，不复用前一账户缓存或在已指定账户无法读取时回落至其他账户。未声称移植完整 Synara ACP 栈。 | 保留；具体范围/实测条件见版本记录 |
 
+<a id="v-0-25-0"></a>
+
+### 0.25.0（2026-11-24）
+
+证据：[docs/mycode-0.25.0.md](mycode-0.25.0.md)；本地标签 `v0.25.0` → `pending`。
+
+| 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
+| --- | --- | --- | --- | --- | --- |
+| MC-0.25.0-001<br>`MODEL-ROUTING` | 模型组策略与时段规则 | [R82](#r82) | Cindy 本地设计参考、MyCode 实现<br>**适配** | 参考 050bcaea97，增加五种选路策略、星期和跨午夜例外、首次接受发送时确定来源，更新配置重置计数；本版仅本机新会话，不宣称跨电脑组调度。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.25.0-002<br>`CREDENTIALS` | 已有独立账号接入模型组账号池 | [R82](#r82) | Cindy 本地设计参考、MyCode 实现<br>**适配** | 复用已有 Claude/Codex 账号隔离，新增显式账号来源、对应配额读取与耗尽/删除来源排除。API Key 来源不使用 CLI 订阅额度；没有迁移凭据或自动重放旧会话。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.25.0-003<br>`WORKFLOW-PLUGINS` | 本地命名工作流插件与原生表单 | [R82](#r82) | Cindy 本地设计参考、MyCode 实现<br>**适配** | 参考 c8ef24eeea/64c662dade/a171204c1d/189550e08b，MyCode 原生实现清单导入、双语工具、文本/选择/开关表单、会话隔离、启停更新卸载与确认后继续；不等同于 ACP 引擎或 JS worker。 | 新增；边界和验收状态见版本记录 |
+| MC-0.25.0-004<br>`REMOTE-SAFETY` | 远程模型目录连续性与统一刷新 | [R82](#r82) | Cindy 本地设计参考、MyCode 实现<br>**适配** | 参考 2965b7c7f0/32beeb3b7f：十五秒共享新鲜窗口、并发合并、二十秒超时、环境隔离、暂时失败保留只读显示、撤销不恢复、重连刷新及不可见停轮询。 | 已有等价安全能力核对并保留 |
+| MC-0.25.0-005<br>`ORCHESTRATION-WAVES` | 多智能体原子阶段委派 | [R82](#r82) | Synara 设计参考/等价能力核对<br>**适配** | 参考 c217ced4e6/706b08740a/c1bc6ec721，delegate_wave 整批校验与持久化回执、阶段内外依赖、二次就绪和原轮次/权限/停止检查，保留 MyCode 隔离工作副本及人工审查；非 Synara 全量架构。 | 新增；边界和验收状态见版本记录 |
+| MC-0.25.0-006<br>`I18N` | 新增模型组与插件全链路双语 | [R82](#r82) | MyCode 自有新增/修复<br>**适配** | 新增页面、表单、状态、错误、策略、星期及时段提示提供简体中文/英文，保留既有主题；修补新增按钮缺少翻译的界面回归。 | 保留；具体范围/实测条件见版本记录 |
+| MC-0.25.0-007<br>`UPSTREAM-CONTROL` | 区分实际适配和未融合能力 | [R82](#r82) | MyCode 自有新增/修复<br>**适配** | 记录三家主分支及此前待融合能力的本次边界，明确 ACP 引擎/跨电脑分享/原生子代理等未融合部分，继续保留所有明确移除决策。 | 治理规则持续执行；历史遗漏已补齐 |
+
 ## 用户要求覆盖索引
 
 原始要求拆分为可追踪项，不按用户多次从“1”重新编号的消息混在一起。后提出的细化要求可能关联更早已有的基础功能；该关联不证明早期功能当时就是此条需求首次触发。
@@ -1438,20 +1455,28 @@
 - 变更记录：`MC-0.24.1-007`。
 - 当前范围：参考 zai-org/ZCode v4.0.0 共享 UI 中性表面、侧栏、输入框与 Codex 专注对话设计，独立实现 Studio 调色、圆角、细边框与一键启用专注布局；原主题可继续选择。
 
+<a id="r82"></a>
+
+**R82：推进 Cindy 模型组、多账号、插件、远程连接及 Synara 多智能体编排**
+
+- 关联阶段：0.25.0。
+- 变更记录：`MC-0.25.0-001`、`MC-0.25.0-002`、`MC-0.25.0-003`、`MC-0.25.0-004`、`MC-0.25.0-005`、`MC-0.25.0-006`、`MC-0.25.0-007`。
+- 当前范围：保留已有定制与明确移除功能，新内容双语，交付安装包及区分已融合/未融合的详细清单。
+
 ## 当前功能处置与升级维护入口
 
 | 功能 ID | 首次记录 / 最近变化 | 当前状态 | 升级保留或替换策略 | 当前维护入口 |
 | --- | --- | --- | --- | --- |
 | `BASE` | 0.5.0<br>0.23.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/App.tsx](../src/app/App.tsx)<br>[src/features/workspace](../src/features/workspace) |
 | `BRAND` | 0.5.0<br>0.17.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/i18n](../src/shared/i18n)<br>[public/mycode-icon.png](../public/mycode-icon.png) |
-| `I18N` | 0.5.0<br>0.23.6 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/i18n](../src/shared/i18n)<br>[src/features/sessions/ui/MonoWorkTicker.tsx](../src/features/sessions/ui/MonoWorkTicker.tsx) |
+| `I18N` | 0.5.0<br>0.25.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/i18n](../src/shared/i18n)<br>[src/features/sessions/ui/MonoWorkTicker.tsx](../src/features/sessions/ui/MonoWorkTicker.tsx)<br>[src/shared/i18n/mycode0250.ts](../src/shared/i18n/mycode0250.ts)<br>[tests/browser/upstream-fusion.spec.ts](../tests/browser/upstream-fusion.spec.ts) |
 | `MODEL-CONNECTION` | 0.5.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers/model/modelConnections.ts](../src/features/providers/model/modelConnections.ts)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
-| `MODEL-ROUTING` | 0.5.0<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness](../src/integrations/harness)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
+| `MODEL-ROUTING` | 0.5.0<br>0.25.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness](../src/integrations/harness)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs)<br>[src/features/providers/model/modelGroups.ts](../src/features/providers/model/modelGroups.ts)<br>[src/features/providers/model/modelGroupRouting.ts](../src/features/providers/model/modelGroupRouting.ts)<br>[src/features/providers/ui/ModelGroupsPanel.tsx](../src/features/providers/ui/ModelGroupsPanel.tsx) |
 | `MEMORY` | 0.5.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/PersonalizationSettings.tsx](../src/features/settings/ui/PersonalizationSettings.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `MCP` | 0.5.0<br>0.12.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings](../src/features/settings)<br>[src-tauri/src/mcp.rs](../src-tauri/src/mcp.rs) |
 | `SKILLS` | 0.5.0<br>0.19.0 初版（历史快照） | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/skills](../src/features/skills)<br>[src-tauri/src/skills.rs](../src-tauri/src/skills.rs) |
 | `AUTOMATION` | 0.5.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/automations](../src/features/automations)<br>[src/features/automations/model/automationTarget.ts](../src/features/automations/model/automationTarget.ts) |
-| `CREDENTIALS` | 0.5.0<br>0.6.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs) |
+| `CREDENTIALS` | 0.5.0<br>0.25.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs)<br>[src/features/providers/model/modelGroupRouting.ts](../src/features/providers/model/modelGroupRouting.ts)<br>[src/features/providers/model/useModelGroupQuotas.ts](../src/features/providers/model/useModelGroupQuotas.ts) |
 | `PROVIDER-UI` | 0.6.0<br>0.21.0 | 当前以 MonoCode 官方账户式列表为主 | 保留 MyCode 连接/主模型/模型开关与词元跳动；不要复原为旧独立 Cindy 风格全页。 | [src/features/providers/ui/ModelConnections.tsx](../src/features/providers/ui/ModelConnections.tsx)<br>[src/features/providers/ui/ProviderGallery.tsx](../src/features/providers/ui/ProviderGallery.tsx) |
 | `MODEL-DISCOVERY` | 0.6.0<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `IM` | 0.6.0<br>0.24.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/IMBotsPage.tsx](../src/features/settings/ui/IMBotsPage.tsx)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs)<br>[vendor/cindy-im](../vendor/cindy-im) |
@@ -1505,7 +1530,7 @@
 | `THEME` | 0.13.0<br>0.24.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/styles/index.css](../src/styles/index.css)<br>[src/features/settings/model/appearance.ts](../src/features/settings/model/appearance.ts) |
 | `REVIEW` | 0.13.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/SessionReview.tsx](../src/features/sessions/ui/SessionReview.tsx)<br>[src-tauri/src/checkpoint](../src-tauri/src/checkpoint) |
 | `MARKDOWN` | 0.13.0<br>0.24.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/sessions/ui/AgentMarkdown.tsx](../src/features/sessions/ui/AgentMarkdown.tsx) |
-| `UPSTREAM-CONTROL` | 0.14.0<br>0.22.0 | 治理规则持续执行；历史遗漏已补齐 | 先记录新基线与完整增量，MonoCode 新能力必须适配，不能因架构差异跳过；仅审查与真整合分开。 | [AGENTS.md](../AGENTS.md)<br>[docs](../docs) |
+| `UPSTREAM-CONTROL` | 0.14.0<br>0.25.0 | 治理规则持续执行；历史遗漏已补齐 | 先记录新基线与完整增量，MonoCode 新能力必须适配，不能因架构差异跳过；仅审查与真整合分开。 | [AGENTS.md](../AGENTS.md)<br>[docs](../docs)<br>[docs/upstream-audits/2026-11-24-0.25.0.md](upstream-audits/2026-11-24-0.25.0.md) |
 | `SETTINGS-OPTIONS` | 0.15.0<br>0.23.3 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/ui/SettingsDropdown.tsx](../src/shared/ui/SettingsDropdown.tsx)<br>[src/features/settings/ui/SettingsView.tsx](../src/features/settings/ui/SettingsView.tsx) |
 | `MODEL-AUTH` | 0.15.0<br>0.24.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers](../src/features/providers)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `IM-NOTIFY` | 0.15.0<br>0.24.1 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/IMCompletionSettings.tsx](../src/features/settings/ui/IMCompletionSettings.tsx)<br>[src-tauri/src/im_bridge.rs](../src-tauri/src/im_bridge.rs) |
@@ -1549,10 +1574,12 @@
 | `TERMINAL` | 0.20.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/terminal](../src/features/terminal) |
 | `WINDOWS-WINDOWS` | 0.20.0<br>0.20.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src-tauri/src/lib.rs](../src-tauri/src/lib.rs) |
 | `FILES` | 0.20.0<br>0.21.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/files](../src/features/files)<br>[src-tauri/src/fs.rs](../src-tauri/src/fs.rs) |
-| `REMOTE-SAFETY` | 0.20.0<br>0.20.0 | 已有等价安全能力核对并保留 | 不计作新移植 Synara WebSocket/Effect/完整 Hub；禁止失败后自动重放改变请求。 | [host/engine.ts](../host/engine.ts)<br>[host/store.ts](../host/store.ts)<br>[src/features/connections](../src/features/connections) |
+| `REMOTE-SAFETY` | 0.20.0<br>0.25.0 | 已有等价安全能力核对并保留 | 不计作新移植 Synara WebSocket/Effect/完整 Hub；禁止失败后自动重放改变请求。 | [host/engine.ts](../host/engine.ts)<br>[host/store.ts](../host/store.ts)<br>[src/features/connections](../src/features/connections)<br>[src/features/connections/model/remoteCatalogCache.ts](../src/features/connections/model/remoteCatalogCache.ts)<br>[src/features/connections/ui/RemoteSession.tsx](../src/features/connections/ui/RemoteSession.tsx) |
 | `IME-INPUT` | 0.19.0 初版（历史快照）<br>0.19.0 初版（历史快照） | 保留，中文输入法候选处理与历史箭头不同 | IME 候选选择不误发送；不要把上下键历史当作输入法行为，维护 Enter/编号/引用时分别验证。 | [src/features/sessions/ui/Composer.tsx](../src/features/sessions/ui/Composer.tsx) |
 | `RELEASE-ASSETS` | 0.20.0 发布维护（2026-10-13）<br>0.23.5 | 仅 MyCode 桌面产物；Host 独立下载 | 发布前后执行附件白名单检查；不得把 Host 或上游安装包上传到桌面发行页。 | [scripts/check-release-assets.mjs](../scripts/check-release-assets.mjs)<br>[scripts/publish-host-downloads.mjs](../scripts/publish-host-downloads.mjs)<br>[src-tauri/src/remote_ssh.rs](../src-tauri/src/remote_ssh.rs) |
 | `RESOURCE-PRESSURE` | 0.23.3<br>0.23.4 | 保留；资源进程操作需用户主动触发 | 保持进程身份与归属校验；停止操作须用户显式触发；中英文提示一致。 | [src/features/notifications/ui/ResourcePressureNotice.tsx](../src/features/notifications/ui/ResourcePressureNotice.tsx)<br>[src-tauri/src/resources.rs](../src-tauri/src/resources.rs) |
+| `WORKFLOW-PLUGINS` | 0.25.0<br>0.25.0 | 新增；边界和验收状态见版本记录 | 保留既有账号、权限和数据边界；不得将设计适配声称为上游全量移植。 | [src/features/plugins](../src/features/plugins)<br>[src/features/agent-app/model/agentApp.ts](../src/features/agent-app/model/agentApp.ts)<br>[src-tauri/src/control_cli.rs](../src-tauri/src/control_cli.rs) |
+| `ORCHESTRATION-WAVES` | 0.25.0<br>0.25.0 | 新增；边界和验收状态见版本记录 | 保留既有账号、权限和数据边界；不得将设计适配声称为上游全量移植。 | [src/features/orchestration](../src/features/orchestration)<br>[src-tauri/src/control_cli.rs](../src-tauri/src/control_cli.rs) |
 
 ## 需要特别分清的演变
 

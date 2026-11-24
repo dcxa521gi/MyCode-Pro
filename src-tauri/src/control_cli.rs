@@ -21,6 +21,13 @@ Actions, with the JSON object each one takes:
             "files" is the write scope: project-relative paths, where a
             directory covers its descendants and ["."] reserves the whole
             checkout. "dependsOn" holds taskIds that must be reviewed first.
+  delegate_wave {"title":"Stage name","after":["<previous taskId>"],
+                 "tasks":[{"id":"a","title":"Task","harness":"codex",
+                 "model":"<id>","prompt":"Instructions","files":["src/a"],"dependsOn":[]}]}
+            Atomically queue 1-20 tasks. dependsOn refers to IDs within this
+            stage; after holds prior taskIds requiring review. Retry with the
+            same request ID to retrieve the original stage, never duplicates.
+            分阶段委派：整批校验后入队，前置任务通过审查后才运行下一阶段。
   get       {"taskId":"..."}
             One task, including its latest result.
   wait      {"timeoutSeconds":20}
@@ -78,11 +85,25 @@ MyCode sets MONOCODE_CONTROL_ENDPOINT and MONOCODE_CONTROL_TOKEN for the lead
 agent's process only. They are already in your environment; never print them.
 "#;
 
-const ACTIONS: [&str; 12] = [
-    "list", "delegate", "get", "steer", "message", "retry", "cancel", "wait", "review", "finish",
-    "respond", "answer",
+const ACTIONS: [&str; 13] = [
+    "delegate_wave",
+    "list",
+    "delegate",
+    "get",
+    "steer",
+    "message",
+    "retry",
+    "cancel",
+    "wait",
+    "review",
+    "finish",
+    "respond",
+    "answer",
 ];
-const APP_ACTIONS: [&str; 32] = [
+const APP_ACTIONS: [&str; 35] = [
+    "plugins.list",
+    "plugins.run",
+    "plugins.result",
     "models.list",
     "sessions.list",
     "sessions.read",
@@ -117,6 +138,16 @@ const APP_ACTIONS: [&str; 32] = [
     "chat.card",
 ];
 const APP_USAGE: &str = r#"MyCode app access — use in a thread enabled by /operator.
+
+Local workflow plugins / 本地工作流插件:
+  plugins.list {}
+    Discover enabled named tools. These supply workflows, not new permissions.
+  plugins.run {"pluginId":"...","toolId":"...","values":{}}
+    Open a native user form and return operationId immediately. Never assume
+    consent. The user's confirmation sends a follow-up in this conversation.
+  plugins.result {"operationId":"..."}
+    Read waiting/completed/cancelled and confirmed inputs in this conversation.
+    A fresh read uses a new request ID; a retried mutation keeps the original ID.
 
 Usage: {exe} app ACTION [--json JSON | --input FILE|-] [--request-id ID]
 

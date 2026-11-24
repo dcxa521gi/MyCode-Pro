@@ -73,6 +73,7 @@ import { SecondaryButton } from "../../../shared/ui/SecondaryButton";
 import { JiraSettings } from "./JiraSettings";
 import { GradientBlurBackground } from "./GradientBlurBackground";
 import { McpSettings } from "./McpSettings";
+import { LocalPluginsPanel } from "../../plugins/ui/LocalPluginsPanel";
 import { InboxProviderMark } from "../../inbox/ui/InboxProviderMark";
 import { RemoveProjectDialog } from "../../projects/ui/RemoveProjectDialog";
 import { WindowControls } from "../../../app/shell/WindowControls";
@@ -694,7 +695,7 @@ export function SettingsView({
               {section === "keybindings" ? <KeybindingsPage /> : null}
               {section === "monos" ? <MonosPage /> : null}
               {section === "mcp" ? (
-                <McpSettings cwd={cwd} recents={recents} />
+                <><LocalPluginsPanel /><McpSettings cwd={cwd} recents={recents} /></>
               ) : null}
               {section === "providers" ? (
                 <ModelConnections

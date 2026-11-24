@@ -195,7 +195,7 @@ export function OrchestrationSidebarAgents({
                       : "text-[12px] text-content/80"
                   }`}
                 >
-                  {task.title}
+                  {live?.waveTitle ? `${t("Stage")}: ${live.waveTitle} · ` : ""}{task.title}
                 </span>
                 <span
                   className={`flex shrink-0 items-center gap-1 text-[11px] ${
