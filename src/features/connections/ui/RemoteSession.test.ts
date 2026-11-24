@@ -11,6 +11,7 @@ import type { Block, Session } from "../../sessions/model/session";
 import type { AgentModel } from "../../sessions/model/models";
 import { rememberRemoteProject } from "../model/remoteProjects";
 import { preloadRemoteSession } from "./RemoteSession";
+import { remoteCatalogCache, REMOTE_CATALOG_FRESH_MS } from "../model/remoteCatalogCache";
 import { rememberRemoteSession, remoteSessionFor } from "../model/connections";
 import "../model/remoteCommands";
 import type {
@@ -130,6 +131,7 @@ let createdWorktree: string | undefined;
 let deletedSessions: string[];
 
 beforeEach(() => {
+  remoteCatalogCache.invalidate(remoteCatalogCache.key(machine.id, machine.environmentId, "project"));
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   localStorage.clear();
   localStorage.setItem("monocode.modelControls", "beside");
@@ -282,6 +284,7 @@ beforeEach(() => {
   root = createRoot(container);
 });
 afterEach(() => {
+  vi.restoreAllMocks();
   act(() => root.unmount());
   container.remove();
   document.body.innerHTML = "";
@@ -1011,6 +1014,9 @@ it("keeps a saved model's effort editable when the host catalog fails", async ()
   await render();
   await send("First");
   catalog = new Error("Codex CLI is not authenticated");
+  // A fresh catalog is deliberately reused across tabs. Exercise failure after
+  // the shared freshness window, without waiting for wall-clock timers.
+  vi.spyOn(Date, "now").mockReturnValue(Date.now() + REMOTE_CATALOG_FRESH_MS + 1);
   await act(async () => root.unmount());
   root = createRoot(container);
   await render();
