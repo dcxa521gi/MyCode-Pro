@@ -15288,6 +15288,7 @@ function Workspace({
   // Matches when the sidebar portals Explorer or Changes into the panel.
   const insetRightPanelShown =
     insetLayout &&
+    !workbenchOpen &&
     (rightPanelOpen || rightPanelClosing) &&
     !settingsOpen &&
     !monoCovers &&
@@ -15573,7 +15574,7 @@ function Workspace({
       linkedSessionUpdateIds={linkedSessionUpdateIds}
       settingsOpen={settingsOpen && !standaloneTools}
       workspaceHidden={
-        (standaloneTools && settingsOpen) || groupsOpen || workbenchOpen
+        (standaloneTools && settingsOpen) || groupsOpen || (workbenchOpen && !insetLayout)
       }
       settingsSection={settingsSection}
       onOpenSettings={onOpenSettings}

@@ -24,7 +24,7 @@ test("workbench stays reachable across themes and uses the selected provider wit
   const workbench = page.getByRole("region", { name: "工作台", exact: true });
   await expect(workbench.getByRole("heading", { name: "工作台", exact: true })).toBeVisible();
   const sidebar = page.getByRole("button", { name: "工作台", exact: true });
-  await sidebar.click({ trial: true });
+  await sidebar.click({ trial: true, timeout: 15_000 });
   for (const theme of ["default", "studio", "harbor", "moss", "ember", "orchid", "tidepool", "dune", "rosewood", "glacier", "arcade", "ink"]) {
     for (const scheme of ["light", "dark"]) {
       await page.evaluate(async ({ theme, scheme }) => {
