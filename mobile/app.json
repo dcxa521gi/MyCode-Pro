@@ -2,7 +2,7 @@
   "expo": {
     "name": "MyCode",
     "slug": "mycode-mobile",
-    "version": "0.26.0",
+    "version": "0.27.0",
     "runtimeVersion": {
       "policy": "fingerprint"
     },
@@ -34,7 +34,7 @@
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
       "package": "com.dcxa521gi.mycodemobile",
-      "versionCode": 2600
+      "versionCode": 2700
     },
     "web": {
       "output": "static",

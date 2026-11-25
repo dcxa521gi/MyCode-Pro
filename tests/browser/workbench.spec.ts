@@ -7,7 +7,7 @@ test("workbench stays reachable across themes and uses the selected provider wit
   page.on("console", (message) => { if (message.type() === "error") console.error("BROWSER", message.text()); });
   await page.addInitScript(() => localStorage.setItem("monocode.insetLayout", "1"));
   await page.goto("/tests/browser/workspace-performance.html");
-  await expect(page.getByRole("button", { name: "Workbench", exact: true })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole("button", { name: "Media Workbench", exact: true })).toBeVisible({ timeout: 60_000 });
   await page.evaluate(async () => {
     const i18n = await import("/src/shared/i18n/index.ts"); i18n.setLanguage("zh-CN");
     const host = window as any; host.mediaRequests = [];
@@ -20,10 +20,10 @@ test("workbench stays reachable across themes and uses the selected provider wit
       return invoke(command, args);
     };
   });
-  await page.getByRole("button", { name: "工作台", exact: true }).click();
-  const workbench = page.getByRole("region", { name: "工作台", exact: true });
-  await expect(workbench.getByRole("heading", { name: "工作台", exact: true })).toBeVisible();
-  const sidebar = page.getByRole("button", { name: "工作台", exact: true });
+  await page.getByRole("button", { name: "媒体工作台", exact: true }).click();
+  const workbench = page.getByRole("region", { name: "媒体工作台", exact: true });
+  await expect(workbench.getByRole("heading", { name: "媒体工作台", exact: true })).toBeVisible();
+  const sidebar = page.getByRole("button", { name: "媒体工作台", exact: true });
   await sidebar.click({ trial: true, timeout: 15_000 });
   for (const theme of ["default", "studio", "harbor", "moss", "ember", "orchid", "tidepool", "dune", "rosewood", "glacier", "arcade", "ink"]) {
     for (const scheme of ["light", "dark"]) {
@@ -35,7 +35,22 @@ test("workbench stays reachable across themes and uses the selected provider wit
       expect(await workbench.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
     }
   }
-  await workbench.getByPlaceholder("描述主题、风格、受众和成品要求……").fill("画一座安静的图书馆");
+  const nav = workbench.getByRole("navigation", {name:"创作工具"});
+  await expect(nav.getByRole("heading")).toHaveText(["写作","图片","视频","设计"]);
+  await nav.getByRole("button", {name:"生成小说", exact:true}).click();
+  await workbench.getByLabel("故事梗概").fill("一位钟表匠的冒险");
+  await workbench.getByLabel("章节数", {exact:true}).fill("6");
+  await nav.getByRole("button", {name:"生成 PPT", exact:true}).click();
+  await expect(workbench.getByText("页面规划 · 仅结构预览，并非生成成品")).toBeVisible();
+  await expect(workbench.getByLabel("目标受众")).toBeVisible();
+  await nav.getByRole("button", {name:"文生视频", exact:true}).click();
+  await expect(workbench.getByText("制作流程", {exact:true})).toBeVisible();
+  await nav.getByRole("button", {name:"生成小说", exact:true}).click();
+  await expect(workbench.getByLabel("故事梗概")).toHaveValue("一位钟表匠的冒险");
+  await expect(workbench.getByLabel("章节数", {exact:true})).toHaveValue("6");
+  await nav.getByRole("button", {name:"文生图", exact:true}).click();
+  await workbench.getByLabel("生成数量").fill("2");
+  await workbench.getByPlaceholder("描述主体、环境、光线与构图……").fill("画一座安静的图书馆");
   await workbench.getByRole("button", { name: "模型", exact: true }).click();
   await expect(page.getByRole("option", { name: /vendor\/chat/ })).toHaveCount(0);
   await page.getByRole("option", { name: /Magpie.*绘画模型/ }).click();
@@ -44,7 +59,7 @@ test("workbench stays reachable across themes and uses the selected provider wit
   await expect(workbench.getByRole("button", { name: "正在提交……", exact: true })).toBeDisabled();
   await expect(workbench.getByText("测试接口已完成", { exact: true })).toBeVisible();
   const requests = await page.evaluate(() => (window as any).mediaRequests);
-  expect(requests).toHaveLength(1); expect(requests[0]).toMatchObject({ model: "vendor/draw", connectionId: "magpie", cwd: "D:/creative-project", kind: "image" });
+  expect(requests).toHaveLength(1); expect(requests[0]).toMatchObject({ model: "vendor/draw", connectionId: "magpie", cwd: "D:/creative-project", kind: "image", options:{n:2} });
   expect(requests[0].reference).toBeUndefined();
   await page.screenshot({ path: "test-results/workbench-dark.png", fullPage: true });
   await page.evaluate(async () => {
@@ -59,8 +74,8 @@ test("workbench stays reachable across themes and uses the selected provider wit
     localStorage.setItem("monocode.projectRailOpen", "1");
   });
   await page.reload();
-  const classicEntry = page.getByRole("button", { name: /^(工作台|Workbench)$/, exact: true });
+  const classicEntry = page.getByRole("button", { name: /^(媒体工作台|Media Workbench)$/, exact: true });
   await expect(classicEntry).toBeVisible({ timeout: 60_000 });
   await classicEntry.click();
-  await expect(page.getByRole("region", { name: /^(工作台|Workbench)$/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: /^(媒体工作台|Media Workbench)$/ })).toBeVisible();
 });

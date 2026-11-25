@@ -2477,7 +2477,7 @@ function SidebarComponent({
       }
       items={[
         {
-          label: t("Workbench"),
+          label: t("Media Workbench"),
           icon: Zap,
           onClick: () => window.dispatchEvent(new Event("mycode:open-workbench")),
         },

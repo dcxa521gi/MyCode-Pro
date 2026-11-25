@@ -15,8 +15,10 @@ pub struct Request {
     pub reference: Option<String>,
     pub job_id: String,
     pub remote_id: Option<String>,
+    #[serde(default)]
+    pub options: std::collections::BTreeMap<String, Value>,
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ResultView {
     pub job_id: String,
@@ -130,6 +132,26 @@ fn execute(
         return Err("Use image-to-image for reference images / 使用参考图片时请选择图生图".into());
     }
 
+    // Only typed provider parameters are forwarded. Creative direction belongs in the prompt.
+    for (name, value) in &request.options {
+        let valid = match (name.as_str(), request.kind.as_str()) {
+            ("n", "image" | "image-edit") => value.as_u64().is_some_and(|n| (1..=4).contains(&n)),
+            ("size", "image" | "image-edit") => value
+                .as_str()
+                .is_some_and(|s| ["1024x1024", "1536x1024", "1024x1536"].contains(&s)),
+            ("size", "video") => value
+                .as_str()
+                .is_some_and(|s| ["1280x720", "720x1280"].contains(&s)),
+            ("seconds", "video") => value
+                .as_str()
+                .is_some_and(|s| ["4", "8", "12"].contains(&s)),
+            _ => false,
+        };
+        if !valid {
+            return Err(format!("Invalid media option / 媒体参数无效: {name}"));
+        }
+    }
+
     let cwd = fs::canonicalize(&request.cwd).map_err(|e| e.to_string())?;
     if !cwd.is_dir() {
         return Err("Choose an output folder / 请选择输出文件夹".into());
@@ -156,6 +178,8 @@ fn execute(
             || intent["baseUrl"] != connection.base_url
             || (request.kind != "video-status"
                 && (intent["kind"] != request.kind
+                    || intent.get("options").cloned().unwrap_or(json!({}))
+                        != json!(request.options)
                     || intent["reference"] != json!(request.reference)))
         {
             return Err("Job configuration changed / 任务配置已变更，请查看原任务结果".into());
@@ -213,6 +237,9 @@ fn execute(
     } else {
         agent.post(&endpoint)
     };
+    for (name, value) in &request.options {
+        payload[name] = value.clone();
+    }
     http = http.set("Authorization", &format!("Bearer {key}"));
     if crate::tokendance::is_endpoint(base) {
         http = http.set("X-App-URL", crate::tokendance::APP_URL);
@@ -226,7 +253,7 @@ fn execute(
             .create_new(true)
             .open(intent)
             .map_err(|_| "Job already submitted; check its status / 任务已提交，请检查状态")?;
-        file.write_all(serde_json::to_string(&json!({"connectionId":request.connection_id,"model":request.model,"kind":request.kind,"prompt":request.prompt,"reference":request.reference,"baseUrl":connection.base_url})).map_err(|e| e.to_string())?.as_bytes()).map_err(|e| e.to_string())?;
+        file.write_all(serde_json::to_string(&json!({"connectionId":request.connection_id,"model":request.model,"kind":request.kind,"prompt":request.prompt,"reference":request.reference,"baseUrl":connection.base_url,"options":request.options})).map_err(|e| e.to_string())?.as_bytes()).map_err(|e| e.to_string())?;
     }
     let response = if request.kind == "video-status" { http.call() } else if let Some(reference) = &request.reference {
         let path = Path::new(reference);
@@ -236,6 +263,10 @@ fn execute(
         let bytes = fs::read(path).map_err(|e| e.to_string())?;
         let boundary = format!("mycode-{}", request.job_id);
         let mut body = Vec::new();
+        for (name, value) in &request.options {
+            let value = value.as_str().map(str::to_owned).unwrap_or_else(|| value.to_string());
+            body.extend_from_slice(format!("--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"\r\n\r\n{value}\r\n").as_bytes());
+        }
         for (name, value) in [("model", request.model.as_str()), ("prompt", request.prompt.as_str())] {
             body.extend_from_slice(format!("--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"\r\n\r\n{value}\r\n").as_bytes());
         }
@@ -390,6 +421,7 @@ mod tests {
             reference: None,
             job_id: "job-1".into(),
             remote_id: remote.map(str::to_owned),
+            options: Default::default(),
         }
     }
     fn server(
@@ -456,6 +488,34 @@ mod tests {
         let mut different = request(&folder, "image", None);
         different.prompt = "changed".into();
         assert!(execute(&connection, "fixture-key", different).is_err());
+    }
+
+    #[test]
+    fn media_options_reach_provider_and_cannot_change_on_retry() {
+        let folder = Folder::new();
+        let bytes = b"\x89PNG\r\n\x1a\nfixture";
+        let body =
+            json!({"data":[{"b64_json":base64::engine::general_purpose::STANDARD.encode(bytes)}]})
+                .to_string()
+                .into_bytes();
+        let (connection, worker) = server(vec![("application/json", body)]);
+        let mut submitted = request(&folder, "image", None);
+        submitted.options.insert("n".into(), json!(2));
+        submitted.options.insert("size".into(), json!("1536x1024"));
+        execute(&connection, "fixture-key", submitted).unwrap();
+        let sent = worker.join().unwrap();
+        assert!(sent[0].contains("\"n\":2"));
+        assert!(sent[0].contains("\"size\":\"1536x1024\""));
+        assert!(
+            execute(&connection, "fixture-key", request(&folder, "image", None))
+                .unwrap_err()
+                .contains("configuration changed")
+        );
+        let mut invalid = request(&folder, "image", None);
+        invalid.options.insert("model".into(), json!("override"));
+        assert!(execute(&connection, "fixture-key", invalid)
+            .unwrap_err()
+            .contains("Invalid media option"));
     }
     #[test]
     fn video_poll_is_bound_to_original_job_and_downloads_without_resubmitting() {

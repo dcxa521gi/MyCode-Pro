@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedDate": "2026-11-25",
-  "currentProductVersion": "0.26.0",
+  "currentProductVersion": "0.27.0",
   "sourceCommit": "977e973f64ababe5db0e91453a61c162ccb77efa",
   "origins": {
     "MONO": "MonoCode 上游直接同步",
@@ -394,6 +394,16 @@
       "releaseDoc": "mycode-0.26.0.md",
       "monoBaseline": "09d04436ba → 同一提交；主分支无新增",
       "complementBaseline": "Cindy e8f3ff0026 → e77a8470d5（498 条含合并）；Synara 27c667c2ce → 001454e765（16 条）"
+    },
+    {
+      "key": "0.27.0",
+      "display": "0.27.0",
+      "tag": "v0.27.0",
+      "tagCommit": "pending",
+      "date": "2026-11-25",
+      "releaseDoc": "mycode-0.27.0.md",
+      "monoBaseline": "09d04436ba → 相同，无新增",
+      "complementBaseline": "Cindy e77a8470d5 → 23b2856f41（136 条含合并）；Synara 001454e765 → 相同"
     }
   ],
   "requirements": [
@@ -1386,6 +1396,18 @@
         "MC-0.26.0-008"
       ],
       "evidenceLevel": "用户 2026-11-25 明确要求"
+    },
+    {
+      "id": "R85",
+      "title": "复刻 Cindy Magpie 接入并深化媒体工作台",
+      "scope": "四类左侧导航、各功能独立场景与能力、统一媒体工作台命名，保留已有定制并交付安装包",
+      "events": [
+        "MC-0.27.0-001",
+        "MC-0.27.0-002",
+        "MC-0.27.0-003",
+        "MC-0.27.0-004"
+      ],
+      "evidenceLevel": "用户 2026-11-25 明确要求"
     }
   ],
   "features": [
@@ -1428,7 +1450,7 @@
     {
       "id": "I18N",
       "firstRecordedVersion": "0.5.0",
-      "lastChangedVersion": "0.26.0",
+      "lastChangedVersion": "0.27.0",
       "status": "保留；具体范围/实测条件见版本记录",
       "upgradePolicy": "以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。",
       "maintenancePaths": [
@@ -1457,7 +1479,8 @@
         "MC-0.23.5-003",
         "MC-0.23.6-003",
         "MC-0.25.0-006",
-        "MC-0.26.0-008"
+        "MC-0.26.0-008",
+        "MC-0.27.0-004"
       ]
     },
     {
@@ -3305,9 +3328,10 @@
         "src-tauri/src/local_ai.rs"
       ],
       "changes": [
-        "MC-0.26.0-005"
+        "MC-0.26.0-005",
+        "MC-0.27.0-001"
       ],
-      "lastChangedVersion": "0.26.0"
+      "lastChangedVersion": "0.27.0"
     },
     {
       "id": "CREATIVE-WORKBENCH",
@@ -3322,9 +3346,11 @@
         "src/app/shell/ProjectRail.tsx"
       ],
       "changes": [
-        "MC-0.26.0-006"
+        "MC-0.26.0-006",
+        "MC-0.27.0-002",
+        "MC-0.27.0-003"
       ],
-      "lastChangedVersion": "0.26.0"
+      "lastChangedVersion": "0.27.0"
     },
     {
       "id": "ACP-PERMISSIONS",
@@ -11055,6 +11081,95 @@
       "maintenancePaths": [
         "src/shared/i18n/mycode0260.ts",
         "tests/browser/workbench.spec.ts"
+      ]
+    },
+    {
+      "id": "MC-0.27.0-001",
+      "version": "0.27.0",
+      "feature": "MAGPIE",
+      "origin": "CINDY_REFERENCE",
+      "action": "修复/深化",
+      "requirements": [
+        "R85"
+      ],
+      "title": "按 Cindy 的多运行时流程修正 Magpie",
+      "detail": "三个运行时 URL/协议、供应商二级信息、完整不透明路由、空目录身份验证与刷新来源清理。",
+      "evidence": [
+        "mycode-0.27.0.md",
+        "upstream-audits/2026-11-25-0.27.0.md"
+      ],
+      "sourceConfidence": "源码实现；实际验收与限制见版本清单",
+      "maintenancePaths": [
+        "src/features/providers/model/magpie.ts",
+        "src/features/providers/ui/ModelConnections.tsx",
+        "src-tauri/src/local_ai.rs",
+        "tests/browser/magpie.spec.ts"
+      ]
+    },
+    {
+      "id": "MC-0.27.0-002",
+      "version": "0.27.0",
+      "feature": "CREATIVE-WORKBENCH",
+      "origin": "MYCODE",
+      "action": "修复/深化",
+      "requirements": [
+        "R85"
+      ],
+      "title": "媒体工作台分类导航与场景编辑器",
+      "detail": "写作、图片、视频、设计四类导航；13 个功能专属参数、文稿/分镜/页面结构预览、草稿隔离、右侧模型与输出。",
+      "evidence": [
+        "mycode-0.27.0.md",
+        "upstream-audits/2026-11-25-0.27.0.md"
+      ],
+      "sourceConfidence": "源码实现；实际验收与限制见版本清单",
+      "maintenancePaths": [
+        "src/features/workbench/model/studio.ts",
+        "src/features/workbench/ui/StudioEditor.tsx",
+        "src/features/workbench/ui/WorkbenchView.tsx"
+      ]
+    },
+    {
+      "id": "MC-0.27.0-003",
+      "version": "0.27.0",
+      "feature": "CREATIVE-WORKBENCH",
+      "origin": "MYCODE",
+      "action": "修复/深化",
+      "requirements": [
+        "R85"
+      ],
+      "title": "媒体参数真实传递与提交一致性",
+      "detail": "数量、尺寸、时长进入媒体接口，其他创作参数进入智能体或媒体提示词；JSON/multipart 均支持并校验，重试不能悄悄改变参数。",
+      "evidence": [
+        "mycode-0.27.0.md",
+        "upstream-audits/2026-11-25-0.27.0.md"
+      ],
+      "sourceConfidence": "源码实现；实际验收与限制见版本清单",
+      "maintenancePaths": [
+        "src-tauri/src/workbench.rs",
+        "src/features/workbench/model/studio.test.ts",
+        "tests/browser/workbench.spec.ts"
+      ]
+    },
+    {
+      "id": "MC-0.27.0-004",
+      "version": "0.27.0",
+      "feature": "I18N",
+      "origin": "MYCODE",
+      "action": "修复/深化",
+      "requirements": [
+        "R85"
+      ],
+      "title": "统一更名与场景双语",
+      "detail": "全部侧栏入口和标题使用媒体工作台 / Media Workbench；场景字段、流程和提示中英双语，沿用全主题语义色。",
+      "evidence": [
+        "mycode-0.27.0.md",
+        "upstream-audits/2026-11-25-0.27.0.md"
+      ],
+      "sourceConfidence": "源码实现；实际验收与限制见版本清单",
+      "maintenancePaths": [
+        "src/shared/i18n/mycode0270.ts",
+        "src/app/shell/Sidebar.tsx",
+        "src/app/shell/ProjectRail.tsx"
       ]
     }
   ],

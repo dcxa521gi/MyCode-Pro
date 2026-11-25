@@ -1,3 +1,4 @@
+import { magpieSupplier } from "../../providers/model/magpie";
 import { ModelCapabilityTags } from "../../providers/ui/ModelCapabilityTags";
 import { isHarnessAvailable } from "../../../integrations/harness/core/availability";
 import { translate as t } from "../../../shared/i18n";
@@ -1740,13 +1741,25 @@ function ModelFlyout({
                         className="flex min-w-0 flex-1 items-center gap-2 px-1.5 text-left text-[13px] disabled:cursor-not-allowed"
                       >
                         <span className="min-w-0 flex-1 truncate">
-                          <span data-model-name>{item.id === "devin:adaptive"
-                            ? t("Adaptive")
-                            : item.name}</span>
+                          <span data-model-name>
+                            {item.id === "devin:adaptive"
+                              ? t("Adaptive")
+                              : item.name}
+                          </span>
+                          {magpieSupplier(item.capabilityMetadata) && (
+                            <span
+                              className="block truncate text-[10px] text-content/50"
+                              title={magpieSupplier(item.capabilityMetadata)}
+                            >
+                              {magpieSupplier(item.capabilityMetadata)}
+                            </span>
+                          )}
                           <ModelCapabilityTags
                             compact
                             id={item.nativeId || item.id}
-                            metadata={item.capabilityMetadata ?? { mode: "chat" }}
+                            metadata={
+                              item.capabilityMetadata ?? { mode: "chat" }
+                            }
                           />
                         </span>
                       </button>

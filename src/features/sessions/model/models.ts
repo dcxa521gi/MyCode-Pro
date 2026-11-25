@@ -1,3 +1,4 @@
+import { magpieRuntime, magpieMetadata } from "../../providers/model/magpie";
 import type { ModelConnection } from "../../providers/model/modelConnections";
 import { supportsProtocol } from "../../providers/model/modelProtocols";
 import type { HarnessId } from "./session";
@@ -364,7 +365,7 @@ export function connectionSupportsHarness(
   c: ModelConnection,
 ): boolean {
   return (
-    supportsConnection(harness, c.api) ||
+    supportsConnection(harness, magpieRuntime(c, harness).api) ||
     (harness === "claude" &&
       /^https:\/\/(api|token-plan-cn)\.xiaomimimo\.com\/(v1|anthropic)\/?$/.test(
         c.baseUrl,
@@ -393,7 +394,13 @@ export function modelsFor(harness: HarnessId): AgentModel[] {
   const blockedCustomIds = new Set(
     connections.flatMap((c) =>
       c.models
-        .filter((model) => !supportsProtocol(c.modelMetadata?.[model], c.api))
+        .filter(
+          (model) =>
+            !supportsProtocol(
+              magpieMetadata(c, c.modelMetadata?.[model]),
+              magpieRuntime(c, harness).api,
+            ),
+        )
         .map((model) => `${harness}:mycode-${c.id}/${model}`),
     ),
   );
@@ -406,7 +413,12 @@ export function modelsFor(harness: HarnessId): AgentModel[] {
     )
     .flatMap((c) =>
       c.models
-        .filter((model) => supportsProtocol(c.modelMetadata?.[model], c.api))
+        .filter((model) =>
+          supportsProtocol(
+            magpieMetadata(c, c.modelMetadata?.[model]),
+            magpieRuntime(c, harness).api,
+          ),
+        )
         .map((model) => ({
           id: `${harness}:mycode-${c.id}/${model}`,
           harness,

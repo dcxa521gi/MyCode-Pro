@@ -46,14 +46,14 @@ export const WORKBENCH_TASKS = [
   {
     id: "image-prompt",
     title: "Image to prompt",
-    category: "Writing",
+    category: "Images",
     media: "agent",
     reference: true,
   },
   {
     id: "video-prompt",
     title: "Video to prompt",
-    category: "Writing",
+    category: "Videos",
     media: "agent",
     reference: true,
   },
@@ -109,6 +109,7 @@ export type WorkbenchJob = {
   text?: string;
   remoteId?: string;
   sessionId?: string;
+  settings?: Record<string, string>;
   mediaModels?: {
     image?: { connectionId: string; model: string };
     video?: { connectionId: string; model: string };

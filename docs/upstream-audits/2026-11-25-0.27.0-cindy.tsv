@@ -1,0 +1,137 @@
+commit	date	subject
+7ccb5b1861a618dee6089c19ffb4a88e3a5cc850	2026-11-21	fix(desktop): pass safe HTTP proxy settings to plugin CLIs
+784b6562261e37b0f4cfc02e284a63f64d47ab15	2026-11-21	fix(desktop): preserve proxy alias selection during filtering
+d2fe2a42a01943918482d378df00e2d7967db747	2026-11-24	perf(bots): replace model-generated companion greetings with static localized copy
+2a5168fffe16823fab1700d148a9c80e340cf4fe	2026-11-24	fix(bots): guard cold-start readiness and clean legacy welcome state on upgrade
+f8a99d738d318db45916b72da883802eec881da6	2026-11-24	fix(remote-agent): 保留原线程恢复的关闭原因与运行关联
+ae0ba5ce0b40fb91f134453426323421d0d20be1	2026-11-25	fix(desktop): keep Orca and plugin tools discoverable in Antigravity ACP
+a512b4a9f0fd991a0feb7070d01446d4a6aae1d2	2026-11-25	fix(storage): sparsify persisted agent_meta, add read-only dbstat diagnostics, and retire obsolete worktree archives
+1633b94cb9c8d059cbca136aff9322684a97b30c	2026-11-25	fix(desktop,maker-core): refine model error recovery, safety refusal, and Codex log noise
+56215709fca60709867199e134040750f12664d0	2026-11-25	fix(desktop): 记忆远端只读通道精确拒绝并隔离重连切号状态
+969f699b3956b3a965100b7b679361707d63c588	2026-11-24	feat(desktop): identify your questions in navigation previews
+22de710b1a4860bceab01377e0c51669ccfe4a54	2026-11-25	fix(scheduler): coalesce PR heartbeat skips and deduplicate remote skip refreshes
+81af6a571dc756aa7fc5170eebeb23c8b0bacf22	2026-11-25	fix(desktop): treat verified group requests from the owner as your questions
+980f62de527300d21844ff62f8c3847851cb2364	2026-11-25	test(desktop): add a ui:check page for the navigation preview
+944d1785a385283cfc2ce832e2684f8c49e49a57	2026-11-25	fix(desktop): follow chat attribution for group requests and devices in previews
+c0b91669595e0e45c53e506fc3e814dc63f4696f	2026-11-25	fix(desktop): mirror the chat's source labels in navigation previews
+6a774193b5a22b8fb6efd0cebe72f1528899071e	2026-11-25	perf(desktop): compare preview source fields when reusing navigation entries
+f6d03938d87fb9d05b820d9d759dbfc40946a67f	2026-11-25	fix(pi): 保持本地 OpenAI 订阅模型的代理路由
+895040e77987e4527e5386eee3ad7b1e865765ce	2026-11-25	fix(pi): 恢复订阅会话原有的启动和历史校验
+97c8ed7b4b23e7e2625b669941fa869a4e937c84	2026-11-25	fix(desktop): show refused settings saves and keep the close action usable
+ea87ce00dea9c8119ba4f8db174c33a4a9be6c08	2026-11-25	fix(desktop): report unsuccessful IM settings changes
+90f73b2f815a9a52583ee16497af956098d60ea8	2026-11-25	fix(desktop): explain Device Link standby when another instance holds remote connection
+89218ad715923463e9be16da89eed2402853cd01	2026-11-25	test(desktop): cover closing the main window once after its behavior could not be saved
+03a7a197fde8cd9f03ad3117c94ba8cfa8e4a843	2026-11-25	test(desktop): exercise the settings save failures with a refusal the standalone desktop can return
+66d90bf96ed833c3b67b71e5c4ab2451901a58bc	2026-11-25	fix(desktop): translate the Telegram persona save failure with the component's translator
+5613707f79698cf3c5fefc2b4a0eed970c8813f3	2026-11-25	test(desktop): expect the first close choice to apply once after its save fails
+c3eab5db9f837ba0e149af869fc2e5f8d3d759ff	2026-11-25	Merge commit '8128adc78886e1f395461441a78468c463e7df57' into fix/desktop-remote-read-allowlist-miss
+c65f47cdde403e9449ff3402abb176d4355203a3	2026-11-25	Merge commit '8128adc78886e1f395461441a78468c463e7df57' into audit/11b2a812-heartbeat
+d292d726bff5f328d72cdc82a9014d27d01ebf9d	2026-11-25	Merge commit '8128adc78886e1f395461441a78468c463e7df57' into audit/11b2a812-storage
+4260bb03511339f8c65f7b5e36ba85fd859b5c91	2026-11-25	Merge commit '8128adc78886e1f395461441a78468c463e7df57' into fix/antigravity-tool-catalog-11b2a812
+3d2ccefb1920bbc19103fd153cf16cfbaaeae90e	2026-11-25	Merge commit '8128adc78886e1f395461441a78468c463e7df57' into audit/11b2a812-model-errors
+8736b07286f53e95238f2c881df64940a22e4f9f	2026-11-25	fix(agent): recover Claude model switches with incomplete context metadata
+6e568d0ab818172967e5b0b9a28e7348d74b471a	2026-11-25	test(agent): complete model capacity route fixtures
+c5cefababc36b160364282b19c9b5ca62907cdd8	2026-11-25	fix(desktop): invalidate early remote read misses on peer upgrades
+831fae6dee3a4cfd7bf067334abadf642fffedbe	2026-11-25	fix(scheduler): deliver skipped outcomes and preserve newer Home timing
+f7f006e26c28beafa535df3d233f7514a448c690	2026-11-25	fix(storage): batch archive evidence checks and verify dbstat fallback
+f0e4541280638621fa865ec93b78f2a2123375aa	2026-11-25	fix(desktop): preserve skipped timing across remote index reads
+b4b4878d78edfb11d02c4b5fc3b38b1d5c579115	2026-11-24	perf(history): batch collapsed detail cache trimming
+0db263e76b27740a17b4da40ab979a6f7b150b39	2026-11-25	fix(desktop): reconcile local schedule timing after skipped runs
+31a92f722d219ceb1dc016478007c7167289ac93	2026-11-24	fix(codex): identify runtime cleanup when exit confirmation times out
+fb9c48e66d3adcf99e636789985125053ffec81a	2026-11-25	fix(desktop): keep every Antigravity catalog within agy's shared tool budget
+4e943d7c04dab1063bf160ce5af8bd45fbde2db3	2026-11-25	Merge origin/main into fix/antigravity-tool-catalog-11b2a812
+b7951286f634f651ddf00f92d297c763a6cbd722	2026-11-25	docs(host): 改按分阶段路线推进后台工作
+4033b0d233b5e6f5e69581a9f3c7f6ef8dbaf2ca	2026-11-25	fix(host): bound plugin binding waits during shutdown
+07218b0919c10ad2b689c7fee670876a7a11df64	2026-11-25	fix(desktop): answer Antigravity catalog helpers in the transport
+0f2459f4495432aa93a7200f8f6cb139837096a8	2026-11-25	feat(plugins): 支持工作目录菜单和状态栏按钮字号
+608f549836549391557d3b4581fa5bc9159beb06	2026-11-25	docs(host): 新增阶段 0 封存清单
+f3e814d98f725bbedd8b6c4e8cce97eee01ae20d	2026-11-25	fix(plugins): 将点选的工作目录传给任务侧栏页面
+c8e6fd190ab1feafa146a1945ece047b2a29213c	2026-11-25	chore(skills): 记录侧栏目录上下文手册更新
+8d719e8cf88217e50bfb7eb0c1b1c9a97edb4eba	2026-11-25	fix(pi): 接受包命令的 changelogPath 来源字段
+ad79f678352013603df8c17c9c72821017b48341	2026-11-25	fix(desktop): keep plugin loopback requests off the proxy
+7471026f90bc0983d35f71062cc0b91bc33418e4	2026-11-25	fix(mobile): hide single-device section headings
+295189532ef8fabef4236dac224e094bbfab7f19	2026-11-25	fix(mobile): keep hidden device sections expanded
+0fd708b6284cf3461b1cd143fe4ee30eee38ef4f	2026-11-25	fix(telegram): 仅在确认凭据删除后报告解绑成功
+f91efa7b461b3b8202e562aefa3948924798997e	2026-11-25	fix(agent-net): 中转连接被本机关掉后自动重连，不再需要重启
+e78e8b30e56b56c15b967c5f258be536bdefe156	2026-11-25	fix(remote-agent): preserve recovery for temporary share unavailability
+58873c81c776859848b7525a0f5dbd7261bc75e0	2026-11-25	fix(telegram): 解绑中途失败时以离线状态恢复绑定
+a390377dd1db424a15e50aeaa48b8a70e75e1ff5	2026-11-25	fix(host): report absent remote IPC with the legacy refusal
+ed03029a18ccd433c3796e5f6b0330413e98dc59	2026-11-25	fix(provider-group): 重启恢复不受关闭详情误判
+3b69799eb05a985ca68592f2f7ecd0b44a86a926	2026-11-25	fix(provider-group): 保留部分读取成功的匿名成员状态
+01091fdeaa254f7ab0e7348ebd20ef1d28f8515b	2026-11-25	fix(remote-agent): preserve authoritative shared-run refusals
+4115f955b29f331a42739f1215a38ecf9bdd4f71	2026-11-25	fix(remote-agent): use valid transport refusal fixtures
+652c9b81578eb6681fb1eba08a8f1cf567caafbb	2026-11-25	fix(codex): scope multi-server MCP status queries
+c001de2eb26e76401b2fcd6807a4e16e1843ff66	2026-11-25	fix(usage): 默认账号刷新用量时沿用 Full reset 的授权来源
+52740b046b260e5358b17d561d5e0b0015de8a24	2026-11-25	fix(usage): 刷新期间复核断开状态并保留暂时不可读的缓存
+a2193bec07cc7bbe291b9b7ecf8f15e1849eacc5	2026-11-25	fix(usage): 兼容无工作区字段的用量凭证并复核撤销状态
+a8b181304a33fb9827e588119163bf10c5d51890	2026-11-25	fix(usage): 登录来源或凭证切换后重新选择账号
+9bd1c6455df3606de310e735b3cb5fe982af6fbe	2026-11-25	fix(usage): 缓存读取后核对身份并重试凭证轮换
+5cc5780bc2832389cf6fb14a14d273668d3d4971	2026-11-25	fix(usage): 识别切换到 API key 和读取期间的断开
+b9c992779ca4a38699389f01ca5f07a331120cd1	2026-11-25	fix(usage): 用同一文件代次确认 API key 登录
+add5e5d86d9531b02c9a6f9e0a795d954ddfccd1	2026-11-25	fix(usage): 按显式登录模式区分凭证缺失
+a5d5a1a76624f642c52d4ed6084a949104a4367d	2026-11-25	fix(remote-agent): 隔离关闭详情与业务恢复判定
+3459e8623ff553bc9271dd0ebb64c8036fddebf9	2026-11-25	fix(local-db): 重开检测到 SQLite 损坏时保持隔离
+edd843a8da2561f67b9a64c33bb35cbbd05e7d4c	2026-11-25	Merge branch 'main' into fix/agent-net-relay-reconnect-stuck
+cc15889d5d81f08df2b90d38b102434335950751	2026-11-25	fix(codex): query each MCP server directly
+406fcc70b38a99e5bdd144f3baad7516f060c7e3	2026-11-25	fix(desktop): 统一侧栏状态点垂直对齐并改为悬停原地替换操作按钮
+37166eb4fbd3efee1e52df8128a787462474859b	2026-11-25	Merge remote-tracking branch 'origin/main' into cindy/loyal-hodgkin
+7ba326c6d6178e4421d6492eeb1a23505cf539e5	2026-11-25	合入最新 main，同步 Codex MCP 与共享会话离线错误修复
+03074971573e18a04823499967df1a3bbdade298	2026-11-25	Merge remote-tracking branch 'origin/main' into cindy/keen-kapitsa
+591d8d5b3dbb333a6f0163fdc9405b2736f17170	2026-11-25	Merge remote-tracking branch 'origin/main' into audit/11b2a812-model-errors
+f89fb5c35e8e9ef1b0935214314cb36d30712862	2026-11-25	Merge main into the Host roadmap docs branch
+89af57c3cea44086c7f5f091afc6444f557383cc	2026-11-25	Merge main into the plugin logic page close fix
+1bff168040203609e577915a6cf3b781c593b2c3	2026-11-25	chore: 同步 main 并重新验证插件扩展
+dca39b4a8aaa1aad1fbc993ef54869249326df95	2026-11-25	Merge main into feat/nav-rail-own-message-preview
+2405038c7c808cd5211718a00ba6acd7b9ee8a2a	2026-11-25	Merge upstream main into history detail release fix
+1a7c060e81ac345fbd064bd78362f3fa0527435d	2026-11-25	Merge main into the desktop settings failure feedback branch
+2ce7433756b4c0149a22e8a0c9fa91d973588a52	2026-11-25	Merge remote-tracking branch 'origin/main' into fix/desktop-remote-read-allowlist-miss
+f829c8e08703ceab95746fe1ab7ab95a7ad96efe	2026-11-25	Merge branch 'main' of https://github.com/makecindy/cindy into fix/mcp-server-status-baseline
+5ec231d60522b0adc5dfe1ab40fabaf59495b0a7	2026-11-25	Merge main into cindy/serene-turing for CI revalidation
+0f9b3a5e36d0664ed4119919bc1f6b4f152884e0	2026-11-25	Merge origin/main (e77a8470d574) into audit/11b2a812-heartbeat
+3c178eb74dd2f50641a032fe698f0d21153bb9a8	2026-11-25	test(codex): 补齐线程 MCP 状态隔离与分页预算回归
+f5372d1d34b9524b60fba01e644a79f664fa7b5d	2026-11-25	Merge commit 'e77a8470d5745b324a8b9bb09fbd5ec44223df0f' into audit/11b2a812-storage
+acee0be686d0928980d5c6ec0d7e274f11b02614	2026-11-25	Merge remote-tracking branch 'upstream/main' into bot-static-welcome
+335fa9314c01bd7eb9f2eeb10953ccda6cfe54ad	2026-11-25	chore(remote-agent): 同步主干并保留关闭诊断回归
+3c7d0d5b51800e89688fc55880b726b6d83ce0f8	2026-11-25	fix(provider-group): 批量读取匿名状态的组配置
+502ba0a2ee460ddcc57747482a40b27d4e23e9da	2026-11-25	Merge current main into Codex cleanup diagnosis
+58544212654f8bbf02349d669c800fb3b13ea121	2026-11-25	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/witty-newton
+0cfa1798a0aa43d2aaea52803b246243aab447fb	2026-11-25	fix(desktop): 保留 Codex 账号刷新时两处均可见的新模型
+67136a6979deff52a57a38a27b848678701ef6b4	2026-11-25	Merge pull request #12685 from makecindy/fix/agent-net-relay-reconnect-stuck
+0ecaef5e9831d70da93508c3ae11a051f633f598	2026-11-25	Merge main into the headless remote refusal fix
+db16730880371f9c4d5c1445021baae4a150bfea	2026-11-25	fix(desktop): await activation-click persistence in cloud settings
+50c12a23084595b29e4ee6c49cc846efed0a745c	2026-11-25	Merge pull request #12704 from FicoHub/fix/12700-default-usage-home
+8364da62ffa7bcda68ee32c508ae63914234e9c8	2026-11-25	Merge origin/main into fix/antigravity-tool-catalog-11b2a812
+3889ce9c262f991d804e9c92136c5104d4f39f52	2026-11-25	fix(desktop): 恢复折叠对话组新建按钮的圆形外框
+f6ec0d6d0f3a0b92af3b465d1eadb103e9ee57d8	2026-11-25	feat(acp): let plugin-engine tasks call Cindy Skills with /
+476bcd6987bf396b5de8bc94529f76e1d9e5b2bc	2026-11-25	Merge remote-tracking branch 'origin/main' into feat/plugin-engine-slash-skills
+635aacc3898111d67f9d1abb3a696c89b8329791	2026-11-25	Merge pull request #12664 from makecindy/cindy/keen-kapitsa
+2b72a654e0cd1c83cedb29c0cb166aac7c83d280	2026-11-25	Merge upstream/main to refresh shared-agent recovery baseline
+85d2221d01fb293ca2dda4c80c4ae7ab39d6afd7	2026-11-25	Merge pull request #11736 from makecindy/cindy/tender-liskov
+24623decbfea2de32740766e0f98edcb42e3eb29	2026-11-25	Merge pull request #12502 from zqchris/bot-static-welcome
+2f46b386a00d0cadf2467cbcbb6bf81e1d7cd446	2026-11-25	Merge pull request #11957 from makecindy/cindy/serene-turing
+ac033aabe7377093156b8f18cfb0834a400a19dc	2026-11-25	Merge pull request #12605 from yan-xdt/cindy/humble-colden
+1b345f04590440246b329f649a095a38ffd70eeb	2026-11-25	Merge pull request #12625 from makecindy/feat/nav-rail-own-message-preview
+a00c26aa155193a9dddb66f7b99666d49c87af27	2026-11-25	Merge pull request #12653 from FicoHub/lizi/fix-12651
+2cdc2d21cb5eb6555a2700210abb8910c97596e4	2026-11-25	Merge pull request #12659 from makecindy/fix/desktop-remote-read-allowlist-miss
+40314405fee70af47feaf370c3a6dd9ae6010249	2026-11-25	Merge pull request #12657 from makecindy/cindy/desktop-settings-failure-feedback
+fb486820fadbc91b21c2c685bcb52447f5e51b2e	2026-11-25	fix(acp): keep host notes off plugin-engine /skill messages; list / menu Skills from the engine
+53d6419e0e0d2bac83d5cc80ee06313b08c72e5f	2026-11-25	Merge pull request #12660 from makecindy/audit/11b2a812-heartbeat
+eeb509114caafbedc8f0a4e50a7f02ff994c384f	2026-11-25	Merge pull request #12662 from makecindy/audit/11b2a812-storage
+0e317cf9e0e0720e9f75085e64f101b173b9ab6a	2026-11-25	Merge pull request #12661 from makecindy/audit/11b2a812-model-errors
+8677c7ef5fce8c5cd6868718b6663a96f85e4059	2026-11-25	Merge pull request #12669 from amanayayatu-tech/fix/12504-batch-detail-release
+9352a1cff0d0413c5eb2e7605282385a70e2d38f	2026-11-25	Merge pull request #12673 from amanayayatu-tech/fix/11257-codex-cleanup-diagnosis
+c60ed65e46e48ef9528fbae5df5a345ddbdde474	2026-11-25	Merge pull request #12663 from makecindy/fix/antigravity-tool-catalog-11b2a812
+03585d291e74223c8d388059bedb2313ca402f40	2026-11-25	Merge pull request #12686 from yan-xdt/fix/shared-agent-transient-recovery
+f6d5be00b605139e60a3f40b89397c48edd302b2	2026-11-25	test(desktop): accept the acp kind in the Skill-list source guard
+41c7a8c33ce5a028afb5a1ff390b54757ccef588	2026-11-25	Merge pull request #12678 from makecindy/docs/host-phased-roadmap
+0e0d7b2f9c3bef561004401019df457d27e11045	2026-11-25	Merge pull request #12674 from makecindy/fix/host-plugin-logic-page-close
+82713d7b48880bf91aaed5cec744668d1c26c692	2026-11-25	Merge pull request #12681 from makecindy/cindy/loyal-hodgkin
+8593a864abac7662370378bac788bbf333f8c728	2026-11-25	Merge pull request #12679 from woniuxia/cindy/witty-newton
+b451a6ca023ab95586f19ad754488225aa75ac0b	2026-11-25	Merge pull request #12690 from makecindy/cindy/fix-headless-remote-unavailable
+be2a2c52daf0b26900fd0a36fde1580ef7c7587f	2026-11-25	Merge pull request #12695 from yan-xdt/cindy/vigilant-pasteur
+0757a550284334d027c79979ed248bccc6b15e6b	2026-11-25	Merge pull request #12676 from makecindy/cindy/keen-mendeleev
+b0a01576f5d61265c3d664cf7ea75be57eb5a61c	2026-11-25	Merge pull request #12691 from yan-xdt/cindy/vigilant-lovelace
+2a330d6cf2460cdfa069dc75527adb17501d9386	2026-11-25	Merge pull request #12712 from zqchris/sidebar-status-dot-alignment
+2e8f85d940f64f45feaa4700befb5cd144294f85	2026-11-25	Merge pull request #12703 from makecindy/fix/mcp-server-status-baseline
+14e5921ea13c44d62afb7ad1d1e714ccfab4afdd	2026-11-25	Merge pull request #12721 from FicoHub/lizi/fix-12716
+23b2856f416674ff9289ef3baaeed5c0a10922a3	2026-11-25	Merge pull request #12732 from makecindy/feat/plugin-engine-slash-skills

@@ -3,6 +3,12 @@ import { setConnectionModels } from "../../sessions/model/models";
 import { invoke } from "@tauri-apps/api/core";
 
 export type ModelMetadata = {
+  discoveredSource?: {
+    kind: "magpie";
+    providerId: string;
+    label?: string;
+    discoveredName?: string;
+  };
   capabilityOverrides?: import("./modelCapabilities").ModelCapability[];
   mode?: string;
   nativeApi?: string | null;
@@ -66,6 +72,8 @@ export function mergeDiscoveredModelMetadata(
       ? { manualOverrides: cached.manualOverrides }
       : cached;
     merged[id] = { ...retained, ...known, ...cached?.manualOverrides };
+    // Source labels belong to this discovery snapshot, never to stale/manual metadata.
+    merged[id].discoveredSource = incoming.discoveredSource;
   }
   return merged;
 }
@@ -76,6 +84,7 @@ export type ModelConnection = {
   baseUrl: string;
   api: string;
   gateway?: "magpie";
+  magpieEndpoints?: Partial<Record<"claude" | "codex" | "pi", string>>;
   models: string[];
   modelMetadata?: Record<string, ModelMetadata>;
   enabled: boolean;

@@ -14,6 +14,7 @@ pub struct Connection {
     pub base_url: String,
     pub api: String,
     pub gateway: Option<String>,
+    pub magpie_endpoints: std::collections::BTreeMap<String, String>,
     pub models: Vec<String>,
     pub model_metadata: std::collections::BTreeMap<String, Value>,
     pub enabled: bool,
@@ -243,7 +244,72 @@ fn validate(connection: &Connection) -> Result<(), String> {
     {
         return Err("Enter a name and at least one model ID".into());
     }
+    if connection.gateway.as_deref() == Some("magpie") {
+        for engine in ["claude", "codex", "pi"] {
+            let mut runtime = magpie_runtime(connection, engine);
+            runtime.gateway = None;
+            validate(&runtime)?;
+        }
+    }
     Ok(())
+}
+
+fn magpie_runtime(connection: &Connection, engine: &str) -> Connection {
+    let mut runtime = connection.clone();
+    if connection.gateway.as_deref() != Some("magpie") {
+        return runtime;
+    }
+    let key = match engine {
+        "claude" => "claude",
+        "codex" => "codex",
+        _ => "pi",
+    };
+    let root = connection
+        .base_url
+        .trim_end_matches('/')
+        .trim_end_matches("/v1");
+    runtime.base_url = connection
+        .magpie_endpoints
+        .get(key)
+        .filter(|s| !s.is_empty())
+        .cloned()
+        .unwrap_or_else(|| format!("{root}{}", if key == "claude" { "" } else { "/v1" }));
+    for metadata in runtime.model_metadata.values_mut() {
+        if matches!(
+            metadata["nativeApi"].as_str(),
+            Some(
+                "anthropic-messages"
+                    | "openai-responses"
+                    | "openai-completions"
+                    | "anthropic:messages"
+                    | "openai:responses"
+                    | "openai:chat-completions"
+                    | "google-generative-ai"
+            )
+        ) {
+            metadata["nativeApi"] = Value::Null;
+        }
+    }
+    runtime.api = match key {
+        "claude" => "anthropic-messages",
+        "codex" => "openai-responses",
+        _ => "openai-completions",
+    }
+    .into();
+    runtime
+}
+fn magpie_source(item: &Value) -> Value {
+    fn valid(v: &Value, max: usize) -> Option<&str> {
+        v.as_str()
+            .filter(|s| !s.trim().is_empty() && s.len() <= max && !s.chars().any(char::is_control))
+    }
+    let (Some(label), Some(provider)) = (
+        valid(&item["magpie_label"], 4096),
+        valid(&item["owned_by"], 256),
+    ) else {
+        return Value::Null;
+    };
+    json!({"kind":"magpie", "providerId":provider, "label":label, "discoveredName":valid(&item["display_name"], 1024)})
 }
 
 fn local_endpoint(base: &str) -> bool {
@@ -277,7 +343,7 @@ pub(crate) fn workbench_connection(
         .ok_or("Model source is unavailable / 模型来源不可用，请检查供应商设置")?;
     validate(&connection)?;
     let key = connection_key(&connection)?;
-    Ok((connection, key))
+    Ok((magpie_runtime(&connection, "pi"), key))
 }
 
 fn mimo_anthropic_base(connection: &Connection) -> Option<String> {
@@ -410,6 +476,7 @@ pub fn local_ai_save_connection(
                 c.id == connection.id
                     && c.base_url == connection.base_url
                     && c.api == connection.api
+                    && c.magpie_endpoints == connection.magpie_endpoints
             })
             .map(|c| c.secret.clone())
             .unwrap_or_default(),
@@ -596,6 +663,12 @@ pub fn configure_child(
     }
     let _lock = CONFIG_LOCK.lock().map_err(|e| e.to_string())?;
     let mut config = load(app)?;
+    for connection in &mut config.connections {
+        *connection = magpie_runtime(connection, provider.unwrap_or("pi"));
+        if connection.enabled {
+            validate(connection)?;
+        }
+    }
     if !isolated {
         if let Some(browser) = crate::browser::mcp(app)? {
             if !config.mcp_servers.is_object() {
@@ -896,6 +969,7 @@ pub fn local_ai_discover_models(
                 c.id == connection.id
                     && c.base_url == connection.base_url
                     && c.api == connection.api
+                    && c.magpie_endpoints == connection.magpie_endpoints
             })
             .map(|c| c.secret.clone())
             .unwrap_or_default();
@@ -915,6 +989,9 @@ fn fetch_models(
     } else {
         protect(&connection.secret, true)?
     };
+    let magpie = connection.gateway.as_deref() == Some("magpie");
+    let catalog = magpie_runtime(connection, "pi");
+    let connection = if magpie { &catalog } else { connection };
     let endpoint = if connection.api == "anthropic-messages"
         && !connection.base_url.trim_end_matches('/').ends_with("/v1")
     {
@@ -967,7 +1044,42 @@ fn fetch_models(
             .into_string()
             .map_err(|_| "Invalid model response")?;
         let value: Value = serde_json::from_str(&text).map_err(|_| "Invalid model response")?;
-        for id in parse_model_ids(&value)? {
+        if value.get("error").is_some_and(|v| !v.is_null() && v != "")
+            || value.get("error_code").is_some_and(|v| v != 0)
+        {
+            return Err("Invalid model response".into());
+        }
+        let opaque = magpie
+            || value["data"]
+                .as_array()
+                .is_some_and(|a| a.iter().any(|m| !magpie_source(m).is_null()));
+        let ids = parse_model_ids_with_routes(&value, opaque)?;
+        if magpie && ids.is_empty() {
+            if value["data"].as_array().is_none_or(|v| !v.is_empty()) {
+                return Err("Invalid model response".into());
+            }
+            let mut hello = url::Url::parse(&endpoint).map_err(|_| "Invalid API URL")?;
+            hello.set_path("/api/hello");
+            hello.set_query(None);
+            // Identity probe never carries model credentials or follows redirects.
+            let identity: Value = serde_json::from_reader(
+                agent
+                    .get(hello.as_str())
+                    .call()
+                    .map_err(|_| "Could not verify Magpie gateway / 无法验证 Magpie 网关")?
+                    .into_reader()
+                    .take(16 * 1024),
+            )
+            .map_err(|_| "Invalid Magpie identity / Magpie 身份响应无效")?;
+            if identity["name"] != "magpie"
+                || identity
+                    .get("error")
+                    .is_some_and(|v| !v.is_null() && v != "")
+            {
+                return Err("Could not verify Magpie gateway / 无法验证 Magpie 网关".into());
+            }
+        }
+        for id in ids {
             let list = value
                 .as_array()
                 .or_else(|| value["data"].as_array())
@@ -978,8 +1090,13 @@ fn fetch_models(
                 .find(|m| {
                     m.as_str() == Some(&id)
                         || ["id", "model_id", "slug", "name"].iter().any(|k| {
-                            m[*k].as_str().map(|s| s.trim_start_matches("models/"))
-                                == Some(id.as_str())
+                            m[*k].as_str().map(|s| {
+                                if opaque {
+                                    s
+                                } else {
+                                    s.trim_start_matches("models/")
+                                }
+                            }) == Some(id.as_str())
                         })
                 })
                 .unwrap_or(&Value::Null);
@@ -1149,7 +1266,8 @@ fn model_metadata(item: &Value, source: &str) -> Value {
         "model_info":item.get("model_info"),
         "reasoningEfforts":item.get("reasoning_efforts").and_then(Value::as_array).map(|a| a.iter().filter_map(Value::as_str).collect::<Vec<_>>()),
         "supportedProtocols":item.get("supportedProtocols").or_else(|| item.get("supported_protocols")).or_else(|| item.get("protocols")),
-        "source":source
+        "source":source,
+        "discoveredSource":magpie_source(item)
     })
 }
 
@@ -1262,7 +1380,11 @@ fn chat_model_metadata(metadata: Option<&Value>, protocol: &str) -> bool {
         .is_none_or(|value| Some(value) == normalize(protocol))
 }
 
+#[cfg(test)]
 fn parse_model_ids(value: &Value) -> Result<Vec<String>, String> {
+    parse_model_ids_with_routes(value, false)
+}
+fn parse_model_ids_with_routes(value: &Value, opaque: bool) -> Result<Vec<String>, String> {
     let list = value
         .as_array()
         .or_else(|| value.get("data").and_then(Value::as_array))
@@ -1288,7 +1410,11 @@ fn parse_model_ids(value: &Value) -> Result<Vec<String>, String> {
             .or_else(|| item.get("slug").and_then(Value::as_str))
             .or_else(|| item.get("name").and_then(Value::as_str));
         if let Some(id) = id {
-            let id = id.strip_prefix("models/").unwrap_or(id).trim();
+            let id = if opaque {
+                id.trim()
+            } else {
+                id.strip_prefix("models/").unwrap_or(id).trim()
+            };
             if !id.is_empty()
                 && id.len() <= 200
                 && !id.chars().any(char::is_control)
@@ -1305,6 +1431,120 @@ fn parse_model_ids(value: &Value) -> Result<Vec<String>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn magpie_preserves_opaque_routes_and_verifiable_supplier_identity() {
+        let value = json!({"data":[{"id":"models/shared"},{"id":"a/shared"},{"id":"b/shared"}]});
+        assert_eq!(
+            parse_model_ids_with_routes(&value, true).unwrap(),
+            vec!["a/shared", "b/shared", "models/shared"]
+        );
+        assert!(magpie_source(&json!({"owned_by":"vendor"})).is_null());
+        assert!(magpie_source(&json!({"owned_by":"vendor\n","magpie_label":"label"})).is_null());
+        let item = json!({"id":"a/chat", "owned_by":"vendor-a", "magpie_label":"Chat · Team", "display_name":"Chat"});
+        let metadata = model_metadata(&item, "http://127.0.0.1/models");
+        assert_eq!(metadata["discoveredSource"]["providerId"], "vendor-a");
+        assert_eq!(metadata["discoveredSource"]["discoveredName"], "Chat");
+    }
+
+    #[test]
+    fn magpie_routes_agent_protocols_without_confusing_native_vendor_api() {
+        let connection: Connection = serde_json::from_value(json!({"id":"magpie", "name":"Magpie", "gateway":"magpie", "baseUrl":"http://127.0.0.1:3425/v1", "api":"openai-completions", "modelMetadata":{"route/chat":{"nativeApi":"anthropic-messages"},"route/image":{"nativeApi":"openai-images"}}})).unwrap();
+        let claude = magpie_runtime(&connection, "claude");
+        assert_eq!(claude.base_url, "http://127.0.0.1:3425");
+        assert_eq!(claude.api, "anthropic-messages");
+        let codex = magpie_runtime(&connection, "codex");
+        assert_eq!(codex.api, "openai-responses");
+        assert!(chat_model_metadata(
+            codex.model_metadata.get("route/chat"),
+            &codex.api
+        ));
+        assert!(!chat_model_metadata(
+            codex.model_metadata.get("route/image"),
+            &codex.api
+        ));
+        assert_eq!(
+            connection.model_metadata["route/chat"]["nativeApi"],
+            "anthropic-messages"
+        );
+        let mut custom = connection.clone();
+        custom
+            .magpie_endpoints
+            .insert("codex".into(), "https://gateway.example/codex/v1".into());
+        assert_eq!(
+            magpie_runtime(&custom, "codex").base_url,
+            "https://gateway.example/codex/v1"
+        );
+        validate(&custom).unwrap();
+        custom
+            .magpie_endpoints
+            .insert("claude".into(), "http://untrusted.example".into());
+        assert!(validate(&custom).is_err());
+    }
+
+    #[test]
+    fn magpie_empty_catalog_requires_identity_and_probe_never_receives_credentials() {
+        use std::{
+            io::{BufRead, BufReader, Write},
+            net::TcpListener,
+            thread,
+        };
+        for (catalog, identity, succeeds) in [
+            (json!({"data":[]}), Some(json!({"name":"magpie"})), true),
+            (json!({"data":[]}), Some(json!({"name":"other"})), false),
+            (json!({"data":[], "error":"invalid key"}), None, false),
+            (json!({"data":[{}]}), None, false),
+            (json!({"models":[]}), None, false),
+        ] {
+            let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+            let base = format!("http://{}/v1", listener.local_addr().unwrap());
+            listener.set_nonblocking(true).unwrap();
+            let worker = thread::spawn(move || {
+                for (i, body) in std::iter::once(catalog).chain(identity).enumerate() {
+                    let started = std::time::Instant::now();
+                    let mut socket = loop {
+                        if let Ok((socket, _)) = listener.accept() {
+                            break socket;
+                        }
+                        assert!(
+                            started.elapsed() < Duration::from_secs(10),
+                            "expected HTTP call"
+                        );
+                        thread::sleep(Duration::from_millis(10));
+                    };
+                    socket
+                        .set_read_timeout(Some(Duration::from_secs(5)))
+                        .unwrap();
+                    let mut reader = BufReader::new(socket.try_clone().unwrap());
+                    let mut headers = String::new();
+                    loop {
+                        let mut line = String::new();
+                        reader.read_line(&mut line).unwrap();
+                        if line == "\r\n" || line.is_empty() {
+                            break;
+                        }
+                        headers.push_str(&line);
+                    }
+                    let headers = headers.to_lowercase();
+                    if i == 0 {
+                        assert!(headers.contains("/v1/models"));
+                        assert!(headers.contains("authorization: bearer fixture-secret"));
+                    } else {
+                        assert!(headers.starts_with("get /api/hello "));
+                        assert!(!headers.contains("fixture-secret"));
+                        assert!(!headers.contains("authorization"));
+                    }
+                    let body = body.to_string();
+                    write!(socket, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",body.len(),body).unwrap();
+                }
+            });
+            let connection: Connection = serde_json::from_value(json!({"id":"magpie", "name":"Magpie", "gateway":"magpie", "baseUrl":base, "api":"openai-completions"})).unwrap();
+            assert_eq!(
+                fetch_models(&connection, Some("fixture-secret".into())).is_ok(),
+                succeeds
+            );
+            worker.join().unwrap();
+        }
+    }
     #[test]
     fn old_local_config_preserves_memory_and_defaults_to_no_automatic_collection() {
         let config: LocalConfig = serde_json::from_str(

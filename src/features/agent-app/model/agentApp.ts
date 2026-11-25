@@ -1089,7 +1089,7 @@ export async function handleAgentApp(
         selected.model !== job.model
       )
         throw Error(
-          "Select this media model in the workbench first / 请先在工作台选择要使用的媒体模型",
+          "Select this media model in the Media Workbench first / 请先在媒体工作台选择要使用的媒体模型",
         );
     }
     const old = workbenchJobs().find((j) => j.id === id);

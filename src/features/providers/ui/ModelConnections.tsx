@@ -1,3 +1,9 @@
+import {
+  MAGPIE_ENGINES,
+  magpieRuntime,
+  magpieSupplier,
+  magpieMetadata,
+} from "../model/magpie";
 import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
 import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
 import {
@@ -115,11 +121,17 @@ export function ModelConnections({
                   }
                 : current,
             );
-            setDiscovered((current) => [...new Set([...current, ...models])]);
+            setDiscovered((current) =>
+              draft.gateway === "magpie"
+                ? models
+                : [...new Set([...current, ...models])],
+            );
 
             if (!models.length)
               setStatus(
-                "No models returned. You can enter model IDs manually.",
+                draft.gateway === "magpie"
+                  ? "Magpie is connected but has no enabled models. Enable models in Magpie, then refresh."
+                  : "No models returned. You can enter model IDs manually.",
               );
           }
         })
@@ -138,7 +150,15 @@ export function ModelConnections({
       clearTimeout(timer);
       setDiscovering(false);
     };
-  }, [draft?.id, draft?.name, draft?.baseUrl, draft?.api, key, discoveryRetry]);
+  }, [
+    draft?.id,
+    draft?.name,
+    draft?.baseUrl,
+    draft?.api,
+    JSON.stringify(draft?.magpieEndpoints),
+    key,
+    discoveryRetry,
+  ]);
   const reload = async (preferredId?: string) => {
     const connections = (await loadLocalAIConfig()).connections;
     setItems(connections);
@@ -420,6 +440,11 @@ export function ModelConnections({
                             <strong>
                               {item.modelMetadata?.[id]?.name || id}
                             </strong>
+                            {magpieSupplier(item.modelMetadata?.[id]) && (
+                              <p className="text-xs text-content/55">
+                                {magpieSupplier(item.modelMetadata?.[id])}
+                              </p>
+                            )}
                             <ModelCapabilityTags
                               id={id}
                               metadata={item.modelMetadata?.[id]}
@@ -498,10 +523,20 @@ export function ModelConnections({
                             isChatModelMetadata(
                               draft.modelMetadata?.[id.trim()],
                             ) &&
-                            !supportsProtocol(
-                              draft.modelMetadata?.[id.trim()],
-                              draft.api,
-                            ),
+                            !(draft.gateway === "magpie"
+                              ? MAGPIE_ENGINES.some((engine) =>
+                                  supportsProtocol(
+                                    magpieMetadata(
+                                      draft,
+                                      draft.modelMetadata?.[id.trim()],
+                                    ),
+                                    magpieRuntime(draft, engine).api,
+                                  ),
+                                )
+                              : supportsProtocol(
+                                  draft.modelMetadata?.[id.trim()],
+                                  draft.api,
+                                )),
                         )
                     )
                       throw Error(
@@ -544,8 +579,11 @@ export function ModelConnections({
                 {draft.gateway === "magpie" && (
                   <p className="rounded-lg bg-content/5 p-3 text-xs leading-relaxed text-content/65">
                     {t(
-                      "Magpie: use its gateway address and API key. Refresh includes chat, image and video models; keep the full provider/model or group/model ID.",
+                      "Magpie routes one connection to Claude Messages, Codex Responses and Pi Chat. Use your Magpie gateway key; supplier labels never replace the full route ID.",
                     )}
+                    <button type="button" className="mt-2 block underline underline-offset-2" onClick={() => void openUrl("https://usemagpie.ai/docs/integrate")}>
+                      {t("Magpie setup guide")}
+                    </button>
                   </p>
                 )}
                 <div className="flex items-center gap-2 text-xs text-content/55">
@@ -591,56 +629,100 @@ export function ModelConnections({
                       }}
                     />
                   </label>
-                  <label className="grid gap-1 text-xs">
-                    {t("API protocol")}
-                    <SettingsDropdown
-                      aria-label={t("API protocol")}
-                      className={inputClass}
-                      value={draft.api}
-                      onChange={(e) => {
-                        const api = e.target.value;
-                        const mimo =
-                          /^https:\/\/(api|token-plan-cn)\.xiaomimimo\.com\/(v1|anthropic)\/?$/.test(
-                            draft.baseUrl,
-                          );
-                        setDraft({
-                          ...draft,
-                          api,
-                          hasKey: false,
-                          baseUrl: mimo
-                            ? draft.baseUrl.replace(
-                                /\/(v1|anthropic)\/?$/,
-                                api === "anthropic-messages"
-                                  ? "/anthropic"
-                                  : "/v1",
-                              )
-                            : draft.baseUrl,
-                        });
-                        setDiscovered([]);
-                        if (draft.hasKey && !key)
-                          setStatus(
-                            "Protocol changed. Enter your API key again.",
-                          );
-                      }}
-                    >
-                      <option value="openai-completions">
-                        {t("OpenAI Chat Completions")}
-                      </option>
-                      {!/\.xiaomimimo\.com\//.test(draft.baseUrl) && (
-                        <option value="openai-responses">
-                          {t("OpenAI Responses")}
+                  {draft.gateway === "magpie" ? (
+                    <fieldset className="space-y-3 rounded-xl border border-content/10 p-3">
+                      <legend className="px-1 text-xs font-medium">
+                        {t("Magpie agent endpoints")}
+                      </legend>
+                      {MAGPIE_ENGINES.map((engine) => (
+                        <label key={engine} className="grid gap-1 text-xs">
+                          <span>
+                            {engine === "claude"
+                              ? "Claude Code · Messages"
+                              : engine === "codex"
+                                ? "Codex · Responses"
+                                : "Pi / OpenCode · Chat"}
+                          </span>
+                          <input
+                            type="url"
+                            required
+                            className={inputClass}
+                            value={magpieRuntime(draft, engine).baseUrl}
+                            onChange={(e) => {
+                              setDraft({
+                                ...draft,
+                                hasKey: false,
+                                magpieEndpoints: {
+                                  ...draft.magpieEndpoints,
+                                  [engine]: e.target.value,
+                                },
+                              });
+                              if (draft.hasKey && !key)
+                                setStatus(
+                                  "Endpoint changed. Enter your gateway key again.",
+                                );
+                            }}
+                          />
+                        </label>
+                      ))}
+                      <p className="text-xs text-content/50">
+                        {t(
+                          "The same gateway key is used only with the endpoints you configure here.",
+                        )}
+                      </p>
+                    </fieldset>
+                  ) : (
+                    <label className="grid gap-1 text-xs">
+                      {t("API protocol")}
+                      <SettingsDropdown
+                        aria-label={t("API protocol")}
+                        className={inputClass}
+                        value={draft.api}
+                        onChange={(e) => {
+                          const api = e.target.value;
+                          const mimo =
+                            /^https:\/\/(api|token-plan-cn)\.xiaomimimo\.com\/(v1|anthropic)\/?$/.test(
+                              draft.baseUrl,
+                            );
+                          setDraft({
+                            ...draft,
+                            api,
+                            hasKey: false,
+                            baseUrl: mimo
+                              ? draft.baseUrl.replace(
+                                  /\/(v1|anthropic)\/?$/,
+                                  api === "anthropic-messages"
+                                    ? "/anthropic"
+                                    : "/v1",
+                                )
+                              : draft.baseUrl,
+                          });
+                          setDiscovered([]);
+                          if (draft.hasKey && !key)
+                            setStatus(
+                              "Protocol changed. Enter your API key again.",
+                            );
+                        }}
+                      >
+                        <option value="openai-completions">
+                          {t("OpenAI Chat Completions")}
                         </option>
-                      )}
-                      <option value="anthropic-messages">
-                        {t("Anthropic Messages")}
-                      </option>
-                      {!/\.xiaomimimo\.com\//.test(draft.baseUrl) && (
-                        <option value="google-generative-ai">
-                          {t("Google Generative AI")}
+                        {!/\.xiaomimimo\.com\//.test(draft.baseUrl) && (
+                          <option value="openai-responses">
+                            {t("OpenAI Responses")}
+                          </option>
+                        )}
+                        <option value="anthropic-messages">
+                          {t("Anthropic Messages")}
                         </option>
-                      )}
-                    </SettingsDropdown>
-                  </label>
+                        {!/\.xiaomimimo\.com\//.test(draft.baseUrl) && (
+                          <option value="google-generative-ai">
+                            {t("Google Generative AI")}
+                          </option>
+                        )}
+                      </SettingsDropdown>
+                    </label>
+                  )}
                   {(draft.baseUrl.startsWith("https://tokendance.space/") ||
                     draft.baseUrl.replace(/\/$/, "") ===
                       "https://openrouter.ai/api/v1") && (
@@ -820,10 +902,20 @@ export function ModelConnections({
                                 isChatModelMetadata(
                                   draft.modelMetadata?.[id],
                                 ) &&
-                                !supportsProtocol(
-                                  draft.modelMetadata?.[id],
-                                  draft.api,
-                                )
+                                !(draft.gateway === "magpie"
+                                  ? MAGPIE_ENGINES.some((engine) =>
+                                      supportsProtocol(
+                                        magpieMetadata(
+                                          draft,
+                                          draft.modelMetadata?.[id],
+                                        ),
+                                        magpieRuntime(draft, engine).api,
+                                      ),
+                                    )
+                                  : supportsProtocol(
+                                      draft.modelMetadata?.[id],
+                                      draft.api,
+                                    ))
                               }
                               checked={modelText.split("\n").includes(id)}
                               onChange={(e) =>
@@ -844,6 +936,11 @@ export function ModelConnections({
                               <strong className="block truncate">
                                 {draft.modelMetadata?.[id]?.name || id}
                               </strong>
+                              {magpieSupplier(draft.modelMetadata?.[id]) && (
+                                <p className="text-xs text-content/55">
+                                  {magpieSupplier(draft.modelMetadata?.[id])}
+                                </p>
+                              )}
                               <ModelCapabilityTags
                                 id={id}
                                 metadata={draft.modelMetadata?.[id]}
@@ -903,14 +1000,32 @@ export function ModelConnections({
                                     </label>
                                   ))}
                                 </span>
-                                {draft.modelMetadata?.[id]?.capabilityOverrides && (
-                                  <button type="button" className="mt-2 underline" onClick={() => {
-                                    const current = { ...draft.modelMetadata?.[id] };
-                                    delete current.capabilityOverrides;
-                                    current.manualOverrides = { ...current.manualOverrides };
-                                    delete current.manualOverrides.capabilityOverrides;
-                                    setDraft({ ...draft, modelMetadata: { ...draft.modelMetadata, [id]: current } });
-                                  }}>{t("Restore automatic classification")}</button>
+                                {draft.modelMetadata?.[id]
+                                  ?.capabilityOverrides && (
+                                  <button
+                                    type="button"
+                                    className="mt-2 underline"
+                                    onClick={() => {
+                                      const current = {
+                                        ...draft.modelMetadata?.[id],
+                                      };
+                                      delete current.capabilityOverrides;
+                                      current.manualOverrides = {
+                                        ...current.manualOverrides,
+                                      };
+                                      delete current.manualOverrides
+                                        .capabilityOverrides;
+                                      setDraft({
+                                        ...draft,
+                                        modelMetadata: {
+                                          ...draft.modelMetadata,
+                                          [id]: current,
+                                        },
+                                      });
+                                    }}
+                                  >
+                                    {t("Restore automatic classification")}
+                                  </button>
                                 )}
                               </details>
                               <span className="block text-content/50">
@@ -964,10 +1079,20 @@ export function ModelConnections({
                                 ) : (
                                   <span>{t("Not reported")}</span>
                                 )}
-                                {!supportsProtocol(
-                                  draft.modelMetadata?.[id],
-                                  draft.api,
-                                ) && (
+                                {!(draft.gateway === "magpie"
+                                  ? MAGPIE_ENGINES.some((engine) =>
+                                      supportsProtocol(
+                                        magpieMetadata(
+                                          draft,
+                                          draft.modelMetadata?.[id],
+                                        ),
+                                        magpieRuntime(draft, engine).api,
+                                      ),
+                                    )
+                                  : supportsProtocol(
+                                      draft.modelMetadata?.[id],
+                                      draft.api,
+                                    )) && (
                                   <strong>
                                     {t("Choose another API protocol")}
                                   </strong>

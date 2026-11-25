@@ -429,7 +429,7 @@ export function ProjectRail({
           <div className="flex shrink-0 flex-col gap-px px-2 pb-2 pt-0.5">
             <RailAction label={t("New task")} icon={Plus} onClick={onNewTask} />
             <RailAction
-              label={t("Workbench")}
+              label={t("Media Workbench")}
               icon={Zap}
               onClick={() =>
                 window.dispatchEvent(new Event("mycode:open-workbench"))
