@@ -52,7 +52,12 @@ it(
         process.execPath,
         [cli, ...args, "--data-dir", directory, "--port", String(port)],
         {
-          timeout: process.platform === "win32" ? 45_000 : 10_000,
+          timeout:
+            process.platform === "win32"
+              ? args[0] === "start"
+                ? 125_000
+                : 45_000
+              : 10_000,
           env: fixtureEnvironment,
         },
       );
@@ -200,5 +205,9 @@ it(
       }
     }
   },
-  process.platform === "win32" ? 120_000 : 20_000,
+  // Windows launches a fresh PowerShell ACL check for each of the lifecycle
+  // commands above. Startup includes the child readiness window; other
+  // commands retain their individual 45s deadline. Budget the whole sequence
+  // independently from any single operation.
+  process.platform === "win32" ? 300_000 : 20_000,
 );

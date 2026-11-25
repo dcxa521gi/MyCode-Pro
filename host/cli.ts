@@ -167,10 +167,22 @@ Connect another computer using an SSH forward to the loopback port.`);
         env: process.env,
       },
     );
+    let launchError: Error | undefined;
+    child.once("error", (error) => {
+      launchError = error;
+    });
     child.unref();
     closeSync(log);
-    for (let i = 0; i < (process.platform === "win32" ? 300 : 50); i++) {
+    // Windows may run two bounded PowerShell checks before publishing state:
+    // directory ACLs and a legacy lock owner's command line. Do not exhaust
+    // readiness while those checks are still legitimately running.
+    for (let i = 0; i < (process.platform === "win32" ? 900 : 50); i++) {
       await new Promise((resolve) => setTimeout(resolve, 100));
+      if (launchError) throw launchError;
+      if (child.exitCode !== null || child.signalCode !== null)
+        throw new Error(
+          `Host exited before becoming ready. See ${join(directory, "host.log")}`,
+        );
       const state = readRunning();
       if (state && state.pid === child.pid) {
         console.log(
@@ -228,20 +240,22 @@ Connect another computer using an SSH forward to the loopback port.`);
   try {
     configureChildBackend(backend);
     const release = await acquireHarnessBridge();
-    const available: RemoteProvider[] = [];
-    for (const provider of REMOTE_PROVIDERS) {
-      if (provider === "acp") {
-        available.push(provider);
-        continue;
-      }
-      if (!hostProviders[provider]) continue;
-      try {
-        await backend.resolve(provider);
-        available.push(provider);
-      } catch {
-        /* report via descriptor */
-      }
-    }
+    // Independent probes must not consume the launcher's readiness deadline
+    // one after another on Windows (each can invoke a system resolver).
+    const available = (
+      await Promise.all(
+        REMOTE_PROVIDERS.map(async (provider) => {
+          if (!hostProviders[provider]) return undefined;
+          if (provider === "acp") return provider;
+          try {
+            await backend.resolve(provider);
+            return provider;
+          } catch {
+            return undefined;
+          }
+        }),
+      )
+    ).filter((provider): provider is RemoteProvider => provider !== undefined);
     const engine = new HostEngine(store, hostProviders);
     const secret = randomBytes(32).toString("base64url");
     let stopping = false;
