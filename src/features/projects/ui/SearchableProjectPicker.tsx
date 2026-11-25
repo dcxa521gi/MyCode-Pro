@@ -360,6 +360,8 @@ export function ProjectPickerPopover({
       return;
     }
     if (!(target instanceof HTMLInputElement)) return;
+    // The IME owns Enter and arrow keys while the user is choosing a character.
+    if (event.nativeEvent.isComposing) return;
     if (event.key === "ArrowDown") {
       event.preventDefault();
       if (rowCount === 0) return;

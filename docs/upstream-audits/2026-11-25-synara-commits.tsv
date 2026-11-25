@@ -1,0 +1,16 @@
+001454e7655f5afbbeaca4a477ed954c0c627d57	2026-11-25T01:01:08+01:00	Document Synara 1.6.7 release improvements
+ce7b7269d6e234cb0dca5b157a6a51b4655267c2	2026-11-25T01:00:09+01:00	Remove the Windows browser cookie reader (#2299)
+6bff1c91bdcf153899d3f7233b13df68ccc554cf	2026-11-25T00:18:28+01:00	Prepare Synara 1.6.7 Stable
+8934fa9acb94f5184d5ee85de5d5cc885875cea4	2026-11-25T00:18:28+01:00	Isolate the updater test from the Vitest IPC channel
+2da50bce467b2b6319061afc36e5040f7b6c31fd	2026-11-24T23:23:14+01:00	fix: resolve audit bugs, leaks, SQL N+1, and dead code (#2294)
+f6f49daeb6225f2bcd5ddd8e50f4cd131147411a	2026-11-24T22:28:41+01:00	Fix Antigravity question cards and answer submission (#2295)
+3c35ebb12412d166eb21abbc80f57d28e0851294	2026-11-24T22:26:55+01:00	Allow the macOS backend to exit with updater IPC open (#2296)
+afbca770ba22b05da8ab66c10205c3aa31302052	2026-11-24T17:31:29+01:00	Run Linux and Windows packaging independently of Mac icons (#2292)
+c756ce0097414eb35f67354832ffa90ef99399cc	2026-11-24T16:55:39+01:00	Decouple release packaging and preserve warm CI caches (#2291)
+9d9d992284eca4c0fda56a6ddd393d83cc3dd7bd	2026-11-24T16:01:23+01:00	Release Synara 1.6.6 Stable
+75a5a9a0a5ecd7f25e61fe39edbe114006b9897e	2026-11-24T15:59:45+01:00	Reduce desktop installer and installed app size (#2288)
+7697b64b83b24d0cb2cbbccd4ed55ec544a02e80	2026-11-24T15:44:43+01:00	Respect Claude Code automatic compaction settings (#2272)
+826905d083989917366c76a2d4e3f50e732590bc	2026-11-24T15:20:51+01:00	Tell Stable desktop users what product analytics shares (#2290)
+a13dcda7024f28240e36c3a0d5c7f3a103636ca1	2026-11-24T15:06:58+01:00	fix(devin): retain shell approvals in ACP orchestration (#2289)
+1ccfffc5e7985c9e366515856b72d499e6e6eadc	2026-11-24T14:51:32+01:00	fix(devin): validate ACP permission modes before prompting (#2287)
+8447b5312f4d021cab2e9feb3fe15ad9b4473917	2026-11-24T13:55:35+01:00	perf: hillclimb cold-boot latency, transfer bytes, streaming throughput, and client lag (#2266)

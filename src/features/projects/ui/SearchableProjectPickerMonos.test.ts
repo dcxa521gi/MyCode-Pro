@@ -67,3 +67,13 @@ it("shows the open mono, and lets the current project lead back out of it", () =
   act(() => project.click());
   expect(onSelectProject).toHaveBeenCalledWith("/code/app");
 });
+
+it("does not choose a project when Enter confirms an IME candidate", () => {
+  const { onOpen, onSelectProject } = render();
+  const input = document.body.querySelector<HTMLInputElement>('input[placeholder="Search monos and projects..."]')!;
+  const key = new KeyboardEvent("keydown", { key: "Enter", bubbles: true });
+  Object.defineProperty(key, "isComposing", { value: true });
+  act(() => input.dispatchEvent(key));
+  expect(onOpen).not.toHaveBeenCalled();
+  expect(onSelectProject).not.toHaveBeenCalled();
+});

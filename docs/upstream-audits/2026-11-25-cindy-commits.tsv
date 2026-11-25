@@ -1,0 +1,451 @@
+263720b6c14feef0e8a6fc90b0d428acf38b4376	2026-11-25T04:43:53+08:00	Merge pull request #12613 from cholf5/fix/claude-proxy-multiblock-usage
+8128adc78886e1f395461441a78468c463e7df57	2026-11-25T03:44:34+08:00	Merge pull request #12630 from amanayayatu-tech/cindy/sharp-kepler
+8879fc7a73ae3bab4e41022b3dcd5d62ca80e357	2026-11-25T03:30:05+08:00	Merge pull request #12629 from guanwei-xd/feat/buddy-portrait-5x5
+5363650727c85e660ca7b9421957247d22c26254	2026-11-25T03:27:42+08:00	Merge pull request #12639 from FicoHub/lizi/fix-12632
+b3c8c0c1c6e81ad8bc630a7e24e45aae9796afb9	2026-11-25T03:24:36+08:00	Merge pull request #12638 from FicoHub/lizi/fix-12633
+255a228bc3e89c6adb8ca6642d3eb918c9bd1a5e	2026-11-25T03:13:24+08:00	Merge pull request #12612 from yan-xdt/cindy/zealous-dijkstra
+aba7cfeca006d8bba8c66ba0c12032e77b4125d8	2026-11-25T03:07:50+08:00	Merge pull request #12581 from joei4cm/fix/scheduler-bound-session-busy-wait
+07ab525e8e1a7cbb9777fbd77c3621c5b376fa19	2026-11-25T03:02:55+08:00	Merge pull request #12532 from dashhuang/cindy/silent-hawking
+2713cc8fe7be723a51c49b7df6efd5dfe79df381	2026-11-25T02:02:02+08:00	Merge pull request #12566 from yan-xdt/cindy/tender-kapitsa
+d993cd0b55b0fa83f6b03527adf42091bcf62bbd	2026-11-25T01:41:56+08:00	Merge pull request #12609 from amanayayatu-tech/cindy/silly-kepler
+bdcd481aece4055b74018e9accd2c9fa08ba10ab	2026-11-25T01:40:15+08:00	Merge pull request #12616 from nanaco666/fix/group-chat-429-recovery
+fa5a24e9aee8b7104a1f4a0a716c058177def81f	2026-11-25T01:38:02+08:00	Merge pull request #12627 from yan-xdt/cindy/thoughtful-goodall
+7907fb292fa4359bb0156d828f6b129d9dd716d8	2026-11-25T01:37:09+08:00	Merge pull request #12599 from makecindy/cindy/vigilant-euclid
+84cd7ea6d44c3a9a6964834c404c131458b8371c	2026-11-25T01:30:14+08:00	Merge pull request #12623 from yan-xdt/cindy/vigilant-lamarr
+e7ad6703999a6f72d59c78c1f2d0f665dd102b9e	2026-11-25T01:26:21+08:00	Merge pull request #12570 from yan-xdt/cindy/brave-pasteur
+789fe541836d72b395cc98877c18779e6917b09b	2026-11-25T01:20:35+08:00	docs(plugins): 补充浏览器扩展原生登记诊断的作者指引
+417e4122b9916bb447c864aba40361f4149432cb	2026-11-25T01:12:05+08:00	Merge pull request #12553 from nanaco666/feat/chat-plugin-package-install
+5c7f1612006f8dba6fb57873b8c51321a40f621c	2026-11-25T01:09:51+08:00	fix(pi): 发送被窗口保护拒绝时说明缺失的旧模型连接
+b1f2991f139da70cb29446e5ced38a7201bf0afc	2026-11-25T01:08:31+08:00	Merge pull request #12540 from makecindy/cindy/session-message-reconnect-switch
+3ab1c07544f9f26a48fac733f4ff4d1bbad99d34	2026-11-25T01:07:02+08:00	fix(desktop): 让浏览器插件读取原生登记失败原因
+a7885458a136c0a24e65062949dda4ad88312e7c	2026-11-25T01:02:55+08:00	Merge pull request #12486 from xuzini-xzn/cindy/silent-curie
+5b3e347117a6ad5dad41366e7ef6e4a9d5f6cf72	2026-11-25T01:01:00+08:00	Merge pull request #12163 from xuzini-xzn/cindy/loyal-leakey
+3cc1a18c6b8a5bbac13dc98ebc6c60e521c148d8	2026-11-24T17:59:39+01:00	test(task-digest): supply queue pause reader in provider mock
+c63499e0b6947f4e00385999b72a68e9ae2a0215	2026-11-25T00:58:36+08:00	feat(bots): 伙伴头像图库扩到 5×5 共 26 个
+9c9f30bd35b9bfc5eafce0ee6e380aa000e52f69	2026-11-25T00:43:15+08:00	Merge pull request #11846 from joei4cm/fix/rmssh-windows-readiness-timeout
+6ef47d41d886893e86e1dc7fa10d9be20b0f3425	2026-11-25T00:37:54+08:00	fix(remote-agent): 保留重连业务拒绝的错误合同
+15e6235cbf9e4b5fdd60ab6ecaa80dbec10f0ae1	2026-11-24T17:33:49+01:00	fix(task-digest): report local queue pause state
+67e2e5b150123b27c72ef3b6a8117d296b1d73c6	2026-11-25T00:31:20+08:00	fix(desktop): 排队派发落实并核对本轮显式路由(六条复评修正)
+5555e93e7a1cc4c5f99922368f8da59b08550870	2026-11-25T00:06:26+08:00	fix(remote-agent): 避免 Goal 重试整轮连接准备
+9f7b9152ce08574aefd0e4c61b3dbb5848d27408	2026-11-25T00:03:51+08:00	fix(codex): recover independently failed plugin gateway
+2e20b16663ffc44757c9d93bf766e3c129bda527	2026-11-24T23:55:15+08:00	fix(desktop): 从安装栏打开停靠面板时聚焦原窗口
+ea2df3bcb25125f445fc8a17b6d29da49a9d068e	2026-11-24T23:52:56+08:00	fix(codex): scope helper readiness to the live thread server
+21b312443ba59460f46f993fbcd4e9e024148239	2026-11-24T23:46:48+08:00	fix(orca): 隔离通知异常与 Worker 生命周期
+0df156348419ee6b50be8533b007592d84a5d076	2026-11-24T23:44:39+08:00	Merge pull request #12602 from FicoHub/lizi/12595-engine-capacity
+edae9a8a8e6be74ff873b65a7d8fed1eb83d48e2	2026-11-24T23:44:02+08:00	fix(remote-agent): 保留取消提前续期后的清理证明
+1a02973ceec3f483f9ed456a14c49a6b6a433bed	2026-11-24T23:43:24+08:00	Merge pull request #12590 from amanayayatu-tech/fix/12582-bound-plugin-automation-recovery
+8bed0763e20e8337574f0c33ce2f7c582551746a	2026-11-24T23:41:23+08:00	Merge pull request #12596 from makecindy/cindy/sincere-thompson
+4b4fad705ca8d8ea6b25044755660e229dabaeda	2026-11-24T23:38:24+08:00	Merge pull request #12589 from FicoHub/lizi/12464-pin-sessions
+52be9d62beb6bc464c993ff3214de942b2fc69c7	2026-11-24T23:36:57+08:00	Merge pull request #12585 from nanaco666/fix/desktop-bot-turn-timestamp
+bd721911da7739999b1b33bfb2d96883c8034bd0	2026-11-24T23:32:45+08:00	Merge pull request #12569 from yan-xdt/cindy/fierce-wozniak
+9cbffef135a1bc7af79993e20853cf8e1e53d149	2026-11-24T23:29:43+08:00	Merge pull request #12568 from guanwei-xd/cindy/radiant-panini
+6e64d756c1eebc1dca7cdbdd20e694995d96d6fe	2026-11-24T23:26:37+08:00	fix(usage): API 重试时开启新的 usage 段
+bd37621a46814b22adeb0bebe9a4e5f68a2752d2	2026-11-24T23:23:42+08:00	Merge pull request #12562 from makecindy/cindy/steady-ritchie
+a0a37719d1549d7b77b7ee24eda4697e6107c827	2026-11-24T23:20:26+08:00	Merge pull request #12556 from makecindy/cindy/vibrant-kepler
+f46e06152b800000432dd3bed8f10439a4a85332	2026-11-24T23:17:58+08:00	Merge pull request #12552 from yan-xdt/cindy/gentle-pasteur
+0e04903796a5dcd15252823055d5bae40011d60f	2026-11-24T23:17:34+08:00	fix(usage): 按流清理拆段记录并把用例并入既有测试
+e627ad3d99ae9eaa65b789e87dea8ed0e0e28f4a	2026-11-24T23:17:34+08:00	fix(usage): 代理网关多 block 响应不重复记账
+c2c51e8d0ef7af6f0156c21589f61f2d8a6f4891	2026-11-24T23:16:29+08:00	Merge pull request #12549 from hzpeng57/cindy/silly-bohr
+53f02105dbf33dca69fd1cc53a36cb6fbeef2796	2026-11-24T23:13:54+08:00	Merge pull request #12557 from makecindy/feat/plugin-run-commentary
+43dc054a6924da79c226760f454804b98efdec18	2026-11-24T23:13:19+08:00	fix(remote-agent): 收口人工取消的重试与启动清理
+1d2732dd3d39de9f894c7b222cb09501b285fa79	2026-11-24T23:07:51+08:00	fix(remote-agent): 保留握手失败后的未派发输入与会话
+63cf362118269677eecd1e7a720a6e3c0c861440	2026-11-24T23:01:27+08:00	fix(desktop): 验证设备定位后再登记任务归属 (#12524)
+6d4930c17ab2c03a824f426d84112487b578b092	2026-11-24T22:59:11+08:00	Merge pull request #12538 from zyjisdog/fix/unverified-window-user-budget
+61cf8b8c9cce33a9cbafbb27397e21af84376ba6	2026-11-24T22:57:08+08:00	Cover replacement CLI rejection for local send_to_session recovery
+08f9433b1ab17af05d69f345f843649a5e6dd5fc	2026-11-24T15:55:58+01:00	fix(models): import OpenCode Go reasoning declarations
+52eb36035dd178bf9dcedaad38d1f8b6997b6b8c	2026-11-24T22:52:37+08:00	Merge pull request #12439 from xuzini-xzn/feat/plugin-model-advanced
+c4520fba04e21044083ccf18b2cf442888ade079	2026-11-24T22:50:08+08:00	Merge pull request #12519 from makecindy/cindy/fierce-feynman
+b1ffbcda8be7d3faeb12d6c474052740832b312a	2026-11-24T22:46:13+08:00	Merge pull request #12521 from makecindy/cindy/jolly-archimedes
+ecf7d484619daa77e63693c1c986a437343e642c	2026-11-24T22:44:58+08:00	Merge pull request #12475 from xuzini-xzn/cindy/wise-kapitsa
+d7b6b1de63900fa35c09ac84306d58859788b3c2	2026-11-24T22:39:01+08:00	test(remote-ssh): 冷启动成本挪进 fixture,不再放宽 unit 超时
+9a24748727dc37f52774f8a594c7d6939709e8f2	2026-11-24T22:39:01+08:00	test(remote-ssh): readiness 用例 Windows 超时随平台放宽到 30s
+19186b50183e9812621f605ac923721ce8885a85	2026-11-24T22:37:27+08:00	feat(voice): 支持伙伴使用 OpenAI 和百炼 BYOK 实时语音通话 (#11682)
+7b94a114cecd76a3111c772a3a1876c445a0c094	2026-11-24T22:33:49+08:00	fix(desktop): 修复群聊限流后的建群与历史消息恢复
+5734bc2748e6117af215129457baabe022440dd4	2026-11-24T22:32:27+08:00	fix(orca): retain Worker steer failures during user takeover
+78be10003923b10c17a6fc8621e00177fa595b3a	2026-11-25T03:25:00+13:00	fix(mobile): 对齐重新登录提示的英文文案
+30432b8d002b5ed6cb0e1198c0150a80b1c435fc	2026-11-24T22:08:33+08:00	fix(plugins): 说明任务引擎名额占用与重试时机
+85f07430c4527d83580c256a27028422fbbfcf75	2026-11-24T22:04:22+08:00	Keep register.ts source fixtures working on Windows
+d62beeec34a2509e5a2d5cd5c310a39ecb0b4307	2026-11-25T03:02:35+13:00	fix(mobile): 修正刷新账号列表的回调类型
+6f050118cb7af1d600577dae477f88d8f84b5a7f	2026-11-25T03:00:37+13:00	fix(mobile): 账号库损坏时允许重新登录恢复
+6c6c7a6bfb958467d8207086dd50e71050ae77b5	2026-11-24T21:59:02+08:00	Merge remote-tracking branch 'origin/main' into cindy/session-message-reconnect-switch
+1517c0df13812ac54c0d1883bb03463915a0b3aa	2026-11-25T02:53:23+13:00	fix(mobile): 断网和锁屏时保留登录状态并自动恢复
+56028c34a503baadd38494b99f61daabeb21662f	2026-11-24T21:51:49+08:00	fix(desktop): stop audio after closing chat attachment preview
+945abae2b8a2ebf05ebb9a5d3d04fa14b55420fc	2026-11-24T21:51:06+08:00	Merge pull request #12483 from xuzini-xzn/cindy/sincere-pasteur
+ce5fb9d5ddfbc1f865186bde3cfb44739ac3dfe0	2026-11-24T21:49:56+08:00	Merge pull request #11658 from makecindy/cindy/radiant-mendeleev-2
+64877ff160c2dc045fcefc998e340ca06d68295e	2026-11-24T21:48:03+08:00	Merge pull request #12316 from StarDuster/fix/host-device-link-turn-recovery
+d02893f7bf45a073e62054b30dd498a1e114e6ee	2026-11-24T21:47:22+08:00	Merge main and preserve queue refusal and Worker steer errors
+2ec7e7827f467dc91d9ff42eb62e7d9bd04c4379	2026-11-24T14:46:01+01:00	fix(i18n): use Taiwan wording for automation recovery
+488357f1453a6af3fab19d527988288501349d2d	2026-11-24T21:44:11+08:00	fix: 本机置顶批次绑定初始账号及数据库
+74d49edf493d28e23b2f465f7599de39690990c8	2026-11-24T21:42:06+08:00	Merge pull request #12554 from makecindy/fix/mobile-home-startup-refresh-gap
+659a30eb4c3c5b8fd73ed5516b2cc26a5f8adf45	2026-11-24T21:41:30+08:00	fix(wechat): settle plugin engine refusals before retrying inbox tasks
+71537a3bae2fcb3fe33e9ccb7cd22b3f02118c94	2026-11-24T21:40:57+08:00	chore(ci): 重试 Windows PowerShell 探测超时的检查
+441ada0984773430de66b5b2f99cf2eea35e6fd5	2026-11-24T21:40:48+08:00	Merge pull request #12559 from amanayayatu-tech/cindy/sturdy-kernighan
+3236ea6044aa4ca7a07c9b95d86843832593e060	2026-11-24T21:38:43+08:00	Merge pull request #12551 from makecindy/cindy/humble-goodall
+1b76dae9a670aebd21ec566e92935e71d2da430b	2026-11-24T21:37:45+08:00	Merge pull request #12546 from makecindy/cindy/swift-babbage
+3973ee968ded7bed642af97d645fde927e8e7f57	2026-11-24T21:36:46+08:00	fix(orca): retain steer write failures that precede Worker EOF
+85edac6026386d90edcc097ba4f0d932449fb09c	2026-11-24T21:35:23+08:00	Merge pull request #12541 from amanayayatu-tech/fix/12531-queue-dispatch-hint
+33639378702a3cac7f49f56b9c9d18d955c4686f	2026-11-24T21:35:17+08:00	fix(scheduler): scope quota fallback to its originating run
+485ae1b17b0df3a1f1952596881e37dde1493aa8	2026-11-24T21:34:13+08:00	Merge pull request #12545 from makecindy/cindy/jolly-noether
+202cc2d6a4d017a97988b99d0f630ec3ae8e43eb	2026-11-24T21:29:40+08:00	Merge pull request #12539 from amanayayatu-tech/fix/12529-named-plugin-card-preview
+d95cf24062885df87564bf234c6a758cc395412f	2026-11-24T14:27:47+01:00	fix(scheduler): explain how to recover a task bound to a plugin engine
+82f50ef0224035d13a292a071773010e7da224ca	2026-11-24T21:24:38+08:00	fix(bots): seed pre-check Home from committed config
+96f5dc5d536baf634ca767f24951fd32d55f59db	2026-11-24T21:24:00+08:00	Merge pull request #12536 from makecindy/cindy/silly-hopper
+435e33d0433ca25eb358ecde722bea6c8206e89d	2026-11-24T21:22:01+08:00	feat: 支持 Agent 批量置顶任务及查回状态
+7dcd8bc335d15bb2609011f18c1339e07056146d	2026-11-24T21:21:33+08:00	Merge pull request #12533 from makecindy/cindy/tranquil-turing
+c0b88956748eeac2f8fcc9c73f4bb78e0cee0053	2026-11-24T21:20:23+08:00	Merge pull request #12534 from makecindy/cindy/tender-stallman
+9a561f530f64f216e924aac49f17c77b83d6e526	2026-11-24T21:17:03+08:00	Merge pull request #12526 from makecindy/fix/desktop-dictation-hide-native-caret
+854b574f818a06a53c09152309516fc4d8aed6d9	2026-11-24T21:16:53+08:00	fix(desktop): 排队派发的 setFastMode 失败日志用可选调用
+c2d1f4dc7c02786c3dd86f3b0877cb32279cf651	2026-11-24T21:13:32+08:00	fix(desktop): 从安装栏打开插件时复用已有主视图
+eb4a382560225963f8e35c15aaeb5afe72decd79	2026-11-24T21:13:03+08:00	合并 main 并保留新版插件目录的返回位置
+35ac33ebe4e6548be5f39e1e20ddfa69295a4267	2026-11-24T21:09:00+08:00	fix(settings): retain the chosen effort on pending engine reselection
+75968b6a7c3192e4e8f87d81baf98ab9211b4d5e	2026-11-24T21:07:04+08:00	docs: record local provider selection for task handoff
+4da2d75adc3b62f811086bc86754ca9744b559f5	2026-11-24T21:04:15+08:00	Merge pull request #12511 from iTachi-zzy/fix/codex-split-subscription-guest-scope
+071b5db48f1dad46157b9e8ad8cfabd8939ca5c2	2026-11-24T21:02:55+08:00	Merge pull request #12518 from makecindy/feature/unify-plugin-catalog
+8750183f5cf15fadcb2f884238329c1d15d10992	2026-11-24T21:01:48+08:00	Merge main into viewport performance fix
+f4c496de8fa49b3f74e80dbfc8e6f415baab2ba4	2026-11-24T21:00:57+08:00	fix(desktop): 一次性自动化撞上忙碌会话时走排队窗口而不是立刻失败
+b4c94209f2bde0f73327846d1266c04e56bbb15f	2026-11-24T20:58:57+08:00	Merge pull request #12515 from amanayayatu-tech/fix/12504-selection-layout
+6171fe1295cb701be9330e4d82e5f2a3bad5bea0	2026-11-24T20:56:39+08:00	fix(desktop): preserve the selected plugin engine for group Cindy tasks (#12503)
+ab497af21293ac345bd208b32be319e24e61bfa5	2026-11-24T20:54:01+08:00	Merge pull request #12506 from makecindy/cindy/macos-app-protection-override
+5a4204cd2b6ca21e216d9959d55fd14a308cc153	2026-11-24T20:53:48+08:00	Merge upstream main into collaboration model groups
+00047313535f60faa16f002e9a4b8756b307c978	2026-11-24T20:50:18+08:00	Merge pull request #12493 from makecindy/cindy/lively-hopper
+2a6a5a771dd3caf2f7a65bb06dbc8be74569b148	2026-11-24T20:45:19+08:00	fix(orca): 清除 Worker 身份前收口活动投影
+1a380b6f5c2007763b703fdef967bbe51546df14	2026-11-24T20:45:04+08:00	Merge pull request #12498 from makecindy/cindy/silly-mendel
+9548e2e08ea6b089757e351f2dc657a08474906a	2026-11-24T20:43:55+08:00	fix(settings): preserve running plugin effort when cancelling a switch
+b3fc118474c02b2346bcc2471d8e0f8995b0476b	2026-11-24T20:41:23+08:00	fix(scheduler): charge shared budget for group recovery
+26ad0b5fec7218a3eb38cd69006ff8fe90715959	2026-11-24T20:41:14+08:00	fix(orca): preserve steer error after unconfirmed Continue
+d2bc72265d3cdadf2f964837d96b5a53c355e5ff	2026-11-24T20:38:52+08:00	Merge pull request #12468 from makecindy/cindy/swift-bohr
+adcb77ddd8f252f3cd158545db6b55f4d7a8be08	2026-11-24T20:36:39+08:00	fix(orca): retain Worker steer errors until recovery dispatch
+c2acc56ec85c8eff4e05ba3a235dbcf9965ee7bc	2026-11-24T20:34:50+08:00	Merge pull request #12492 from makecindy/cindy/gentle-edison
+e2f6d3630df591d83110c13c3c02f2bf8ea046d0	2026-11-24T20:31:45+08:00	fix(desktop): 识别当前 Windows 共享目录内的插件安装包
+77b32caebb70814d22a20e3b1ff7d448ebacc65f	2026-11-24T20:30:15+08:00	fix(bots): preserve hand-edited SOUL at rename write boundary
+3dc2cf883197a7663614a326c8954100a4e04892	2026-11-24T20:24:34+08:00	Merge pull request #12440 from zqchris/model-groups-fallback
+a8d2ee3e198f8de51419aa48ad8a25b121dda228	2026-11-24T20:23:17+08:00	Merge pull request #12461 from makecindy/cindy/keen-kernighan
+09feadb297e51fbd36936d217e8978d5f192e87e	2026-11-24T20:18:14+08:00	fix(orca): 恢复后用实时活动更新 Worker 状态
+876c2d2768c7e20b7265225d3f47731b50050f20	2026-11-24T20:17:41+08:00	Merge pull request #11790 from dashhuang/cindy/elegant-noether
+006d02ffb1f864671657f83782104305e8f1336c	2026-11-24T20:17:36+08:00	fix(scheduler): try provider group before quota waiting
+2d88d1b94b002326323ec2c58f9a505a86a36484	2026-11-24T20:15:28+08:00	fix(maker-shared): preserve Mermaid shape label arrows (#12172)
+3dd6b5286ec714ffb5f01c5a21a22a6c38327db6	2026-11-24T20:13:42+08:00	Merge pull request #12013 from elfcv/fix/teammate-project-gitignore-defaults
+73a0340826fe370746379e322386239a9e6bd4bf	2026-11-24T20:12:10+08:00	Merge remote-tracking branch 'origin/main' into cindy/loyal-leakey
+808626f7f5ed64f3a984b0ee7ff71c775fdb8874	2026-11-24T19:58:41+08:00	fix(remote-agent): 人工改选时取消旧共享任务启动探测
+2e37959682f78ab487c525ef1723bd82467621cc	2026-11-24T19:56:06+08:00	fix(desktop): 避免隐藏任务读盘并重试中断的工作树查询
+93724a75d4e6b130fa78a6fbc0e8fc341d28fc1c	2026-11-24T19:49:29+08:00	fix(settings): keep session effort consistent across plugin pickers
+3fe84098ac50c0fd9dc7348d8eaa9adcad98a0da	2026-11-24T19:49:27+08:00	fix(desktop): 重新打包时刷新安装栏并限制包检查并发
+2d639aaa9fc52ca855bf90a494df77ba113bd28c	2026-11-24T19:47:05+08:00	Merge upstream/main into cindy/radiant-panini
+f2a28ca96f6d0a7ac8e99b0591c0516a0c5804b0	2026-11-24T19:46:34+08:00	fix(bots): rebuild generated default SOUL on rename
+5d1e2976128e7cbe41e2116a3f8c4e493225a5b6	2026-11-24T19:42:05+08:00	fix(desktop): 将伙伴回复时间戳移到同轮处理记录前
+d464ecebaa4595f52d1b02e0c4083c8106401911	2026-11-24T19:41:06+08:00	fix(desktop): treat the user-declared model limit as target-window evidence
+e8244ac6f6b4b0a7cbd1c62a7423488ec9851b76	2026-11-24T19:34:50+08:00	fix(desktop): 支持跨设备恢复任务工作树
+42248355252b8af7aad2169dd764b3fede8b1b34	2026-11-24T19:27:38+08:00	feat(plugins): let plugins open file types for the user (fileOpener) (#12455)
+8280644a2c0278c3955c6068becafa6fd93f9308	2026-11-25T00:17:16+13:00	fix(plugins): 避免 Claude 多文本块重复保存进展
+00ca397fde3d86a69a03db1f3286d4b491589b8a	2026-11-24T19:15:35+08:00	test(desktop): pin the owner rebuild gate window to the default verification
+c21eea77ab54016fe7e11ae207b7b29f2c9b9e2d	2026-11-24T19:14:54+08:00	fix(settings): preserve plugin defaults for existing tasks
+e16fade62d8a46a19bd15978cf78e74b323b99e3	2026-11-24T19:14:48+08:00	fix(remote-agent): bound repeated revokes and complete capacity recovery
+308aa74d9401dbb680662cdea644596245847997	2026-11-25T00:13:52+13:00	fix(desktop): 仅记住与实际通道一致的缺注册回执
+f1b271b3b8fef2ade6526b6b85f5bfaf5eb18ea4	2026-11-24T19:12:41+08:00	fix(desktop): 保留分享返回后的模型筛选并标注设置分类导航
+225e2130b83ce53cf1c90976bdd280ee5584e39c	2026-11-24T12:08:56+01:00	fix(companions): log the explicit takeover failure stage
+5a3e98f429423e3bcdc1f1cce06255b84e9815f7	2026-11-25T00:03:08+13:00	fix(log-upload): keep proxy context out of diagnostic markers
+1305290c9a2627ab14f4a23ced4772fd6f729a31	2026-11-25T00:01:34+13:00	fix(desktop): 停止重复探测对端缺失的只读接口
+de27b9479dbf6d92b25e557d5f74e69dfbd6e84f	2026-11-24T23:59:04+13:00	feat(plugins): 提供当前任务的用户可见进度
+01e96467dc094ee156df52964f4da52ccac9e6cd	2026-11-24T23:55:09+13:00	fix(mobile): 避免启动同步在任务列表顶部留下空白
+e8d33e335700832c9eab97f104dc1701acf37403	2026-11-24T18:48:49+08:00	fix(remote-agent): recover idle reconnects and avoid full relay executors
+9bb3e9a3c4e8f63b6356ace9d68734e62cb92374	2026-11-24T23:47:28+13:00	fix(agent-net): 完成中继探测的回归与自建升级支持
+2f9c2160c6e0ac4b2d4ab7f373a63119c40201b7	2026-11-24T23:47:23+13:00	fix(proxy): correlate WebSocket handshake attempts and outcomes
+64761e90b272d60941c616e6f26279aeaf087fdc	2026-11-24T18:47:04+08:00	test(desktop): cover native registry reader failures during install
+322f885e744be0a4425877b296918c0d7946a657	2026-11-24T18:46:35+08:00	feat(desktop): 支持在聊天中安装和使用插件
+f5b952262c4ffcb5479420d9819a498be8df520e	2026-11-24T18:44:55+08:00	fix(desktop): 保留设置子页返回位置并让 Esc 逐层返回
+882fdbf4045a40e0d6a5a07d1921077c9bb4fbbb	2026-11-24T23:38:55+13:00	fix(desktop): 重开插件设置时继续显示更新进度
+582fe8bd4a5ce5687be2fc3c0a72f167d5c1d26a	2026-11-24T18:38:50+08:00	Merge pull request #12482 from amanayayatu-tech/fix/4509-codex-responses-orphan-text
+d1c51bf0980460b31a56c5c9c8bb9bca65cb47d5	2026-11-24T23:36:59+13:00	fix(mobile): 模型选择器不再把渠道前缀当作模型名
+3e97380daf12684eaeb2aedf23b2cb521ab42098	2026-11-24T18:36:53+08:00	fix(desktop): resolve the owner switch gate window exactly as the runtime does
+42abbba22b41c022a1631ed5eab7f044bc155152	2026-11-24T18:35:54+08:00	Merge pull request #12484 from makecindy/cindy/amazing-panini
+9e90958e721df7edab87a738ac2a6ce3852cfc56	2026-11-24T18:34:39+08:00	Merge pull request #12485 from nanaco666/fix/companion-pi-inherit-effort
+a7591d55c11e78775c58c9d22c9e97b199cd6d36	2026-11-24T18:29:57+08:00	fix(host): drain soft-deleted sessions after releasing the send lock
+d349af2698cd024139ee774693e0adac7eada047	2026-11-24T18:29:19+08:00	Merge pull request #12489 from amanayayatu-tech/test/about-log-upload-focus
+58427422ee863423f00d3d98cccec7b844b16e39	2026-11-24T18:22:44+08:00	fix(desktop): stop invalid registry retries and prepare the reader outside the lock
+300b7f89279f93efe128b5b8745c0f50b57e3d70	2026-11-24T18:20:57+08:00	Merge pull request #12470 from xuzini-xzn/fix-12423-openai-api-fast
+7fc52d26238df9c598e1f23081854da919905b94	2026-11-24T18:17:41+08:00	Merge main into cindy/swift-bohr to reconcile mobile LAN lifecycle handling
+63f650be763df6789c91ff62b5205c58a832f331	2026-11-24T18:17:05+08:00	Merge pull request #12466 from nanaco666/fix-12112-skill-restore
+3ae38e4d393384642c942f98281e2019805597da	2026-11-24T11:16:29+01:00	fix(desktop): 保留队列派发拒绝提示
+e9af0f3103f550f0d11738beeefbc2207b9a7ffd	2026-11-24T18:15:55+08:00	fix(model-groups): 流中途断开先在原来源续跑
+26b17084d9ef31f39e78fd0d61b9f4d7f1d3f88d	2026-11-24T18:15:28+08:00	fix(desktop): 校验 P3 截图的实际显示输出
+b77a9899817d9ad34cd752c1cdfbd30e47b63966	2026-11-24T18:14:26+08:00	Merge remote-tracking branch 'upstream/main' into model-groups-fallback
+ac682bde98bf45e971a313aef1b365159e82d145	2026-11-24T11:11:54+01:00	fix(chat): 修复具名插件卡片触发的历史预览循环
+1632e0a443c97c974bb71d0cfc6a9320a8d2b627	2026-11-24T18:11:42+08:00	Merge pull request #12462 from amanayayatu-tech/cindy/silent-turing
+8297e0ed76352f655b35532798e4a17f0568206d	2026-11-24T18:10:42+08:00	fix(settings): avoid unsupported plugin model help text
+1fec9322b4c40ffb8f3bcd4cf606c20b35b92d64	2026-11-24T18:08:42+08:00	Merge pull request #12463 from amanayayatu-tech/fix/mobile-mcp-app-inactive
+7b1c5046842e31d32725ab80ece6f2ea0af472c1	2026-11-24T18:06:15+08:00	fix(desktop): let the owner model-switch gate trust the saved context window
+806e953b210658c4b654ffceacf3fb18523bb1cb	2026-11-24T18:01:29+08:00	test(desktop): 覆盖 HDR 截图助手响应并同步采集规则
+bf94432eef0fe03e24b1ebee91226ad84b055fac	2026-11-24T18:01:04+08:00	Merge remote-tracking branch 'origin/main' into cindy/session-message-reconnect-switch
+f3e810aa0ba9cc0b0e59346e19deaa7547c17045	2026-11-24T18:00:13+08:00	Merge pull request #12438 from xuzini-xzn/cindy/sincere-jang
+eea3e972ea752514502bdb3ccc62fd8d2a71f84b	2026-11-24T17:53:53+08:00	fix(settings): show unavailable plugin model fields
+7f4c461e4aae26968b38660660f38892263acec1	2026-11-24T17:50:50+08:00	perf(desktop): 固定目录导出改为流式复制，不再整包读回内存
+6212832353c658ee4e13bbf4e33b26097933bc1a	2026-11-24T17:49:55+08:00	Merge pull request #12391 from makecindy/cindy/trusty-wozniak
+1b26714ef729eda6b4055dab0dda60e9e3b0572f	2026-11-24T17:48:59+08:00	fix(bots): 同一伙伴项目的首次补齐共用一次在途操作，只追加不重写
+e3e0abde36b163a92fac6b546cf498131ab61ed0	2026-11-24T17:44:37+08:00	fix(desktop): restore scheduler fixture coverage for changed settings
+b8aec46d179f0b62f318f809629ff8f70a64ad0e	2026-11-24T17:43:10+08:00	Merge remote-tracking branch 'origin/main' into cindy/session-message-reconnect-switch
+4257c3f60dc26d243403ceb8da9ef936dab4ab14	2026-11-24T17:42:40+08:00	Merge pull request #11621 from makecindy/cindy/jolly-jang
+d3d677e4f1550edb36c49e9bd61089c8a4d16a50	2026-11-24T17:42:24+08:00	Limit queued shared reconnect to Claude Code targets
+e6fdec40b457566230568574380342647cd087d7	2026-11-24T17:39:24+08:00	Merge pull request #12132 from xuzini-xzn/cindy/clever-knuth
+cb924262ce9c8b8a955708cc33e1c96201cf9660	2026-11-24T17:38:48+08:00	fix(desktop): 修复 Windows HDR 屏幕截图偏亮
+37390e6a608add1994dcbb397d4bc8a9ae452dd5	2026-11-24T17:38:24+08:00	fix(pi): verify projected reply before cancelling compaction
+7e075ebfa0d6301d1f3fe5848aaec8ad24844ad4	2026-11-24T22:38:01+13:00	fix(voice): 精简听写提示词并检查托管服务兼容性
+23bfd868e550673d4b8f739bc88c48eaab92468f	2026-11-24T17:36:22+08:00	fix(pi): cancel delivered turns closed during threshold compaction
+9e2832270dd10736c5b8b1f9d598339232386ee5	2026-11-24T17:30:43+08:00	fix(plugins): 支持远程提审的宿主工具权限标签
+0a845d7fbba08c2a121c2e843096a6fb927c6ab2	2026-11-24T22:28:24+13:00	fix(desktop): 听写期间隐藏原生文字光标
+c47bf62235394721bb5c337a0149aa2330ab3ce8	2026-11-24T17:24:31+08:00	fix(mobile): defer background WebView eviction recovery until active
+e5687b47323aaefb940f537961da20439e21d0a0	2026-11-24T17:23:42+08:00	fix(desktop): 导出写入在关闭前核对身份，身份不可验证时失败
+95e181152df72cb9175f5503743c47ec92f394c8	2026-11-24T09:20:42Z	chore(host): remove duplicate closeRuntimeSession declaration
+26c5fba1a59ddf341630abf8f278381d879a5001	2026-11-24T22:19:53+13:00	fix(desktop): 保留控制目标 App 的权限拒绝原因
+6f15410b187ac49bf0948fa09dab0c88ab7622a5	2026-11-24T17:18:55+08:00	Settle shared reconnect failures across both send outcomes
+e71283e8c45c9ff3d2cb05aa71ad342c814226fe	2026-11-24T22:18:06+13:00	Merge commit 'c2142fec87' into cindy/elegant-noether
+c2142fec879e68e1db4396a8a58c3ccaddafbf0e	2026-11-24T17:17:41+08:00	fix(desktop): Open With keeps registered launcher arguments on Windows (#12454)
+c76d704ed51d52653fb899ad9ce721079e463bd2	2026-11-24T17:11:13+08:00	fix(menubar): use a monochrome Antigravity mark
+c95b5d32830772d8f267e72561b763499ca9fe38	2026-11-24T17:11:10+08:00	perf(desktop): coalesce message viewport layout on ordinary commits
+598cf66f7c5b9a299fbaaf5f5cc700fe3dcfb4d7	2026-11-24T22:10:11+13:00	fix(chat): 追加消息时保留等待远端账号的队首
+3fa2b72380cc2efe9d7e07b602bf2c00b9335f92	2026-11-24T17:09:37+08:00	feat: allow selecting a provider when creating a local task
+ea077ae844defd8cb7fbf30228d2a67dc39e3582	2026-11-24T17:06:52+08:00	fix(plugins): 统一插件目录与跨电脑提审
+42766a527a605315ff6e477b7bb57974143f8b4b	2026-11-24T17:05:02+08:00	refactor(desktop): 导出改用专用异步写入器，不再改动插件交接模块
+02b941f24d3a3fecf6ccd23485058afd976380f3	2026-11-24T10:03:10+01:00	perf(chat): skip redundant viewport selection reads
+b1b1a809072b98cd44174c4dd14f1bb5f5bd21c8	2026-11-24T16:58:25+08:00	fix(desktop): 换词时重置项目高亮并忽略无位移的指针事件
+0ec512d27f9a134dd2ad84f64955d08d58a472f0	2026-11-24T16:56:55+08:00	fix(codex): 按独立订阅的共享授权校验受邀任务
+e9eeee89201c0436b73b2650c982b38adbb5210e	2026-11-24T21:56:39+13:00	fix(device-link): 让就绪但堵塞的连接交接未写出的请求
+5c9939e98adb1c1a1f985e7dc7d48549ef44fa0e	2026-11-24T16:56:37+08:00	fix(pi): recognize top-level invalid request errors
+cdcda3082a92c12572c1053745917f6e6db592c5	2026-11-24T16:55:33+08:00	fix(bots): 首次补齐时把有序的默认块整块追加到 .gitignore 末尾；快照内核静态引用
+8f65023b53b17f2373b3466944de68c713d12117	2026-11-24T16:46:39+08:00	Preserve uncertain shared reconnect dispatch outcomes
+24ca1c8802a7c9de867273e846325a7b65535cfb	2026-11-24T21:42:25+13:00	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/macos-app-protection-override
+89d4206c954830d8591144885202db6e42b7827d	2026-11-24T21:42:17+13:00	fix(desktop): 适配 macOS 27.3 只允许部分 App 的控制授权
+09e50794fc4f67e09cef9d3ba21e6c210b7e8ccd	2026-11-24T16:30:48+08:00	fix(bots): 伙伴创建任务时独立于新任务草稿选模
+24b4f57e068ce2d9ca7bfedc6821f530f90565b0	2026-11-24T21:30:01+13:00	fix(chat): 远端账号检查超时时保留待发消息
+c9d676f42511329ce17aa2e2985d700f1691dfa4	2026-11-24T16:29:20+08:00	fix(desktop): 在任务电脑恢复远控共享模型目录
+a00d108e7312ec0f2d3967894dcc6ffd95f8b9ca	2026-11-24T16:29:20+08:00	fix(desktop): 导出目录比较保留大小写，选择取消也复核账号
+dc0304a192cad79d9b8c7ebd499378f7c5a14bd3	2026-11-24T16:22:30+08:00	Settle undispatched shared session reconnect failures
+e185711e4635547f7ec272e50df5a64f7e6c2813	2026-11-24T21:19:12+13:00	fix(agent-net): 让阻塞的设备连接独立恢复
+93d84b28240c5a138a04b6038349cf79d7ea41be	2026-11-24T16:17:23+08:00	feat(desktop): 项目选择器支持方向键移动高亮并回车选中
+dc4944b9728db47b27d1f9395463fcf761c0b2bd	2026-11-24T09:10:24+01:00	test(desktop): await About log upload focus effect
+8de37db9955fa1cb4943c03e1fb01b9af9032ac5	2026-11-24T16:10:20+08:00	fix(usage): settle device-hosted ACP tokens on the controller
+82d6cd1670ad65d12e9e9a0b33c619f1582b8580	2026-11-24T16:01:41+08:00	perf(desktop): 导出位置设置改为异步读取
+3d69ae95013042ddee3e3475fed4e92e193ef904	2026-11-24T15:59:29+08:00	fix(model-groups): 未归类的供应商错误先原地重试
+e506614b259fa1385a1e1cdcfc9bae10621cca96	2026-11-24T15:57:01+08:00	Merge pull request #12458 from amanayayatu-tech/cindy/amazing-edison
+735ac7a31a3170199fa88fb851adc124281bd7e0	2026-11-24T15:56:48+08:00	Merge remote-tracking branch 'upstream/main' into model-groups-fallback
+c346f351f202546d03ca0adf59be6aee6b3544e2	2026-11-24T15:56:43+08:00	fix(bots): 忽略条目按原样与顺序核对，补齐前伙伴项目也不拍影子保存点
+2bdc339678ea0fab1ab47c2477c5c75091b217a1	2026-11-24T15:56:32+08:00	Honor task-owned MCP reconnects across execution locations
+372fc4ec4235afbed20fa039ee2b9ca580387469	2026-11-24T15:55:54+08:00	fix(bots): 修复未指定推理档位的 Pi 伙伴无法创建群任务
+a8e7dcdbb0349c03e227a23a4d6d28a5579963f9	2026-11-24T15:55:39+08:00	Merge pull request #12448 from makecindy/cindy/earnest-jang
+7b363c4dd48f71e4488ecaa807774b8d4f2f4a46	2026-11-24T15:52:27+08:00	Merge pull request #12450 from nanaco666/fix-acp-group-delivery
+b0153d5b9e0e81af24def21653c6bb87dd4f9e27	2026-11-24T15:50:50+08:00	fix(codex): preserve Fast in OpenAI API reviews
+cae136e3e32250fc5b5becbcc8f207ebd9b7bd0d	2026-11-24T20:50:08+13:00	test(mobile): 对齐列表切换参数及手势归属契约
+35b3d5d444165bd6d1010b8e2493decea153c670	2026-11-24T15:47:10+08:00	fix(orca): protect manual Worker retry during recovery reads
+abe566a9dd1166b5c079b841a085be7d2b5f8c6f	2026-11-24T15:47:08+08:00	Release the task queue after an offline shared reconnect
+cfd76419317d7e1b0aadc501421d48f1f7663f29	2026-11-24T15:45:52+08:00	fix(desktop): stop hidden chat web video playback
+ff295917508b2abe3c6d41f6400c845cdf9d33a8	2026-11-24T15:43:08+08:00	fix(desktop): 切换账号后导出位置不显示上一个账号的路径
+d8cf23299aeb3ba4083b750c146a4c895971244b	2026-11-24T15:42:47+08:00	Merge pull request #12263 from makecindy/feature/plugin-market-performance
+6f85bfd52819803d1871cad31881ff864f7eb221	2026-11-24T15:41:33+08:00	fix(chat): collapse duplicate legacy buddy context cards (#12179)
+a172bcd95e42144e2d9563f15d549427386f16a4	2026-11-24T15:41:22+08:00	fix(pi): preserve invalid request status from gateway errors
+1a79c5a821beb772142ac009a48eadaa53fa7a83	2026-11-24T15:40:41+08:00	fix(settings): bind plugin model visibility to the active account
+155588c480963a60162d4e5b814ee80b656f5a5f	2026-11-24T08:39:46+01:00	fix(codex): report orphan Responses text as incomplete
+a9927110b64f9441450917ec90efb6cd91118ce7	2026-11-24T15:36:13+08:00	Merge pull request #12168 from makecindy/feat/gitlab-mr-cards
+b01cb6ccd694e9a87f206eb1fae693355b5b81c8	2026-11-24T20:30:12+13:00	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/jolly-jang
+ca53aab9b5ddb00b09c1796de5eec17e78127268	2026-11-24T20:29:59+13:00	fix(mobile): 根据真实导航栈恢复任务下钻返回
+6095adfb533317b45ce73eb357335de77a821dfa	2026-11-24T15:28:51+08:00	Merge pull request #11515 from nanaco666/fix-bot-feishu-card
+04b66e3f2a673b8013ebbb5882ee3fb2dc9caff8	2026-11-24T15:27:42+08:00	Merge pull request #11486 from nanaco666/cindy/steady-pasteur
+52a3d03f558d7297b165d573904b841b1b041af6	2026-11-24T15:21:33+08:00	fix(usage): preserve ACP prompt model and reported zero
+ddad1f67338b38091999e5c688bcae80784c8b4a	2026-11-24T15:19:17+08:00	fix(orca): preserve Worker model groups across draft restore
+6bed4a72d9a8b9f6a6220a76f0ad6497d5dc2851	2026-11-24T15:16:17+08:00	fix(bots): 伙伴项目的两份忽略清单由同一步补齐，补不上时记忆照常搬迁
+a7db660ce0c5a810718f9fe79391f5f7a40e922e	2026-11-24T15:12:57+08:00	fix(desktop): 固定导出目录的撤权、改向与坏设置处理
+cedcc69d83ee5097f95e5705e8359c452fbe4cc5	2026-11-24T15:05:13+08:00	fix(codex): honor Fast on authorized shared API connections
+01dee8bed9d3263c04cdb6efc14bb97236656075	2026-11-24T15:02:49+08:00	fix(mobile): retain LAN transports during brief app interruptions
+7cc519206014d0e527d83c048648b93347dd9517	2026-11-24T15:02:27+08:00	Merge origin/main into fix/teammate-project-gitignore-defaults
+24dd0dde2a4543cf26e6fdc0c2f4b2adeb7bacf1	2026-11-24T15:02:21+08:00	fix(settings): align plugin model advanced settings
+912b563358df45fc1353d20d08a17eb10e67b082	2026-11-24T15:01:44+08:00	feat(orca): support model groups for Leads and Workers
+3246cb365f35bdba91b178ad18941aa7c3badbf8	2026-11-24T15:01:32+08:00	docs(companions): 精简技能交接注释并校正兼容性说明
+fc78f2b57c9187710979df28a92c43aa66bf588b	2026-11-24T15:01:26+08:00	Recover local task messages after shared account limits
+57b8a7ca88217298025745e43d7524af0c90d23f	2026-11-24T07:59:54+01:00	fix(mobile): keep chat MCP Apps alive through inactive
+08af90b31c4221c0b653ab251d1fb059b853a731	2026-11-24T07:59:09+01:00	fix(mobile): preserve V1 LAN link during iOS inactive
+7398d9cc09a8f193ee1daf0be795f52a4c83d259	2026-11-24T14:53:59+08:00	fix(usage): record ACP turn tokens in daily usage
+99e18a94bddd022298dbe7ec9cb2c3187849e2b6	2026-11-24T14:52:52+08:00	Merge remote-tracking branch 'origin/main' into cindy/keen-kernighan
+025acae806fdb333ca2d37deea1a5691fbb7db23	2026-11-24T14:52:47+08:00	feat(desktop): Agent 导出任务可存到设置的固定目录
+d77b7a1813018a1770f894444d3174055b70c8be	2026-11-24T07:52:00+01:00	fix(pi): show native retry progress after truncated chat streams
+80f671cd032344c0ca4022e4191345372b1148a4	2026-11-24T14:51:54+08:00	fix(model-groups): 按来源结算自动续跑和接替
+82eaa1e044806e95493fef00cc5f3216cce7ecb4	2026-11-24T14:46:13+08:00	Merge remote-tracking branch 'upstream/main' into model-groups-fallback
+a4e5145738c96539db70aba808d98a3ca377dcd8	2026-11-24T14:45:34+08:00	fix(codex): enable Fast for GPT-6.2 Sol on OpenAI API
+1f8a9cf3b13c4f13c530570be24537d4e46b4565	2026-11-24T14:43:53+08:00	fix(desktop): 设置页保留共享名单恢复入口
+41cf69c3f1f67b60639be9d9bc783e4cfdf24a16	2026-11-24T14:40:31+08:00	Merge upstream main for WeChat IM integration checks
+6fdec7fb89b955be548c3f5cc9a42d83bf174aa3	2026-11-24T14:39:14+08:00	Merge pull request #11717 from makecindy/cindy/calm-kepler
+006cfad83411de3bbea38bfd6436279e79dc2b05	2026-11-24T14:32:27+08:00	fix(bots): .gitignore 是文件夹或链接时视为忽略条目没补齐
+2b0a1305ec5ee9a8eb55b20cc02d074e27df5d6b	2026-11-24T14:30:18+08:00	Merge pull request #12436 from amanayayatu-tech/fix/11545-macos-update-fixture-cleanup
+409124bc44a579c3b9be1e9da34259ff7ba603c4	2026-11-24T14:26:34+08:00	Merge pull request #12434 from Andrewyuan34/test/rich-answer-invalid-style-7571
+cce02bd3295832e8f2b9d42270515c80f7ff5c92	2026-11-24T14:24:47+08:00	fix(desktop): 保留飞书来源正文和引用的段内换行
+c0b2a608e3705316c5b48740f2bf3f2181864718	2026-11-24T14:24:46+08:00	test(desktop): 将飞书来源卡回归用例移到独立测试组
+b754ee9cb3028c0c09cd993ddd6fba814ad80de3	2026-11-24T14:24:45+08:00	fix(desktop): 保留飞书引用中的围栏代码
+fbb2473b6b020873c75b3e5b61d7cb33aaf2ffbc	2026-11-24T14:24:44+08:00	fix(desktop): 保留飞书代码示例并补齐转发群历史
+337ee340e12e4423435d1376ccd0ec22fbfda14c	2026-11-24T14:24:43+08:00	fix(desktop): 修复伙伴私聊 IM 来源卡对齐与引用显示
+9b1a7b1addf2009d651a69e01b81e0efdb4e0b23	2026-11-24T14:24:24+08:00	Merge pull request #12428 from makecindy/cindy/sturdy-edison
+5a934d652b76bc4a2d7d7d3e74e9cbb7bf8ad0b5	2026-11-24T14:21:58+08:00	Merge pull request #12432 from makecindy/cindy/bold-babbage
+a7ef472ada315a5824a04231fcefb3ce3cd0d17b	2026-11-24T14:20:43+08:00	Merge pull request #12422 from makecindy/cindy/manual-send-reconnect-switch
+b412f62c51d6f8c001caacd4000dc07b15a364fb	2026-11-24T14:17:14+08:00	Merge pull request #12424 from guyong-zapo/fix/feedback-macos-version-12421
+c6b27f562ac15d6546fb043ef5ebb5b6059bfadc	2026-11-24T19:15:18+13:00	fix(orca): resolve remote source refs before refresh
+5614bedac56401eea9e816a15027fea91b765dfa	2026-11-24T14:11:53+08:00	fix(desktop): 让设置搜索检查识别两端的额度开关
+20c0b02f31e29e88f1f274b5099edd32c1a1547d	2026-11-24T14:11:45+08:00	Merge pull request #12410 from zqchris/android-image-preview-save
+0e1492b8d21d75b01fc3c096374365c5e958e6f5	2026-11-24T14:10:15+08:00	Merge pull request #12405 from zqchris/wechat-companion-projects
+9899ff1b475b158f0c1c6d090ef35fe06920c87f	2026-11-24T19:05:27+13:00	fix(gitlab): 根据成功跟进的 MR 状态恢复离线事项
+8393b5f08222683d96c7430e6cab12c02bcb58b4	2026-11-24T14:05:25+08:00	ci(desktop): 重试 Linux CI
+c168ab5a8d9b3a5845015a5bead78aacbb8eb5a0	2026-11-24T14:05:24+08:00	fix(desktop): 支持恢复对话布局默认设置
+ec79790f1174b0c28c5603c407a0195223fa6c9e	2026-11-24T14:05:24+08:00	fix(desktop): 统一对话布局中文术语
+13107500774a45de9877968e5675f1a6b982d952	2026-11-24T14:05:24+08:00	fix(desktop): 对齐聊天布局缩略预览圆角
+ba9ceeea62e016d1747572641209927fdae70dee	2026-11-24T14:05:23+08:00	fix(desktop): 保持聊天布局设置搜索锚点可校验
+13babd26a8121d4b791dff5ebebc9f10ec848699	2026-11-24T14:05:23+08:00	fix(settings): 下移并收紧聊天布局设置
+ae9d52969fc0d98f7eaea2278f5d5574303e6d49	2026-11-24T14:05:22+08:00	fix(chat): 让宽屏滑杆低档逐级生效
+d383cefeb3926a012f76cb0489448a90e9b47fa0	2026-11-24T14:05:22+08:00	feat(chat): 在桌面外观中自定义宽屏聊天宽度
+0d1279801a5d5635c4ddacfe91778fbc498fee48	2026-11-24T14:05:21+08:00	fix(chat): 统一任务、伙伴私聊与群聊的超宽布局
+bd6b120499b9531248ffd70f29e9a389f22f74db	2026-11-24T14:05:20+08:00	test(chat): 实测极窄分栏滚动后的代码可见性
+309abb846e9af06a4d57c66a1dbcf63ae4967d5d	2026-11-24T14:05:19+08:00	fix(chat): 保持极窄分栏表头可读并复用表格横滚
+9b8a184a2306ab07c3c2a17dc8760c551a66b97c	2026-11-24T14:05:18+08:00	test(chat): 补充真实任务分栏的极窄宽度预览
+ed972c9ac21d9d6c9f3d4a38a1f77e2a166c9b71	2026-11-24T14:05:18+08:00	fix(chat): 恢复居中且适度加宽的大屏布局
+0ffbb6b5b23c03d72abd77b55faae71123714421	2026-11-24T14:05:17+08:00	docs(chat): 同步聊天输入区宽度说明
+59900a9a7707bc7c6c9cf3effd42a8f1116a12cf	2026-11-24T14:05:17+08:00	fix(chat): 对齐 Telegram 的聊天面板与阅读列布局
+801a17d1658c7f6535fc7dd04373747e40857c4d	2026-11-24T14:05:17+08:00	fix(chat): 按面板宽度统一展开正文与工作内容
+1b384ae54064f8eca4836aa6386e632b71dd10e6	2026-11-24T14:05:16+08:00	test(chat): 修正参考面板预览文案换行
+f3139918b4b6d13f1c2d1289b3f2c79da744034e	2026-11-24T14:05:15+08:00	fix(chat): 对齐任务消息与输入框的中心轴
+689b6f2ac038eed805f6bdbafd12f1e15902da75	2026-11-24T14:05:15+08:00	test(chat): 补齐宽屏预览输入框附件状态
+1e4ffb08b614257646100d574e1d5fe256c4bff8	2026-11-24T14:05:14+08:00	test(chat): 补充展开过程的宽屏验收场景
+fce1bd878173720bf66deaecbf28e957e97a8949	2026-11-24T14:05:14+08:00	fix(chat): 保留结构化答案布局并覆盖流式预览
+98c6e87b1fe591dcc8cf37c6ee5bb7ad27041819	2026-11-24T14:05:13+08:00	fix(chat): 适配大屏任务内容与输入区宽度
+c8e26a197567a022fea0af1835f16714173fe902	2026-11-24T14:03:17+08:00	Merge pull request #12313 from xuzini-xzn/fix/manual-log-upload-consent
+c446708b3902974fc7c4caeedd36d2e6e82ea3b3	2026-11-24T14:03:07+08:00	fix(desktop): 合并共享名单恢复触发的重复目录读取
+61cf6677ae81a244f36aaa515144c1ec1cb4696d	2026-11-24T14:00:18+08:00	Merge pull request #12329 from joei4cm/fix/pi-subagent-disconnected-subscription-12298
+6e060e3c671b6fd8a54b3a372a67c26f89581cf1	2026-11-24T14:00:08+08:00	fix(bots): 伙伴项目的忽略条目补不上时推迟记版本，下次启动再补
+2cdedd338a259b01b6488f8fbdae9efbee21949b	2026-11-24T18:58:50+13:00	Merge branch 'main' of https://github.com/makecindy/cindy into feat/gitlab-mr-cards
+795d34b2b3c9a9785b0cdcf97417369df0db6887	2026-11-24T13:54:45+08:00	Merge pull request #12162 from xuzini-xzn/fix/8403-trusted-only-ssh
+b8388ed71912ca65298975899ddc99071d013263	2026-11-24T13:51:40+08:00	fix(desktop): 修复群内点名 ACP 伙伴后无法回复
+6f91049eafac71cb4a9a312a4f40b4e74ebd6ffd	2026-11-24T13:49:11+08:00	fix(desktop): 迁移 Windows 托盘卡片偏好
+4b1f4f7a673a10da2dd2dbda0fbbceb86a71f6f6	2026-11-24T13:47:57+08:00	Merge pull request #11994 from elfcv/perf/bot-im-parallel-startup
+3db9f1578e6dfcdb1492073ad668d1f74024d8e1	2026-11-24T13:46:35+08:00	Merge pull request #12043 from elfcv/fix/permission-timeout-and-forwarded-source-wording-source
+98f0f2cdcb71b8105214d6f72f9d64a88f0c750a	2026-11-24T13:44:22+08:00	Merge pull request #12031 from elfcv/feat/teammate-started-task-live-status
+8d28b4d865b636d4652017986b6934a2f072af12	2026-11-24T13:43:20+08:00	fix(desktop): 刷新登录启动状态时锁定开关并保持行高
+ffe2d8c7a3709edb4173b0566d52beae67c2f296	2026-11-24T13:37:30+08:00	feat(desktop): 为 Windows 托盘悬浮卡片添加开关
+c77c7548d833ecd2dd72e0f750a14857296e4d4f	2026-11-24T13:35:46+08:00	Merge pull request #11991 from elfcv/fix/remote-bot-connecting-not-offline
+cde483055ff5859fd27ed05739e1c257d7e04c41	2026-11-24T13:33:19+08:00	Merge origin/main into fix/teammate-project-gitignore-defaults
+0710914d605a4debc06d5fe796a9206047b75474	2026-11-24T13:29:34+08:00	merge: reconcile plugin model settings with main
+67823d2285e0fd75de17f39f7c84c5caa0059426	2026-11-24T18:26:51+13:00	test(mobile): 同步协同任务导航入口守护
+d7a54a689d2868b484e8e4bcdf303917a47ea5ae	2026-11-24T18:26:30+13:00	fix(mobile): 统一任务内下钻的返回导航
+87860b6b06d2bfa970bd4a301f1020892ea6e870	2026-11-24T13:24:09+08:00	test(desktop): 走真实恢复流程验证共享模型重试
+7874868d1406009e7ff9a64c4b17894516ed5db2	2026-11-24T13:12:40+08:00	fix(settings): restore focus after plugin model settings
+08de6ed3492ca8bd20f675eceb1757daaa661dfb	2026-11-24T13:10:02+08:00	Merge branch 'main' of https://github.com/makecindy/cindy into model-groups-fallback
+0b5c94f8bbc7cca7c61743311f6b9b4ef30407b4	2026-11-24T13:07:21+08:00	fix(plugin-market): show source notice for shared plugin installs
+0669a607873c44343eb7518ad03a5a96b7e37c72	2026-11-24T13:06:23+08:00	fix(pi): 刷新重建路由时同样剔除断开来源，端口改转调（#12298）
+a31f831e84f3d6fc2ae5127fa558e5e7beb22fba	2026-11-24T06:03:58+01:00	test(desktop): reap macOS updater fixture children by handle
+6d3dbdba8b14b64c9e4f40e0691cfbb738372f74	2026-11-24T18:00:50+13:00	fix(mobile): 从消息链接打开任务后右滑返回来源任务
+df50a5f933926daa3431786eee241471ea17acc5	2026-11-24T17:55:32+13:00	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/jolly-jang
+020166374f4f9785e18e8ea79ba111f7738611e1	2026-11-24T12:47:59+08:00	docs(im): 明确伙伴搬家后本机目录的项目选择规则
+b4ad4c1c243480e764ff8f34444e77459c92bc50	2026-11-24T12:45:15+08:00	feat(settings): 为 Antigravity 等插件模型提供高级设置
+befe0abc94a0e9c77f958636a782cb5a695b7177	2026-11-23T21:44:18-07:00	test(desktop): keep rich answer text visible with empty style
+b63ee997ff5d1c0bf517418ebe4796e7194e2931	2026-11-24T12:43:38+08:00	fix(relay): 保留 Nginx 引号参数中的分隔符
+3adbe4ca7b5f7adbb697477a00f07ff9c51f35ee	2026-11-24T12:38:38+08:00	fix(desktop): 补齐侧栏共享模型重试及名单限流
+81a310c184b262a632cf2691cdbaa3c05694c943	2026-11-24T12:35:22+08:00	docs(desktop): describe manual log consent scope and storage
+e0113fbad0b0b129da403d3d3d68c8e35669eac2	2026-11-24T12:31:37+08:00	fix(desktop): 保留没有时间窗口的 Claude 额外用量读数
+abdc6d7964d8a63af8cbaaa104fc9745ff41afb8	2026-11-24T12:29:03+08:00	test: cover manual shared reconnect in Desktop unit CI
+2848b96e8dc891bc6e8cb947f71e7a4d0b3d2bd8	2026-11-24T12:22:27+08:00	fix(mobile): prefer the source extension when saving images
+e2a949abaae1a858b7d4f0ddd306d28986f8f75f	2026-11-24T12:14:44+08:00	fix(wechat): log sanitized iLink rejection codes
+71a65898e10e421d2977593669d4d511d41d167d	2026-11-24T12:13:41+08:00	fix(ssh): stop tunnel retries after host key rejection
+e8d529e44ef72e3f5935a8791421165c19d4c4a7	2026-11-24T12:13:13+08:00	fix(desktop): report macOS product version in feedback
+ad16ea22ad9a8d5167231781b539cf5fe93512da	2026-11-24T17:03:17+13:00	fix(worktree): preserve Desktop local source selection
+9f3d4f97346e647d9a95a6b6cd2509af2cff9a24	2026-11-24T11:58:21+08:00	fix(mobile): save inline images with MIME parameters
+50d9ac26ebffb9fe4673f81a91e2ad6d8e3756d5	2026-11-24T11:52:36+08:00	Merge remote-tracking branch 'origin/main' into cindy/manual-send-reconnect-switch
+e0c145692395b5d8f71abe6a00c8038033e17cc1	2026-11-24T11:51:40+08:00	test: preserve manual takeover when switch admission fails
+b3fe7a13b7fc6bf6964874a706213177f0c49e99	2026-11-24T11:44:02+08:00	fix(desktop): 恢复共享供应商模型列表的手动重试
+30cfc108fa41d69ae44ce70f2999d31c115c6541	2026-11-24T11:43:05+08:00	fix(desktop): make manual log consent I/O asynchronous
+9326ed28c9b7e56fbb3f36e5a20cdeedbf01293a	2026-11-24T11:38:16+08:00	fix: supersede shared reconnect before manual engine switches
+9a256e08f39840ed5facfc5cf8fa86f4d243f468	2026-11-24T11:37:43+08:00	feat(model-groups): 「出问题时自动换来源」改为每个模式自己的开关，默认开
+2ad09a41e8bb8ff6ee6493b5275aadff5e9c6fb3	2026-11-24T11:32:00+08:00	fix(mobile): preserve preview image extensions when saving
+d91b90faef3fe128514876287cadb0f1a7ec50a1	2026-11-24T11:28:34+08:00	fix: supersede shared reconnect before a manual computer switch waits
+603231c80a0ebbd9b9b158d16e944b6174bf06cd	2026-11-24T11:26:51+08:00	fix(im): 伙伴搬家后保留本机项目
+46e95d9ee828faf05e4708ecf8ecf108acda9dd4	2026-11-24T11:21:01+08:00	fix(im): 统一伙伴项目清单并在派发前复核归属
+bd55d426801cc282ba5cbca16a772c6fabfd8651	2026-11-24T11:19:33+08:00	Merge main into plugin market performance PR
+cc8844611710aef6d7a9a71d240a85f7cb372800	2026-11-24T11:11:34+08:00	fix(mobile): keep Android image preview actions open and save originals
+4b731e4c491a73e546c32309219a521805274476	2026-11-24T11:05:39+08:00	fix: preserve manual shared reconnect during user message write
+4c9fb58e6c4ce8b426e8acdfccef9b786d47ea09	2026-11-24T11:03:10+08:00	fix(desktop): isolate manual log consent from crash preferences
+7a917dca145a6157b279a3f92bd1916b1838b224	2026-11-24T10:51:42+08:00	fix(im): 在共用项目中显示本机伙伴的项目
+61c2655dbcbe6a7c09dfaebbdb040a3f6bc4aefe	2026-11-24T10:46:54+08:00	fix(desktop): separate inline consent from manual log upload
+4db7ba76b98bac13fc1fa8dd2bdfb7504ac143ff	2026-11-24T10:31:54+08:00	fix(plugin-market): avoid custom scans during icon renewal
+c19942c98f10a5295eac9e3e959e7da78134bf6f	2026-11-24T10:20:30+08:00	fix(model-groups): 「出问题时自动换来源」关掉后真正存下，再打开时清掉
+968faa64466e71d1e3267de59ee4bbef895a8f47	2026-11-24T10:15:44+08:00	fix(model-groups): 只在文字里带 401 的失效密钥也按整个连接换来源；开关挪到设置页最上面
+6275a3a1ce6ccb6855b40f0c5905ef93e9ca0db5	2026-11-24T10:04:15+08:00	feat(model-groups): 换来源后在续跑那一行写明从哪个来源换到哪个、为什么
+0e15a8553cf4be1190da3e024b572bdca6146c7b	2026-11-24T09:57:59+08:00	feat(model-groups): 模型组设置页加「出问题时自动换来源」，默认开，管所有模式
+131ed217f6f72cf3e7ebac21a6561791a401fd19	2026-11-24T14:53:54+13:00	fix(orca): preserve local branches picked for Workers
+02325cd6ca04acd092b0b319e686026f4e986dd4	2026-11-24T14:24:16+13:00	fix(orca): disambiguate Worker worktree source refs
+6c720cbb4feafa45960e8a928da9c15752a4fab6	2026-11-24T14:10:05+13:00	Merge origin/main into cindy/trusty-wozniak
+3b41b5b3c5bde54db42d850d9ea5c21da1ea2716	2026-11-24T13:54:42+13:00	fix(orca): start Workers from the freshly fetched main
+e626103d3dc2e001204a190c003001562696f8c2	2026-11-24T08:29:02+08:00	Merge origin/main into fix/remote-bot-connecting-not-offline
+12e74deceb60513ea804d0736b83a623640d5400	2026-11-24T02:57:26+08:00	fix(host): 连接态端口补进 Pi 专属端口组（#12298）
+1fc1ed0db77764af157322b0f425a5181ef24b6a	2026-11-23T18:46:01Z	fix(host): address review feedback on turn-state read-back and session archive
+31cb020cf53c709196c90f610dea1f5e4244915a	2026-11-24T02:31:54+08:00	fix(pi): 子代理路由剔除已断开的订阅来源（#12298）
+8279ee77730a60988f5f7d6a7fddd9ffaa125df9	2026-11-24T02:11:04+08:00	feat(model-groups): 按报错分类接替——来源问题立刻换，临时故障同一来源先重试两次
+66b70de813323a2dec31c5776317acc3e8bc2d99	2026-11-24T02:04:18+08:00	Merge branch 'main' of https://github.com/makecindy/cindy into model-groups-fallback
+f3fab2a4c1d9bd7b7ca521f44436be44480f3a21	2026-11-24T02:03:53+08:00	docs(model-groups): 自动路由取代自动组，出问题时横幅一键开启
+648799dfa396faf4684f301e5c8c5e16dc6eb43b	2026-11-24T01:46:52+08:00	Merge main into group MP4 delivery branch
+9273e0e42f3461f21aa7e2237d42d0c82acae566	2026-11-23T16:59:47Z	fix(host): support remote session archive and lifecycle over Device Link
+6415cbfe9375a8445edd982f48575777c03791b4	2026-11-23T16:41:25Z	fix(host): register turn-state read-back channels over Device Link
+dd84117d4bdc695cdd990c8b30a819d8195d0dca	2026-11-24T00:11:43+08:00	fix(desktop): keep upload failure feedback event-driven
+72f9ad96e85a068c38bd04cd86f639bb9c92ea2b	2026-11-24T00:09:07+08:00	fix(orca): respect manual recovery consumption and error dismissal
+cc46e7048cabf89d06323b5547a82b24c0deb760	2026-11-24T00:02:01+08:00	fix(desktop): keep unreadable log consent blocked
+6bf281f3eddcc348f9be762faebeacbde1e3273d	2026-11-23T23:43:03+08:00	fix(companions): check legacy skill bodies before syncing a handover
+a12210f9e3339dad8893c7e7a1df49f57aa74cfb	2026-11-23T23:40:47+08:00	fix(desktop): allow explicit consent for manual log upload
+3719c5c1eb287068bc58348916ec20a262bc5762	2026-11-23T23:40:05+08:00	docs(model-groups): 接替规则——报错分类、换到谁、发送前判断、默认开
+883ecce4cb71ee59f791eeb8f1994b542db93ed4	2026-11-23T20:43:43+08:00	fix(im): 只在新绑定超时时标出 saveTimedOut，替换已有绑定照旧处理
+95d479be70f41cb11d45724c4080f31f6f3f976b	2026-11-23T20:37:23+08:00	ci: 重跑与本改动无关的偶发失败
+a0086479417525d198d2e4046fcad4c27df8484d	2026-11-23T20:18:11+08:00	test(ui): 超时用例以「连接超时」画面收尾，另设 -retry 用例展示重连结果
+53d534e4f57c5e91b401505d425c3ae2bd213751	2026-11-23T20:16:45+08:00	fix(im): Telegram 新绑定握手超时时保留输入，提示「连接超时，请重试」
+d407ae89ac90eab6415be85cbfda8fe6c78acfdc	2026-11-23T19:41:10+08:00	fix(message-source): keep the source note to who sent it and what was verified
+fd0c5d087462c231c287d88f5fcc0d9d142fde33	2026-11-23T19:40:58+08:00	fix(companions): explain incompatible skills before transferring ownership
+afdc9103ffdbf329b283a7dc9de8f537d098414b	2026-11-23T19:35:27+08:00	Merge remote-tracking branch 'origin/main' into perf/bot-im-parallel-startup
+16d12c38598e14d42fbd3f636b3a86018ba06d2c	2026-11-23T19:34:30+08:00	Merge remote-tracking branch 'origin/main' into fix/permission-timeout-and-forwarded-source-wording-source
+fefea059d647df9b673988a10e05dbfeb685ebb5	2026-11-23T18:41:26+08:00	fix(plugin-market): renew visible recommendation icons reliably
+7b79be5ca24f7378a76c7026e1656f8fb0ab08d3	2026-11-23T18:39:57+08:00	fix(orca): isolate late steer persistence errors from replacement turns
+6a861bed2dbdb39d166949d153dacdf2295bd91c	2026-11-23T18:25:29+08:00	fix(orca): honor takeover during late Worker steer acknowledgement
+9a0dd16133757e07c45ff414ad6c1f8cbe46ff69	2026-11-23T18:11:05+08:00	fix(plugins): 优化市场图标加载并补齐安装来源说明
+30d792b0165719799a36683f367ad8e58a1beafd	2026-11-23T17:50:04+08:00	fix(companions): restore imported skills beyond editor limits
+d4b7c1ea1def4debbf66914265783bec83efa09b	2026-11-23T17:33:05+08:00	Merge origin/main into fix/teammate-project-gitignore-defaults
+544096bc7e190434ecce9159e9f556cac4508dd8	2026-11-23T17:19:57+08:00	Merge repaired Windows CI baseline into Orca Worker branch
+c4dae9ad8fc6c49a7417333b93d3bdbdaf84eded	2026-11-23T13:36:52+08:00	fix(teammates): let screen readers hear a started-task chip's state
+d7d084eac82b74970221f8305d18931051822e86	2026-11-23T13:14:37+08:00	fix(teammates): no state at all beside an archived started task
+0a74014b87634e83a5c733b9d51b00e93f044b28	2026-11-23T12:51:36+08:00	Merge remote-tracking branch 'origin/main' into feat/teammate-started-task-live-status
+ff302a7b22f0a8579c945455fb18f465e347b881	2026-11-23T09:19:30+08:00	fix(orca): preserve queued Worker continuation across late steer ACK
+73101fbfef3edbd2246e2ee1031fce4528297450	2026-11-23T08:44:38+08:00	Merge repaired main baseline into Orca Worker branch
+79fa785f95409f4e4f728686e5fa093d5608d2fa	2026-11-23T13:32:37+13:00	fix(gitlab): 在桌面启动时接入插件凭证读取
+d0347ff3736b047f78c940ab5e1a1c23332f50d7	2026-11-23T13:06:19+13:00	fix(gitlab): 摘要暂时缺失时保留同一提交的跟进基线
+6332fd0726a86add2e81d7e918db0ed84945135d	2026-11-23T08:05:26+08:00	Merge upstream main to include the iMessage typecheck fix (#12167)
+b2dddb359272068418330f07ff405e744a5e464e	2026-11-23T12:56:36+13:00	fix(gitlab): 为 MR 跟进保留后台周期检查
+d87c880bf62ab259ab0f994180c704c82e8174d9	2026-11-23T12:51:06+13:00	Merge remote-tracking branch 'origin/main' into feat/gitlab-mr-cards
+23f21cde9fea5bc1e61faa05bb6ddaa35f13959b	2026-11-23T12:48:05+13:00	fix(gitlab): 在手机超时前返回 MR 基础状态
+33e6db7e644d1d0fef70a519b6231e8a81648d8e	2026-11-23T12:21:05+13:00	feat(gitlab): 接入 MR 状态、跟进和卡片归档
+314fdcb7c523c0d1099a39bd4c150575a9952bc7	2026-11-23T04:53:01+08:00	fix(orca): honor Stop and preserve recovery across late steer ACK
+018fe372c2ff677c69b66fdee0f961d839b91b7b	2026-11-23T04:21:02+08:00	fix(orca): preserve durable Worker input after a failed steer write
+6b2be3b400c70820d75b24a6da39521015accae1	2026-11-23T04:13:25+08:00	fix(orca): recover Worker EOF before steer persistence finishes
+0b7fe8b784d01b7214185b193c3e091c216cbfb8	2026-11-23T03:59:22+08:00	fix(orca): preserve Worker auto-resume after steering
+a32acf6228e538a15c976042611faed7c8cf1a0c	2026-11-23T03:21:38+08:00	fix(ssh): preserve omitted connection options for existing callers
+8f41d25cd11e661623cf917fbb3cd8b9e7d02d1e	2026-11-23T02:43:59+08:00	fix(ssh): keep automatic proxy tunnels trusted-only
+65411d9ed28e07113eb39e95e1bd345d49c5c213	2026-11-23T02:08:43+08:00	fix(ssh): prevent first trust during automatic machine reads
+d22acb4785c54e7bd86cd0a2be309333b5476ed2	2026-11-22T22:35:15+08:00	fix(wechat): include rejection reason in file result
+abccda3cfd6c236787ea8e0018236d5ddd11e2a3	2026-11-22T22:02:04+08:00	fix(wechat): preserve iLink send rejection codes
+dcbee2363cd406b8f47572141fd16ed773a5d0a0	2026-11-22T12:24:21+08:00	fix(teammates): readable started-task state, no idle for archived tasks
+38e6af7ec11fd46007a263700e468ecab348cc52	2026-11-22T12:23:24+08:00	fix(bots): 只有完整的新鲜设备目录才能提前结束首次连接窗口
+a097e71e32cf12c4106c279c7c1ce1180fedfac7	2026-11-22T11:54:04+08:00	test(desktop): 为远程伙伴「连接中…」状态加单页截图场景
+5854ca518199071b84fa0a7bcd6d6694710f07ff	2026-11-22T11:44:05+08:00	fix(bots): 首次连接窗口只保护窗口内新打开的伙伴，已打开的聊天仍是 15 秒
+845964cea82f3d53005c1883884c86dd59392479	2026-11-22T10:34:10+08:00	fix(teammates): read this computer's state for a receipt that names it
+ae0679e70bc1a3cb7e2998333d1578cba60e4374	2026-11-22T10:32:14+08:00	fix(message-source): say what a task can do with another task's message
+c4cf655e0d985b80dec10137f795ecfb59198504	2026-11-22T09:31:31+08:00	feat(teammates): show the live state of a started task beside its link
+1520d22ebadc23bc56990c9229fd4276ae03f86b	2026-11-22T08:44:42+08:00	revert(bots): 导入技能的项目副本照旧包含技能自带的凭证文件与虚拟环境
+6aaff32efae0c0a6921400c18e2f13f04adcd8d7	2026-11-22T08:23:30+08:00	fix(bots): 首次升级在记版本前也补齐伙伴项目的忽略条目，真 Git 断言移入 git-integration
+1991912f8843d9ff2c9dcfc822e8a13c56ce1cf7	2026-11-22T08:04:30+08:00	fix(bots): 伙伴项目默认忽略凭证、虚拟环境与 worktree，导入技能的项目副本不含凭证文件
+7cc450673110e369cbe75f47307a01fac12ca728	2026-11-22T07:58:28+08:00	fix(bots): 短暂睡眠后同样给唤醒后的连接重新计时
+b5d48e035721db081ba1f67738d9c10c0c9d0377	2026-11-22T06:39:37+08:00	fix(im): Telegram 握手超时一律按可重试的网络失败处理
+c8a52cabad07ae722626c9da7a56bab0c45b9699	2026-11-22T06:20:14+08:00	perf(im): 伙伴 IM 连接并行启动，Telegram 握手限时 15 秒
+9b9c38feb31584a89185dd8b4ae5c266336ca0e1	2026-11-22T06:07:41+08:00	fix(bots): 睡过首次连接窗口时唤醒后重新计时，结算后不再回到「连接中」
+f0de047531df1d40838c7457f3af197cadbd5dee	2026-11-22T05:36:33+08:00	fix(bots): 启动或唤醒后的首次连接窗口内显示「连接中」，不判主力电脑离线
+b6f425a7e6dd36921baf65c05fa26a97d5878c99	2026-11-20T22:56:08+08:00	fix: 说明 PR 定时检查何时可以重试
+2e58ec7ee965cdfc5912c54c5b62e68567a342c2	2026-11-20T17:30:50+08:00	fix(chat): revalidate group authority for managed video uploads
+300c37a9a5ce61128b183dfeebcc464a1dacbe8f	2026-11-20T17:25:30+08:00	fix(chat): deliver generated MP4 attachments in group replies
+ed08dfe0d002421d84395a1f956891ab38be9330	2026-11-20T12:51:26+08:00	Merge main into the Windows browser registration fix
+90ee5e70cce672a8f1420a34e0c66c6ba378a199	2026-11-20T13:45:29+13:00	fix(mobile): 使用标准侧栏图标描边 Token
+83f49296ea0545d1ac65144ade7d9799a926d620	2026-11-20T13:22:38+13:00	feat(mobile): 大屏竖屏任务页使用单个悬浮列表按钮
+d29a163797407cddd36a13955ee66e351b5d8fca	2026-11-20T00:07:57+08:00	fix(desktop): read browser host registrations through Win32
