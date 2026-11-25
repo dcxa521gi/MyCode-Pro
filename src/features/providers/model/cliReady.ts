@@ -17,6 +17,7 @@ export function ensureCliReady(
   provider: HarnessId,
   sessionId: string,
 ): Promise<boolean> {
+  if (provider === "acp") return Promise.resolve(true);
   if (!HARNESSES.includes(provider)) return Promise.resolve(false);
   if (!isTauri()) return Promise.resolve(true);
   const key = `${sessionId}:${provider}`;

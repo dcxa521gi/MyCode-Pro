@@ -1,6 +1,9 @@
 import { translate as t, formatMessage } from "../../../shared/i18n";
 import { HARNESSES } from "../../sessions/model/session";
-import { remoteCatalogCache, REMOTE_CATALOG_FRESH_MS } from "../model/remoteCatalogCache";
+import {
+  remoteCatalogCache,
+  REMOTE_CATALOG_FRESH_MS,
+} from "../model/remoteCatalogCache";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { SessionPaneProps } from "../../sessions/ui/SessionPane";
 import type {
@@ -208,8 +211,11 @@ function ConnectedRemoteSession({
   project: RemoteProject;
   render: (overrides: RemoteSessionOverrides) => ReactNode;
 }) {
-  const [descriptor, setDescriptor] = useState<HostDescriptor | undefined>(() =>
-    cachedDescriptors.get(machine.id)?.environmentId === machine.environmentId ? cachedDescriptors.get(machine.id) : undefined,
+  const [descriptor, setDescriptor] = useState<HostDescriptor | undefined>(
+    () =>
+      cachedDescriptors.get(machine.id)?.environmentId === machine.environmentId
+        ? cachedDescriptors.get(machine.id)
+        : undefined,
   );
   const [online, setOnline] = useState(false);
   const [error, setError] = useState("");
@@ -259,7 +265,9 @@ function ConnectedRemoteSession({
   snapshotRef.current = snapshot;
   const [refresh, setRefresh] = useState(0);
   const [catalog, setCatalog] = useState<HostModelCatalog | undefined>(() =>
-    remoteCatalogCache.peek(catalogKey(machine.id, machine.environmentId, project.projectId)),
+    remoteCatalogCache.peek(
+      catalogKey(machine.id, machine.environmentId, project.projectId),
+    ),
   );
   const [catalogError, setCatalogError] = useState("");
   const [catalogRefresh, setCatalogRefresh] = useState(0);
@@ -470,9 +478,17 @@ function ConnectedRemoteSession({
     if (!descriptor || !online) return;
     let disposed = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    void remoteCatalogCache.read(catalogKey(machine.id, machine.environmentId, project.projectId), () => remoteRequest<HostModelCatalog>(machine.id, "models.list", {
-      projectId: project.projectId,
-    }), catalogRefresh > 0)
+    void remoteCatalogCache
+      .read(
+        catalogKey(machine.id, machine.environmentId, project.projectId),
+        () =>
+          remoteRequest<HostModelCatalog>(machine.id, "models.list", {
+            projectId: project.projectId,
+            includeModelGroups:
+              descriptor.capabilities.includes("modelGroups.v1"),
+          }),
+        catalogRefresh > 0,
+      )
       .then((value) => {
         if (disposed) return;
         setCatalog(value);
@@ -482,7 +498,11 @@ function ConnectedRemoteSession({
         if (!disposed) setCatalogError(String(reason));
       })
       .finally(() => {
-        if (!disposed && visible) timer = setTimeout(() => setCatalogRefresh(value => value + 1), REMOTE_CATALOG_FRESH_MS);
+        if (!disposed && visible)
+          timer = setTimeout(
+            () => setCatalogRefresh((value) => value + 1),
+            REMOTE_CATALOG_FRESH_MS,
+          );
       });
     return () => {
       disposed = true;
@@ -499,7 +519,10 @@ function ConnectedRemoteSession({
   ]);
 
   const providers = useMemo(
-    () => (descriptor?.providers ?? []).filter(isRemoteProvider).filter(provider => HARNESSES.includes(provider)),
+    () =>
+      (descriptor?.providers ?? [])
+        .filter(isRemoteProvider)
+        .filter((provider) => HARNESSES.includes(provider)),
     [descriptor],
   );
   // A new session starts with the tab's model when the host offers it, and
@@ -940,9 +963,16 @@ function ConnectedRemoteSession({
     asDraft = false,
     planBlockId?: string,
   ): boolean => {
-    if (!sessionId && (catalogError || catalog?.errors[configuration.harness])) {
-      setError(t("Refresh the remote model catalog before starting a new conversation."));
-      setCatalogRefresh(value => value + 1);
+    if (
+      !sessionId &&
+      (catalogError || catalog?.errors[configuration.harness])
+    ) {
+      setError(
+        t(
+          "Refresh the remote model catalog before starting a new conversation.",
+        ),
+      );
+      setCatalogRefresh((value) => value + 1);
       return false;
     }
     if (
@@ -1036,7 +1066,10 @@ function ConnectedRemoteSession({
           .find((m) => m.id === id),
       available: (harness) =>
         providers.includes(harness as RemoteProvider) &&
-        (hostSession?.harness === harness || (online && !catalogError && !catalog?.errors[harness as RemoteProvider])) &&
+        (hostSession?.harness === harness ||
+          (online &&
+            !catalogError &&
+            !catalog?.errors[harness as RemoteProvider])) &&
         (!hostSession || hostSession.harness === harness),
       probed: () => !!descriptor,
       // The host re-probes when a provider CLI changes or its catalog ages,

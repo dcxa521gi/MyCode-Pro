@@ -91,10 +91,10 @@ describe("harness update check", () => {
       latestVersion: async () => "1.1.0",
     });
     expect(peak).toBe(2);
-    expect(updates.map((update) => update.harness)).toEqual(HARNESSES);
+    expect(updates.map((update) => update.harness)).toEqual(HARNESSES.filter((id) => id !== "acp"));
   });
   it("checks all active CLIs and compares Hermes calendar releases against its installed date", async () => {
-    expect([...UPDATABLE_HARNESSES].sort()).toEqual([...HARNESSES].sort());
+    expect([...UPDATABLE_HARNESSES].sort()).toEqual(HARNESSES.filter((id) => id !== "acp").sort());
     expect(
       await findHarnessUpdates({
         harnesses: ["hermes", "devin", "cursor", "grok"],

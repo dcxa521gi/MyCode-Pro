@@ -1,3 +1,4 @@
+import { acpAdapter } from "../src/integrations/harness/providers/acp/acpEngine";
 import * as codex from "../src/integrations/harness/providers/codex/codex";
 import * as claude from "../src/integrations/harness/providers/claude/claude";
 import * as cursor from "../src/integrations/harness/providers/cursor/cursor";
@@ -30,7 +31,12 @@ export interface HostProvider {
   compact?(input: CompactContextInput): Promise<void>;
   cancel(id: string): Promise<void>;
   stop(id: string): Promise<void>;
-  bind(id: string, providerId: string, cwd: string): void;
+  bind(
+    id: string,
+    providerId: string,
+    cwd: string,
+    providerAccountId?: string,
+  ): void;
   approve(id: string, request: number, decision: ApprovalDecision): void;
   answer(id: string, request: number, reply: UserQuestionReply): void;
   generateTitle?(input: {
@@ -42,6 +48,14 @@ export interface HostProvider {
 }
 
 export const hostProviders: Partial<Record<RemoteProvider, HostProvider>> = {
+  acp: {
+    send: acpAdapter.sendTurn,
+    cancel: acpAdapter.cancelTurn,
+    stop: acpAdapter.forgetSession,
+    bind: acpAdapter.bindSession,
+    approve: acpAdapter.respondApproval,
+    answer: unsupportedQuestion,
+  },
   codex: {
     send: codex.sendCodexTurn,
     compact: codex.compactCodexContext,

@@ -11,6 +11,7 @@ const npmEntries: Record<string, string> = {
 };
 
 const binaryNames: Record<RemoteProvider, string[]> = {
+  acp: [],
   codex: ["codex"],
   claude: ["claude"],
   cursor: ["cursor-agent", "agent"],

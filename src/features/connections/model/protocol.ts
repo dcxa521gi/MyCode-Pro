@@ -5,6 +5,7 @@ import type { LinkedWorkItem } from "../../sessions/model/session";
 
 export const HOST_PROTOCOL_VERSION = 1;
 export const REMOTE_PROVIDERS = [
+  "acp",
   "codex",
   "claude",
   "cursor",

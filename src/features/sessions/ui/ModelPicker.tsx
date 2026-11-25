@@ -1,3 +1,4 @@
+import { ModelCapabilityTags } from "../../providers/ui/ModelCapabilityTags";
 import { isHarnessAvailable } from "../../../integrations/harness/core/availability";
 import { translate as t } from "../../../shared/i18n";
 import { translate } from "../../../shared/i18n";
@@ -266,7 +267,9 @@ function groupsByProvider(tab: ModelPickerTab, models: AgentModel[]): boolean {
 
 /** Use the upstream provider when present, otherwise the model's harness. */
 function modelProvider(item: AgentModel): { id: string; name: string } {
-  return item.provider ?? { id: item.harness, name: HARNESS_TITLE[item.harness] };
+  return (
+    item.provider ?? { id: item.harness, name: HARNESS_TITLE[item.harness] }
+  );
 }
 
 /**
@@ -286,7 +289,9 @@ function inProviderOrder(
     else groups.set(id, [item]);
   }
   return [...groups.values()].flatMap((group) =>
-    [...group].sort((left, right) => modelPriceRank(left) - modelPriceRank(right)),
+    [...group].sort(
+      (left, right) => modelPriceRank(left) - modelPriceRank(right),
+    ),
   );
 }
 
@@ -306,7 +311,9 @@ function modelGroups(tab: ModelPickerTab, models: AgentModel[]): ModelGroup[] {
     const provider = modelProvider(item);
     const category = modelPriceRank(item);
     const showPriceCategory = tab === "opencode";
-    const groupId = showPriceCategory ? `${provider.id}:${category}` : provider.id;
+    const groupId = showPriceCategory
+      ? `${provider.id}:${category}`
+      : provider.id;
     let group = groups.get(groupId);
     if (!group) {
       group = {
@@ -795,7 +802,10 @@ export function ModelPicker({
         <span
           className={`whitespace-nowrap ${variant === "pill" ? "text-[11px]" : ""} ${labelClassName}`}
         >
-          {triggerLabel ?? (current.id === "devin:adaptive" ? t("Adaptive") : triggerModelName)}
+          {triggerLabel ??
+            (current.id === "devin:adaptive"
+              ? t("Adaptive")
+              : triggerModelName)}
         </span>
         {!triggerLabel && triggerEffortLabel ? (
           <span
@@ -1704,7 +1714,7 @@ function ModelFlyout({
                   return (
                     <div
                       key={item.id}
-                      className={`group flex h-8 items-center rounded-lg px-1 ${
+                      className={`group flex min-h-8 items-center rounded-lg px-1 py-1 ${
                         disabled
                           ? "text-content/30"
                           : highlighted
@@ -1730,9 +1740,14 @@ function ModelFlyout({
                         className="flex min-w-0 flex-1 items-center gap-2 px-1.5 text-left text-[13px] disabled:cursor-not-allowed"
                       >
                         <span className="min-w-0 flex-1 truncate">
-                          {item.id === "devin:adaptive"
+                          <span data-model-name>{item.id === "devin:adaptive"
                             ? t("Adaptive")
-                            : item.name}
+                            : item.name}</span>
+                          <ModelCapabilityTags
+                            compact
+                            id={item.nativeId || item.id}
+                            metadata={item.capabilityMetadata ?? { mode: "chat" }}
+                          />
                         </span>
                       </button>
                       {tab === "favorites" ? (

@@ -18,6 +18,8 @@ import {
   type RemoteProvider,
 } from "../src/features/connections/model/protocol";
 import { providerLaunch, resolveProvider } from "./process";
+import { accountDirectory } from "./model-groups";
+import { listAcpPlugins, approvedAcpLaunch } from "./acp-plugins";
 
 const exec = promisify(execFile);
 const ALLOWED_EXEC_ARGS: readonly (readonly string[])[] = [
@@ -59,8 +61,16 @@ function execArgsAllowed(provider: RemoteProvider, args: string[]): boolean {
 /** The user config file Devin itself reads. */
 function devinUserConfigPath(): string {
   if (process.platform === "win32")
-    return join(process.env.APPDATA || join(homedir(), "AppData", "Roaming"), "devin", "config.json");
-  return join(process.env.XDG_CONFIG_HOME || join(homedir(), ".config"), "devin", "config.json");
+    return join(
+      process.env.APPDATA || join(homedir(), "AppData", "Roaming"),
+      "devin",
+      "config.json",
+    );
+  return join(
+    process.env.XDG_CONFIG_HOME || join(homedir(), ".config"),
+    "devin",
+    "config.json",
+  );
 }
 
 /**
@@ -147,6 +157,8 @@ export class HostChildBackend implements ChildBackend {
       } as T;
     }
     switch (command) {
+      case "acp_plugins_list":
+        return (await listAcpPlugins()) as T;
       case "harness_exec": {
         const provider = args.binaryProvider;
         if (!isRemoteProvider(provider))
@@ -325,11 +337,24 @@ export class HostChildBackend implements ChildBackend {
     if (this.closing) throw new Error("Host is stopping");
     await this.kill(id);
     if (this.closing) throw new Error("Host is stopping");
-    const account = args.account as { id?: string } | undefined;
-    if (account?.id && account.id !== "default")
-      throw new Error(
-        "Named provider accounts are not supported by this host yet",
-      );
+    const account = args.account as
+      { id?: string; provider?: string } | undefined;
+    const env: NodeJS.ProcessEnv = { ...process.env, MONOCODE_HOST: "1" };
+    if (account?.id && account.id !== "default") {
+      const directory = accountDirectory(String(account.provider), account.id);
+      if (account.provider === "claude") {
+        env.CLAUDE_CONFIG_DIR = directory;
+        env.CLAUDE_SECURESTORAGE_CONFIG_DIR = directory;
+        delete env.ANTHROPIC_API_KEY;
+        delete env.ANTHROPIC_AUTH_TOKEN;
+        delete env.CLAUDE_CODE_OAUTH_TOKEN;
+      } else {
+        env.CODEX_HOME = directory;
+        delete env.OPENAI_API_KEY;
+        delete env.CODEX_API_KEY;
+        delete env.CODEX_ACCESS_TOKEN;
+      }
+    }
     let commandArgs = args.args as string[];
     if (args.devinAskEdits) {
       if (
@@ -341,7 +366,13 @@ export class HostChildBackend implements ChildBackend {
       // `--config` is a global option, so it precedes the subcommand.
       commandArgs = [...(await devinAskEditsArgs()), ...commandArgs];
     }
-    const launch = await providerLaunch(String(args.command), commandArgs);
+    const approved = args.acpPlugin
+      ? await approvedAcpLaunch(args.acpPlugin, env)
+      : undefined;
+    const launch = await providerLaunch(
+      approved?.command ?? String(args.command),
+      approved?.args ?? commandArgs,
+    );
     if (this.closing) throw new Error("Host is stopping");
     const child = spawn(
       process.execPath,
@@ -355,7 +386,7 @@ export class HostChildBackend implements ChildBackend {
         stdio: ["pipe", "pipe", "pipe", "pipe"],
         detached: process.platform !== "win32",
         windowsHide: true,
-        env: { ...process.env, MONOCODE_HOST: "1" },
+        env,
       },
     );
     this.children.set(id, child);

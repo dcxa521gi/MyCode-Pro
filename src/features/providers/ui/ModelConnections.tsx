@@ -1,6 +1,16 @@
 import { SettingsOptions } from "../../../shared/ui/SettingsOptions";
 import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
-import { reportedProtocols, supportsProtocol } from "../model/modelProtocols";
+import {
+  reportedProtocols,
+  supportsProtocol,
+  isChatModelMetadata,
+} from "../model/modelProtocols";
+import { ModelCapabilityTags } from "./ModelCapabilityTags";
+import {
+  MODEL_CAPABILITIES,
+  CAPABILITY_LABELS,
+  modelCapabilities,
+} from "../model/modelCapabilities";
 import { usageTokens } from "../../settings/model/usageTokens";
 import type { UsageRow } from "../../settings/ui/UsageHistoryPage";
 import { ProviderGallery } from "./ProviderGallery";
@@ -98,7 +108,10 @@ export function ModelConnections({
               current
                 ? {
                     ...current,
-                    modelMetadata: mergeDiscoveredModelMetadata(current.modelMetadata, metadata),
+                    modelMetadata: mergeDiscoveredModelMetadata(
+                      current.modelMetadata,
+                      metadata,
+                    ),
                   }
                 : current,
             );
@@ -200,6 +213,7 @@ export function ModelConnections({
               ...empty(),
               ...(draft ? { id: draft.id } : {}),
               name: preset.name,
+              gateway: preset.name === "Magpie" ? "magpie" : undefined,
               baseUrl: preset.baseUrl,
               api: preset.api,
             });
@@ -406,6 +420,10 @@ export function ModelConnections({
                             <strong>
                               {item.modelMetadata?.[id]?.name || id}
                             </strong>
+                            <ModelCapabilityTags
+                              id={id}
+                              metadata={item.modelMetadata?.[id]}
+                            />
                             <p className="mt-1 text-xs text-content/50">
                               {id}
                               {item.primaryModel === id
@@ -477,6 +495,9 @@ export function ModelConnections({
                         .split(/[\n,]/)
                         .some(
                           (id) =>
+                            isChatModelMetadata(
+                              draft.modelMetadata?.[id.trim()],
+                            ) &&
                             !supportsProtocol(
                               draft.modelMetadata?.[id.trim()],
                               draft.api,
@@ -520,6 +541,13 @@ export function ModelConnections({
                     {t("Change provider")}
                   </SecondaryButton>
                 </div>
+                {draft.gateway === "magpie" && (
+                  <p className="rounded-lg bg-content/5 p-3 text-xs leading-relaxed text-content/65">
+                    {t(
+                      "Magpie: use its gateway address and API key. Refresh includes chat, image and video models; keep the full provider/model or group/model ID.",
+                    )}
+                  </p>
+                )}
                 <div className="flex items-center gap-2 text-xs text-content/55">
                   <span className="rounded-full bg-content/5 px-3 py-1">
                     {t("2 · Configure connection")}
@@ -781,13 +809,17 @@ export function ModelConnections({
                             .includes(modelQuery.trim().toLowerCase()),
                         )
                         .map((id) => (
-                          <label
+                          <div
                             key={id}
                             className="flex min-w-0 items-start gap-3 rounded-xl bg-content/5 p-3 text-xs"
                           >
                             <input
+                              aria-label={`${t("Enabled")} ${id}`}
                               type="checkbox"
                               disabled={
+                                isChatModelMetadata(
+                                  draft.modelMetadata?.[id],
+                                ) &&
                                 !supportsProtocol(
                                   draft.modelMetadata?.[id],
                                   draft.api,
@@ -812,6 +844,75 @@ export function ModelConnections({
                               <strong className="block truncate">
                                 {draft.modelMetadata?.[id]?.name || id}
                               </strong>
+                              <ModelCapabilityTags
+                                id={id}
+                                metadata={draft.modelMetadata?.[id]}
+                              />
+                              <details
+                                className="mt-2 text-xs"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <summary className="cursor-pointer text-content/55">
+                                  {t("Edit capability tags")}
+                                </summary>
+                                <span className="mt-2 flex flex-wrap gap-2">
+                                  {MODEL_CAPABILITIES.map((capability) => (
+                                    <label
+                                      key={capability}
+                                      className="flex items-center gap-1"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={modelCapabilities(
+                                          id,
+                                          draft.modelMetadata?.[id],
+                                        ).some(
+                                          (tag) =>
+                                            tag.capability === capability,
+                                        )}
+                                        onChange={(e) => {
+                                          const current =
+                                            draft.modelMetadata?.[id] ?? {};
+                                          const selected = modelCapabilities(
+                                            id,
+                                            current,
+                                          )
+                                            .map((tag) => tag.capability)
+                                            .filter(
+                                              (tag) => tag !== capability,
+                                            );
+                                          if (e.target.checked)
+                                            selected.push(capability);
+                                          setDraft({
+                                            ...draft,
+                                            modelMetadata: {
+                                              ...draft.modelMetadata,
+                                              [id]: {
+                                                ...current,
+                                                capabilityOverrides: selected,
+                                                manualOverrides: {
+                                                  ...current.manualOverrides,
+                                                  capabilityOverrides: selected,
+                                                },
+                                              },
+                                            },
+                                          });
+                                        }}
+                                      />
+                                      {t(CAPABILITY_LABELS[capability])}
+                                    </label>
+                                  ))}
+                                </span>
+                                {draft.modelMetadata?.[id]?.capabilityOverrides && (
+                                  <button type="button" className="mt-2 underline" onClick={() => {
+                                    const current = { ...draft.modelMetadata?.[id] };
+                                    delete current.capabilityOverrides;
+                                    current.manualOverrides = { ...current.manualOverrides };
+                                    delete current.manualOverrides.capabilityOverrides;
+                                    setDraft({ ...draft, modelMetadata: { ...draft.modelMetadata, [id]: current } });
+                                  }}>{t("Restore automatic classification")}</button>
+                                )}
+                              </details>
                               <span className="block text-content/50">
                                 {id}
                               </span>
@@ -879,7 +980,7 @@ export function ModelConnections({
                                 </span>
                               )}
                             </span>
-                          </label>
+                          </div>
                         ))}
                     </div>
                   )}

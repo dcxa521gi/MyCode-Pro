@@ -100,8 +100,11 @@ const ACTIONS: [&str; 13] = [
     "respond",
     "answer",
 ];
-const APP_ACTIONS: [&str; 35] = [
+const APP_ACTIONS: [&str; 38] = [
     "plugins.list",
+    "media.models",
+    "media.generate",
+    "media.result",
     "plugins.run",
     "plugins.result",
     "models.list",
@@ -141,6 +144,12 @@ const APP_USAGE: &str = r#"MyCode app access — use in a thread enabled by /ope
 
 Local workflow plugins / 本地工作流插件:
   plugins.list {}
+  media.models {}
+    List configured media models and reported capabilities.
+  media.generate {"connectionId":"...","model":"...","kind":"image|image-edit|video","prompt":"...","reference":"optional absolute image path"}
+    Start generation in this conversation's project. Returns a job ID; never resubmit the same request after a timeout.
+  media.result {"jobId":"..."}
+    Read generation progress and actual output files. Video jobs refresh through their existing task ID.
     Discover enabled named tools. These supply workflows, not new permissions.
   plugins.run {"pluginId":"...","toolId":"...","values":{}}
     Open a native user form and return operationId immediately. Never assume

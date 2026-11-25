@@ -806,7 +806,7 @@ describe("settings pages", () => {
 
   it("shows path details for every Agent CLI", async () => {
     await render("providers-cli");
-    for (const harness of HARNESSES) {
+    for (const harness of HARNESSES.filter((id) => id !== "acp")) {
       expect(
         container.querySelector(
           `[aria-label="Show ${HARNESS_TITLE[harness]} CLI details"]`,

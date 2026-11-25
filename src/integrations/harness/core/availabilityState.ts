@@ -22,8 +22,13 @@ let availability: HarnessAvailability = {
   mimo: false,
   zcode: false,
   devin: false,
+  acp: false,
 };
 let version = 0;
+let pluginAvailable = false;
+export function setAcpAvailability(value: boolean) {
+  pluginAvailable = value;
+}
 let probedAt = 0;
 const listeners = new Set<() => void>();
 
@@ -50,6 +55,7 @@ export function hasProbedHarnessAvailability(): boolean {
 }
 
 export function isHarnessAvailable(id: HarnessId): boolean {
+  if (id === "acp") return pluginAvailable;
   return availability[id];
 }
 

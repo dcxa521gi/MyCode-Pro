@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "../../../shared/i18n";
 import { SettingsDropdown } from "../../../shared/ui/SettingsDropdown";
 import { SecondaryButton } from "../../../shared/ui/SecondaryButton";
+import { SharedModelGroupsPanel } from "./SharedModelGroupsPanel";
 import {
   HARNESSES,
   HARNESS_TITLE,
@@ -70,6 +71,7 @@ export function ModelGroupsPanel() {
         {t("Model groups and account pools")}
       </summary>
       <div className="space-y-4 border-t border-content/10 p-4">
+        <SharedModelGroupsPanel groups={config.groups} />
         <p className="text-xs leading-relaxed text-content/60">
           {t(
             "Choose a source for new conversations. Existing conversations keep their model and isolated account; switching a group never migrates credentials or retries completed work.",
@@ -194,6 +196,25 @@ export function ModelGroupsPanel() {
                 </SettingsDropdown>
               </label>
             </div>
+            {supportsProviderAccounts(draft.harness) && (
+              <label className="flex items-start gap-2 rounded-lg bg-content/5 p-3 text-xs leading-relaxed">
+                <input
+                  type="checkbox"
+                  checked={draft.autoSwitchAccounts === true}
+                  onChange={(e) =>
+                    setDraft({ ...draft, autoSwitchAccounts: e.target.checked })
+                  }
+                />
+                <span>
+                  {t("Automatically switch accounts when quota is exhausted")}
+                  <span className="mt-1 block text-content/60">
+                    {t(
+                      "Continue the same native conversation using another account with the same model. Each account is tried once per user turn. Pausing cancels automatic switching.",
+                    )}
+                  </span>
+                </span>
+              </label>
+            )}
             {draft.candidates.map((c, index) => (
               <div
                 key={c.id}

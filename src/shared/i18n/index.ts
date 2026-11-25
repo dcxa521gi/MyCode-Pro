@@ -7,6 +7,7 @@ import { mycode0233ZhCN } from "./mycode0233";
 import { mycode0234ZhCN } from "./mycode0234";
 import { mycode0235ZhCN } from "./mycode0235";
 import { mycode0250ZhCN } from "./mycode0250";
+import { mycode0260ZhCN } from "./mycode0260";
 
 const messages: Record<string, string> = {
   ...zhCN,
@@ -17,6 +18,7 @@ const messages: Record<string, string> = {
   ...mycode0234ZhCN,
   ...mycode0235ZhCN,
   ...mycode0250ZhCN,
+  ...mycode0260ZhCN,
 };
 
 export type Locale = "en" | "zh-CN";

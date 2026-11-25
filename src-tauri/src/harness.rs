@@ -920,7 +920,16 @@ pub fn harness_spawn(
     codex_store: Option<String>,
     opencode_v2: Option<OpenCodeV2Spawn>,
     devin_ask_edits: Option<bool>,
+    acp_plugin: Option<crate::acp_plugins::Launch>,
 ) -> Result<u32, String> {
+    let plugin = acp_plugin
+        .as_ref()
+        .map(|request| crate::acp_plugins::resolve(&app, request))
+        .transpose()?;
+    let (command, args) = match &plugin {
+        Some(engine) => (engine.command.clone(), engine.args.clone()),
+        None => (command, args),
+    };
     let workdir = expand_home(&cwd);
     if !workdir.is_dir() {
         return Err(format!(
@@ -928,7 +937,9 @@ pub fn harness_spawn(
             workdir.display()
         ));
     }
-    if !is_resolved_harness_binary(&command, binary_provider.as_deref(), binary_path.as_deref()) {
+    if plugin.is_none()
+        && !is_resolved_harness_binary(&command, binary_provider.as_deref(), binary_path.as_deref())
+    {
         return Err("harness_spawn: not a resolved harness CLI".to_string());
     }
 
@@ -963,6 +974,9 @@ pub fn harness_spawn(
     prepare_child(&mut cmd, &command);
     crate::cache_location::configure_task(&mut cmd, &workdir)?;
     apply_provider_account(&app, &mut cmd, account.as_ref())?;
+    if let Some(request) = &acp_plugin {
+        crate::acp_plugins::configure(&app, &mut cmd, request)?;
+    }
     if binary_provider.as_deref() == Some("hermes") {
         let managed = app
             .path()

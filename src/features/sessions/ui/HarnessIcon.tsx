@@ -30,6 +30,7 @@ export const HARNESS_ICONS: Record<HarnessId, string> = {
   mimo,
   zcode,
   devin,
+  acp: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%237a8aa0' d='M8 2h3v5h2V2h3v5h3v3a7 7 0 0 1-6 7v5h-2v-5a7 7 0 0 1-6-7V7h3z'/%3E%3C/svg%3E",
 };
 
 /** White marks that must follow `currentColor` so they stay visible in light mode. */

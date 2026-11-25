@@ -55,6 +55,20 @@ export function supportsProtocol(
 
 /** Explicit media capability is authoritative; names and prefixes never infer it. */
 export function isChatModelMetadata(metadata?: ModelMetadata): boolean {
+  if (
+    metadata?.capabilityOverrides?.length &&
+    !metadata.capabilityOverrides.includes("text") &&
+    metadata.capabilityOverrides.some((c) =>
+      [
+        "image-generation",
+        "video-generation",
+        "speech-generation",
+        "music",
+        "embedding",
+      ].includes(c),
+    )
+  )
+    return false;
   const outputs =
     metadata?.outputModalities ??
     metadata?.output_modalities ??
@@ -86,6 +100,8 @@ export function isChatModelMetadata(metadata?: ModelMetadata): boolean {
       "video_generation",
       "embedding",
       "embeddings",
+      "music",
+      "rerank",
     ].includes(metadata?.mode ?? "") &&
     (clientProtocols(metadata).length > 0 ||
       ![

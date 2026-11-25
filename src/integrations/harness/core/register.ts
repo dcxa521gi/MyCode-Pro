@@ -6,6 +6,7 @@ import { ensureHermesRegistered } from "../providers/hermes/hermesAdapter";
 import { ensureOpenCodeRegistered } from "../providers/opencode/opencodeAdapter";
 import { ensurePiRegistered } from "../providers/pi/piAdapter";
 import { ensureDevinRegistered } from "../providers/devin/devinAdapter";
+import { ensureAcpRegistered } from "../providers/acp/acpEngine";
 
 /** Register all known live harness adapters. Idempotent. */
 export function registerBuiltinHarnesses(): void {
@@ -17,4 +18,5 @@ export function registerBuiltinHarnesses(): void {
   ensurePiRegistered();
   ensureHermesRegistered();
   ensureDevinRegistered();
+  ensureAcpRegistered();
 }

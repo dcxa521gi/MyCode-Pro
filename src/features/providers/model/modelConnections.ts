@@ -3,6 +3,7 @@ import { setConnectionModels } from "../../sessions/model/models";
 import { invoke } from "@tauri-apps/api/core";
 
 export type ModelMetadata = {
+  capabilityOverrides?: import("./modelCapabilities").ModelCapability[];
   mode?: string;
   nativeApi?: string | null;
   name?: string;
@@ -26,6 +27,7 @@ export type ModelMetadata = {
   manualOverrides?: Pick<
     ModelMetadata,
     | "name"
+    | "capabilityOverrides"
     | "mode"
     | "nativeApi"
     | "thinking"
@@ -73,6 +75,7 @@ export type ModelConnection = {
   name: string;
   baseUrl: string;
   api: string;
+  gateway?: "magpie";
   models: string[];
   modelMetadata?: Record<string, ModelMetadata>;
   enabled: boolean;
@@ -118,6 +121,11 @@ export function connectionDisplayName(
 
 /** Endpoint templates only; model IDs are supplied by the user's own account. */
 export const CONNECTION_PRESETS = [
+  {
+    name: "Magpie",
+    baseUrl: "http://127.0.0.1:3425/v1",
+    api: "openai-completions",
+  },
   {
     name: "TokenDance · Partner",
     baseUrl: "https://tokendance.space/gateway/v1",

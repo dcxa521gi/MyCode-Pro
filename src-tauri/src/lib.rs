@@ -8,6 +8,7 @@ mod turn_recovery;
 use tauri::Manager;
 
 mod account_identity;
+mod acp_plugins;
 mod app_update;
 mod artifacts;
 mod automations;
@@ -87,6 +88,7 @@ mod window;
 mod window_transfer;
 #[cfg(windows)]
 mod windows;
+mod workbench;
 mod worktree_lifecycle;
 mod worktrees;
 
@@ -610,6 +612,12 @@ pub fn run() {
             harness::harness_resolve_zcode,
             harness::harness_free_port,
             harness::harness_spawn,
+            acp_plugins::acp_plugins_list,
+            acp_plugins::acp_plugin_save,
+            acp_plugins::acp_plugin_remove,
+            acp_plugins::acp_plugin_set_enabled,
+            workbench::workbench_request,
+            workbench::workbench_result,
             codex_mono_store::codex_mono_store_prepare,
             codex_mono_store::codex_mono_store_copy,
             codex_mono_store::codex_mono_store_restore_agent_state,

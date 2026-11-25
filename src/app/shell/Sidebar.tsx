@@ -2476,6 +2476,11 @@ function SidebarComponent({
         onSearch ? { active: searchActive, onClick: onSearch } : undefined
       }
       items={[
+        {
+          label: t("Workbench"),
+          icon: Zap,
+          onClick: () => window.dispatchEvent(new Event("mycode:open-workbench")),
+        },
         onOpenInbox && {
           label: t("Inbox"),
           icon: Inbox,

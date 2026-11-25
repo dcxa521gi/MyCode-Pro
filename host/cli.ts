@@ -230,6 +230,10 @@ Connect another computer using an SSH forward to the loopback port.`);
     const release = await acquireHarnessBridge();
     const available: RemoteProvider[] = [];
     for (const provider of REMOTE_PROVIDERS) {
+      if (provider === "acp") {
+        available.push(provider);
+        continue;
+      }
       if (!hostProviders[provider]) continue;
       try {
         await backend.resolve(provider);

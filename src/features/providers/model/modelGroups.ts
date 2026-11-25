@@ -24,6 +24,8 @@ export type ModelGroup = {
   strategy: GroupStrategy;
   candidates: GroupCandidate[];
   exceptions: GroupException[];
+  /** Explicit permission to carry a quota-limited native conversation to another account. */
+  autoSwitchAccounts?: boolean;
 };
 export type GroupConfig = {
   version: 1;
@@ -88,6 +90,7 @@ export function groupFingerprint(group: ModelGroup): string {
     group.strategy,
     group.candidates,
     group.exceptions,
+    group.autoSwitchAccounts === true,
   ]);
 }
 export function validateGroup(group: ModelGroup): void {

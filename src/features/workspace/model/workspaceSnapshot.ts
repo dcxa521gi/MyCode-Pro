@@ -25,7 +25,10 @@ import {
 } from "../../projects/model/projectTerminal";
 import { normalizeProjectPath } from "../../projects/model/recents";
 import { pathKey } from "../../../shared/lib/paths";
-import { parseRemotePath, remotePath } from "../../connections/model/remoteProjects";
+import {
+  parseRemotePath,
+  remotePath,
+} from "../../connections/model/remoteProjects";
 import {
   reconcileProjectReturn,
   type ProjectReturnMemory,
@@ -51,6 +54,7 @@ export type WorkspaceSessionStub = {
   title: string;
   providerSessionId?: string;
   providerAccountId?: string;
+  modelGroupId?: string;
   branch?: string;
   worktreeCwd?: string;
   worktreeRemoved?: boolean;
@@ -362,6 +366,7 @@ function sessionStub(session: Session): WorkspaceSessionStub | null {
     ...(session.providerSessionId
       ? { providerSessionId: session.providerSessionId }
       : {}),
+    ...(session.modelGroupId ? { modelGroupId: session.modelGroupId } : {}),
     ...(session.providerAccountId
       ? { providerAccountId: session.providerAccountId }
       : {}),
@@ -391,6 +396,7 @@ function sessionFromStub(stub: WorkspaceSessionStub): Session {
     ...(stub.providerSessionId
       ? { providerSessionId: stub.providerSessionId }
       : {}),
+    ...(stub.modelGroupId ? { modelGroupId: stub.modelGroupId } : {}),
     ...(stub.providerAccountId
       ? { providerAccountId: stub.providerAccountId }
       : {}),
@@ -433,6 +439,10 @@ function sanitizeStub(raw: unknown): WorkspaceSessionStub | null {
       : {}),
     ...(typeof value.providerSessionId === "string" && value.providerSessionId
       ? { providerSessionId: value.providerSessionId }
+      : {}),
+    ...(typeof value.modelGroupId === "string" &&
+    /^[A-Za-z0-9_-]{1,80}$/.test(value.modelGroupId)
+      ? { modelGroupId: value.modelGroupId }
       : {}),
     ...(typeof value.providerAccountId === "string" &&
     /^[A-Za-z0-9_-]+$/.test(value.providerAccountId)
@@ -619,8 +629,12 @@ function sanitizeFile(raw: unknown): FilePaneTab | null {
   }
   return {
     id: value.id,
-    path: remoteOwner ? remotePath(remoteOwner.environmentId, value.path) : value.path,
-    cwd: remoteOwner ? remotePath(remoteOwner.environmentId, value.cwd) : value.cwd,
+    path: remoteOwner
+      ? remotePath(remoteOwner.environmentId, value.path)
+      : value.path,
+    cwd: remoteOwner
+      ? remotePath(remoteOwner.environmentId, value.cwd)
+      : value.cwd,
     ...(typeof value.projectCwd === "string" && value.projectCwd
       ? { projectCwd: value.projectCwd }
       : {}),
@@ -638,7 +652,9 @@ function sanitizeFile(raw: unknown): FilePaneTab | null {
   };
 }
 
-function sanitizeRemoteFile(raw: unknown): { machineId: string; projectId: string; relativePath: string } | null {
+function sanitizeRemoteFile(
+  raw: unknown,
+): { machineId: string; projectId: string; relativePath: string } | null {
   if (!raw || typeof raw !== "object") return null;
   const value = raw as Record<string, unknown>;
   if (

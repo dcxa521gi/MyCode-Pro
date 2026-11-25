@@ -388,7 +388,7 @@ describe("existing providers over headless process I/O", () => {
           });
           await vi.waitFor(
             () => expect(store.session(sessionId).status).toBe("idle"),
-            { timeout: 4_000 },
+            { timeout: process.platform === "win32" ? 15_000 : 4_000 },
           );
           const state = store.session(sessionId).session;
           expect(

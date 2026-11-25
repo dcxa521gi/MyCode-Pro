@@ -99,6 +99,7 @@ type SessionRecord = {
   title: string;
   providerSessionId?: string | null;
   providerAccountId?: string | null;
+  modelGroupId?: string | null;
   blocks: Block[];
   queuedMessages?: QueuedMessage[];
   queueStatus?: MessageQueueStatus;
@@ -124,6 +125,7 @@ type SessionUpsertPayload = {
   title: string;
   providerSessionId?: string;
   providerAccountId?: string;
+  modelGroupId?: string;
   blocks: Block[];
   queuedMessages?: QueuedMessage[];
   queueStatus?: MessageQueueStatus;
@@ -168,6 +170,7 @@ function persistableMeta(
     harness: session.harness,
     model: session.model,
     modelSettings: session.modelSettings,
+    modelGroupId: session.modelGroupId,
     runtimeMode: session.runtimeMode,
     title: session.title,
     ...(session.sidebarHidden === true ? { sidebarHidden: true } : {}),
@@ -177,7 +180,11 @@ function persistableMeta(
           queueStatus: session.queueStatus ?? "active",
         }
       : {}),
-    ...(session.providerSessionId && isPersistableId(session.providerSessionId)
+    ...(session.providerSessionId &&
+    (session.harness === "acp"
+      ? session.providerSessionId.length <= 512 &&
+        !/[\x00-\x1f\x7f]/.test(session.providerSessionId)
+      : isPersistableId(session.providerSessionId))
       ? { providerSessionId: session.providerSessionId }
       : {}),
     ...(session.providerAccountId && isPersistableId(session.providerAccountId)
@@ -957,17 +964,25 @@ function sanitizeBlock(
   block: Block,
   options?: { hydrate?: boolean },
 ): Block | null {
-  if (block.role === "image" && !sanitizeGeneratedImage(block.image)) return null;
+  if (block.role === "image" && !sanitizeGeneratedImage(block.image))
+    return null;
   const next: Block = {
     id: block.id,
     role: block.role,
     text: block.text,
-    ...(sanitizeGeneratedImage(block.image) ? {image:sanitizeGeneratedImage(block.image)} : {}),
+    ...(sanitizeGeneratedImage(block.image)
+      ? { image: sanitizeGeneratedImage(block.image) }
+      : {}),
   };
   if (block.attachments?.length) {
     next.attachments = block.attachments.map(persistableAttachment);
   }
-  if (block.role === "user" && typeof block.recoveryId === "string" && /^[0-9a-f-]{36}$/i.test(block.recoveryId)) next.recoveryId = block.recoveryId;
+  if (
+    block.role === "user" &&
+    typeof block.recoveryId === "string" &&
+    /^[0-9a-f-]{36}$/i.test(block.recoveryId)
+  )
+    next.recoveryId = block.recoveryId;
   if (block.startedAt != null) next.startedAt = block.startedAt;
   if (block.durationMs != null) next.durationMs = block.durationMs;
   if (
@@ -1026,7 +1041,11 @@ function sanitizeBlock(
   const turnMetrics = sanitizeTurnMetrics(block.turnMetrics);
   if (block.role === "user" && turnMetrics) {
     next.turnMetrics = turnMetrics;
-    if (typeof block.turnMetricsAt === "number" && Number.isFinite(block.turnMetricsAt) && block.turnMetricsAt > 0)
+    if (
+      typeof block.turnMetricsAt === "number" &&
+      Number.isFinite(block.turnMetricsAt) &&
+      block.turnMetricsAt > 0
+    )
       next.turnMetricsAt = block.turnMetricsAt;
   }
   if (block.tool) next.tool = block.tool;
@@ -1537,6 +1556,7 @@ function recordToSession(record: SessionRecord): Session {
     ...(record.providerAccountId
       ? { providerAccountId: record.providerAccountId }
       : {}),
+    ...(record.modelGroupId ? { modelGroupId: record.modelGroupId } : {}),
     ...(record.branch ? { branch: record.branch } : {}),
     ...(record.worktreeCwd ? { worktreeCwd: record.worktreeCwd } : {}),
     ...(record.worktreeRemoved ? { worktreeRemoved: true } : {}),

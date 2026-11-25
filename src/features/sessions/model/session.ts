@@ -29,7 +29,8 @@ export type HarnessId =
   | "minimax"
   | "mimo"
   | "zcode"
-  | "devin";
+  | "devin"
+  | "acp";
 
 export const HARNESSES: HarnessId[] = [
   "claude",
@@ -40,6 +41,7 @@ export const HARNESSES: HarnessId[] = [
   "pi",
   "hermes",
   "devin",
+  "acp",
 ];
 
 export type BlockRole =
@@ -491,6 +493,8 @@ export type Session = {
   providerSessionId?: string;
   /** Named local credential profile used by Claude or Codex. */
   providerAccountId?: string;
+  /** Source group selected for this session; never inferred from a changed global default. */
+  modelGroupId?: string;
   /** Context-window level reported by the harness. Absent until it reports. */
   context?: ContextUsage;
   /**
@@ -556,6 +560,7 @@ export const HARNESS_LABEL: Record<HarnessId, string> = {
   mimo: "mimo",
   zcode: "zcode",
   devin: "devin",
+  acp: "ACP",
 };
 
 export const HARNESS_TITLE: Record<HarnessId, string> = {
@@ -573,6 +578,7 @@ export const HARNESS_TITLE: Record<HarnessId, string> = {
   mimo: "MiMo Code",
   zcode: "ZCode",
   devin: "Devin",
+  acp: "ACP",
 };
 
 /** fx ACP rejects attachment prompt blocks. */

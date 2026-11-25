@@ -9,6 +9,7 @@ import { HARNESSES } from "../src/features/sessions/model/session";
 
 it("exposes supported remote harnesses without restoring removed CLIs", () => {
   expect(Object.keys(hostProviders).sort()).toEqual([
+    "acp",
     "claude",
     "codex",
     "cursor",

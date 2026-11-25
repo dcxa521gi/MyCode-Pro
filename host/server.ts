@@ -13,6 +13,9 @@ import {
   type RemoteProvider,
 } from "../src/features/connections/model/protocol";
 import { HostEngine } from "./engine";
+import { acpModels, acpFingerprint } from "./acp-plugins";
+import { SharedModelGroups } from "./model-groups";
+import type { ModelGroup } from "../src/features/providers/model/modelGroups";
 import { writeAttachmentChunk, readAttachmentChunk } from "./attachments";
 import type { LinkedWorkItem } from "../src/features/sessions/model/session";
 import { parseGithubWorkItemUrl } from "../src/features/sessions/model/sessionWorkItem";
@@ -46,12 +49,18 @@ import { discoverClaudeModels } from "../src/integrations/harness/providers/clau
 import { discoverCursorModels } from "../src/integrations/harness/providers/cursor/cursorCatalog";
 import { discoverGrokModels } from "../src/integrations/harness/providers/grok/grokCatalog";
 import { discoverOpenCodeModels } from "../src/integrations/harness/providers/opencode/opencodeCatalog";
-import { discoverPiModels, discoverOmpModels } from "../src/integrations/harness/providers/pi/piCatalog";
+import {
+  discoverPiModels,
+  discoverOmpModels,
+} from "../src/integrations/harness/providers/pi/piCatalog";
 import { discoverFxModels } from "../src/integrations/harness/providers/fx/fxCatalog";
 import { discoverHermesModels } from "../src/integrations/harness/providers/hermes/hermesCatalog";
 import { discoverAntigravityModels } from "../src/integrations/harness/providers/antigravity/antigravityCatalog";
 import { discoverDevinModels } from "../src/integrations/harness/providers/devin/devinCatalog";
-import { setHarnessModels, type AgentModel } from "../src/features/sessions/model/models";
+import {
+  setHarnessModels,
+  type AgentModel,
+} from "../src/features/sessions/model/models";
 import {
   resolveAntigravityBinary,
   resolveClaudeBinary,
@@ -69,7 +78,9 @@ import {
 const exec = promisify(execFile);
 // Providers also add models server-side, without a CLI update.
 const CATALOG_MAX_AGE_MS = 5 * 60_000;
-const resolveBinary: Record<RemoteProvider, () => Promise<{ path: string }>> = {
+const resolveBinary: Partial<
+  Record<RemoteProvider, () => Promise<{ path: string }>>
+> = {
   codex: () => resolveCodexBinary(),
   claude: () => resolveClaudeBinary(),
   cursor: () => resolveCursorBinary(),
@@ -85,7 +96,11 @@ const resolveBinary: Record<RemoteProvider, () => Promise<{ path: string }>> = {
 // A 1 MiB text file can expand to 6 MiB when JSON escapes control characters.
 // Existing files.write sends both the original and replacement contents.
 const MAX_BODY = 16 * 1024 * 1024;
-const discoverModels: Record<RemoteProvider, (cwd: string) => Promise<AgentModel[]>> = {
+const discoverModels: Record<
+  RemoteProvider,
+  (cwd: string) => Promise<AgentModel[]>
+> = {
+  acp: acpModels,
   codex: discoverCodexModels,
   claude: discoverClaudeModels,
   cursor: discoverCursorModels,
@@ -121,7 +136,8 @@ async function providerBinaries(providers: RemoteProvider[]): Promise<string> {
   const binaries = await Promise.all(
     providers.map(async (provider) => {
       try {
-        const file = await realpath((await resolveBinary[provider]()).path);
+        if (provider === "acp") return await acpFingerprint();
+        const file = await realpath((await resolveBinary[provider]!()).path);
         return `${file}:${(await stat(file)).mtimeMs}`;
       } catch {
         return "";
@@ -141,9 +157,8 @@ export function createHostServer(
     { binaries: string; probed: number; catalog: Promise<HostModelCatalog> }
   >();
   const transfers = new SyncTransfers();
-  const workspace = new WorkspaceCommands(
-    engine.store,
-    (projectId, action) => engine.withIdleProject(projectId, action),
+  const workspace = new WorkspaceCommands(engine.store, (projectId, action) =>
+    engine.withIdleProject(projectId, action),
   );
   const models = async (projectId?: unknown) => {
     const cwd =
@@ -231,9 +246,11 @@ export function createHostServer(
         // Reading a request body yields: a device may have been revoked since
         // the headers arrived. Reject it before dispatching any operation.
         if (!engine.store.authenticated(token)) {
-          response.writeHead(401).end(JSON.stringify({
-            error: "Device credential is invalid or revoked",
-          }));
+          response.writeHead(401).end(
+            JSON.stringify({
+              error: "Device credential is invalid or revoked",
+            }),
+          );
           return;
         }
         if (input.version !== HOST_PROTOCOL_VERSION)
@@ -263,12 +280,13 @@ export function createHostServer(
               providers: providers.filter((provider) =>
                 Array.isArray(params.supportedProviders)
                   ? params.supportedProviders.includes(provider)
-                  : provider === "codex" || provider === "claude"
+                  : provider === "codex" || provider === "claude",
               ),
               capabilities: [
                 "sessions",
                 "projects.browse",
                 "models.list",
+                "modelGroups.v1",
                 "approvals",
                 "questions",
                 "diff",
@@ -306,24 +324,86 @@ export function createHostServer(
             break;
           case "models.list":
             result = await models(params.projectId);
+            if (
+              params.includeModelGroups === true &&
+              typeof params.projectId === "string"
+            ) {
+              const base = result as HostModelCatalog;
+              const next: HostModelCatalog = {
+                models: { ...base.models },
+                errors: { ...base.errors },
+              };
+              for (const group of new SharedModelGroups(engine.store).list(
+                params.projectId,
+              )) {
+                if (!providers.includes(group.harness as RemoteProvider))
+                  continue;
+                const provider = group.harness as RemoteProvider;
+                next.models[provider] = [
+                  ...(next.models[provider] ?? []),
+                  {
+                    id: `${provider}:group/${group.id}/${group.revision}`,
+                    harness: provider,
+                    name: group.name,
+                    provider: {
+                      id: `group:${group.id}`,
+                      name: "Model groups / 模型组",
+                    },
+                  },
+                ];
+              }
+              result = next;
+            }
+            break;
+          case "modelGroups.list":
+            result = new SharedModelGroups(engine.store).list(
+              String(params.projectId ?? ""),
+            );
+            break;
+          case "modelGroups.publish":
+            result = new SharedModelGroups(engine.store).publish(
+              params.group as ModelGroup,
+              params.projects as string[],
+            );
+            break;
+          case "modelGroups.remove":
+            new SharedModelGroups(engine.store).remove(String(params.id ?? ""));
+            result = true;
             break;
           case "sessions.list": {
             const projectId = String(params.projectId ?? "");
             const project = engine.store.project(projectId);
             const summaries = engine.store.summaries(projectId);
-            const paths = [...new Set(summaries.map((session) => session.cwd ?? project.cwd))];
-            const branches = new Map(await Promise.all(paths.map(async (cwd) => {
-              const branch = await exec("git", ["symbolic-ref", "--quiet", "--short", "HEAD"], {
-                cwd, timeout: 2_000,
-              }).then(({ stdout }) => stdout.trim()).catch(() => "");
-              return [cwd, branch] as const;
-            })));
+            const paths = [
+              ...new Set(
+                summaries.map((session) => session.cwd ?? project.cwd),
+              ),
+            ];
+            const branches = new Map(
+              await Promise.all(
+                paths.map(async (cwd) => {
+                  const branch = await exec(
+                    "git",
+                    ["symbolic-ref", "--quiet", "--short", "HEAD"],
+                    {
+                      cwd,
+                      timeout: 2_000,
+                    },
+                  )
+                    .then(({ stdout }) => stdout.trim())
+                    .catch(() => "");
+                  return [cwd, branch] as const;
+                }),
+              ),
+            );
             result = summaries.map((session) => ({
               ...session,
               repo: project.name,
               branch: branches.get(session.cwd ?? project.cwd) || undefined,
-              worktreeCwd: session.cwd && session.cwd !== project.cwd
-                ? session.cwd : undefined,
+              worktreeCwd:
+                session.cwd && session.cwd !== project.cwd
+                  ? session.cwd
+                  : undefined,
             }));
             break;
           }
@@ -332,35 +412,50 @@ export function createHostServer(
             const current = engine.store.session(sessionId);
             if (current.projectId !== params.projectId)
               throw new Error("Session does not belong to this project");
-            const patch: { title?: string; archived?: boolean; pinned?: boolean; linkedWorkItem?: LinkedWorkItem | null } = {};
+            const patch: {
+              title?: string;
+              archived?: boolean;
+              pinned?: boolean;
+              linkedWorkItem?: LinkedWorkItem | null;
+            } = {};
             if (params.title !== undefined) {
-              if (typeof params.title !== "string") throw new Error("Invalid session title");
+              if (typeof params.title !== "string")
+                throw new Error("Invalid session title");
               patch.title = params.title;
             }
             if (params.archived !== undefined) {
-              if (typeof params.archived !== "boolean") throw new Error("Invalid archive value");
+              if (typeof params.archived !== "boolean")
+                throw new Error("Invalid archive value");
               patch.archived = params.archived;
             }
             if (params.pinned !== undefined) {
-              if (typeof params.pinned !== "boolean") throw new Error("Invalid pin value");
+              if (typeof params.pinned !== "boolean")
+                throw new Error("Invalid pin value");
               patch.pinned = params.pinned;
             }
             if (params.linkedWorkItem !== undefined) {
               const item = params.linkedWorkItem;
-              const parsed = item && typeof item === "object" && !Array.isArray(item)
-                ? parseGithubWorkItemUrl(String((item as LinkedWorkItem).url ?? ""))
-                : null;
-              if (item !== null && (
-                typeof item !== "object" || Array.isArray(item) ||
-                !parsed ||
-                parsed.kind !== (item as LinkedWorkItem).kind ||
-                parsed.repo !== (item as LinkedWorkItem).repo ||
-                parsed.number !== (item as LinkedWorkItem).number ||
-                parsed.url !== (item as LinkedWorkItem).url
-              )) throw new Error("Invalid linked work item");
+              const parsed =
+                item && typeof item === "object" && !Array.isArray(item)
+                  ? parseGithubWorkItemUrl(
+                      String((item as LinkedWorkItem).url ?? ""),
+                    )
+                  : null;
+              if (
+                item !== null &&
+                (typeof item !== "object" ||
+                  Array.isArray(item) ||
+                  !parsed ||
+                  parsed.kind !== (item as LinkedWorkItem).kind ||
+                  parsed.repo !== (item as LinkedWorkItem).repo ||
+                  parsed.number !== (item as LinkedWorkItem).number ||
+                  parsed.url !== (item as LinkedWorkItem).url)
+              )
+                throw new Error("Invalid linked work item");
               patch.linkedWorkItem = item as LinkedWorkItem | null;
             }
-            if (Object.keys(patch).length === 0) throw new Error("No session changes supplied");
+            if (Object.keys(patch).length === 0)
+              throw new Error("No session changes supplied");
             result = engine.updateSession(sessionId, patch);
             break;
           }

@@ -13,6 +13,7 @@ pub struct Connection {
     pub name: String,
     pub base_url: String,
     pub api: String,
+    pub gateway: Option<String>,
     pub models: Vec<String>,
     pub model_metadata: std::collections::BTreeMap<String, Value>,
     pub enabled: bool,
@@ -262,6 +263,21 @@ fn connection_key(connection: &Connection) -> Result<String, String> {
                 .into(),
         )
     }
+}
+
+pub(crate) fn workbench_connection(
+    app: &AppHandle,
+    id: &str,
+    model: &str,
+) -> Result<(Connection, String), String> {
+    let connection = load(app)?
+        .connections
+        .into_iter()
+        .find(|c| c.id == id && c.enabled && c.models.iter().any(|m| m == model))
+        .ok_or("Model source is unavailable / 模型来源不可用，请检查供应商设置")?;
+    validate(&connection)?;
+    let key = connection_key(&connection)?;
+    Ok((connection, key))
 }
 
 fn mimo_anthropic_base(connection: &Connection) -> Option<String> {
@@ -914,6 +930,9 @@ fn fetch_models(
     let mut cursor = String::new();
     for _ in 0..50 {
         let mut request = agent.get(&endpoint);
+        if connection.gateway.as_deref() == Some("magpie") {
+            request = request.query("kind", "all");
+        }
         if crate::tokendance::is_endpoint(&connection.base_url) {
             request = request.set("X-App-URL", crate::tokendance::APP_URL);
         }
@@ -1078,6 +1097,7 @@ fn model_metadata(item: &Value, source: &str) -> Value {
     };
     let modalities = item
         .pointer("/architecture/input_modalities")
+        .or_else(|| item.pointer("/modalities/input"))
         .or_else(|| item.get("input_modalities"))
         .or_else(|| item.pointer("/model_info/input_modalities"))
         .or_else(|| item.pointer("/model_info/inputModalities"))
@@ -1110,6 +1130,7 @@ fn model_metadata(item: &Value, source: &str) -> Value {
         "/outputModalities",
         "/output_modalities",
         "/architecture/output_modalities",
+        "/modalities/output",
         "/model_info/outputModalities",
         "/model_info/output_modalities",
     ]
@@ -1117,7 +1138,7 @@ fn model_metadata(item: &Value, source: &str) -> Value {
     .find_map(|path| item.pointer(path).and_then(Value::as_array))
     .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
     json!({
-        "mode":item.get("mode").or_else(|| item.pointer("/model_info/mode")).and_then(Value::as_str),
+        "mode":item.get("mode").or_else(|| item.pointer("/model_info/mode")).or_else(|| item.get("kind").filter(|v| matches!(v.as_str(), Some("chat" | "image" | "video" | "embedding" | "rerank")))).and_then(Value::as_str),
         "nativeApi":item.get("nativeApi").or_else(|| item.get("native_api")).or_else(|| item.pointer("/model_info/nativeApi")).or_else(|| item.pointer("/model_info/native_api")),
         "thinking":item.get("thinking").or_else(|| item.pointer("/model_info/thinking")).and_then(Value::as_bool),
         "name":item.get("display_name").or_else(|| item.get("displayName")).or_else(|| item.get("name")),
@@ -1133,6 +1154,27 @@ fn model_metadata(item: &Value, source: &str) -> Value {
 }
 
 fn chat_model_metadata(metadata: Option<&Value>, protocol: &str) -> bool {
+    if let Some(tags) = metadata
+        .and_then(|m| m.get("capabilityOverrides"))
+        .and_then(Value::as_array)
+    {
+        if !tags.iter().any(|v| v.as_str() == Some("text"))
+            && tags.iter().any(|v| {
+                matches!(
+                    v.as_str(),
+                    Some(
+                        "image-generation"
+                            | "video-generation"
+                            | "speech-generation"
+                            | "music"
+                            | "embedding"
+                    )
+                )
+            })
+        {
+            return false;
+        }
+    }
     let Some(metadata) = metadata else {
         return true;
     };
@@ -1150,6 +1192,8 @@ fn chat_model_metadata(metadata: Option<&Value>, protocol: &str) -> bool {
                 | "video_generation"
                 | "embedding"
                 | "embeddings"
+                | "music"
+                | "rerank"
         )
     ) {
         return false;
@@ -1168,7 +1212,13 @@ fn chat_model_metadata(metadata: Option<&Value>, protocol: &str) -> bool {
                 value.as_str().is_some_and(|value| {
                     matches!(
                         value.to_ascii_lowercase().as_str(),
-                        "audio" | "image" | "video" | "embedding" | "embeddings"
+                        "audio"
+                            | "image"
+                            | "video"
+                            | "music"
+                            | "rerank"
+                            | "embedding"
+                            | "embeddings"
                     )
                 })
             })
@@ -1385,7 +1435,7 @@ mod tests {
         );
         assert!(missing["contextWindow"].is_null());
         assert!(missing["maxOutput"].is_null());
-        assert!(missing["modalities"].is_null());
+        assert_eq!(missing["modalities"], json!(["image"]));
         let exact = model_metadata(
             &json!({"context_length":1048576, "max_output_tokens":131072,
             "input_modalities":["text","image","pdf",42], "reasoning_efforts":["low","high",true]}),
@@ -1395,6 +1445,22 @@ mod tests {
         assert_eq!(exact["maxOutput"], 131072);
         assert_eq!(exact["modalities"], json!(["text", "image", "pdf"]));
         assert_eq!(exact["reasoningEfforts"], json!(["low", "high"]));
+    }
+    #[test]
+    fn magpie_media_catalog_preserves_kind_and_nested_modalities() {
+        let image = model_metadata(
+            &json!({"id":"vendor/model", "kind":"image", "modalities":{"input":["text","image"],"output":["image"]}}),
+            "http://localhost:3425/v1/models",
+        );
+        assert_eq!(image["mode"], "image");
+        assert_eq!(image["modalities"], json!(["text", "image"]));
+        assert_eq!(image["outputModalities"], json!(["image"]));
+        assert!(!chat_model_metadata(Some(&image), "openai-completions"));
+        let chat = model_metadata(
+            &json!({"id":"group/work", "modalities":{"input":["text","image"],"output":["text"]}}),
+            "magpie",
+        );
+        assert!(chat_model_metadata(Some(&chat), "openai-responses"));
     }
     #[test]
     fn deepseek_flash_image_input_fallback_matches_known_model_ids() {

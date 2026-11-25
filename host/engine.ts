@@ -31,6 +31,7 @@ import {
 } from "../src/features/connections/model/protocol";
 import type { HostProvider } from "./providers";
 import { HostStore } from "./store";
+import { SharedModelGroups } from "./model-groups";
 import { parseRemoteAttachments, resolveAttachments } from "./attachments";
 
 // Streamed output is written in batches. Anything a user may need to act on
@@ -292,6 +293,7 @@ export class HostEngine {
           value.session.id,
           value.session.providerSessionId,
           value.session.cwd,
+          value.session.providerAccountId,
         );
     }
   }
@@ -414,6 +416,7 @@ export class HostEngine {
               id,
               latest.session.providerSessionId,
               latest.session.cwd,
+              latest.session.providerAccountId,
             );
         } catch (error) {
           console.error(
@@ -446,6 +449,11 @@ export class HostEngine {
         if (this.switchingProjects.has(project.id))
           throw new Error("Wait for the branch switch to finish");
         this.provider(command.harness);
+        const groupRoute = new SharedModelGroups(this.store).resolve(
+          project.id,
+          command.model,
+          command.harness,
+        );
         const cwd = resolveHostWorktree(project.cwd, command.worktreeCwd);
         const now = Date.now();
         value = {
@@ -459,7 +467,9 @@ export class HostEngine {
             id: randomUUID(),
             cwd,
             harness: command.harness,
-            model: command.model,
+            model: groupRoute?.model ?? command.model,
+            providerAccountId: groupRoute?.providerAccountId,
+            modelGroupId: groupRoute?.modelGroupId,
             runtimeMode: command.runtimeMode,
             modelSettings: command.modelSettings ?? {},
             title: "New remote session",
@@ -469,6 +479,7 @@ export class HostEngine {
             blocks: [],
           },
         };
+        groupRoute?.commit();
       } else {
         value = this.store.session(command.sessionId);
         if (
@@ -487,6 +498,7 @@ export class HostEngine {
             session: {
               ...value.session,
               model: command.model,
+              modelGroupId: undefined,
               modelSettings: command.modelSettings,
               runtimeMode: command.runtimeMode,
             },
@@ -539,6 +551,10 @@ export class HostEngine {
             },
           };
         } else if (command.type === "send" || command.type === "compact") {
+          new SharedModelGroups(this.store).authorize(
+            value.projectId,
+            value.session,
+          );
           if (value.status === "running")
             throw new Error("This session is already running");
           if (command.type === "compact" && !provider.compact)
@@ -824,6 +840,7 @@ export class HostEngine {
               model: session.model,
               modelSettings: session.modelSettings,
               runtimeMode: session.runtimeMode,
+              providerAccountId: session.providerAccountId,
               intent,
               onEvent: (event) => this.event(session.id, runId!, event),
             };
@@ -875,7 +892,12 @@ export class HostEngine {
         // provider conversation identity for an explicit future follow-up.
         const persisted = this.store.session(session.id).session;
         if (persisted.providerSessionId)
-          provider.bind(session.id, persisted.providerSessionId, persisted.cwd);
+          provider.bind(
+            session.id,
+            persisted.providerSessionId,
+            persisted.cwd,
+            persisted.providerAccountId,
+          );
       })
       .catch((error) => {
         clearTimeout(this.live.get(session.id)?.timer);

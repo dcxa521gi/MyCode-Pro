@@ -1,6 +1,17 @@
 import { isHarnessAvailable } from "../../../integrations/harness/core/availability";
+import { invoke } from "@tauri-apps/api/core";
+import { loadLocalAIConfig } from "../../providers/model/modelConnections";
+import { modelCapabilities } from "../../providers/model/modelCapabilities";
+import {
+  saveWorkbenchJob,
+  workbenchJobs,
+  type WorkbenchJob,
+} from "../../workbench/model/workbench";
 import { pluginToolCatalog } from "../../plugins/model/localPlugins";
-import { requestPluginTool, pluginResult } from "../../plugins/model/pluginForms";
+import {
+  requestPluginTool,
+  pluginResult,
+} from "../../plugins/model/pluginForms";
 import { looksLikeProject } from "../../projects/model/recents";
 import {
   mergeModelSettings,
@@ -43,7 +54,10 @@ import type { Worktree, Worktrees } from "../../source-control/model/worktrees";
 import { pathKey, projectName } from "../../../shared/lib/paths";
 import type { SplitDir } from "../../workspace/model/layout";
 import { consumeOperatorCommand } from "../../sessions/model/operatorCommand";
-import { sessionConversationPage, type SessionReadOptions } from "./sessionConversation";
+import {
+  sessionConversationPage,
+  type SessionReadOptions,
+} from "./sessionConversation";
 import {
   CARD_FIELDS,
   parseCard,
@@ -102,7 +116,10 @@ export type AgentAppHost = {
   ): Promise<void>;
   sessions(cwd: string): Promise<AppSessionListing[]>;
   session(id: string): Promise<Session | null>;
-  readConversation?(session: Session, options: SessionReadOptions): Promise<ReturnType<typeof sessionConversationPage>>;
+  readConversation?(
+    session: Session,
+    options: SessionReadOptions,
+  ): Promise<ReturnType<typeof sessionConversationPage>>;
   send(
     id: string,
     prompt: string,
@@ -129,20 +146,25 @@ export type AgentAppHost = {
   artifacts?(): Promise<Artifact[]>;
   artifact?(id: string): Promise<Artifact | null>;
   saveArtifact?(artifact: ArtifactUpsert): Promise<Artifact>;
-  postArtifact?(sourceSessionId: string, card: ArtifactCard): void | Promise<void>;
+  postArtifact?(
+    sourceSessionId: string,
+    card: ArtifactCard,
+  ): void | Promise<void>;
   /** Whether the session is a Mono's own conversation, which owns memory. */
   isMono(sessionId: string): boolean;
   /**
    * The Mono a session works for: its own conversation or one of its habit
    * runs. Its projects are the ones it may name with "project".
    */
-  monoOf?(sessionId: string): {
-    id: string;
-    projects: readonly string[];
-    showStartedSessionsInSidebar?: boolean;
-    /** Files the sessions it starts into a folder named after it. */
-    folder?: { name: string; color: string };
-  } | undefined;
+  monoOf?(sessionId: string):
+    | {
+        id: string;
+        projects: readonly string[];
+        showStartedSessionsInSidebar?: boolean;
+        /** Files the sessions it starts into a folder named after it. */
+        folder?: { name: string; color: string };
+      }
+    | undefined;
   /** A hidden run of one of a Mono's habits: it may remember, not schedule. */
   isHabitRun?(sessionId: string): boolean;
   /** Puts a card in the Mono's chat, or holds it for a habit run's report. */
@@ -171,6 +193,9 @@ export type AgentAppHost = {
 };
 
 const FIELDS = new Map<string, readonly string[]>([
+  ["media.models", []],
+  ["media.generate", ["connectionId", "model", "kind", "prompt", "reference"]],
+  ["media.result", ["jobId"]],
   ["plugins.list", []],
   ["plugins.run", ["pluginId", "toolId", "values"]],
   ["plugins.result", ["operationId"]],
@@ -323,11 +348,10 @@ function requireProject(
     const byPath = mono.projects.find(
       (path) => pathKey(path) === pathKey(named),
     );
-    const byName = mono.projects.filter(
-      (path) => projectName(path) === named,
-    );
+    const byName = mono.projects.filter((path) => projectName(path) === named);
     const match = byPath ?? (byName.length === 1 ? byName[0] : undefined);
-    if (!match) throw new Error(`Not one of your projects. Yours: ${choices()}`);
+    if (!match)
+      throw new Error(`Not one of your projects. Yours: ${choices()}`);
     return match;
   }
   const own = mono.projects.find(
@@ -563,8 +587,7 @@ async function editAgentFile<T>(
         await host.writeAgentFile(monoId, path, next.text, current.hash);
       return next.result;
     } catch (error) {
-      if (!(error instanceof MonoFileConflict) || attempt >= 2)
-        throw error;
+      if (!(error instanceof MonoFileConflict) || attempt >= 2) throw error;
     }
   }
 }
@@ -651,7 +674,10 @@ async function handleMemory(
       const hits = searchMemory(texts, query, { since });
       return hits.length
         ? { hits }
-        : { hits, note: "Nothing in memory matches. It may never have been saved." };
+        : {
+            hits,
+            note: "Nothing in memory matches. It may never have been saved.",
+          };
     }
     case "memory.read": {
       if (path !== "MEMORY.md") {
@@ -670,7 +696,11 @@ async function handleMemory(
       };
     }
     case "memory.add": {
-      const entry = memoryEntry(requiredString(input.fact, "fact"), date, until);
+      const entry = memoryEntry(
+        requiredString(input.fact, "fact"),
+        date,
+        until,
+      );
       const added = await editAgentFile(host, monoId, path, (text) => {
         const next = addMemoryEntry(text, entry);
         return { text: next.text, result: next.added };
@@ -681,7 +711,11 @@ async function handleMemory(
     }
     case "memory.replace": {
       const find = requiredString(input.find, "find", 2000);
-      const entry = memoryEntry(requiredString(input.fact, "fact"), date, until);
+      const entry = memoryEntry(
+        requiredString(input.fact, "fact"),
+        date,
+        until,
+      );
       await editAgentFile(host, monoId, path, (text) => ({
         text: supersedeMemoryEntry(text, find, entry, date),
         result: undefined,
@@ -744,7 +778,11 @@ async function handleHabits(
       return { habits: (await habits.load(monoId)).map(habitView) };
     case "habits.add": {
       const name = requiredString(input.name, "name", 80);
-      const instructions = requiredString(input.instructions, "instructions", 4_000);
+      const instructions = requiredString(
+        input.instructions,
+        "instructions",
+        4_000,
+      );
       const schedule = habitSchedule(input.schedule);
       const habit = await habits.update(monoId, (list) => {
         if (list.length >= HABITS_MAX)
@@ -953,9 +991,147 @@ export async function handleAgentApp(
   host: AgentAppHost,
 ): Promise<unknown> {
   fields(action, input);
+  if (action === "media.models") {
+    const config = await loadLocalAIConfig();
+    return config.connections
+      .filter((c) => c.enabled)
+      .flatMap((c) =>
+        c.models.map((id) => ({
+          connectionId: c.id,
+          provider: c.name,
+          model: id,
+          capabilities: modelCapabilities(id, c.modelMetadata?.[id]),
+        })),
+      );
+  }
+  if (action === "media.result") {
+    const job = workbenchJobs().find(
+      (j) =>
+        j.id === input.jobId &&
+        j.sessionId === source.id &&
+        j.cwd === source.cwd,
+    );
+    if (!job)
+      throw Error(
+        "Media job does not belong to this conversation / 媒体任务不属于当前会话",
+      );
+    if (job.remoteId && !["completed", "failed"].includes(job.status)) {
+      const result = await invoke<{
+        status: string;
+        paths: string[];
+        text?: string;
+        remoteId?: string;
+      }>("workbench_request", {
+        request: {
+          connectionId: job.connectionId,
+          model: job.model,
+          kind: "video-status",
+          prompt: job.prompt,
+          cwd: job.cwd,
+          jobId: job.id,
+          remoteId: job.remoteId,
+        },
+      });
+      saveWorkbenchJob({ ...job, ...result });
+      return { ...job, ...result };
+    }
+    return job;
+  }
+  if (action === "media.generate") {
+    const lastUser = [...source.blocks]
+      .reverse()
+      .find((b) => b.role === "user");
+    if (lastUser?.intent === "plan")
+      throw Error(
+        "Media generation is unavailable in planning mode / 规划模式下不能生成媒体",
+      );
+    if (
+      source.runtimeMode !== "full-access" &&
+      source.runtimeMode !== "supervised" &&
+      source.runtimeMode !== "auto"
+    )
+      throw Error(
+        "Media generation requires task execution mode / 媒体生成需要任务执行模式",
+      );
+    const kind = requiredString(input.kind, "kind", 20);
+    if (!["image", "image-edit", "video"].includes(kind))
+      throw Error("Unsupported media operation / 不支持此媒体操作");
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(`${source.id}:${requestId}`),
+    );
+    const id = Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    const job: WorkbenchJob = {
+      id,
+      task: kind,
+      title: kind,
+      sessionId: source.id,
+      connectionId: requiredString(input.connectionId, "connectionId", 80),
+      model: requiredString(input.model, "model", 256),
+      prompt: requiredString(input.prompt, "prompt", 100_000),
+      reference: optionalString(input.reference, "reference", 4096),
+      cwd: source.cwd,
+      createdAt: Date.now(),
+      status: "running",
+      paths: [],
+    };
+    const parent = workbenchJobs().find(
+      (j) => j.sessionId === source.id && !j.connectionId,
+    );
+    if (parent) {
+      const selected =
+        parent.mediaModels?.[kind === "video" ? "video" : "image"];
+      if (
+        !selected ||
+        selected.connectionId !== job.connectionId ||
+        selected.model !== job.model
+      )
+        throw Error(
+          "Select this media model in the workbench first / 请先在工作台选择要使用的媒体模型",
+        );
+    }
+    const old = workbenchJobs().find((j) => j.id === id);
+    if (old) {
+      if (
+        old.model !== job.model ||
+        old.prompt !== job.prompt ||
+        old.connectionId !== job.connectionId ||
+        old.task !== job.task ||
+        old.reference !== job.reference
+      )
+        throw Error("Request ID was already used / 请求编号已使用");
+      return old;
+    }
+    saveWorkbenchJob(job);
+    void invoke<{
+      status: string;
+      paths: string[];
+      text?: string;
+      remoteId?: string;
+    }>("workbench_request", {
+      request: {
+        connectionId: job.connectionId,
+        model: job.model,
+        kind,
+        prompt: job.prompt,
+        cwd: job.cwd,
+        reference: job.reference,
+        jobId: job.id,
+      },
+    })
+      .then((result) => saveWorkbenchJob({ ...job, ...result }))
+      .catch((error) =>
+        saveWorkbenchJob({ ...job, status: "failed", text: String(error) }),
+      );
+    return { jobId: id, status: "running" };
+  }
   if (action === "plugins.list") return { tools: pluginToolCatalog() };
-  if (action === "plugins.run") return requestPluginTool(source.id, requestId, input);
-  if (action === "plugins.result") return pluginResult(source.id, input.operationId);
+  if (action === "plugins.run")
+    return requestPluginTool(source.id, requestId, input);
+  if (action === "plugins.result")
+    return pluginResult(source.id, input.operationId);
   if (action.startsWith("artifacts."))
     return handleArtifacts(source, requestId, action, input, host);
   if (action.startsWith("soul."))
@@ -1003,14 +1179,18 @@ export async function handleAgentApp(
     }
     case "sessions.read": {
       const id = requiredString(input.sessionId, "sessionId", 256);
-      const target = id === source.id && host.isMono?.(id)
-        ? source : await projectSession(source, id, input, host);
+      const target =
+        id === source.id && host.isMono?.(id)
+          ? source
+          : await projectSession(source, id, input, host);
       const options = {
         before: optionalString(input.before, "before", 256),
         limit: input.limit as number | undefined,
         maxChars: input.maxChars as number | undefined,
       };
-      return host.readConversation ? host.readConversation(target, options) : sessionConversationPage(target, options);
+      return host.readConversation
+        ? host.readConversation(target, options)
+        : sessionConversationPage(target, options);
     }
     case "sessions.send": {
       const id = requiredString(input.sessionId, "sessionId", 256);
@@ -1117,7 +1297,8 @@ export async function handleAgentApp(
           { direction: placement as SplitDir, besideSessionId },
           ...(notifyMonoId ? [notifyMonoId] : []),
         );
-      else if (notifyMonoId) await host.start(launch, id, undefined, notifyMonoId);
+      else if (notifyMonoId)
+        await host.start(launch, id, undefined, notifyMonoId);
       else await host.start(launch, id);
       const folder = host.monoOf?.(source.id)?.folder;
       if (folder && !launch.sidebarHidden)

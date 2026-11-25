@@ -166,9 +166,9 @@ describe("model picker", () => {
     const modelFlyout = container.querySelector<HTMLElement>(
       '[role="dialog"][aria-label="Models"]',
     )!;
-    expect(modelFlyout.style.height).toBe("332px");
-    expect(modelFlyout.dataset.minHeight).toBe("334");
-    expect(modelFlyout.dataset.maxHeight).toBe("334");
+    expect(modelFlyout.style.height).toBe("368px");
+    expect(modelFlyout.dataset.minHeight).toBe("370");
+    expect(modelFlyout.dataset.maxHeight).toBe("370");
     expect(
       container.querySelector('[role="tablist"][aria-orientation="vertical"]'),
     ).not.toBeNull();
@@ -187,7 +187,7 @@ describe("model picker", () => {
     expect(grokTab.getAttribute("aria-selected")).toBe("true");
     expect(
       [...container.querySelectorAll('[role="option"]')].some(
-        (option) => option.textContent === "Grok 4.6",
+        (option) => option.querySelector("[data-model-name]")?.textContent === "Grok 4.6",
       ),
     ).toBe(true);
     const selectedOption = container.querySelector<HTMLButtonElement>(
@@ -280,7 +280,7 @@ describe("model picker", () => {
     ].find((button) => button.textContent?.startsWith("Model"));
     if (modelRow) hover(modelRow);
     const options = [...container.querySelectorAll('[role="option"]')].map(
-      (option) => option.textContent,
+      (option) => option.querySelector("[data-model-name]")?.textContent,
     );
     expect(options).toContain("Claude Opus 5.5");
     expect(options.indexOf("Claude Opus 5.5")).toBe(

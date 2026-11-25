@@ -74,6 +74,7 @@ import { JiraSettings } from "./JiraSettings";
 import { GradientBlurBackground } from "./GradientBlurBackground";
 import { McpSettings } from "./McpSettings";
 import { LocalPluginsPanel } from "../../plugins/ui/LocalPluginsPanel";
+import { AcpEnginesPanel } from "../../plugins/ui/AcpEnginesPanel";
 import { InboxProviderMark } from "../../inbox/ui/InboxProviderMark";
 import { RemoveProjectDialog } from "../../projects/ui/RemoveProjectDialog";
 import { WindowControls } from "../../../app/shell/WindowControls";
@@ -695,7 +696,11 @@ export function SettingsView({
               {section === "keybindings" ? <KeybindingsPage /> : null}
               {section === "monos" ? <MonosPage /> : null}
               {section === "mcp" ? (
-                <><LocalPluginsPanel /><McpSettings cwd={cwd} recents={recents} /></>
+                <>
+                  <AcpEnginesPanel />
+                  <LocalPluginsPanel />
+                  <McpSettings cwd={cwd} recents={recents} />
+                </>
               ) : null}
               {section === "providers" ? (
                 <ModelConnections
@@ -1318,7 +1323,9 @@ function ChatPage() {
         <Row
           id="paced-reveal"
           label={t("Smooth text reveal")}
-          description={t("Reveal incoming bursts gradually. Turn this off to show received text immediately. This changes presentation timing, not processing speed.")}
+          description={t(
+            "Reveal incoming bursts gradually. Turn this off to show received text immediately. This changes presentation timing, not processing speed.",
+          )}
         >
           <Toggle
             label={t("Smooth text reveal")}
@@ -2482,7 +2489,9 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
         description={
           inset
             ? t("Each workspace theme has its own dark and light palette.")
-            : t("Dark and light share the same tint, so the color settings below apply to both.")
+            : t(
+                "Dark and light share the same tint, so the color settings below apply to both.",
+              )
         }
       >
         <Row
@@ -2504,18 +2513,28 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
         <Row
           id="studio-preset"
           label={t("Studio workspace")}
-          description={t("A calm ZCode-inspired workspace with a focused conversation, neutral sidebar and clear controls. Available in light and dark mode.")}
+          description={t(
+            "A calm ZCode-inspired workspace with a focused conversation, neutral sidebar and clear controls. Available in light and dark mode.",
+          )}
         >
-          <button type="button" className="rounded-lg border border-content/15 bg-content/5 px-3 py-2 text-sm hover:bg-content/10" onClick={() => {
-            appearance.onInsetLayout(true);
-            appearance.onWorkspaceTheme("studio");
-          }}>{t("Use Studio theme")}</button>
+          <button
+            type="button"
+            className="rounded-lg border border-content/15 bg-content/5 px-3 py-2 text-sm hover:bg-content/10"
+            onClick={() => {
+              appearance.onInsetLayout(true);
+              appearance.onWorkspaceTheme("studio");
+            }}
+          >
+            {t("Use Studio theme")}
+          </button>
         </Row>
         {inset ? (
           <Row
             id="workspace-theme"
             label={t("Workspace theme")}
-            description={t("Colors for the inset workspace's shell, card, text and accent. Each theme has a dark and a light palette.")}
+            description={t(
+              "Colors for the inset workspace's shell, card, text and accent. Each theme has a dark and a light palette.",
+            )}
           >
             <div className="w-48">
               <Select
@@ -2546,8 +2565,12 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
               IS_LINUX
                 ? t("The window stays opaque on Linux.")
                 : glassDisabled
-                  ? t("Light mode keeps the window opaque. Your dark-mode choice is remembered.")
-                  : t("Show the desktop through the window. Turn off to keep the window opaque.")
+                  ? t(
+                      "Light mode keeps the window opaque. Your dark-mode choice is remembered.",
+                    )
+                  : t(
+                      "Show the desktop through the window. Turn off to keep the window opaque.",
+                    )
             }
           >
             <Toggle
@@ -2594,7 +2617,9 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
         <>
           <Group
             title={t("Color")}
-            description={t("Hue and saturation tint every surface. Lightness only moves the dark theme.")}
+            description={t(
+              "Hue and saturation tint every surface. Lightness only moves the dark theme.",
+            )}
           >
             <Row
               id="hue"
@@ -2615,7 +2640,9 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
             <Row
               id="saturation"
               label={t("Saturation")}
-              description={t("How strongly the hue tints the interface. Zero keeps it neutral.")}
+              description={t(
+                "How strongly the hue tints the interface. Zero keeps it neutral.",
+              )}
             >
               <Slider
                 label={t("Saturation")}
@@ -2633,8 +2660,12 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
               label={t("Dark-mode lightness")}
               description={
                 glassDisabled
-                  ? t("This only affects dark mode. Your dark-mode value is preserved.")
-                  : t("Base brightness of the dark theme. Lower values are darker; zero is true black.")
+                  ? t(
+                      "This only affects dark mode. Your dark-mode value is preserved.",
+                    )
+                  : t(
+                      "Base brightness of the dark theme. Lower values are darker; zero is true black.",
+                    )
               }
             >
               <Slider
@@ -2653,14 +2684,20 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
             title={t("Translucency")}
             description={
               glassDisabled
-                ? t("Light mode always uses an opaque window, so these are off. Your dark-mode values are preserved.")
-                : t("How much of the desktop shows through MyCode. Blur costs more to composite the higher it goes.")
+                ? t(
+                    "Light mode always uses an opaque window, so these are off. Your dark-mode values are preserved.",
+                  )
+                : t(
+                    "How much of the desktop shows through MyCode. Blur costs more to composite the higher it goes.",
+                  )
             }
           >
             <Row
               id="sidebar-opacity"
               label={t("Sidebar opacity")}
-              description={t("Applies to the project rail and the other glass panes.")}
+              description={t(
+                "Applies to the project rail and the other glass panes.",
+              )}
             >
               <Slider
                 label={t("Sidebar opacity")}
@@ -2690,7 +2727,9 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
             <Row
               id="main-pane-glass"
               label={t("Main pane glass")}
-              description={t("Extend the translucent treatment to the main pane behind sessions and editors.")}
+              description={t(
+                "Extend the translucent treatment to the main pane behind sessions and editors.",
+              )}
             >
               <Toggle
                 label={t("Main pane glass")}
@@ -3844,7 +3883,7 @@ function ProvidersPage({
               )
         }
       >
-        {HARNESSES.map((harness) => {
+        {HARNESSES.filter((harness) => harness !== "acp").map((harness) => {
           const inPicker = project
             ? !(projectSettings.hidden ?? []).includes(harness) &&
               !hiddenGlobally.includes(harness)

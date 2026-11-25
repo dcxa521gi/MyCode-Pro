@@ -184,6 +184,8 @@ pub struct SessionUpsert {
     pub provider_session_id: Option<String>,
     #[serde(default)]
     pub provider_account_id: Option<String>,
+    #[serde(default)]
+    pub model_group_id: Option<String>,
     pub blocks: Value,
     #[serde(default)]
     pub queued_messages: Vec<Value>,
@@ -265,6 +267,8 @@ pub struct SessionRecord {
     pub provider_session_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub provider_account_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model_group_id: Option<String>,
     pub blocks: Value,
     #[serde(default)]
     pub queued_messages: Vec<Value>,
@@ -299,7 +303,15 @@ pub fn session_upsert(
     }
     if let Some(provider_session_id) = &session.provider_session_id {
         if !provider_session_id.is_empty() {
-            validate_id(provider_session_id, "provider session")?;
+            if session.harness == "acp" {
+                if provider_session_id.len() > 512
+                    || provider_session_id.chars().any(char::is_control)
+                {
+                    return Err("Invalid ACP session ID".into());
+                }
+            } else {
+                validate_id(provider_session_id, "provider session")?;
+            }
         }
     }
     if let Some(provider_account_id) = &session.provider_account_id {
@@ -886,6 +898,7 @@ fn migrate(conn: &Connection) -> rusqlite::Result<()> {
         ("pinned", "INTEGER NOT NULL DEFAULT 0"),
         ("linked_work_item_json", "TEXT"),
         ("provider_account_id", "TEXT"),
+        ("model_group_id", "TEXT"),
         ("worktree_removed", "INTEGER NOT NULL DEFAULT 0"),
         ("is_draft", "INTEGER NOT NULL DEFAULT 0"),
         ("automation_id", "TEXT"),
@@ -1331,8 +1344,8 @@ pub(crate) fn upsert_session(
            provider_session_id, blocks_json, created_at, updated_at, branch,
            context_used, context_window, worktree_cwd, has_user_message,
            linked_work_item_json, provider_account_id, worktree_removed, is_draft,
-           automation_id, queued_messages_json, queue_status, sidebar_hidden
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24)
+           automation_id, queued_messages_json, queue_status, sidebar_hidden, model_group_id
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25)
          ON CONFLICT(id) DO UPDATE SET
            cwd = excluded.cwd,
            harness = excluded.harness,
@@ -1355,7 +1368,8 @@ pub(crate) fn upsert_session(
            automation_id = excluded.automation_id,
            queued_messages_json = excluded.queued_messages_json,
            queue_status = excluded.queue_status,
-           sidebar_hidden = excluded.sidebar_hidden",
+           sidebar_hidden = excluded.sidebar_hidden,
+           model_group_id = excluded.model_group_id",
         params![
             session.id,
             session.cwd,
@@ -1381,6 +1395,7 @@ pub(crate) fn upsert_session(
             queued_messages_json,
             session.queue_status,
             i64::from(session.sidebar_hidden),
+            session.model_group_id,
         ],
     )?;
 
@@ -2044,7 +2059,7 @@ fn get_session_record(
                 provider_session_id, {blocks}, created_at, updated_at,
                 context_used, context_window, branch, worktree_cwd,
                 linked_work_item_json, provider_account_id, worktree_removed,
-                automation_id, queued_messages_json, queue_status, sidebar_hidden
+                automation_id, queued_messages_json, queue_status, sidebar_hidden, model_group_id
          FROM sessions
          WHERE id = ?1 AND inbox_ask IS NULL"
         ),
@@ -2093,6 +2108,7 @@ fn get_session_record(
                 worktree_removed: row.get::<_, i64>(17)? != 0,
                 linked_work_item: optional_json(row.get(15)?),
                 provider_account_id: row.get(16)?,
+                model_group_id: row.get(22)?,
                 automation_id: nonempty(row.get(18)?),
                 created_at: row.get(9)?,
                 updated_at: row.get(10)?,
@@ -2289,6 +2305,7 @@ mod tests {
             title: title.into(),
             provider_session_id: Some("acp-session-1".into()),
             provider_account_id: None,
+            model_group_id: None,
             blocks: json!([{ "id": "b1", "role": "user", "text": "hello" }]),
             queued_messages: vec![],
             queue_status: None,

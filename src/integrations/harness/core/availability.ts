@@ -38,6 +38,7 @@ export {
  * authenticated, so the hint must not blame a login.
  */
 const CLI: Record<HarnessId, { name: string; install?: string }> = {
+  acp: { name: "ACP plugin engine" },
   claude: { name: "Claude Code CLI" },
   codex: { name: "Codex CLI" },
   cursor: { name: "Cursor CLI" },
@@ -54,7 +55,10 @@ const CLI: Record<HarnessId, { name: string; install?: string }> = {
     install:
       "Install from hermes-agent.nousresearch.com, then run hermes model",
   },
-  minimax: { name: "MiniMax Code CLI", install: "npm install -g @minimax-ai/code" },
+  minimax: {
+    name: "MiniMax Code CLI",
+    install: "npm install -g @minimax-ai/code",
+  },
   mimo: { name: "MiMo Code CLI", install: "npm install -g @mimo-ai/cli" },
   zcode: { name: "ZCode CLI" },
   antigravity: { name: "Antigravity ACP server (agy_acp_server.par)" },
@@ -99,6 +103,18 @@ export function probeHarnessAvailability(options?: {
   }
   inflight = Promise.all(
     HARNESSES.map(async (id) => {
+      if (id === "acp") {
+        try {
+          const { refreshAcpEngines } =
+            await import("../../../features/plugins/model/acpEngines");
+          return [
+            id,
+            (await refreshAcpEngines()).some((e) => e.enabled),
+          ] as const;
+        } catch {
+          return [id, false] as const;
+        }
+      }
       if (!isLiveHarness(id)) return [id, false] as const;
       if (id === "zcode") {
         try {

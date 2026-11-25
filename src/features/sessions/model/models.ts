@@ -23,6 +23,7 @@ export type ModelSetting = {
 };
 
 export type AgentModel = {
+  capabilityMetadata?: import("../../providers/model/modelConnections").ModelMetadata;
   id: string;
   harness: HarnessId;
   name: string;
@@ -218,6 +219,7 @@ export const DEFAULT_MODEL_ID: Record<HarnessId, string> = {
   hermes: "hermes:default",
   antigravity: "antigravity:gemini-3.8-flash-high",
   devin: "devin:adaptive",
+  acp: "acp:unavailable",
 };
 
 const FAVORITES_KEY = "monocode.favoriteModels";
@@ -245,6 +247,7 @@ const HARNESS_ORDER: HarnessId[] = [
   "pi",
   "hermes",
   "devin",
+  "acp",
 ];
 
 const EMPTY_MODELS: AgentModel[] = [];
@@ -387,9 +390,13 @@ export function sortModels(models: AgentModel[]): AgentModel[] {
 }
 export function modelsFor(harness: HarnessId): AgentModel[] {
   if (mergedModels[harness]) return mergedModels[harness]!;
-  const blockedCustomIds = new Set(connections.flatMap((c) => c.models
-    .filter((model) => !supportsProtocol(c.modelMetadata?.[model], c.api))
-    .map((model) => `${harness}:mycode-${c.id}/${model}`)));
+  const blockedCustomIds = new Set(
+    connections.flatMap((c) =>
+      c.models
+        .filter((model) => !supportsProtocol(c.modelMetadata?.[model], c.api))
+        .map((model) => `${harness}:mycode-${c.id}/${model}`),
+    ),
+  );
   const external: AgentModel[] = connections
     .filter(
       (c) =>
@@ -398,111 +405,114 @@ export function modelsFor(harness: HarnessId): AgentModel[] {
         connectionSupportsHarness(harness, c),
     )
     .flatMap((c) =>
-      c.models.filter((model) => supportsProtocol(c.modelMetadata?.[model], c.api)).map((model) => ({
-        id: `${harness}:mycode-${c.id}/${model}`,
-        harness,
-        name: c.modelMetadata?.[model]?.name || model,
-        contextWindow: c.modelMetadata?.[model]?.contextWindow || undefined,
-        settings: [
-          ...(c.modelMetadata?.[model]?.reasoningEfforts?.length
-            ? [
-                {
-                  id:
-                    harness === "pi"
-                      ? "thinking"
-                      : ["opencode", "mimo"].includes(harness)
-                        ? "variant"
-                        : harness === "codex"
-                          ? "reasoningEffort"
-                          : "effort",
-                  label: "Reasoning",
-                  kind: "select" as const,
-                  value: c.modelMetadata[model].reasoningEfforts![0],
-                  options: c.modelMetadata[model].reasoningEfforts!.map(
-                    (value) => ({ value, label: value }),
-                  ),
-                },
-              ]
-            : []),
-          ...(c.modelMetadata?.[model]?.thinking
-            ? [
-                {
-                  id: ["opencode", "mimo"].includes(harness)
-                    ? "variant"
-                    : "thinking",
-                  label: "Thinking",
-                  kind: "select" as const,
-                  value:
-                    harness === "pi"
-                      ? "high"
-                      : ["opencode", "mimo"].includes(harness)
+      c.models
+        .filter((model) => supportsProtocol(c.modelMetadata?.[model], c.api))
+        .map((model) => ({
+          id: `${harness}:mycode-${c.id}/${model}`,
+          harness,
+          name: c.modelMetadata?.[model]?.name || model,
+          capabilityMetadata: c.modelMetadata?.[model],
+          contextWindow: c.modelMetadata?.[model]?.contextWindow || undefined,
+          settings: [
+            ...(c.modelMetadata?.[model]?.reasoningEfforts?.length
+              ? [
+                  {
+                    id:
+                      harness === "pi"
                         ? "thinking"
-                        : "true",
-                  options: [
-                    {
-                      value:
-                        harness === "pi"
-                          ? "high"
-                          : ["opencode", "mimo"].includes(harness)
-                            ? "thinking"
-                            : "true",
-                      label: "On",
-                    },
-                    {
-                      value:
-                        harness === "pi"
-                          ? "off"
-                          : ["opencode", "mimo"].includes(harness)
-                            ? "normal"
-                            : "false",
-                      label: "Off",
-                    },
-                  ],
-                },
-              ]
-            : []),
-          ...(c.modelMetadata?.[model]?.contextWindow
-            ? [
-                {
-                  id: "contextWindow",
-                  label: "Context usage",
-                  kind: "select" as const,
-                  value: String(c.modelMetadata[model].contextWindow),
-                  options: [
-                    ...new Set(
-                      [
-                        32768,
-                        65536,
-                        131072,
-                        262144,
-                        c.modelMetadata[model].contextWindow!,
-                      ].filter(
-                        (n) => n <= c.modelMetadata![model].contextWindow!,
-                      ),
+                        : ["opencode", "mimo"].includes(harness)
+                          ? "variant"
+                          : harness === "codex"
+                            ? "reasoningEffort"
+                            : "effort",
+                    label: "Reasoning",
+                    kind: "select" as const,
+                    value: c.modelMetadata[model].reasoningEfforts![0],
+                    options: c.modelMetadata[model].reasoningEfforts!.map(
+                      (value) => ({ value, label: value }),
                     ),
-                  ]
-                    .sort((a, b) => a - b)
-                    .map((n) => ({
-                      value: String(n),
-                      label:
-                        n >= 1_000_000
-                          ? `${+(n / (n % 1024 === 0 ? 1_048_576 : 1_000_000)).toFixed(2)}M`
-                          : `${+(n / 1024).toFixed(1)}K`,
-                    })),
-                },
-              ]
-            : []),
-        ],
-        connectionId: c.id,
-        primary: c.primaryModel === model,
-        nativeId:
-          harness === "minimax"
-            ? `custom_provider:mycode-${c.id}/${model}`
-            : ["pi", "opencode", "mimo"].includes(harness)
-              ? `mycode-${c.id}/${model}`
-              : model,
-        provider: { id: `mycode-${c.id}`, name: c.name },
-      })),
+                  },
+                ]
+              : []),
+            ...(c.modelMetadata?.[model]?.thinking
+              ? [
+                  {
+                    id: ["opencode", "mimo"].includes(harness)
+                      ? "variant"
+                      : "thinking",
+                    label: "Thinking",
+                    kind: "select" as const,
+                    value:
+                      harness === "pi"
+                        ? "high"
+                        : ["opencode", "mimo"].includes(harness)
+                          ? "thinking"
+                          : "true",
+                    options: [
+                      {
+                        value:
+                          harness === "pi"
+                            ? "high"
+                            : ["opencode", "mimo"].includes(harness)
+                              ? "thinking"
+                              : "true",
+                        label: "On",
+                      },
+                      {
+                        value:
+                          harness === "pi"
+                            ? "off"
+                            : ["opencode", "mimo"].includes(harness)
+                              ? "normal"
+                              : "false",
+                        label: "Off",
+                      },
+                    ],
+                  },
+                ]
+              : []),
+            ...(c.modelMetadata?.[model]?.contextWindow
+              ? [
+                  {
+                    id: "contextWindow",
+                    label: "Context usage",
+                    kind: "select" as const,
+                    value: String(c.modelMetadata[model].contextWindow),
+                    options: [
+                      ...new Set(
+                        [
+                          32768,
+                          65536,
+                          131072,
+                          262144,
+                          c.modelMetadata[model].contextWindow!,
+                        ].filter(
+                          (n) => n <= c.modelMetadata![model].contextWindow!,
+                        ),
+                      ),
+                    ]
+                      .sort((a, b) => a - b)
+                      .map((n) => ({
+                        value: String(n),
+                        label:
+                          n >= 1_000_000
+                            ? `${+(n / (n % 1024 === 0 ? 1_048_576 : 1_000_000)).toFixed(2)}M`
+                            : `${+(n / 1024).toFixed(1)}K`,
+                      })),
+                  },
+                ]
+              : []),
+          ],
+          connectionId: c.id,
+          primary: c.primaryModel === model,
+          nativeId:
+            harness === "minimax"
+              ? `custom_provider:mycode-${c.id}/${model}`
+              : ["pi", "opencode", "mimo"].includes(harness)
+                ? `mycode-${c.id}/${model}`
+                : model,
+          provider: { id: `mycode-${c.id}`, name: c.name },
+        })),
     );
   const ids = new Set(external.map((m) => m.id));
   return (mergedModels[harness] = sortModels([
@@ -983,9 +993,7 @@ export function showProviderInModelPicker(
 ): boolean {
   if (id === "minimax" || id === "mimo") return false;
   if (!isPickerProviderVisible(id)) return false;
-  return (
-    id === "codex" || id === "zcode" || !probed || installed
-  );
+  return id === "codex" || id === "zcode" || !probed || installed;
 }
 
 export function modelPickerTabs(
@@ -1072,7 +1080,10 @@ export function firstEnabledHarness(
       hasProbedHarnessAvailability(),
     );
   if (enabled(preferred)) return preferred;
-  return HARNESSES.find(enabled) ?? (HARNESSES.includes(preferred) ? preferred : "codex");
+  return (
+    HARNESSES.find(enabled) ??
+    (HARNESSES.includes(preferred) ? preferred : "codex")
+  );
 }
 
 /** Provider + model new conversations should start with. */

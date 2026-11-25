@@ -1,8 +1,8 @@
 # MyCode 功能来源与版本台账
 
-整理日期：2026-11-24；当前产品基线：**MyCode 0.25.0**，源码提交 `dabe9c7f035f979940e404071069d0099872d265`。
+整理日期：2026-11-25；当前产品基线：**MyCode 0.26.0**，源码提交 `dabe9c7f035f979940e404071069d0099872d265`。
 
-本文件按 **37 个交付阶段、390 条变更、113 个稳定功能 ID、82 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
+本文件按 **38 个交付阶段、398 条变更、120 个稳定功能 ID、84 项用户要求** 梳理。需求来源与实现来源分开：用户要求参考上游，不等于功能源码来自该上游；已有等价能力核对也不算新移植。
 
 ## 如何使用
 
@@ -19,10 +19,10 @@
 | MONO | MonoCode 上游直接同步 | 40 |
 | MONO_ADAPT | MonoCode 为主、MyCode 适配融合 | 130 |
 | CINDY_CODE | Cindy 开源代码复用 | 3 |
-| CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 36 |
-| SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 13 |
-| MYCODE | MyCode 自有新增/修复 | 140 |
-| VENDOR | 官方 CLI/SDK/接口适配 | 22 |
+| CINDY_REFERENCE | Cindy 本地设计参考、MyCode 实现 | 39 |
+| SYNARA_REFERENCE | Synara 设计参考/等价能力核对 | 14 |
+| MYCODE | MyCode 自有新增/修复 | 143 |
+| VENDOR | 官方 CLI/SDK/接口适配 | 23 |
 | CODEX_REFERENCE | Codex 交互参考、MyCode 实现 | 4 |
 | USER_UI_REFERENCE | 用户截图布局参考、MyCode 实现 | 2 |
 
@@ -75,6 +75,7 @@
 | [0.24.0](#v-0-24-0) | 2026-11-23 / `v0.24.0` | `f57b6b1d` | 115f0e97c4 → 09d04436ba，10 月 20 日以来 460 提交；实际合并以 0.23.11 为基线，新增 457 提交 | Cindy 4acbce110f → e6ba8ebcf5，13,422 提交中选取 DeepSeek 模态适配；Synara 299fd573b1 → 35f8d842d0，873 提交中选取 Markdown 阅读方向适配 |
 | [0.24.1](#v-0-24-1) | 2026-11-24 / `v0.24.1` | `5dbac421` | 09d04436ba → 09d04436ba；主分支 0 新增提交 | Cindy e6ba8ebcf5 → acfe0a4a3f：选择 Discord 分段修复；Synara 35f8d842d0 → 27c667c2ce：选择 Devin Windows 路径与账户隔离适配；ZCode v4.0.0 样式参考 |
 | [0.25.0](#v-0-25-0) | 2026-11-24 / `v0.25.0` | `dabe9c7f` | 09d04436ba → 同一提交；主分支无新增 | Cindy acfe0a4a3f → e8f3ff0026，并推进此前待融合的模型组/账号/插件/远程目录；Synara 27c667c2ce 无新增，适配此前 c217ced4e6 分阶段编排 |
+| [0.26.0](#v-0-26-0) | 2026-11-25 / `v0.26.0` | `pending-` | 09d04436ba → 同一提交；主分支无新增 | Cindy e8f3ff0026 → e77a8470d5（498 条含合并）；Synara 27c667c2ce → 001454e765（16 条） |
 
 ## 按版本的功能明细
 
@@ -803,6 +804,23 @@
 | MC-0.25.0-006<br>`I18N` | 新增模型组与插件全链路双语 | [R82](#r82) | MyCode 自有新增/修复<br>**适配** | 新增页面、表单、状态、错误、策略、星期及时段提示提供简体中文/英文，保留既有主题；修补新增按钮缺少翻译的界面回归。 | 保留；具体范围/实测条件见版本记录 |
 | MC-0.25.0-007<br>`UPSTREAM-CONTROL` | 区分实际适配和未融合能力 | [R82](#r82) | MyCode 自有新增/修复<br>**适配** | 记录三家主分支及此前待融合能力的本次边界，明确 ACP 引擎/跨电脑分享/原生子代理等未融合部分，继续保留所有明确移除决策。 | 治理规则持续执行；历史遗漏已补齐 |
 
+<a id="v-0-26-0"></a>
+
+### 0.26.0（2026-11-25）
+
+证据：[docs/mycode-0.26.0.md](mycode-0.26.0.md)；本地标签 `v0.26.0` → `pending-build`。
+
+| 变更 ID / 功能 ID | 本版内容 | 相关用户要求 | 实现来源 / 性质 | 细节与来源依据 | 当前处置 |
+| --- | --- | --- | --- | --- | --- |
+| MC-0.26.0-001<br>`ACP-ENGINES` | 标准 ACP v1 本地插件引擎 | [R83](#r83) | Cindy 本地设计参考、MyCode 实现<br>**新增/适配** | 清单审核、完整性校验、隔离账号、认证/模型目录、流式会话/权限/取消与 Host 执行；不是 Cindy Ghost Worker 包兼容实现。 | 已实现，边界与交付验证见版本记录 |
+| MC-0.26.0-002<br>`CROSS-DEVICE-GROUPS` | 执行电脑持久化模型组 | [R83](#r83) | Cindy 本地设计参考、MyCode 实现<br>**新增/适配** | 项目授权、修订、事务内路由与请求去重，电脑和手机共享执行端目录；不传输账号密钥、不含远程任务中的自动账号迁移。 | 已实现，边界与交付验证见版本记录 |
+| MC-0.26.0-003<br>`ACCOUNT-CONTINUATION` | 额度耗尽后接续原生会话 | [R83](#r83) | Cindy 本地设计参考、MyCode 实现<br>**新增/适配** | 本地 Claude/Codex 模型组按同模型账号迁移并继续，一轮一次、暂停失效、失败停止；远程与 API 模型不适用。 | 已实现，边界与交付验证见版本记录 |
+| MC-0.26.0-004<br>`MODEL-CAPABILITIES` | 所有来源模型的自动能力标签 | [R84](#r84) | MyCode 自有新增/修复<br>**新增/适配** | 十类输入/输出能力、权威元数据优先、名称推断标注、手动修正及恢复自动分类；不以标签保证接口可用。 | 已实现，边界与交付验证见版本记录 |
+| MC-0.26.0-005<br>`MAGPIE` | Magpie 模型发现与转发适配 | [R84](#r84) | 官方 CLI/SDK/接口适配<br>**新增/适配** | 模板、kind=all、嵌套模态与完整路由 ID；兼容媒体 REST，未集成订阅凭据或 Magpie MCP。 | 已实现，边界与交付验证见版本记录 |
+| MC-0.26.0-006<br>`CREATIVE-WORKBENCH` | 全主题创作工作台 | [R84](#r84) | MyCode 自有新增/修复<br>**新增/适配** | 13 种创作入口、指定模型、参考资料、项目目录产物与历史、媒体接口和智能体编排；防重复提交、任务进度及预览。 | 已实现，边界与交付验证见版本记录 |
+| MC-0.26.0-007<br>`ACP-PERMISSIONS` | ACP 模式与取消边界 | [R84](#r84) | Synara 设计参考/等价能力核对<br>**新增/适配** | 参考计划模式验证与审批收口，缺少计划模式时拒绝开始、监督审批单次有效、取消后旧消息不复活任务。 | 已实现，边界与交付验证见版本记录 |
+| MC-0.26.0-008<br>`I18N` | 本次新能力双语与主题回归 | [R84](#r84) | MyCode 自有新增/修复<br>**新增/适配** | 本次新增设置、模型标签、工作台、权限与反馈中文/英文；全主题深浅色及两套侧栏入口。 | 保留；具体范围/实测条件见版本记录 |
+
 ## 用户要求覆盖索引
 
 原始要求拆分为可追踪项，不按用户多次从“1”重新编号的消息混在一起。后提出的细化要求可能关联更早已有的基础功能；该关联不证明早期功能当时就是此条需求首次触发。
@@ -1463,13 +1481,29 @@
 - 变更记录：`MC-0.25.0-001`、`MC-0.25.0-002`、`MC-0.25.0-003`、`MC-0.25.0-004`、`MC-0.25.0-005`、`MC-0.25.0-006`、`MC-0.25.0-007`。
 - 当前范围：保留已有定制与明确移除功能，新内容双语，交付安装包及区分已融合/未融合的详细清单。
 
+<a id="r83"></a>
+
+**R83：推进 ACP 引擎、跨设备模型组及任务中账号切换**
+
+- 关联阶段：0.26.0。
+- 变更记录：`MC-0.26.0-001`、`MC-0.26.0-002`、`MC-0.26.0-003`。
+- 当前范围：保留定制与移除决策，新增双语，交付本地安装包和详细融合边界
+
+<a id="r84"></a>
+
+**R84：Magpie、所有模型自动分类与全主题工作台**
+
+- 关联阶段：0.26.0。
+- 变更记录：`MC-0.26.0-004`、`MC-0.26.0-005`、`MC-0.26.0-006`、`MC-0.26.0-007`、`MC-0.26.0-008`。
+- 当前范围：所有来源模型十类能力标签，侧栏工作台支持图像视频文本办公创作，修复剩余测试并交付安装包
+
 ## 当前功能处置与升级维护入口
 
 | 功能 ID | 首次记录 / 最近变化 | 当前状态 | 升级保留或替换策略 | 当前维护入口 |
 | --- | --- | --- | --- | --- |
 | `BASE` | 0.5.0<br>0.23.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/app/App.tsx](../src/app/App.tsx)<br>[src/features/workspace](../src/features/workspace) |
 | `BRAND` | 0.5.0<br>0.17.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/i18n](../src/shared/i18n)<br>[public/mycode-icon.png](../public/mycode-icon.png) |
-| `I18N` | 0.5.0<br>0.25.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/i18n](../src/shared/i18n)<br>[src/features/sessions/ui/MonoWorkTicker.tsx](../src/features/sessions/ui/MonoWorkTicker.tsx)<br>[src/shared/i18n/mycode0250.ts](../src/shared/i18n/mycode0250.ts)<br>[tests/browser/upstream-fusion.spec.ts](../tests/browser/upstream-fusion.spec.ts) |
+| `I18N` | 0.5.0<br>0.26.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/shared/i18n](../src/shared/i18n)<br>[src/features/sessions/ui/MonoWorkTicker.tsx](../src/features/sessions/ui/MonoWorkTicker.tsx)<br>[src/shared/i18n/mycode0250.ts](../src/shared/i18n/mycode0250.ts)<br>[tests/browser/upstream-fusion.spec.ts](../tests/browser/upstream-fusion.spec.ts) |
 | `MODEL-CONNECTION` | 0.5.0<br>0.15.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/providers/model/modelConnections.ts](../src/features/providers/model/modelConnections.ts)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
 | `MODEL-ROUTING` | 0.5.0<br>0.25.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/integrations/harness](../src/integrations/harness)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs)<br>[src/features/providers/model/modelGroups.ts](../src/features/providers/model/modelGroups.ts)<br>[src/features/providers/model/modelGroupRouting.ts](../src/features/providers/model/modelGroupRouting.ts)<br>[src/features/providers/ui/ModelGroupsPanel.tsx](../src/features/providers/ui/ModelGroupsPanel.tsx) |
 | `MEMORY` | 0.5.0<br>0.16.0 | 保留；具体范围/实测条件见版本记录 | 以上游行为为主融合自有改动；保留用户设置/数据，并验证双语言及对应模块链路。 | [src/features/settings/ui/PersonalizationSettings.tsx](../src/features/settings/ui/PersonalizationSettings.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
@@ -1580,6 +1614,13 @@
 | `RESOURCE-PRESSURE` | 0.23.3<br>0.23.4 | 保留；资源进程操作需用户主动触发 | 保持进程身份与归属校验；停止操作须用户显式触发；中英文提示一致。 | [src/features/notifications/ui/ResourcePressureNotice.tsx](../src/features/notifications/ui/ResourcePressureNotice.tsx)<br>[src-tauri/src/resources.rs](../src-tauri/src/resources.rs) |
 | `WORKFLOW-PLUGINS` | 0.25.0<br>0.25.0 | 新增；边界和验收状态见版本记录 | 保留既有账号、权限和数据边界；不得将设计适配声称为上游全量移植。 | [src/features/plugins](../src/features/plugins)<br>[src/features/agent-app/model/agentApp.ts](../src/features/agent-app/model/agentApp.ts)<br>[src-tauri/src/control_cli.rs](../src-tauri/src/control_cli.rs) |
 | `ORCHESTRATION-WAVES` | 0.25.0<br>0.25.0 | 新增；边界和验收状态见版本记录 | 保留既有账号、权限和数据边界；不得将设计适配声称为上游全量移植。 | [src/features/orchestration](../src/features/orchestration)<br>[src-tauri/src/control_cli.rs](../src-tauri/src/control_cli.rs) |
+| `ACP-ENGINES` | 0.26.0<br>0.26.0 | 已实现，边界与交付验证见版本记录 | 保留明确移除决策、既有用户数据和权限边界；不得把协议适配声称为上游全量兼容。 | [src-tauri/src/acp_plugins.rs](../src-tauri/src/acp_plugins.rs)<br>[src/integrations/harness/providers/acp](../src/integrations/harness/providers/acp)<br>[src/features/plugins/ui/AcpEnginesPanel.tsx](../src/features/plugins/ui/AcpEnginesPanel.tsx)<br>[host/acp-plugins.ts](../host/acp-plugins.ts) |
+| `CROSS-DEVICE-GROUPS` | 0.26.0<br>0.26.0 | 已实现，边界与交付验证见版本记录 | 保留明确移除决策、既有用户数据和权限边界；不得把协议适配声称为上游全量兼容。 | [host/model-groups.ts](../host/model-groups.ts)<br>[src/features/providers/ui/SharedModelGroupsPanel.tsx](../src/features/providers/ui/SharedModelGroupsPanel.tsx)<br>[mobile/src/features/workspace/WorkspaceProvider.tsx](../mobile/src/features/workspace/WorkspaceProvider.tsx) |
+| `ACCOUNT-CONTINUATION` | 0.26.0<br>0.26.0 | 已实现，边界与交付验证见版本记录 | 保留明确移除决策、既有用户数据和权限边界；不得把协议适配声称为上游全量兼容。 | [src/features/providers/model/accountFailover.ts](../src/features/providers/model/accountFailover.ts)<br>[src/app/App.tsx](../src/app/App.tsx) |
+| `MODEL-CAPABILITIES` | 0.26.0<br>0.26.0 | 已实现，边界与交付验证见版本记录 | 保留明确移除决策、既有用户数据和权限边界；不得把协议适配声称为上游全量兼容。 | [src/features/providers/model/modelCapabilities.ts](../src/features/providers/model/modelCapabilities.ts)<br>[src/features/providers/ui/ModelCapabilityTags.tsx](../src/features/providers/ui/ModelCapabilityTags.tsx)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
+| `MAGPIE` | 0.26.0<br>0.26.0 | 已实现，边界与交付验证见版本记录 | 保留明确移除决策、既有用户数据和权限边界；不得把协议适配声称为上游全量兼容。 | [src/features/providers/model/modelConnections.ts](../src/features/providers/model/modelConnections.ts)<br>[src-tauri/src/local_ai.rs](../src-tauri/src/local_ai.rs) |
+| `CREATIVE-WORKBENCH` | 0.26.0<br>0.26.0 | 已实现，边界与交付验证见版本记录 | 保留明确移除决策、既有用户数据和权限边界；不得把协议适配声称为上游全量兼容。 | [src/features/workbench](../src/features/workbench)<br>[src-tauri/src/workbench.rs](../src-tauri/src/workbench.rs)<br>[src/features/agent-app/model/agentApp.ts](../src/features/agent-app/model/agentApp.ts)<br>[src/app/shell/Sidebar.tsx](../src/app/shell/Sidebar.tsx)<br>[src/app/shell/ProjectRail.tsx](../src/app/shell/ProjectRail.tsx) |
+| `ACP-PERMISSIONS` | 0.26.0<br>0.26.0 | 已实现，边界与交付验证见版本记录 | 保留明确移除决策、既有用户数据和权限边界；不得把协议适配声称为上游全量兼容。 | [src/integrations/harness/providers/acp/acpEngine.ts](../src/integrations/harness/providers/acp/acpEngine.ts)<br>[src/integrations/harness/providers/acp/acpEngine.test.ts](../src/integrations/harness/providers/acp/acpEngine.test.ts) |
 
 ## 需要特别分清的演变
 

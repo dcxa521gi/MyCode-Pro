@@ -1,0 +1,17 @@
+commit	date	subject
+8447b5312f4d021cab2e9feb3fe15ad9b4473917	2026-11-24	perf: hillclimb cold-boot latency, transfer bytes, streaming throughput, and client lag (#2266)
+1ccfffc5e7985c9e366515856b72d499e6e6eadc	2026-11-24	fix(devin): validate ACP permission modes before prompting (#2287)
+a13dcda7024f28240e36c3a0d5c7f3a103636ca1	2026-11-24	fix(devin): retain shell approvals in ACP orchestration (#2289)
+826905d083989917366c76a2d4e3f50e732590bc	2026-11-24	Tell Stable desktop users what product analytics shares (#2290)
+7697b64b83b24d0cb2cbbccd4ed55ec544a02e80	2026-11-24	Respect Claude Code automatic compaction settings (#2272)
+75a5a9a0a5ecd7f25e61fe39edbe114006b9897e	2026-11-24	Reduce desktop installer and installed app size (#2288)
+9d9d992284eca4c0fda56a6ddd393d83cc3dd7bd	2026-11-24	Release Synara 1.6.6 Stable
+c756ce0097414eb35f67354832ffa90ef99399cc	2026-11-24	Decouple release packaging and preserve warm CI caches (#2291)
+afbca770ba22b05da8ab66c10205c3aa31302052	2026-11-24	Run Linux and Windows packaging independently of Mac icons (#2292)
+3c35ebb12412d166eb21abbc80f57d28e0851294	2026-11-24	Allow the macOS backend to exit with updater IPC open (#2296)
+f6f49daeb6225f2bcd5ddd8e50f4cd131147411a	2026-11-24	Fix Antigravity question cards and answer submission (#2295)
+2da50bce467b2b6319061afc36e5040f7b6c31fd	2026-11-24	fix: resolve audit bugs, leaks, SQL N+1, and dead code (#2294)
+8934fa9acb94f5184d5ee85de5d5cc885875cea4	2026-11-25	Isolate the updater test from the Vitest IPC channel
+6bff1c91bdcf153899d3f7233b13df68ccc554cf	2026-11-25	Prepare Synara 1.6.7 Stable
+ce7b7269d6e234cb0dca5b157a6a51b4655267c2	2026-11-25	Remove the Windows browser cookie reader (#2299)
+001454e7655f5afbbeaca4a477ed954c0c627d57	2026-11-25	Document Synara 1.6.7 release improvements

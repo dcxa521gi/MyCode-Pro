@@ -84,6 +84,13 @@ export function restoreMonoCodexAgentState(
   });
 }
 
+export function invokeChildBackend<T>(
+  command: string,
+  args?: Record<string, unknown>,
+): Promise<T> {
+  return invoke<T>(command, args);
+}
+
 function invoke<T>(
   command: string,
   args?: Record<string, unknown>,
@@ -363,6 +370,7 @@ export async function spawnChild(
   opencodeV2?: { password: string },
   /** `devin acp` only: start with an approval rule for every edit. */
   devinAskEdits?: boolean,
+  acpPlugin?: { id: string; revision: string; accountId: string },
 ): Promise<void> {
   livePid.delete(sessionId);
   pendingExit.delete(sessionId);
@@ -383,6 +391,7 @@ export async function spawnChild(
     ...(codexStore ? { codexStore } : {}),
     ...(opencodeV2 ? { opencodeV2 } : {}),
     ...(devinAskEdits ? { devinAskEdits } : {}),
+    ...(acpPlugin ? { acpPlugin } : {}),
   });
   if (typeof pid !== "number" || pid <= 0) return;
   livePid.set(sessionId, pid);
@@ -454,6 +463,7 @@ export async function resolveHarnessBinary(
     mimo: "harness_resolve_mimo",
     zcode: "harness_resolve_zcode",
     devin: "harness_resolve_devin",
+    acp: "acp_plugin_resolve_required",
   };
   return invoke(command[provider]);
 }
