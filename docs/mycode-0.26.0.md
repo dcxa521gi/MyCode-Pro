@@ -88,6 +88,31 @@
 
 继续不展示 MiniMax Code、Xiaomi/MiMo Code、Freebuff 等明确移除的 CLI；不恢复电脑控制设置、侧栏账号登录、旧群聊、旧安卓控制器及旧的重复 CLI 更新弹窗。历史兼容数据类型不表示重新启用这些功能。
 
-## 9. 验证与交付
+## 9. 修复与验证
 
-构建与测试结果将在交付时补齐。真实付费媒体接口、第三方 ACP 登录及手机跨网配对不由模拟接口测试替代；本记录不会把未实测内容写成已验收。
+- 修复工作台覆盖侧栏、专注布局隐藏侧栏、原工作区与工作台同时显示的问题。原布局与专注布局均能通过侧栏进入并继续操作。
+- 补齐模型选择器、服务商设置及 CLI 更新测试中的目录变化，验证自动标签、手动覆盖、恢复自动分类及非聊天模型筛选。
+- Windows Host 独立探测改为并行；启动等待覆盖权限检查与旧锁检查，子进程提前退出立即报错。最后的后台启动、配对、撤销、停止全流程本机复测通过。
+- [最终源码 CI](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/45558872198) 全部通过，包含 Windows/macOS/Linux 检查、前端与 Host 测试、原生测试/Clippy、浏览器回归、移动端检查及发布渠道隔离。
+- 工作台浏览器回归覆盖两套布局、12 套主题 × 深浅色、侧栏点击、中文入口、模型筛选、一次生成请求与产物展示；使用模拟服务验证，不消耗真实模型额度。
+- 本地移动端 35 个文件、231 个测试通过；新增 ACP、模型组、账号接续和能力分类重点回归通过。
+- Windows 安装包解包后验证主程序版本、应用/编排命令、媒体命令、内置 Node 运行及 IM 桥脚本语法。
+- [最终标签 Android 构建](https://github.com/dcxa521gi/MyCode-Pro/actions/runs/45559337278) 通过；包名、版本、v2 签名、ARM64 库及模拟器启动进入连接页验证通过，签名证书与上一版本一致。
+- 六个平台的 Host 运行包位于独立的 `mycode-host-v0.26.0` 下载分支。桌面发布页仅包含下表四个文件；发布后重新下载验证字节数及 SHA-256 一致。
+
+## 10. 本地交付与校验
+
+- 产品源码 / 标签：`977e973f64ababe5db0e91453a61c162ccb77efa` / `v0.26.0`。
+- [MyCode 0.26.0 发布页](https://github.com/dcxa521gi/MyCode-Pro/releases/tag/v0.26.0)。
+- 本地目录：`D:\VibeCoding\Codex\MyCode\build\release-verify-0.26.0`。
+- Windows 主程序版本：`0.26.0`；Android 包名：`com.dcxa521gi.mycodemobile`，版本 `0.26.0`，版本代码 `2600`。
+- Android 签名证书 SHA-256：`6787e8f3283482fd6e860c38eeba47adb7e1606d272ce5730327865db1f1c69b`。
+
+| 文件 | 字节数 | SHA-256 |
+| --- | ---: | --- |
+| MyCode_0.26.0_Android.apk | 103922183 | `1a2c0e921d28eb88a60946718d7c00e0ae9598a42b2fa3e7e7374ff6ec2b3deb` |
+| MyCode_0.26.0_x64-setup.exe | 41553091 | `b96a53d78df0edabcfa5513853ebb95e57f8bccfd587bc6f4d4d07a7fe7d245a` |
+| SHA256SUMS-Android-0.26.0.txt | 92 | `ea58dbf4a99671c26d20c0b5043f0d46551369cea6314e05c26dc037bc03e2da` |
+| SHA256SUMS.txt | 94 | `86ab684fd9d258f9f39c44555c0a77aac48e3f0bdc0d78caab7ffdcf1bccfe5d` |
+
+真实付费媒体接口、第三方 ACP 登录、实际账号额度耗尽后的接续和手机跨网配对仍需真实账号/设备验证。模拟接口、包校验及模拟器启动不替代这些验收；不宣称兼容所有第三方私有插件包，也不将未完成的媒体任务标为成功。

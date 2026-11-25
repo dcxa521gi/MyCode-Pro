@@ -8,7 +8,9 @@ MyCode 基于 [MonoCode](https://github.com/hardbeat920/monocode)，保留其简
 
 ## 下载
 
-[Windows x64 安装包与更新说明](https://github.com/dcxa521gi/MyCode-Pro/releases/latest)
+[Windows x64 安装包、Android APK 与更新说明](https://github.com/dcxa521gi/MyCode-Pro/releases/latest)
+
+[0.26.0 详细更新与融合清单](docs/mycode-0.26.0.md)记录本次功能、来源、验证结果和兼容边界。
 
 设置 → 常规 → 关于中的版本检查与更新内容均来自本仓库的 GitHub Releases。Windows 检查到新版本后在应用内下载并校验 SHA-256，左下角显示进度；下载完成后查看更新内容，选择安装或跳过。安装需要单独点击确认。
 
@@ -16,6 +18,9 @@ MyCode 基于 [MonoCode](https://github.com/hardbeat920/monocode)，保留其简
 
 - **双语界面**：简体中文 / English；默认按电脑时区选择，手动选择立即生效并保存。标签、操作提示、自动化模板与 Windows 托盘菜单随语言变化。
 - **模型连接**：小米 MiMo / Token Plan、DeepSeek、通义千问、Kimi、智谱、硅基流动、OpenAI、Anthropic、Gemini、OpenRouter、xAI、Groq、Ollama、LM Studio 和自定义端点模板。输入 Key 后自动获取模型，支持勾选模型、自定义模型 ID、协议、多个连接和连接测试。
+- **模型能力标签与 Magpie**：所有来源共用文本、视觉、图片/视频生成、语音、音乐等自动分类；优先读取真实能力元数据，允许手动修正。Magpie 模板发现完整模型目录并保留模型路由 ID。
+- **创作工作台**：全部主题与两套布局提供图片、视频、小说、短剧、绘本、PPT 等 13 类创作入口；指定模型和参考资料，产物保存在选定目录，记录可恢复。复杂成品依赖所选智能体及本地工具。
+- **ACP 引擎与跨设备模型组**：审核安装标准 ACP v1 本地引擎，独立账号配置、流式会话和单次权限审批；模型组可向已配对电脑按项目授权。本地 Claude/Codex 可按设置在明确额度限制后切换同模型账号接续任务。
 - **IM 机器人**：本机扫码连接个人微信，并直连飞书/Lark、钉钉、企业微信、Telegram、Discord，指定允许用户、工作目录和模型；支持项目任务、独立日常聊天、创建/暂停/恢复定时任务，以及兼容插件自动更新。
 - **任务导入**：扫描本机 Claude Code / Codex / WorkBuddy 历史，显示来源、序号与数量，支持全选和每页 20 条分页，保留原始文件。
 - **用量统计**：左下角显示累计 Token，设置中支持日期筛选、活跃热力图、每日趋势及模型、代理和任务排行；服务商卡片按连接统计 Token。
@@ -40,7 +45,7 @@ Windows Hermes 与 Devin 支持应用内安装，首次需下载其运行依赖�
 1. 安装并登录需要的代理 CLI。原有 Claude Code、Codex、Cursor、OpenCode、Pi 等入口继续可用。
 2. 设置 → 服务商 → CLI 代理工具，点击 Pi 的“应用内安装 / 更新”。安装在 MyCode 数据目录，无需系统全局安装 Node/npm。
 3. 设置 → 服务商 → 模型服务商，选择模板并输入 API Key，自动获取后选择模型。没有模型目录的接口可手动填写模型 ID。地址可按服务地区修改。
-4. 保存并设置主模型后，在**兼容智能体的模型列表**选择或收藏对应连接。Pi、OpenCode、MiMo Code 支持自定义连接；Claude 对接 Anthropic 协议，Codex 对接 Responses 协议；封闭模型目录的智能体使用自身模型。连接测试检查模型目录可达性；实际模型权限和工具调用能力取决于服务商与模型。
+4. 保存并设置主模型后，在**兼容智能体的模型列表**选择或收藏对应连接。Pi、OpenCode 支持自定义连接；Claude 对接 Anthropic 协议，Codex 对接 Responses 协议；封闭模型目录的智能体使用自身模型。非聊天模型可在工作台选择。连接测试检查模型目录可达性；实际模型权限和工具调用能力取决于服务商与模型。
 5. 设置 → 个性化，编辑个人/项目记忆，或配置本地工具。技能通过输入框的 `/` 选择器调用；自动化在工作区的自动化入口创建。
 
 Windows 模型密钥使用当前 Windows 账号的 DPAPI 加密，执行时传给 MyCode 启动的子进程，不写入浏览器存储或用户原有 CLI 配置。非 Windows 构建使用仅当前用户可读写的本地配置文件。记忆只有在发起请求时才发送给用户选择的模型，仅发送给当前选择的模型服务商。
