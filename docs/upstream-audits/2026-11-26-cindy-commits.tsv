@@ -1,430 +1,430 @@
-59d46dee61f2503dde1a090519d33b8c3920f0a2`tMerge pull request #12938 from yan-xdt/cindy/trusty-jepsen
-3852bcadf2cacb90d60aa2daa908df19be480592`tMerge pull request #12915 from kirozeng/cindy/share-circle-checkbox
-7cb4a37d6fff5acad07e264fd6c3d221f59d1758`tMerge pull request #12930 from makecindy/cindy/tender-jang
-bc1dc4742bb50002f93ffda4774d80012266ce48`tMerge pull request #12922 from amanayayatu-tech/fix/12920-pi-new-task-model
-68c788a2225ba64c0555154db739f59c6b6d6220`tMerge pull request #12799 from makecindy/feat/side-chat-fast-open
-916dea8da0b5cf029020595113e1800dec61986f`tMerge pull request #12195 from Binaryify/fix/created-subscription-provider-quota
-bac9d68f5d421245517abf585d0c86b15957defb`ttest(desktop): 隔离 Windows 认证与项目探测的原生进程夹具
-9c05566e31709646d731c545319191cb40867925`tMerge pull request #12917 from zqchris/stale-pid-proof-dedup
-00aeccb400dd1012f75da014c0dd5fded14ffedb`tMerge pull request #12913 from zqchris/builtin-skill-persistent-warning
-f3c4eddf449f9f96c656eee8634ebadad809e58a`tMerge pull request #12910 from zqchris/codex-reset-backoff
-8617324da1caf96060e821d6044c6ed8d84d2365`tfix(desktop): match selected provider icons to the rail background (#12905)
-aaaac809466b71dc08d64dcce9037ce1db7be8cd`tMerge pull request #12899 from zqchris/cindy/epic-darwin
-33f5cae6bd0e773c994e02a1b9c216e1eb7ffa46`tMerge pull request #12898 from xuzini-xzn/fix-client-cny-reference-prices
-b73f805a193cc2d589cf7f5e4da0d8efadeb4bc5`tMerge pull request #12901 from amanayayatu-tech/cindy/keen-panini
-535a7746b031481186c89eab35c3a3de0038902e`tMerge pull request #12900 from amanayayatu-tech/cindy/lively-panini
-a87ce808bbcc1c2f858c22355e972a484917a758`tMerge pull request #12890 from yan-xdt/cindy/stoic-lederberg
-87ae13e7a0e771f0b68303f8f81c209f6a3f6ca2`tMerge pull request #12886 from makecindy/cindy/quirky-morse
-f1dbfe416b4ba6dc0f03d0689820fcf934336ad7`tMerge pull request #12888 from amanayayatu-tech/cindy/12883-turn-lease-sincere-hopper
-622ac36dea3f28fab47e42c16fd69fb43b0c2e4a`tMerge pull request #12884 from zqchris/fix-auth-undecryptable-vault
-27bb32188d6ddc519516b8e5c3018cf87e27f3df`tMerge pull request #12820 from makecindy/cindy/plugin-engine-parity
-5122d5726047570e01fd779a3da7138446dfda4a`tMerge pull request #12818 from fmfsaisai/cindy/cheerful-jepsen
-79ada19bc12b1ad6c51911bcb80c1d5e0ce49913`tMerge pull request #12789 from makecindy/feat/account-contact-change
-803e14c53301198ee7a68939e2dddad6e7d94dd7`tfix(pi): describe the discarded frame without assuming its type
-4287a9bf404009d1f10de74d8154084fe35a3ba2`tfix(pi): explain undispatched retries when history cannot be read
-8213237ac4f4bd9c395bd6ad2bbb76fcc99b4097`tMerge pull request #12591 from xuzini-xzn/cindy/quirky-galileo
-328caf863dc3ea8b05c3e53eb9a6b69d70378761`tMerge pull request #12587 from nanaco666/cindy/upbeat-thompson
-49bd0f671ee695b501a44e14cdfb095d772019f6`tfix(pi): reject unavailable OpenAI models when creating a task
-f3eebb864972517afa19c5e42d67008110c33684`tperf(desktop): deduplicate stale PID reuse logs and extend proof TTL
-aa7b27167dab7f84b688ab95911274780a95c204`tMerge pull request #12877 from makecindy/cindy/sweet-wozniak
-621d207632918c469778cda1bbbc659390aa90e7`tfix(usage): ignore routine usage/load notifications when clearing reset backoff
-25b667e48109ff27a7199c2e938a280a72317b75`tperf(skills): treat kept newer built-in skill bundle warning as persistent
-e9317c24bfef92497824b1bd1105b0816e4fc11b`tMerge pull request #12856 from makecindy/cindy/quirky-goodall
-5fa5335ba664da3d9ed6cb1bbefaa931f049b595`tfix(usage): back off failed Codex automatic reset checks
-31140b3bccb37278978c493de1505c38497919ce`tfix(providers): revalidate Pi pool routes before dispatch
-316c56d220da9b5339d3e36c91a906a337ddc961`tMerge pull request #12844 from zqchris/chat-org-identity
-51714134d2213404ef9da8cb0fa139fb69164c0d`tMerge pull request #12841 from nanaco666/fix/desktop-group-thread-preview-dot
-30b16b8016d6206c978e1d6e558e3161cf6cbdc1`tMerge pull request #12836 from amanayayatu-tech/fix/issue-12828-db-rpc-diagnostics
-65b7f2c8e19317e7c601e7401015b390177037e4`tMerge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
-c828f238f9b01737c6b3564667ae0e54f1a5c149`tMerge pull request #12831 from makecindy/cindy/jolly-ritchie
-0d8f49a2f65a934bf784feab2550262299293094`tperf(side-chat): speed up copied message ID generation
-650ede7feb8d2202c2d011ea7590510d7b9988e3`tfix(mobile): distinguish unread Android plugin directories
-1926a0a5f6703c73e875e592a44d13b03819ae83`ttest(feishu): 保留模拟句柄路径的 UNC 与扩展前缀
-647974704c12b65d631010ced242837b1fd1e43d`tdocs: 补齐伙伴工作区迁移能力台账
-458ea37495b40b02c5bc9cf073540eb25e716aa4`tMerge pull request #12826 from makecindy/cindy/witty-galileo
-35307ac173d70ffce219fc07692f81a011f8e763`ttest(desktop): cover Ark reference routes without model descriptions
-d549ff1e6eccbbc7c2b1b6d0a3a09cb38a6af6a1`tMerge pull request #12823 from makecindy/cindy/warm-colden
-01cd30d9f038fe7fb5c1efecd95300d4f70b6816`tMerge pull request #12807 from makecindy/cindy/warm-darwin
-82e6f3251fb311b1b9e40062780626ed235714dc`tfix(providers): keep hosted Pi grants bound across transports
-c2cc2fcec397b2fed818e08b4f2ce2d114ab7cb0`tMerge pull request #12817 from makecindy/cindy/zealous-thompson
-35a5d0986bb43bf812dd785a349d9e2a50e9f0ff`tMerge pull request #12821 from makecindy/fix/inbox-archived-time-order
-75929e57cb73cdf537be9b30fce7a9918727c32c`tMerge origin/main into cindy/plugin-engine-parity
-9fb2df450201dd437d4b591f9151b3725f2db2f4`tfix(subscriptions): 保留同套餐额度更新期间的 Codex 模型清单
-e134b7b2c06c41094b9c4777228d20414a3ff7ef`tMerge pull request #12791 from makecindy/cindy/humble-morse
-5fc95fde28cb3a6323359417bc420af5d6fc8e22`tMerge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
-a5dc020951456860d05a2c93b358eb1c576845f8`tMerge pull request #12773 from makecindy/feature/plugin-page-v5
-c76d145a292cf02b0fbfdfc852509691ce55ec9c`tMerge pull request #12783 from makecindy/fix/codex-capacity-stall-and-hook-classify
-4714a1caea78192c0143b943747028c1b8fb04da`tMerge pull request #12780 from zqchris/input-handoff-hidden-code-field
-9d21262ce1d32765c69884ddbe3d2893f8643d71`tMerge pull request #12766 from zqchris/input-handoff-complete-when
-7c602b8a0dca4d9facd10f9d4b20278188b1cfa2`tMerge pull request #12757 from makecindy/cindy/peaceful-borg
-a449871e0ae0baf8367f32a28675c7f07917e75a`tfix(auth): retain recoverable backup until vault write succeeds
-808b5f11cea4dd22a1aeb0c9235bec4e2dde6819`ttest(feishu): 在发送完成后断言继承文件身份
-d5e608ee322e8d04c317ef148260736c634baf3e`tMerge pull request #12878 from makecindy/fix/agent-net-preserve-custom-name
-03bbde25aebcbacea5fe4421fed1d99cc214638e`tMerge pull request #12644 from amanayayatu-tech/fix/8494-screenshot-search-alias
-9cf463c1de99d2fff4acf7f54d5fd9aff2b6dcff`tfix(desktop): block send when an automation engine switch fails
-9053b272ad4a457db2ba84dc6139c098c150f6f5`tfix(model-providers): sync Ark and TokenRhythm CNY references
-37a11ddc3361fc7afb9e63cc9a1fc079ab2e6714`tfix(providers): keep hosted Pi child routes independent of pool leases
-f05d5789c00b9f5ae076b9e06811f1a3b515913c`ttest(feishu): 区分路径证明退化与文件上传复用
-8922013ded7de54b50de4846c30e49b0e58752f2`tfix(desktop): 换绑按窗口隔离并遵守限流与账号归属
-7eb2fe4bf55c6fa11e32f7e97f11176177789e43`tMerge upstream main into automation plugin follow-ups
-49d07bc965a621313154335f141746ae2e1c2e98`tfix(device-link): advance mutation generation on write completion to fence reads started mid-PATCH
-7b242d18fd6623a93803d463d8c68e12d41e7401`tfix(auth): preserve recoverable vaults and restrict replacement to fresh login
-d802125d682dd01828960e3a6ab9b04c0736823e`tfix(desktop): reconcile a committed turn lease after a lost reply
-b09663e34b51340669af85d6eb5ef6c7b66f3d9a`tfeat(agent-net): add dual-region official STUN discovery and optional fixed UDP bindPort
-23ee68debe703dc857257f352e6620e48fe021aa`tfix(side-chat): generate temporary IDs with Web Crypto
-ab2641e6c3d85029247e3216f48671cd7c954cea`tfix(auth): recover undecryptable vault on explicit login and fail fast on broken keychain
-e2dfa916f24614a762f3d79131b38c19aa233c3e`tfix(device-link): address review findings on backfill ordering, partial legacy reads, and mobile V1 PATCH sync
-774d636c5fb12994e5cb1b343af4570f497151d0`tfix(providers): keep Pi pool authorization and replay identities exact
-fdc9a4b65dc65002fe8b1ab93deb942aa235d910`tfix(device-link): preserve V1 custom device names when Agent-Net is enabled
-e136a3047baeb4a7e6aa3f8e08e388f358d007f1`tMerge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
-428bbdd03536dd24e8d3f2f4539fdd3a1bb0df71`tfix(plugin): 安装确认默认展示全部权限
-77f1fe8eea5097f638f8145387d45f175a983da8`tperf(desktop): keep local text selections within the message viewport
-6874c29d9fe44956b7b690e2bb6091798fb338b0`ttest(mobile): bind drag state in entry positioning fixture
-e2b26ee2a90148fee90f4092589f90a53d5e697f`tfix(im): read plugin engine permissions from the execution device
-dadf5bc5e443ef9c775a232a239e1fbe85259f7b`tMerge pull request #12829 from makecindy/fix/cloud-cindy-node-host-parity
-1bb66f1a307a742fa12627430038f8ed08e7f155`tfix(side-chat): send selected quotes to the active draft
-c2ceb03cd2276a27dfbc541bb8a4adb9c83f2de7`tfix(mobile): retain fresh room badges when snapshots fail
-44db4f3ad6547e563acae3e215c90e9d499000f1`tMerge remote-tracking branch 'origin/main' into feat/side-chat-fast-open
-2d71d6961f356e2a20edc574af55686a58a3e7c8`tfix(side-chat): confirm tab binding before dispatching the first message
-2126ad063b73dfeb22577682ebf22944cf03376c`tMerge commit '8101bfa05561a37a03ef2f2fa241ae1732181450' into cindy/cheerful-jepsen
-0155387931e3af62f5d904c4b58bf0da4b9252b8`tfix(providers): fork native history on its bound API key
-c220681133815b35382efb58f5be93bb01f3e8ed`tfix(mobile): scope viewport expansion to its drag
-6b089ffd6abc4e4b9166fdf00fa58ea30346c915`ttest(cc-agent): update send callback harness for creation state
-c5f3d51221406c4d26bfe4c1328c7e13044b0a90`tdocs(acp): 按 #12798 更新插件引擎回收的起因说明
-8101bfa05561a37a03ef2f2fa241ae1732181450`tMerge pull request #12819 from amanayayatu-tech/cindy/gentle-borg
-abbd7500660a813e88a9700a17187fdad112b6e7`tfix(group-chat): resolve mentions using visible enterprise names
-b25376a71344286c2febe21bb94c15b2bd7d3700`tMerge pull request #12808 from amanayayatu-tech/fix/6430-android-video-webview-scroll-pensive-panini
-e9fe790dae5e3ba7e4986475c4f1f8d85c4d779e`tMerge pull request #12803 from yan-xdt/cindy/clever-newton
-55686479037d172e9335103bf03138eb4e9dffdb`tMerge latest origin/main after resolving Device Link conflicts
-952bf7db927170000096c3f5b86a862fb5247ee4`tMerge remote-tracking branch 'origin/main' into cindy/plugin-engine-parity
-089316da524978c6ad64eef4ab3a626ad5ced77a`tfix(plugins): keep plugin-engine IM tasks on their engine and refuse unenforceable group policies
-af104f834a6cba19f48b7ed1b30537295dd4b7ac`tMerge pull request #12806 from FicoHub/fix/12800-turn-lease-diagnostics
-f98d807b559ca60ad21287814865bf38f081f4d1`tMerge origin/main into fix/cloud-cindy-node-host-parity
-962480bf76109eda691699e23d1fb68140017fc7`tMerge remote-tracking branch 'origin/main' into feature/plugin-page-v5
-f821308d14d444be4e5a8748e9c2d17dae3c8cae`tMerge pull request #12796 from makecindy/fix/mobile-island-count-parity
-98ee7ad9b9d30524703d7132c791d7cde8382b95`tfix(settings): 云主机只对组织成员可搜，浏览器打不开时提示
-83379113be2e744c5dace5ef15bb1e049bc10add`tMerge pull request #12830 from makecindy/fix/host-desktop-task-handoff
-c329c7501efc4e93512307bd7ff67f62cb109689`tMerge pull request #12777 from zqchris/companion-takeover-resilience
-0cabc2af72456a4725d8c1549607635f8f0289b1`tMerge pull request #12853 from makecindy/fix/agent-net-standby-measure-cid
-b98401b372b7a645225e80ae25c039e73a0dcc4d`tMerge pull request #12765 from makecindy/cindy/fix-12758-renderer-exit
-409ba7c1ff4de761d9ca78804008bc9d8f01fd3a`tfix(wechat): release abort listeners after polling delays
-608bf34bb40f2506f58be29046f98b327de81ef4`tMerge pull request #12772 from zqchris/input-handoff-picture-webp
-248ca17ff2161010588dba4cce46cbe5bbf1b22a`tfix(input-handoff): stale 重试重读也撤销变歧义的保留键；归属不明要求缺的正是仍在页上的隐藏框
-29c07be31b0b707100d0cbd9f6d00b47009237ec`tMerge pull request #12735 from xuzini-xzn/fix/antigravity-icon-surfaces
-17d53f6b1167d23e4ffb9e6abc61c4989576d91d`tMerge pull request #12724 from makecindy/cindy/brave-goodall
-8576f5394d030ed8879a0c719b314027f3546c04`tfix(desktop): show the shared spinner while the model catalog mounts
-ffe9f75cfa7ccf4d85effc4556b29f47971b883b`tfix(agent-net-core): keep standby probe response connection IDs while in flight
-193e4902fd5e3ce618f56476a623a1712a7935e2`tfix(desktop): use unitless line-height in BotGroupMentionCard org detail
-ca117b4e726978842094caffba8fd340e003fb8c`tMerge pull request #12725 from makecindy/cindy/quirky-kernighan
-afae1250dce967ebd06a82cdaacb73bfc5d6be56`tMerge pull request #12722 from PraiseZhu/cindy/silly-stallman
-9dc4b4d63d9cb48b49ebd95b555fc3471492c1a7`tMerge pull request #12713 from WZBbiao/fix/12479-queued-steer-revocation
-7d00612e85e3948079bd0b5772e8deb1dfe57036`tfix(agent-net): add hop-1 full-size relay UDP probe and isolate per-peer stalls (#12837)
-672f74c63c8c402b698864df4dbabf2964b2368f`tfeat(group-chat): display enterprise real name, department, and external badges
-3c584cc4eab2489d606201545e10375cb2530d11`tMerge pull request #12720 from nanaco666/cindy/silly-leakey
-344d877b38331497dd7eb1987b24efb65281429e`tfix(desktop): 修复伙伴设置抽屉重复显示头像和名字
-d1ade42c47d2032726523a59c3448a97641fe6f0`tMerge pull request #12697 from odoalive-art/fix/multiframe-zstd-session-import
-f290c3bbde09561f8840910d4a19c9914c00d426`tfix(input-handoff): 提交前重读同步撤销变歧义的保留键，命中完成条件时不判归属不明
-bba677ab6412a84c6534da7b4b2e2822c2e3320f`tMerge pull request #12550 from xuzini-xzn/fix-12423-openai-api-fast-models
-1d3a9ad7b55bc32d2e276e789ec827589662fdbe`tfix(host): 保留委派的供应商和计划模式语义
-e8bc794db7dc74a6e6634284bf8706958467fb5d`tMerge pull request #12683 from makecindy/cindy/acp-briefing-slash-guard
-c0a8fdaed30a0fe022d80a3f0547e370bb8aa170`tfix(desktop): defer late catalogs until the picker shell paints
-fd6ec1a6e784b9378f930b9bbdfd62088c98a5fc`tMerge pull request #12658 from makecindy/audit/11b2a812-device-link
-d29e1f7f88dc1d3e2f797ac528b5513685a5612d`tMerge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
-e4e88161e778015715af5f5aa9a35827f05fefde`tMerge origin/main into fix/cloud-cindy-node-host-parity
-bdc80e525a7ab1ddf5e6abfe7b33473a6978fa39`tfix(host): 提示企业登录的区域回退和重试方式
-8baebe95f5fd55201732704e9be16c551967d248`tfix(plugin): 修复排序页回读时丢失插件
-2d1cd92cccccc945e9fde1f921e18260f21a39e5`tMerge pull request #11246 from zhuoshaojian/fix/remote-companion-x-guide
-15f9fcfa37e1306d5ef7d2f0b10b2d8e65668243`tfix(input-handoff): 隐藏验证码框的保留键不含位置、只记唯一键；归属不明只在别的字段都没变时冻结卡片
-0d1c67df35877c5cd2e048c813ae148aa04043f1`tfix(desktop): 移除群聊话题入口回复数之间的蓝点
-251a01da554459fcbe97e341bb959912a82465ca`tMerge pull request #12654 from xiunlee/fix/mobile-plural-one-forms
-80cbee4b9642e9d838027e08d7f1480ccc0587b8`tfix(mobile): 在渲染时本地化建任务失败提示
-a93aa4f0f38df7a91b84fbe3c9af05b3dd87342f`tfix(host): 在设备上线时补齐 CPU 和系统版本
-67ba2e41ced55a0291005471d65dd4aaa9d9ba08`tfix(desktop): correlate timed out database worker replies
-41890e98cfd01b26b59ab587d4d63635a6a0663a`tMerge pull request #12815 from makecindy/fix/remote-file-url-spaces
-bdc9a14df70825fa89bd623e99edc7ffd3619fdb`tfix(mobile): preserve follow after keyboard drag dismissal
-3d9f2f8a615c4f98d118f952818b9615731f42b7`tfix(host): 明确派任务入队前目标消失的回执
-296655a03fa4812adcc8720af816cbb902a0264c`tfix(input-handoff): 隐藏验证码框的保留键只在唯一匹配时生效，分不清归属时中止或保持等待
-2b149590b65bec70e98dfcb63657e2a754911eb7`tfix(side-chat): keep session gate bypass through child handoff
-252147554c46bcb1eb2b2e83b3883d164240c2c5`tfix(desktop): defer the primary session view with its branded loading mark
-ff78b4a630a351c36ba21de203b0fdf252cac372`tfix(desktop): 显示本地文件夹市场插件的包内图标
-3ce57fbb07f177ed522d99d0d91a0c570c783d73`tfeat(host): 支持桌面派任务并读取云端任务历史
-27fe34e9fa5464d5f789acd192c95bb7f9584add`tfix(input-handoff): 主人切到看画面后丢弃在途的扫码结果
-43366e6c45e7d9a02896f8690f055760edaa4bbe`tMerge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
-6b649af849f810fdae47f1abc73648e75241c4da`tfix(providers): recover direct Pi connections and preserve detached task routes
-dbcf775723a60546df69250ca54ddbb780fc361b`tfix(host): 补齐云端设备状态、引擎提示和企业登录
-844e75cdee659fbe4140f66dc924fbd0ce3c063d`tMerge branch 'main' of https://github.com/makecindy/cindy into fix/inbox-archived-time-order
-706d20f6b7891d114fb50f6867a1c8095c535930`tdocs(inbox): align ordering guidance with time sort
-f21602b9d7d660cbfbf7cfd8e7ea4cc8c251f405`tfix(desktop): 迁移前说明 Claude Code 上层技能发现
-7f07dea16d3388585a3cb1e088605be90fe3811b`tMerge branch 'main' of https://github.com/makecindy/cindy into cindy/zealous-thompson
-71ffc6b3250d50f69f649c9fbd7301abaa18bffd`tSync verified upstream Windows CI baseline
-c51894bb6bb95aeced3dd8a42657d943466447af`tfix(scheduler): handle long Node crash paths
-0b092b2e368c87e1e4e89d482e7a0d9193ae9ba8`tfix(desktop): let the picker opening transition reveal its loading state
-eb5ca82acc59e53e157d579576ec774561ac3134`tfix(desktop): end history feedback when the initial read settles
-aabf8f9987ab66f0e8308d262fc49a24b7aa05e7`tfix(input-handoff): 无 id 隐藏框的位置键带上所属文档，延续判断不比字段名
-98c3556a6106f4aacaf242ab82d93432af8de85c`tfix(desktop): paint task and model picker shells before heavy content
-79cdef25d1b771951bcd1812e201124d345b0c45`tfix(remote-agent): preserve punctuation inside known shadow directory prefixes
-4f10d883025bab2db9e9c4b14f8c3db7c02e45eb`tMerge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
-ff71a62e1733d3a685739d901106b5b0eca898d1`tfix(desktop): 换绑入口并入用户卡片 ID 行
-9048ecd0020cb23d770cb9fe1d3622c039791f3a`tfix(inbox): order rows within each section by time only
-75e1ada6fa574caf58b34e54942c6fe649fbd1b6`tMerge pull request #12776 from FicoHub/fix/lizi-12771-pi-compat
-b41d1a4511b514dec9c63c91ccb599310eba6f85`tfix(input-handoff): 被动探测返回时卡片已换步，不再恢复等待标记
-d72ab88131485c519d6473409d4df732b11b3cae`tfix(side-chat): preserve optimistic sends across fork edge cases
-d3993bbc5bc058c206a356f8f7a531a6c1aea859`tfix(orca): preserve Worker status during Codex manual compaction
-5d171e862cd97a1bd25a6c6a6e6e320165de76d4`tMerge pull request #12782 from makecindy/cindy/tender-edison
-87e64f5586954d43a3bb4bbea2d04651ca37412d`tfeat(plugins): support plugin engines across worktrees, titles, Learn, goals and IM
-6f1273c1a43efd2f795df373e70f3b5dbdac137d`tMerge remote-tracking branch 'origin/main' into feature/plugin-page-v5
-26b0c7858e666d1b239ec5b20a16688d817a98f2`tfix(plugin): 隔离已安装详情的更新记录
-57e652f3a5fbac7aa13c2522478030e174e5d97e`tMerge branch 'main' of https://github.com/makecindy/cindy into cindy/warm-colden
-4e9148b1f6e2780c70d3f309e1c6bbcf7d7a4338`tfeat(settings): 「我的设备」列出全部设备并加入云主机入口
-bf7cecc017993b187a6abb7831b6da7f96cd011c`tfix(input-handoff): 同址 frame 增减后隐藏验证码框的保留键作废，字段计划下按原生分段比对
-5d79f2e36bdc0454b77ffe8d72d96c415205501e`tMerge branch 'main' of https://github.com/makecindy/cindy into cindy/zealous-thompson
-73a6344a1a705b3e9bff9b116b19e5d0f3aa24b5`tMerge main and preserve existing account routing
-38ac80bdd97ebd3372ae32de37da92e769d5a4d5`tMerge remote-tracking branch 'origin/main' into fix/codex-capacity-stall-and-hook-classify
-3d3c6703059a136674687c0a12a2df9c177bd624`tfix(remote-agent): handle Markdown link titles with parens and trailing spaces
-9273d7ec88856a36ed643acecf307840b17ec2c6`tMerge pull request #12770 from yan-xdt/fix/plugin-host-tools-after-login
-39afc796155c1186b8a12d656662dc0ce6e76b85`tMerge pull request #12775 from yan-xdt/fix/realtime-websocket-test-race
-7fcbf008f38ec496a300c5d2441c8cb1f1885d77`tfeat(providers): support mixed OpenAI subscription and API key pools
-8c14b6461d7f15951b29cb1119da66d24e7dbae5`tMerge main and retain both renderer teardown regressions
-d263b9eb88f2ba8bac3b73b2cefb199647e7ecde`tfix(desktop): 分享选择模式的消息勾选恢复圆形，全选恢复成按钮
-5c794d711d118b042d7016c09567f75999fdda59`tMerge remote-tracking branch 'origin/main' into fix/codex-capacity-stall-and-hook-classify
-f29f84cd77a7a3ad85ffce8919f4affd7efd5a4e`tfix(codex): preserve overload diagnosis across recovery
-c35b42d0351c1b378afe9f7ddc1e369d8301cd44`tfix(input-handoff): 被动扫码返回时卡片已换步就丢弃结果
-d310e823a8474441100a4a5d01cd40ed4d314491`tfix(remote-agent): restore file:// links containing bare spaces
-caef434b526e1ae8396bf1bb74a7e4b8cb46be67`tMerge pull request #12755 from billythegod/review/client-regressions-20261125
-c243fbba091671907bb86dc5a8fd483871323b5f`tMerge pull request #12763 from amanayayatu-tech/cindy/wise-euclid
-6c55d7578bf57cac7f4a655cd903af54b4ea5ebc`tfix(input-handoff): 隐藏验证码框的延续按同一候选集比对，重绑同步保留键，同地址 frame 按次序区分
-10d5e41529a1e7223464a771cd00dc40045c6fe6`tMerge pull request #12761 from zqchris/browser-recipe-suggest-capability
-f745cde20a5b6b7c0d462af21556948924661893`tfix(desktop): 简化伙伴工作区迁移确认界面
-022854d558249c88bdc3b059b2dfb9b68bb1b974`tMerge pull request #12760 from yan-xdt/cindy/radiant-ritchie
-f97c91b8a9c129a79a12c1247f5f9adad3610bf2`tfix(desktop): 伙伴私聊不用任务图片画廊
-6e24947ccf4ff623680dd6e126cf30ad63132e68`tfix(plugins): 修复远程插件设置页故障恢复 (#12747)
-5d4844e6a95c6bc80464ea6ef03d721d81796f40`tMerge pull request #12754 from FicoHub/lizi/fix-12744-target-error
-2599b86cf3c779de5e31664d9ef899fd607f1ea7`tfix(desktop): protect cloud content after partial companion restore
-b7187033f91468fa2efb23785f6300ad0dbc4370`tMerge pull request #12753 from yan-xdt/cindy/sturdy-leakey
-3578b58fc2bedb63f569982f435feb3a1f53cafc`tMerge pull request #12748 from kirozeng/cindy/radius-presets-values
-a9ba3cdd2bb89d06971a7e49c134cb58cb2ca013`tMerge remote-tracking branch 'upstream/main' into companion-takeover-resilience
-396ba88770a4c7fa312f39b143bc9743369eb1cd`tMerge pull request #12749 from kirozeng/cindy/radius-presets-components
-369ab61e0f951acfe1adf20b3c26f85cf8cb804e`tfix(input-handoff): 被动探测期间卡片保持原步骤，并发接手不会发布空步骤
-cabf120fadb606a977640ec105f763c6e1a873d1`tfix(input-handoff): keptHidden 的字段过滤补类型收窄
-ff72b1e63611f687ffdef2ae7c0389d70ac25228`tMerge pull request #12745 from nanaco666/fix/mobile-bot-turn-timestamp
-363ce055b7924bd795771bea784107a1d67d8daa`tMerge pull request #12730 from yan-xdt/cindy/tender-babbage
-96e18bbf9af31ecfea265d79d9c87e9b1103ae10`tMerge pull request #12738 from makecindy/cindy/witty-jepsen
-f3779d181cf38ba51b01ca92a1dba68571c20afc`tfix(input-handoff): 隐藏验证码框的资格只跟着当前步骤，文档不计地址片段
-7869b51a2fed3663b42826ea1ce21a8160c15b8a`tMerge pull request #12734 from zqchris/acp-bound-schedules
-5bb9ad2224f1a53f77e3165ae36bc4d5e4fa9127`tmerge: update PR branch with main
-61d39595371dc51a4e9ada3c4b4c20b4d3274170`tMerge pull request #12737 from makecindy/cindy/silent-darwin
-5771a796c7533cc1bf38ce5578d14a0fb12f175b`tfix(mobile): preserve touch scrolling in Android video previews
-107ae007601edc6ed6d919be11453c9b23d5e2cf`tfix(desktop): 组件里地址无效的 cindy-media 图不进任务画廊
-89d4cdb114138951a70a171fd673dac769fc98f5`tMerge main and retain the one-shot retry guidance
-883bf6a7a6d630ccee84f9f70fa0960a90265b9d`tMerge pull request #12797 from makecindy/fix/shared-plugin-sidebar-icon
-f450ae6141e07a7ad07687ac65eb488d9e39d55b`tdocs(desktop): 说明租约替换错误的诊断职责
-6ac4456da56aae6e366dff5b9323bb009bb8633a`tfix(input-handoff): 是否等待完成条件按卡片最终会显示的步骤判断
-c5a743996f9e510758baf927018ed6705bef9a9c`tfix(plugin): 保持启动流程与主干一致
-8f8978d5f49a0f1715ee8b5563d4d09f57cdea2d`tMerge pull request #12718 from FicoHub/lizi/fix-12714
-7aa2c4ece80f29323f775ed6b4b23e6e72c88eb9`ttest(bots): hold the remote X usage line to the bot handle contract
-26587e6b56ad2dd579bc2f7e966538b145507400`tfix(bots): mark the companion X button for settings search coverage
-f1ca5a3e4bed7c0968c49cb491459d68f62a7947`tfix(bots): show the X usage and risk guide on a remote teammate's X card
-bc5bc84225ce026e669b51a1d765c692b18a33bc`tfix(input-handoff): 隐藏验证码框的保留键改用文档地址与页面 id，stale 重试也带上
-3adb7094667cbc8aec065b1d5815f7a7a9f02c77`tMerge pull request #12696 from hzpeng57/cindy/keen-pasteur
-fa208a5bc7231dd57c580468680eb74ae92c0928`tfix(desktop): 区分轮次租约替换失败的本地诊断
-b949030d31513006301e6cfd62aa8fb73a958c96`tMerge branch 'main' of https://github.com/makecindy/cindy into cindy/warm-darwin
-ca6320d49bdfa98a8ee116782adb84420bcdf4ec`tfix(acp): 插件引擎任务空闲 30 分钟后释放引擎进程
-5decdde43efa6a72755711d6a78b3e1220558fe1`tfix(plugin): 完成插件页首屏与读取收尾
-5048b91ce88590b437d83ba822f043625239ce52`tMerge pull request #12675 from makecindy/cindy/fix-codex-tool-tree-reaper
-dba5069515c4a2bf6c4f43f028d6282df2885fb6`tfix(input-handoff): 等完成条件时放行设备码步骤，输入框回来即退出等待
-7ee0ed0a645d45d64987303a80155135d9a87594`tMerge pull request #12689 from yan-xdt/fix/queued-input-after-shared-turn
-db0741cc30439d52748da0c225cfedb9d36c9948`tfeat(desktop): 支持伙伴工作区重复迁移和搬回默认位置
-04d7b04bb1e940c07fc224053d0f90c66dc5ae70`tfix(scheduler): 前置检查脚本崩溃时显示真正的错误行
-39a774b061d481013b3abf3ca1b332f43ce48ab9`tfix(ui): use legacy Antigravity identity in engine and task icons
-c68da83ffd24a377b7b6b46a2d76b7341c03ae48`tfix(plugins): remove fixed 8-process cap on plugin task engines (#12798)
-ce874f5a4a955fefa24a12b22a6d1599984d31d4`tMerge remote-tracking branch 'origin/main' into pr-12195
-fe444a3fe6177afa660d1335d2686533d99617c3`tfix(desktop): 工具产出重复图编号跳过 3D 模型预览图
-a8fd2c4e4bc92c3b04ff9928f601993557fc39ac`tfix(input-handoff): 隐藏字段的保留键限定在所属文档内，且只记被隐藏规则接纳的字段
-a267b6e4e77b179f69e1f76dd20d67290ec4775d`tfix(device-link): prioritize tasks over provider display traffic
-247e1aa23fb30b81df6673e5223af341def0c21b`tfix(provider-share): 共享插件离线时不触发推送预取
-fa69372da56045363ab9f716c5a2803b4fa1c137`tfix(input-handoff): 有设备持有卡片时，等完成条件也继续看窗口
-28020d63a7775541e8e2c36dcf8c96a78bd8f009`tfix(desktop): 换绑入口接入设置搜索与设置目录
-fa248b932c1c54f17af0eb0fb80b7ee335ad554d`tfix(ui): show Antigravity in legacy catalog and task views
-8d631ae57a7e8de803f4f39acf2e35b18b0bd05e`tfix(input-handoff): 隐藏验证码框按页面 id 保留，窗口轮询也延续
-0d8185542bab5f40058fa2ae9a583622e83aaea7`tperf(side-chat): open side chat tab optimistically while forking in background
-8b4a2ee4072fe7abda91135d7ce31a1cb983eefd`tfix(sidebar): 展示共享插件 Harness 任务的插件图标
-a7745679515a6a87a15109af6824065e82030c7f`tMerge pull request #11259 from yan-xdt/cindy/zealous-cohen
-b213ca81b422d967be0f8aa99b2772e2b6eacfc2`tfix: match phone Live Activity counts to the desktop island
-ced324a6bff1e1a19c417360e13244925e25c880`ttest(input-handoff): 目录无权限的用例只在 POSIX 上跑
-2b6fa03607ecea3140824ab9535b47c8bc79ce45`tdocs(host): 同步插件最近使用通道台账
-58c7e99d757cb3500cd1d2d0ad5215aeec4c894d`tfix(codex): keep Ultrafast support at the model capability layer
-b034c5cc8e27e6034821ff0113ad4c671015d236`tperf(plugin): 主窗口空闲时预取插件页
-6079d55218ed1d309e3f9834af1704ce99bfed62`tfix(desktop): 3D 模型预览图不进任务画廊
-91c2fa4121465641c8206ccb1b15f6595d4d2aaf`tfix(input-handoff): 等完成条件时的扫码探测只看聚焦的目标窗口，且不占桌面
-86ea41b986d767e9ffb93ba678b00acd6eb4d721`tfix(device-link): 保留列表合并层发送前让路错误并合入最新主线
-434512320f07faf580106156b7646bcd0e5bef70`tperf(plugin): 改善插件页首次打开与详情读取
-87be80008f571ee48c44adee504b7c2a0da2c260`ttest(desktop): 等待实时语音回环测试的音频与转录事件
-1b439681fa2a550c0cfde542023befedd2660a52`tMerge origin/main into cindy/silly-leakey
-85a950be2cbe23dea02f57048985754ed8bd4000`tfix(input-handoff): 已确认的隐藏验证码框在移焦后仍保留
-34ed68b86c5d7e63b4b02675dfbc77cd659de515`tfix(desktop): 区分 ACP 命名不受支持与会话不存在
-57d6daae827b79f5b29bc1daa3f3da69a3aec082`tfix(ui): recognize installed Antigravity icons and inherit task tint
-dc08cbb8464f5f7371f85db4e929abf758fd3a11`tfix(input-handoff): sharp 改为顶层静态导入
-3061a5fc72a2c3f9fde3a6066b4191cfba80eb8a`tMerge pull request #12769 from makecindy/fix/relay-handoff-reply
-399781ce47f6514aabe140df760656c61e443cd1`tfix(desktop): 换绑时新号码被占用可直接改号重试
-89ba26aae39d4b57f5f277a4aeacc288718c4ede`tfix(input-handoff): 只有文件不存在才说本机没有该文件
-0d6b2b080dfde949052b662ee330b25bcaf84679`tfix(desktop): 修复伙伴迁移目标磁盘标签对比度
-65be832c9f08c812ad4d630b209f56032595db26`tfix(input-handoff): 等完成条件时的扫码探测不把窗口拉到前面
-57f1755a04b7e114da5eca50bf80801360547c68`tfeat(desktop): 设置页支持换绑登录手机号或邮箱
-479d1f7d946b111ef376b34faa549230c052793c`tfix(input-handoff): 关闭实时画面后的重读也遵守未满足的完成条件
-9f31165a65217e1e53fdcc60eb76af6cb0b7f1fd`ttest(plugins): 补齐订阅恢复用例的回传服务依赖
-018b78e2ba310a6f39a6a39a5274d6f65381553d`tfix(codex): surface upstream capacity errors early and classify hook stalls
-440781414f3fd6eedbd3c3591c9e3d31fab76d7a`tfix(input-handoff): 识别网页把真实输入框缩成一像素的分格验证码
-bafd4abea3ce9d149b3de7ec19d4b70c18771adc`tfix(desktop): 工作时间线里的图片按时间线顺序进任务画廊
-0c3ff2d64635af3c6dbf3f47f49379d0a5d7d9e1`tfix(pi): classify catalog changes at send and verify queued recovery
-a0bfdc51006adbb35119cc4afa85ed5ad4013f3a`tfix(pi): require a new selection after a confirmed model mismatch
-d23f7534d245b7f6776c708d37e9e9ed9ff55ce2`tfix(pi): 支持按连接和模型关闭 Chat 长缓存
-95f6d2d34d4c8af6968abb2c827126d2476b9143`tMerge remote-tracking branch 'upstream/main' into companion-takeover-resilience
-6180b5d1f65b1e9f74329ddc9433f80304882f50`tMerge pull request #12671 from makecindy/cindy/happy-knuth
-2bcc1db866212f8355f9f0d076f4bc0fcbe5cbdc`tfix(desktop): make explicit cloud companion takeover resilient to missing profile, model, and partial content
-622d623211bc1999cd177d91c21a8b78a8beba8b`ttest(plugins): 验证新任务入队前已记录回传关联
-e8a5f654e9970995fe3debe05a664c2880069997`ttest(voice): 等待实时语音中断的可观察消息
-ef0048781ada2848d3739122cf5ee7a78c43200b`tfix(desktop): preserve main renderer identity across window cleanup
-27a15113e7fbfed29e0de934067577843659ea81`tMerge branch 'main' of https://github.com/makecindy/cindy into fix/mobile-plural-one-forms
-e69621e5c8d3cfb846f5be0ddaaef310eef0ecd4`tfix(plugins): 在新任务首次派发前保存回传关联
-fd5d6babc5d50acfc059a775ebfe2a66f7a9bdd6`tfix(device-link): 按分片第0片到达时刻换算只读请求截止时间
-5a167b48a6da2ce749ae02c50bce0febe1a46c2a`tfix(media): abort upstream requests when remote streams finish
-9559115468797743f04a8f8cc9b9a505c87456e3`tfix(input-handoff): 截图读码接受 WebP，文件不在本机时如实说明
-de31bbb4a331966da54467b25ce972e2b11b342e`tfix(plugin): 保留远程更新与模拟器迁移身份
-f94c0449a80430ff85e888a8c5b010e58fd8450b`tfix(desktop): 工作时间线里替换回复的插件卡片图进任务画廊
-4bc63f4353c8d057b7cfcf3b54b3ec2a1c49f04d`tfix(desktop): 登录后先注册宿主工具再恢复常驻插件
-0e991c7b996820461fc3520bb961cf7c4822fb64`tfix(input-handoff): 有完成条件时，输入框消失不再判成主人已完成
-bb24e78688194bf165bf77642ed7d61c5b5552e7`tfix(plugin): 修正详情数据恢复与搜索测试类型
-b83b249c3a54cfadceebf74f413a11fbff44dfe6`ttest(desktop): type Windows signal listener cleanup
-2338dae00580d648a651f545a567bcb7242990ea`tfix(desktop): preserve renderer exit reasons during WebContents teardown
-f9589a7a878203a6627af12f31c5e188c7bd2125`tfix(desktop): ignore renderer exit notifications after window closure
-206c365da78629ecd32b4306cfce6b861666f5e3`tfix(plugin): 恢复技能页搜索和焦点顺序
-03fb154d4127cb39aa3e4f38be8f8951b192513b`tfix(browser): 不推荐当前浏览器跑不了的配方
-0d40ccb84ce57e078d73a0fbc8231281343ca225`tfix(desktop): 优化伙伴高级配置窄抽屉排版与长路径省略
-4506aaa3bcdc92d4cabb8ef82b492339af4ff44d`tMerge origin/main into feature/plugin-page-v5
-df3f422d72da260127ca590c6273ace393f071f1`tfix(mobile): keep reopened chats pinned to the latest message
-5fd5f542c050ab03dcba3256187e724c2c8987b0`tfeat(plugin): 重设计桌面插件管理与市场
-d2a5b9aae506f205dcd2394fe09abc552aca8b37`tfix(desktop): 上传与工具图的重复项也按第几次出现定位
-34db4f4af4d76d1474cd249491cf76444fd2334c`tDCO Remediation Commit for billythegod <liliang4346181@163.com>
-cde5061ec39c394612ae0c1a5fd57b2b60516a09`tfix(shared-task): 修复重连后运行状态残留
-918e7286e6e23e356d2e67f528f92a0fe4ecd38a`ttest(desktop): cover markdown image targets
-fa38bffb8dcc4103697db4c4a25de59bd80174c8`tfix(desktop): 向插件返回目标能力不受支持的原始错误码
-f3c2f485ab97ad24df8a351af2fd54dd7bc6892a`tfix(desktop): share image recovery with preview
-961ed40582d69c6e3dbb728b35657eb59d7c14e9`ttest(desktop): cover styled local image paths
-216782c4e09185079286e67f75b2745c89df7e36`tfix(desktop): recover local images in delivery
-f1204b5ad62d9a07e1ed6307ea7ec06db1dc8d34`tfix(desktop): parse local image source spans
-f2a227aa5e0f633aa34a87948b9cc449b98823dc`tdocs: record image and outbox regression rules
-2260b5a665c8809ed84563e7bf072705597de1e9`ttest(mobile): cover outbox clear and reconnect
-fac42652af5c5c07281b4fdbb7baa876e4ea1ac5`tfeat(plugins): plugin follow-up runs for word back from tasks an IM turn opened
-80e803ea77026af92cc34b1c2d112ee62fb4ffcf`tfix(mobile): preserve outbox delivery fences
-0410d1f4671aa7ff95c0b4279b89d95819d755fd`ttest(agent-net): cover session-open write failures
-e6db6ee0561c87b3a72e2cac77ba4d9cc4b1883a`tfix(remote-agent): 按当前账号代次合并在途操作
-6aeafc82c8390e36af805ac24596d85f7f0fec4f`tfix(agent-net): settle synchronous session-open write failures
-efbff66a96af11a6ed2bd66db7b79d1d36aca576`tMerge remote-tracking branch 'origin/main' into audit/11b2a812-device-link
-c231394cb1dc07c28e15d6ebb07e1f188caf8058`tMerge branch 'main' of https://github.com/makecindy/cindy into cindy/brave-goodall
-56e2272b29cb29ae9ca04704334408eaa343a5a7`tfix(desktop): 任务画廊只收回复实际显示的图
-f9bbbe896231b5ccc4c9c2497aa007483f650a1d`tfix(remote-agent): clear stale busy state after idle reclaim
-e82da6ef189e1987d3de0a7d1aa8400e153a443c`tperf(session-import): abort the frame read when a prefix consumer closes
-4c48ffaeb3acbdaf2b15d36d54e947b78229ae78`tfix(desktop): 修复已登录账号新建本机伙伴工作区位置卡片被误判隐藏的问题
-1af01285eca50943c9b25b4293d784a4e3f1f8e4`ttest(desktop): query the cloud wizard model row as a checkbox
-fca6a8ebdbf852848faa79e6e34415b4f7277119`tfix(remote-agent): 及时退役失败准备并统一分配队列边界
-fc00e9a89ad60ab6285e49e37031a2ef7ce73e39`tfix(desktop): 按回复分段位置区分重复图，不再按文本
-fceffd82199b3e2963f25804ec706ea48ebbab9a`tfix(desktop): 被撤权的排队插话只判该消息未送达，不再把运行中的回复判为失败
-df7281e6058c2ab33e0675508346475562904e6a`tMerge branch 'main' of https://github.com/makecindy/cindy into cindy/silent-darwin
-236c8ea4218c2b850766a3c5ed2bca07f227c508`tfix(side-chat): preserve historical provider on rebuild
-3202ab384b7a8e6b9586d68ffd04fd4c05c9c7bc`tperf(session-import): batch zstd block writes to the decoder
-f736cd155f0a7e8d3d7d8c2e8fcfe6d712c26dca`tfix(plugins): align session state lookup with local event eligibility
-a377b6b57d60652613bd0884e205297e088d3738`tMerge origin/main into cindy/radius-presets-components
-d5fd54ae7d89b00edf0d5fd5d2d6e0f0c9b27ee8`tfix(scheduler): 插件引擎绑定运行被拒时发出失败通知
-a21a7034876e7fa6d9691184234b0e5e86b2af26`ttest(ui): verify the Antigravity mark for legacy remote engines
-482a0d3f8a0a4b64c48c0972be2b4a5ac38c8144`tMerge origin/main into cindy/radius-presets-values
-41bfd3cf099ffbe5e346bc18b1853464e46fc84b`tfix(scheduler): 绑定插件引擎任务的自动化在入队与派发前准入引擎
-e6995d89787ce0434ea7e7b755ae2696df76d502`tfix(desktop): 隔离桌面活动埋点并按整秒上报停留时长
-a5a64c87918635a656e048cad5bcb38e03d07684`tfix(remote-agent): 在解码前保留打开请求的分配边界
-b45f9af9c2ae6c86626a3e7eb6e2b6d85e359bda`tfix(desktop): 任务里只有一张图时也用任务图片集合
-aa7d4959b1b15dbdd8669b882b54268694a3ce3f`tfix(side-chat): recover forks across harness switches
-ea43d5af73a3ac8a394eb1f25e3443514f00cb3a`tfix(ui): unify the monochrome Antigravity icon
-e7d0973bf61986011f75567eb5542c74a071c729`tfix(plugins): exclude remote-agent sessions from lifecycle queries
-74527f62a2411ce05ccf26d2d6a532dd3a870f7d`tperf(session-import): decode zstd frames as they are walked
-31b4fd0ba757396ec57ab8ba288baaf04de3ffb3`ttest(scheduler): 避免把测试注释的 issue 编号识别为色值
-97ebdc5c7b887a8fc490ead8ed625afbb0f0119b`tfix(scheduler): retire a resume cancelled during startup
-bd8aba8b36ac25a46733c44b02129f8cae7d238a`tfix(scheduler): 绑定插件引擎任务的自动化按任务续发消息运行
-e58c31b8e9013f603b9e4adea4ab3946697cbc4d`tfix(remote-agent): 合并在途重复分配，避免挤满共享操作队列
-f8065f1fd9d8b3064054ccb6ee47f09a25db0e54`tfix(device-link): 列表续发前重新校验调用方守卫
-7c49ae6de4b828bd6c7f16d62381ea8fc13b2f2d`tMerge branch 'main' into fix/multiframe-zstd-session-import
-99ace5848677f22f40edd4fce77807165805090a`tfix(scheduler): 按界面语言显示一次性自动化补跑提示
-e63bc011c97141182762c981da104f0f3c4a3a84`tfix(desktop): 重复回复图从点开处开始，查看器里后写出的文件重新加载
-b65bbd52448b3f0cc1c12168070ec15736605a71`tchore(ci): retry Windows checks after unrelated Pi probe timeout
-a1bb4740d9654d2101d2814c173b69dfe3ccf726`tfix(scheduler): retire an unverified Codex replacement
-350430c46fc53724b9d9e473e09c7bbefbb3af69`tdocs(plugins): record built-in session-state guide revision
-ee05e08ef72dd36363f6be0c6e02876e19e57237`tfix(scheduler): preserve source and busy outcomes during rebuild
-25f28f9c26edb9c90776e818781009fed160b232`tfeat(plugins): allow session subscribers to query lifecycle state
-a5011a56f91b7c9f8f904f825c0ed147b00cf91f`tfix(scheduler): resume the bound Codex thread before dispatch
-5e5b304fd50311b2470235a5dd040a063e27892e`tfix(scheduler): 说明一次性任务切换模型失败后如何补跑
-d035dd080a27206e2b0c42beabebed53ee996b73`tfix(mobile): 修复伙伴对话生成图片反复闪白
-c1cdc8c8701704c06a4c89618d59d70ec0702bec`tMerge branch 'main' of https://github.com/makecindy/cindy into cindy/brave-goodall
-e110b4caac77c676ab9dcc1e45930ad06837e5b2`tfeat(desktop): 任务里点开图片可跨回合翻看全部已加载图片
-6e8930adc79be447b0ccb82affe37f5491fb5628`ttest(desktop): 用轻量编辑器验证候选目录换行
-8c9316f883f9b83d979978e85b62ea0419ccf73d`tfix(mobile): 将伙伴回复时间戳移到同轮处理记录之前
-dd3c7bf9207d9bc219437bc3cd3302eae3cc3a22`tMerge origin/main into cindy/radius-presets-values
-239685c56298d9e462445641d9ab3fa14284f0c8`tMerge remote-tracking branch 'origin/main' into audit/11b2a812-device-link
-2accbcb71a15a2027b4ac1947d04f7e3846b07d1`ttest(codex): isolate reaper fixtures from the host platform
-b61cdccb79722e7d54cf1c2b39165c92b4e22ee2`tMerge main into the Codex tool reaper fix
-89e2dedc513a9492f1da42994b235f8fe014e638`tfix(i18n): 校准伙伴工作区迁移 12 语言语法与同页术语一致性
-df24e0777a863f599b25f5135c1c4e5d4a0729ed`tMerge upstream main into automation plugin follow-ups
-62675b64f47bac936d946d0f3206e2ec91bbcb49`tfix(desktop): 优化启动页迁移字号与多语言排版并修复离档圆角
-bbf0de6c3fae6d3967ce175e070bdb62ecf183ba`tMerge remote-tracking branch 'origin/main' into cindy/happy-knuth
-aa2646f174d760f79cb7a0bf5db73aa979937909`tMerge upstream Codex MCP readiness fix
-938138b50124fd4da601f4ba774d4452605693ae`tfix(acp): preserve user text and sanitize custom commands
-2c20aab66a719ea2c1db259d1f7e77485a09f470`tchore: 同步上游主干的 CI 修复
-df6581b79a910d54c9fa7ab148f0145b8ff5a339`tMerge main into fix-12423-openai-api-fast-models
-de7423574e9170596bfa73ca6ae5c14d63d08126`tfix(codex): preserve Ultrafast across model-list edits
-4fde4fee216f26ddfb0e5bbfc99478222527fc08`tfix(session-import): accept zstd Unused_bit and isolate DSH_HOME
-1ee00fd3836e9dcfecde343180e09c960bd71680`tMerge remote-tracking branch 'origin/main' into cindy/happy-knuth
-0755be66730bf52da0902d250febe4018e06b23d`tfix(codex): bind Ultrafast confirmation to current credentials
-8b159d79a9a87eb3b23357fbd35127d5fdf570db`tMerge origin/main into cindy/radius-presets-components
-f25d306eafa9a928d0abbfce87012f22a4c5aa40`ttest(desktop): read the realtime model checkbox state natively
-df79a151557b7f1c7b600826c76b3ab692e5c6ea`tfix(codex): require OpenAI project confirmation for Ultrafast
-4325a8f2dddd9b703ed68de7e8796b16c0fab52e`tfix(session-import): bound zstd block scan overhead
-0a04a3e335350f00b652637db39d0bb69e5fd1a1`tfix(desktop): 对齐 Bots 圆角阴影、动效与字号设计契约
-a1763c39edb9c53673c5d39f9a9ca90253d7f9c3`tfix(session-import): read concatenated DeepSeek zstd frames
-450389413aa2130d4935e4becb3da89ec99a85b0`tfix(desktop): 修复候选列表打开时 Shift+Enter 无法换行
-6d78a946b0206caf252aff210969c4f268c01006`tfix(acp): 防止宿主注入说明中的斜杠指令被插件引擎误触发
-8cd30583a52f8bf2d0f0732a6d1d18e2fc726a62`ttest(remote-agent): 补齐业务回传状态 mock
-7734efb946d6b3b502470356a1fbe0babaa914f6`tfix(device-link): 保持在途恢复时的会话读逃生并收紧快照缓存上限
-5d1aa9bc0b31e8fd43ff3cb285209330c07be588`tdocs(design): keep the inline code entry clear of neighbouring edits
-fca5ea2306906579466b4324a111aee1fc02f883`tfix(device-link): 消除慢中转大回包阻塞与远程 Agent 误断链
-8252fbbe09f25145e1a987cf358e3ed5b8d3f017`tMerge origin/main into the Codex tool tree fix
-ad78f392a24c20d3168c6c97859ddd31595b6632`ttest(codex): pin quit-time registration revalidation
-0edc8d09384293f8726371d7e2da2df137dff50f`tfix(device-link): recover overflowed sessions and preserve listing admission budgets
-f752707c3abd35ed447fe2c33a9a8ca1987edd28`tMerge remote-tracking branch 'origin/main' into audit/11b2a812-device-link
-c0ffe15c103fb3aabb60bd6cfdbe4c26e8bb22c0`tfix(desktop): keep the web comment colour swatch at 4px
-5dca924d035871a9f40eaa1dd761a637df166f79`tfix(device-link): keep coalesced read retries and streaming ownership bounded
-46e7c467bff7e3fb74199472b1a2b698aa1810de`tMerge commit '8128adc78886e1f395461441a78468c463e7df57' into audit/11b2a812-device-link
-69c1e309619bc58d9d11cc8a1b571b52bc5e0060`tfix(mobile): 数量为 1 时礼品卡、模型等计数文案不再显示英文
-e7370ece06221f3ccb286c0d50b475ba47534e7d`tfix(desktop): keep the mail attachment thumbnail at 4px
-cd5083f8d1192977597f6cde83955dddbe90fbb6`tfix(settings): find screenshot shortcut by screen capture
-c352d80d3d697a399f4856972c39d0278b9b07b3`tfix(desktop): 对齐存储空间伙伴工作区卡片样式并归位路径控件
-7b5a70bce07c0179135669e44b3e6b05a182a8ce`tfeat(desktop): 补齐伙伴工作区迁移与默认目录设置 UI 及冷启动进度页
-4051db22d8073a6f8c061e04abb9eaeba8e3ffd8`tfix(desktop): 修复伙伴工作区迁移路径校验与性能并支持默认目录解耦
-ca9efd7019f8eafc40c9fdc0dbc55b97b63ad852`tMerge origin/main into cindy/radius-presets-values
-cdb08e381a438b1615e5146103ad068f4bd3cc10`tMerge origin/main into cindy/radius-presets-components
-db1c745a66335498a0b3fd4e9061590022c24200`tfix(device-link): 弱网可靠窗口防积压、列表单飞续读与只读回包安全退役
-6f8e309d768e60d476f86a95687ff6c3470ff541`tfix(codex): reap proven tool trees when a full process scan fails
-8a36eaeace30bb716d8bfb720ddf39de61849611`tMerge upstream main into automation plugin follow-ups
-22935fb0f5266f0a1b3dce35d60c6ac530383bb6`tfix(desktop): 保护伙伴工作区迁移提交与同步
-7b904f016d17f68eb0ba01f92f9c91a4fe6926b4`tfix(desktop): refresh automation plugin choices across instances
-8d83918dec1be707fa333205d91a34adecd39b0e`tchore(desktop): 同步主干并保留伙伴工作区迁移入口
-0c979a6617641ad532da5ae5a0e9126d4de4db47`tfix(desktop): preserve scheduled builtin engine switches
-4a8cdae69e112c909cfb2822e174e71b7c17e9d0`tfix(desktop): arbitrate automation bindings in SQLite
-fb6f04c5d190e44ff45fa920f59dfc9c9b32af65`tfix(desktop): keep automation route changes consistent
-fc6723eb777ee090197e07505dea4ab266390a4f`tfix(codex): support Ultrafast on official OpenAI API routes
-ffc5f90870ef4bee91a1f93dc8f1b3b7bb3d061f`tfix(codex): enable Fast for all supported OpenAI API models
-5fad632cc66eb6f52eb6002715e75b3824c70750`tfix(desktop): allow plugin engine follow-ups on completed automations
-e4967f15b8e1ea288893d62d7d133110c9429b99`trefactor(desktop): 手写控件换共享组件，圆角例外登记
-27c32cab7e5ff1e50528ec5949ce047acd8d04ad`trefactor(desktop): 预设圆角类改到刻度值
-472eefc7c1163bdcad8a77fabf1e88d4c414df0b`tfix(usage): 新建订阅供应商不走按供应商的额度通道
-8a1864c7c1fd9b86b6dabee9ad5e40fe1f9daa6f`tfix(usage): 新建的订阅供应商也显示账号额度
-9dc7cbf4dce85769d178f921e0e021defca95130`tci(windows): 复用主干的 pnpm 锁文件校验结果
-16a8eeef5fd279142f0f820d66a0b9f9b9555e9d`tfix(desktop): 识别工作区迁移登记进程的 PID 复用
-3f33422e68fc3c3792f749e75e2e7764bd68d9eb`tfix(desktop): 避免工作区恢复回执失败阻断启动
-5ce3cb8dae2b8f9ca21e9193728fe849b495a86b`tfeat(desktop): 支持通过 Agent 安排伙伴工作区迁移
+59d46dee61f2503dde1a090519d33b8c3920f0a2	Merge pull request #12938 from yan-xdt/cindy/trusty-jepsen
+3852bcadf2cacb90d60aa2daa908df19be480592	Merge pull request #12915 from kirozeng/cindy/share-circle-checkbox
+7cb4a37d6fff5acad07e264fd6c3d221f59d1758	Merge pull request #12930 from makecindy/cindy/tender-jang
+bc1dc4742bb50002f93ffda4774d80012266ce48	Merge pull request #12922 from amanayayatu-tech/fix/12920-pi-new-task-model
+68c788a2225ba64c0555154db739f59c6b6d6220	Merge pull request #12799 from makecindy/feat/side-chat-fast-open
+916dea8da0b5cf029020595113e1800dec61986f	Merge pull request #12195 from Binaryify/fix/created-subscription-provider-quota
+bac9d68f5d421245517abf585d0c86b15957defb	test(desktop): 隔离 Windows 认证与项目探测的原生进程夹具
+9c05566e31709646d731c545319191cb40867925	Merge pull request #12917 from zqchris/stale-pid-proof-dedup
+00aeccb400dd1012f75da014c0dd5fded14ffedb	Merge pull request #12913 from zqchris/builtin-skill-persistent-warning
+f3c4eddf449f9f96c656eee8634ebadad809e58a	Merge pull request #12910 from zqchris/codex-reset-backoff
+8617324da1caf96060e821d6044c6ed8d84d2365	fix(desktop): match selected provider icons to the rail background (#12905)
+aaaac809466b71dc08d64dcce9037ce1db7be8cd	Merge pull request #12899 from zqchris/cindy/epic-darwin
+33f5cae6bd0e773c994e02a1b9c216e1eb7ffa46	Merge pull request #12898 from xuzini-xzn/fix-client-cny-reference-prices
+b73f805a193cc2d589cf7f5e4da0d8efadeb4bc5	Merge pull request #12901 from amanayayatu-tech/cindy/keen-panini
+535a7746b031481186c89eab35c3a3de0038902e	Merge pull request #12900 from amanayayatu-tech/cindy/lively-panini
+a87ce808bbcc1c2f858c22355e972a484917a758	Merge pull request #12890 from yan-xdt/cindy/stoic-lederberg
+87ae13e7a0e771f0b68303f8f81c209f6a3f6ca2	Merge pull request #12886 from makecindy/cindy/quirky-morse
+f1dbfe416b4ba6dc0f03d0689820fcf934336ad7	Merge pull request #12888 from amanayayatu-tech/cindy/12883-turn-lease-sincere-hopper
+622ac36dea3f28fab47e42c16fd69fb43b0c2e4a	Merge pull request #12884 from zqchris/fix-auth-undecryptable-vault
+27bb32188d6ddc519516b8e5c3018cf87e27f3df	Merge pull request #12820 from makecindy/cindy/plugin-engine-parity
+5122d5726047570e01fd779a3da7138446dfda4a	Merge pull request #12818 from fmfsaisai/cindy/cheerful-jepsen
+79ada19bc12b1ad6c51911bcb80c1d5e0ce49913	Merge pull request #12789 from makecindy/feat/account-contact-change
+803e14c53301198ee7a68939e2dddad6e7d94dd7	fix(pi): describe the discarded frame without assuming its type
+4287a9bf404009d1f10de74d8154084fe35a3ba2	fix(pi): explain undispatched retries when history cannot be read
+8213237ac4f4bd9c395bd6ad2bbb76fcc99b4097	Merge pull request #12591 from xuzini-xzn/cindy/quirky-galileo
+328caf863dc3ea8b05c3e53eb9a6b69d70378761	Merge pull request #12587 from nanaco666/cindy/upbeat-thompson
+49bd0f671ee695b501a44e14cdfb095d772019f6	fix(pi): reject unavailable OpenAI models when creating a task
+f3eebb864972517afa19c5e42d67008110c33684	perf(desktop): deduplicate stale PID reuse logs and extend proof TTL
+aa7b27167dab7f84b688ab95911274780a95c204	Merge pull request #12877 from makecindy/cindy/sweet-wozniak
+621d207632918c469778cda1bbbc659390aa90e7	fix(usage): ignore routine usage/load notifications when clearing reset backoff
+25b667e48109ff27a7199c2e938a280a72317b75	perf(skills): treat kept newer built-in skill bundle warning as persistent
+e9317c24bfef92497824b1bd1105b0816e4fc11b	Merge pull request #12856 from makecindy/cindy/quirky-goodall
+5fa5335ba664da3d9ed6cb1bbefaa931f049b595	fix(usage): back off failed Codex automatic reset checks
+31140b3bccb37278978c493de1505c38497919ce	fix(providers): revalidate Pi pool routes before dispatch
+316c56d220da9b5339d3e36c91a906a337ddc961	Merge pull request #12844 from zqchris/chat-org-identity
+51714134d2213404ef9da8cb0fa139fb69164c0d	Merge pull request #12841 from nanaco666/fix/desktop-group-thread-preview-dot
+30b16b8016d6206c978e1d6e558e3161cf6cbdc1	Merge pull request #12836 from amanayayatu-tech/fix/issue-12828-db-rpc-diagnostics
+65b7f2c8e19317e7c601e7401015b390177037e4	Merge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
+c828f238f9b01737c6b3564667ae0e54f1a5c149	Merge pull request #12831 from makecindy/cindy/jolly-ritchie
+0d8f49a2f65a934bf784feab2550262299293094	perf(side-chat): speed up copied message ID generation
+650ede7feb8d2202c2d011ea7590510d7b9988e3	fix(mobile): distinguish unread Android plugin directories
+1926a0a5f6703c73e875e592a44d13b03819ae83	test(feishu): 保留模拟句柄路径的 UNC 与扩展前缀
+647974704c12b65d631010ced242837b1fd1e43d	docs: 补齐伙伴工作区迁移能力台账
+458ea37495b40b02c5bc9cf073540eb25e716aa4	Merge pull request #12826 from makecindy/cindy/witty-galileo
+35307ac173d70ffce219fc07692f81a011f8e763	test(desktop): cover Ark reference routes without model descriptions
+d549ff1e6eccbbc7c2b1b6d0a3a09cb38a6af6a1	Merge pull request #12823 from makecindy/cindy/warm-colden
+01cd30d9f038fe7fb5c1efecd95300d4f70b6816	Merge pull request #12807 from makecindy/cindy/warm-darwin
+82e6f3251fb311b1b9e40062780626ed235714dc	fix(providers): keep hosted Pi grants bound across transports
+c2cc2fcec397b2fed818e08b4f2ce2d114ab7cb0	Merge pull request #12817 from makecindy/cindy/zealous-thompson
+35a5d0986bb43bf812dd785a349d9e2a50e9f0ff	Merge pull request #12821 from makecindy/fix/inbox-archived-time-order
+75929e57cb73cdf537be9b30fce7a9918727c32c	Merge origin/main into cindy/plugin-engine-parity
+9fb2df450201dd437d4b591f9151b3725f2db2f4	fix(subscriptions): 保留同套餐额度更新期间的 Codex 模型清单
+e134b7b2c06c41094b9c4777228d20414a3ff7ef	Merge pull request #12791 from makecindy/cindy/humble-morse
+5fc95fde28cb3a6323359417bc420af5d6fc8e22	Merge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
+a5dc020951456860d05a2c93b358eb1c576845f8	Merge pull request #12773 from makecindy/feature/plugin-page-v5
+c76d145a292cf02b0fbfdfc852509691ce55ec9c	Merge pull request #12783 from makecindy/fix/codex-capacity-stall-and-hook-classify
+4714a1caea78192c0143b943747028c1b8fb04da	Merge pull request #12780 from zqchris/input-handoff-hidden-code-field
+9d21262ce1d32765c69884ddbe3d2893f8643d71	Merge pull request #12766 from zqchris/input-handoff-complete-when
+7c602b8a0dca4d9facd10f9d4b20278188b1cfa2	Merge pull request #12757 from makecindy/cindy/peaceful-borg
+a449871e0ae0baf8367f32a28675c7f07917e75a	fix(auth): retain recoverable backup until vault write succeeds
+808b5f11cea4dd22a1aeb0c9235bec4e2dde6819	test(feishu): 在发送完成后断言继承文件身份
+d5e608ee322e8d04c317ef148260736c634baf3e	Merge pull request #12878 from makecindy/fix/agent-net-preserve-custom-name
+03bbde25aebcbacea5fe4421fed1d99cc214638e	Merge pull request #12644 from amanayayatu-tech/fix/8494-screenshot-search-alias
+9cf463c1de99d2fff4acf7f54d5fd9aff2b6dcff	fix(desktop): block send when an automation engine switch fails
+9053b272ad4a457db2ba84dc6139c098c150f6f5	fix(model-providers): sync Ark and TokenRhythm CNY references
+37a11ddc3361fc7afb9e63cc9a1fc079ab2e6714	fix(providers): keep hosted Pi child routes independent of pool leases
+f05d5789c00b9f5ae076b9e06811f1a3b515913c	test(feishu): 区分路径证明退化与文件上传复用
+8922013ded7de54b50de4846c30e49b0e58752f2	fix(desktop): 换绑按窗口隔离并遵守限流与账号归属
+7eb2fe4bf55c6fa11e32f7e97f11176177789e43	Merge upstream main into automation plugin follow-ups
+49d07bc965a621313154335f141746ae2e1c2e98	fix(device-link): advance mutation generation on write completion to fence reads started mid-PATCH
+7b242d18fd6623a93803d463d8c68e12d41e7401	fix(auth): preserve recoverable vaults and restrict replacement to fresh login
+d802125d682dd01828960e3a6ab9b04c0736823e	fix(desktop): reconcile a committed turn lease after a lost reply
+b09663e34b51340669af85d6eb5ef6c7b66f3d9a	feat(agent-net): add dual-region official STUN discovery and optional fixed UDP bindPort
+23ee68debe703dc857257f352e6620e48fe021aa	fix(side-chat): generate temporary IDs with Web Crypto
+ab2641e6c3d85029247e3216f48671cd7c954cea	fix(auth): recover undecryptable vault on explicit login and fail fast on broken keychain
+e2dfa916f24614a762f3d79131b38c19aa233c3e	fix(device-link): address review findings on backfill ordering, partial legacy reads, and mobile V1 PATCH sync
+774d636c5fb12994e5cb1b343af4570f497151d0	fix(providers): keep Pi pool authorization and replay identities exact
+fdc9a4b65dc65002fe8b1ab93deb942aa235d910	fix(device-link): preserve V1 custom device names when Agent-Net is enabled
+e136a3047baeb4a7e6aa3f8e08e388f358d007f1	Merge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
+428bbdd03536dd24e8d3f2f4539fdd3a1bb0df71	fix(plugin): 安装确认默认展示全部权限
+77f1fe8eea5097f638f8145387d45f175a983da8	perf(desktop): keep local text selections within the message viewport
+6874c29d9fe44956b7b690e2bb6091798fb338b0	test(mobile): bind drag state in entry positioning fixture
+e2b26ee2a90148fee90f4092589f90a53d5e697f	fix(im): read plugin engine permissions from the execution device
+dadf5bc5e443ef9c775a232a239e1fbe85259f7b	Merge pull request #12829 from makecindy/fix/cloud-cindy-node-host-parity
+1bb66f1a307a742fa12627430038f8ed08e7f155	fix(side-chat): send selected quotes to the active draft
+c2ceb03cd2276a27dfbc541bb8a4adb9c83f2de7	fix(mobile): retain fresh room badges when snapshots fail
+44db4f3ad6547e563acae3e215c90e9d499000f1	Merge remote-tracking branch 'origin/main' into feat/side-chat-fast-open
+2d71d6961f356e2a20edc574af55686a58a3e7c8	fix(side-chat): confirm tab binding before dispatching the first message
+2126ad063b73dfeb22577682ebf22944cf03376c	Merge commit '8101bfa05561a37a03ef2f2fa241ae1732181450' into cindy/cheerful-jepsen
+0155387931e3af62f5d904c4b58bf0da4b9252b8	fix(providers): fork native history on its bound API key
+c220681133815b35382efb58f5be93bb01f3e8ed	fix(mobile): scope viewport expansion to its drag
+6b089ffd6abc4e4b9166fdf00fa58ea30346c915	test(cc-agent): update send callback harness for creation state
+c5f3d51221406c4d26bfe4c1328c7e13044b0a90	docs(acp): 按 #12798 更新插件引擎回收的起因说明
+8101bfa05561a37a03ef2f2fa241ae1732181450	Merge pull request #12819 from amanayayatu-tech/cindy/gentle-borg
+abbd7500660a813e88a9700a17187fdad112b6e7	fix(group-chat): resolve mentions using visible enterprise names
+b25376a71344286c2febe21bb94c15b2bd7d3700	Merge pull request #12808 from amanayayatu-tech/fix/6430-android-video-webview-scroll-pensive-panini
+e9fe790dae5e3ba7e4986475c4f1f8d85c4d779e	Merge pull request #12803 from yan-xdt/cindy/clever-newton
+55686479037d172e9335103bf03138eb4e9dffdb	Merge latest origin/main after resolving Device Link conflicts
+952bf7db927170000096c3f5b86a862fb5247ee4	Merge remote-tracking branch 'origin/main' into cindy/plugin-engine-parity
+089316da524978c6ad64eef4ab3a626ad5ced77a	fix(plugins): keep plugin-engine IM tasks on their engine and refuse unenforceable group policies
+af104f834a6cba19f48b7ed1b30537295dd4b7ac	Merge pull request #12806 from FicoHub/fix/12800-turn-lease-diagnostics
+f98d807b559ca60ad21287814865bf38f081f4d1	Merge origin/main into fix/cloud-cindy-node-host-parity
+962480bf76109eda691699e23d1fb68140017fc7	Merge remote-tracking branch 'origin/main' into feature/plugin-page-v5
+f821308d14d444be4e5a8748e9c2d17dae3c8cae	Merge pull request #12796 from makecindy/fix/mobile-island-count-parity
+98ee7ad9b9d30524703d7132c791d7cde8382b95	fix(settings): 云主机只对组织成员可搜，浏览器打不开时提示
+83379113be2e744c5dace5ef15bb1e049bc10add	Merge pull request #12830 from makecindy/fix/host-desktop-task-handoff
+c329c7501efc4e93512307bd7ff67f62cb109689	Merge pull request #12777 from zqchris/companion-takeover-resilience
+0cabc2af72456a4725d8c1549607635f8f0289b1	Merge pull request #12853 from makecindy/fix/agent-net-standby-measure-cid
+b98401b372b7a645225e80ae25c039e73a0dcc4d	Merge pull request #12765 from makecindy/cindy/fix-12758-renderer-exit
+409ba7c1ff4de761d9ca78804008bc9d8f01fd3a	fix(wechat): release abort listeners after polling delays
+608bf34bb40f2506f58be29046f98b327de81ef4	Merge pull request #12772 from zqchris/input-handoff-picture-webp
+248ca17ff2161010588dba4cce46cbe5bbf1b22a	fix(input-handoff): stale 重试重读也撤销变歧义的保留键；归属不明要求缺的正是仍在页上的隐藏框
+29c07be31b0b707100d0cbd9f6d00b47009237ec	Merge pull request #12735 from xuzini-xzn/fix/antigravity-icon-surfaces
+17d53f6b1167d23e4ffb9e6abc61c4989576d91d	Merge pull request #12724 from makecindy/cindy/brave-goodall
+8576f5394d030ed8879a0c719b314027f3546c04	fix(desktop): show the shared spinner while the model catalog mounts
+ffe9f75cfa7ccf4d85effc4556b29f47971b883b	fix(agent-net-core): keep standby probe response connection IDs while in flight
+193e4902fd5e3ce618f56476a623a1712a7935e2	fix(desktop): use unitless line-height in BotGroupMentionCard org detail
+ca117b4e726978842094caffba8fd340e003fb8c	Merge pull request #12725 from makecindy/cindy/quirky-kernighan
+afae1250dce967ebd06a82cdaacb73bfc5d6be56	Merge pull request #12722 from PraiseZhu/cindy/silly-stallman
+9dc4b4d63d9cb48b49ebd95b555fc3471492c1a7	Merge pull request #12713 from WZBbiao/fix/12479-queued-steer-revocation
+7d00612e85e3948079bd0b5772e8deb1dfe57036	fix(agent-net): add hop-1 full-size relay UDP probe and isolate per-peer stalls (#12837)
+672f74c63c8c402b698864df4dbabf2964b2368f	feat(group-chat): display enterprise real name, department, and external badges
+3c584cc4eab2489d606201545e10375cb2530d11	Merge pull request #12720 from nanaco666/cindy/silly-leakey
+344d877b38331497dd7eb1987b24efb65281429e	fix(desktop): 修复伙伴设置抽屉重复显示头像和名字
+d1ade42c47d2032726523a59c3448a97641fe6f0	Merge pull request #12697 from odoalive-art/fix/multiframe-zstd-session-import
+f290c3bbde09561f8840910d4a19c9914c00d426	fix(input-handoff): 提交前重读同步撤销变歧义的保留键，命中完成条件时不判归属不明
+bba677ab6412a84c6534da7b4b2e2822c2e3320f	Merge pull request #12550 from xuzini-xzn/fix-12423-openai-api-fast-models
+1d3a9ad7b55bc32d2e276e789ec827589662fdbe	fix(host): 保留委派的供应商和计划模式语义
+e8bc794db7dc74a6e6634284bf8706958467fb5d	Merge pull request #12683 from makecindy/cindy/acp-briefing-slash-guard
+c0a8fdaed30a0fe022d80a3f0547e370bb8aa170	fix(desktop): defer late catalogs until the picker shell paints
+fd6ec1a6e784b9378f930b9bbdfd62088c98a5fc	Merge pull request #12658 from makecindy/audit/11b2a812-device-link
+d29e1f7f88dc1d3e2f797ac528b5513685a5612d	Merge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
+e4e88161e778015715af5f5aa9a35827f05fefde	Merge origin/main into fix/cloud-cindy-node-host-parity
+bdc80e525a7ab1ddf5e6abfe7b33473a6978fa39	fix(host): 提示企业登录的区域回退和重试方式
+8baebe95f5fd55201732704e9be16c551967d248	fix(plugin): 修复排序页回读时丢失插件
+2d1cd92cccccc945e9fde1f921e18260f21a39e5	Merge pull request #11246 from zhuoshaojian/fix/remote-companion-x-guide
+15f9fcfa37e1306d5ef7d2f0b10b2d8e65668243	fix(input-handoff): 隐藏验证码框的保留键不含位置、只记唯一键；归属不明只在别的字段都没变时冻结卡片
+0d1c67df35877c5cd2e048c813ae148aa04043f1	fix(desktop): 移除群聊话题入口回复数之间的蓝点
+251a01da554459fcbe97e341bb959912a82465ca	Merge pull request #12654 from xiunlee/fix/mobile-plural-one-forms
+80cbee4b9642e9d838027e08d7f1480ccc0587b8	fix(mobile): 在渲染时本地化建任务失败提示
+a93aa4f0f38df7a91b84fbe3c9af05b3dd87342f	fix(host): 在设备上线时补齐 CPU 和系统版本
+67ba2e41ced55a0291005471d65dd4aaa9d9ba08	fix(desktop): correlate timed out database worker replies
+41890e98cfd01b26b59ab587d4d63635a6a0663a	Merge pull request #12815 from makecindy/fix/remote-file-url-spaces
+bdc9a14df70825fa89bd623e99edc7ffd3619fdb	fix(mobile): preserve follow after keyboard drag dismissal
+3d9f2f8a615c4f98d118f952818b9615731f42b7	fix(host): 明确派任务入队前目标消失的回执
+296655a03fa4812adcc8720af816cbb902a0264c	fix(input-handoff): 隐藏验证码框的保留键只在唯一匹配时生效，分不清归属时中止或保持等待
+2b149590b65bec70e98dfcb63657e2a754911eb7	fix(side-chat): keep session gate bypass through child handoff
+252147554c46bcb1eb2b2e83b3883d164240c2c5	fix(desktop): defer the primary session view with its branded loading mark
+ff78b4a630a351c36ba21de203b0fdf252cac372	fix(desktop): 显示本地文件夹市场插件的包内图标
+3ce57fbb07f177ed522d99d0d91a0c570c783d73	feat(host): 支持桌面派任务并读取云端任务历史
+27fe34e9fa5464d5f789acd192c95bb7f9584add	fix(input-handoff): 主人切到看画面后丢弃在途的扫码结果
+43366e6c45e7d9a02896f8690f055760edaa4bbe	Merge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
+6b649af849f810fdae47f1abc73648e75241c4da	fix(providers): recover direct Pi connections and preserve detached task routes
+dbcf775723a60546df69250ca54ddbb780fc361b	fix(host): 补齐云端设备状态、引擎提示和企业登录
+844e75cdee659fbe4140f66dc924fbd0ce3c063d	Merge branch 'main' of https://github.com/makecindy/cindy into fix/inbox-archived-time-order
+706d20f6b7891d114fb50f6867a1c8095c535930	docs(inbox): align ordering guidance with time sort
+f21602b9d7d660cbfbf7cfd8e7ea4cc8c251f405	fix(desktop): 迁移前说明 Claude Code 上层技能发现
+7f07dea16d3388585a3cb1e088605be90fe3811b	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/zealous-thompson
+71ffc6b3250d50f69f649c9fbd7301abaa18bffd	Sync verified upstream Windows CI baseline
+c51894bb6bb95aeced3dd8a42657d943466447af	fix(scheduler): handle long Node crash paths
+0b092b2e368c87e1e4e89d482e7a0d9193ae9ba8	fix(desktop): let the picker opening transition reveal its loading state
+eb5ca82acc59e53e157d579576ec774561ac3134	fix(desktop): end history feedback when the initial read settles
+aabf8f9987ab66f0e8308d262fc49a24b7aa05e7	fix(input-handoff): 无 id 隐藏框的位置键带上所属文档，延续判断不比字段名
+98c3556a6106f4aacaf242ab82d93432af8de85c	fix(desktop): paint task and model picker shells before heavy content
+79cdef25d1b771951bcd1812e201124d345b0c45	fix(remote-agent): preserve punctuation inside known shadow directory prefixes
+4f10d883025bab2db9e9c4b14f8c3db7c02e45eb	Merge remote-tracking branch 'origin/main' into cindy/cheerful-jepsen
+ff71a62e1733d3a685739d901106b5b0eca898d1	fix(desktop): 换绑入口并入用户卡片 ID 行
+9048ecd0020cb23d770cb9fe1d3622c039791f3a	fix(inbox): order rows within each section by time only
+75e1ada6fa574caf58b34e54942c6fe649fbd1b6	Merge pull request #12776 from FicoHub/fix/lizi-12771-pi-compat
+b41d1a4511b514dec9c63c91ccb599310eba6f85	fix(input-handoff): 被动探测返回时卡片已换步，不再恢复等待标记
+d72ab88131485c519d6473409d4df732b11b3cae	fix(side-chat): preserve optimistic sends across fork edge cases
+d3993bbc5bc058c206a356f8f7a531a6c1aea859	fix(orca): preserve Worker status during Codex manual compaction
+5d171e862cd97a1bd25a6c6a6e6e320165de76d4	Merge pull request #12782 from makecindy/cindy/tender-edison
+87e64f5586954d43a3bb4bbea2d04651ca37412d	feat(plugins): support plugin engines across worktrees, titles, Learn, goals and IM
+6f1273c1a43efd2f795df373e70f3b5dbdac137d	Merge remote-tracking branch 'origin/main' into feature/plugin-page-v5
+26b0c7858e666d1b239ec5b20a16688d817a98f2	fix(plugin): 隔离已安装详情的更新记录
+57e652f3a5fbac7aa13c2522478030e174e5d97e	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/warm-colden
+4e9148b1f6e2780c70d3f309e1c6bbcf7d7a4338	feat(settings): 「我的设备」列出全部设备并加入云主机入口
+bf7cecc017993b187a6abb7831b6da7f96cd011c	fix(input-handoff): 同址 frame 增减后隐藏验证码框的保留键作废，字段计划下按原生分段比对
+5d79f2e36bdc0454b77ffe8d72d96c415205501e	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/zealous-thompson
+73a6344a1a705b3e9bff9b116b19e5d0f3aa24b5	Merge main and preserve existing account routing
+38ac80bdd97ebd3372ae32de37da92e769d5a4d5	Merge remote-tracking branch 'origin/main' into fix/codex-capacity-stall-and-hook-classify
+3d3c6703059a136674687c0a12a2df9c177bd624	fix(remote-agent): handle Markdown link titles with parens and trailing spaces
+9273d7ec88856a36ed643acecf307840b17ec2c6	Merge pull request #12770 from yan-xdt/fix/plugin-host-tools-after-login
+39afc796155c1186b8a12d656662dc0ce6e76b85	Merge pull request #12775 from yan-xdt/fix/realtime-websocket-test-race
+7fcbf008f38ec496a300c5d2441c8cb1f1885d77	feat(providers): support mixed OpenAI subscription and API key pools
+8c14b6461d7f15951b29cb1119da66d24e7dbae5	Merge main and retain both renderer teardown regressions
+d263b9eb88f2ba8bac3b73b2cefb199647e7ecde	fix(desktop): 分享选择模式的消息勾选恢复圆形，全选恢复成按钮
+5c794d711d118b042d7016c09567f75999fdda59	Merge remote-tracking branch 'origin/main' into fix/codex-capacity-stall-and-hook-classify
+f29f84cd77a7a3ad85ffce8919f4affd7efd5a4e	fix(codex): preserve overload diagnosis across recovery
+c35b42d0351c1b378afe9f7ddc1e369d8301cd44	fix(input-handoff): 被动扫码返回时卡片已换步就丢弃结果
+d310e823a8474441100a4a5d01cd40ed4d314491	fix(remote-agent): restore file:// links containing bare spaces
+caef434b526e1ae8396bf1bb74a7e4b8cb46be67	Merge pull request #12755 from billythegod/review/client-regressions-20261125
+c243fbba091671907bb86dc5a8fd483871323b5f	Merge pull request #12763 from amanayayatu-tech/cindy/wise-euclid
+6c55d7578bf57cac7f4a655cd903af54b4ea5ebc	fix(input-handoff): 隐藏验证码框的延续按同一候选集比对，重绑同步保留键，同地址 frame 按次序区分
+10d5e41529a1e7223464a771cd00dc40045c6fe6	Merge pull request #12761 from zqchris/browser-recipe-suggest-capability
+f745cde20a5b6b7c0d462af21556948924661893	fix(desktop): 简化伙伴工作区迁移确认界面
+022854d558249c88bdc3b059b2dfb9b68bb1b974	Merge pull request #12760 from yan-xdt/cindy/radiant-ritchie
+f97c91b8a9c129a79a12c1247f5f9adad3610bf2	fix(desktop): 伙伴私聊不用任务图片画廊
+6e24947ccf4ff623680dd6e126cf30ad63132e68	fix(plugins): 修复远程插件设置页故障恢复 (#12747)
+5d4844e6a95c6bc80464ea6ef03d721d81796f40	Merge pull request #12754 from FicoHub/lizi/fix-12744-target-error
+2599b86cf3c779de5e31664d9ef899fd607f1ea7	fix(desktop): protect cloud content after partial companion restore
+b7187033f91468fa2efb23785f6300ad0dbc4370	Merge pull request #12753 from yan-xdt/cindy/sturdy-leakey
+3578b58fc2bedb63f569982f435feb3a1f53cafc	Merge pull request #12748 from kirozeng/cindy/radius-presets-values
+a9ba3cdd2bb89d06971a7e49c134cb58cb2ca013	Merge remote-tracking branch 'upstream/main' into companion-takeover-resilience
+396ba88770a4c7fa312f39b143bc9743369eb1cd	Merge pull request #12749 from kirozeng/cindy/radius-presets-components
+369ab61e0f951acfe1adf20b3c26f85cf8cb804e	fix(input-handoff): 被动探测期间卡片保持原步骤，并发接手不会发布空步骤
+cabf120fadb606a977640ec105f763c6e1a873d1	fix(input-handoff): keptHidden 的字段过滤补类型收窄
+ff72b1e63611f687ffdef2ae7c0389d70ac25228	Merge pull request #12745 from nanaco666/fix/mobile-bot-turn-timestamp
+363ce055b7924bd795771bea784107a1d67d8daa	Merge pull request #12730 from yan-xdt/cindy/tender-babbage
+96e18bbf9af31ecfea265d79d9c87e9b1103ae10	Merge pull request #12738 from makecindy/cindy/witty-jepsen
+f3779d181cf38ba51b01ca92a1dba68571c20afc	fix(input-handoff): 隐藏验证码框的资格只跟着当前步骤，文档不计地址片段
+7869b51a2fed3663b42826ea1ce21a8160c15b8a	Merge pull request #12734 from zqchris/acp-bound-schedules
+5bb9ad2224f1a53f77e3165ae36bc4d5e4fa9127	merge: update PR branch with main
+61d39595371dc51a4e9ada3c4b4c20b4d3274170	Merge pull request #12737 from makecindy/cindy/silent-darwin
+5771a796c7533cc1bf38ce5578d14a0fb12f175b	fix(mobile): preserve touch scrolling in Android video previews
+107ae007601edc6ed6d919be11453c9b23d5e2cf	fix(desktop): 组件里地址无效的 cindy-media 图不进任务画廊
+89d4cdb114138951a70a171fd673dac769fc98f5	Merge main and retain the one-shot retry guidance
+883bf6a7a6d630ccee84f9f70fa0960a90265b9d	Merge pull request #12797 from makecindy/fix/shared-plugin-sidebar-icon
+f450ae6141e07a7ad07687ac65eb488d9e39d55b	docs(desktop): 说明租约替换错误的诊断职责
+6ac4456da56aae6e366dff5b9323bb009bb8633a	fix(input-handoff): 是否等待完成条件按卡片最终会显示的步骤判断
+c5a743996f9e510758baf927018ed6705bef9a9c	fix(plugin): 保持启动流程与主干一致
+8f8978d5f49a0f1715ee8b5563d4d09f57cdea2d	Merge pull request #12718 from FicoHub/lizi/fix-12714
+7aa2c4ece80f29323f775ed6b4b23e6e72c88eb9	test(bots): hold the remote X usage line to the bot handle contract
+26587e6b56ad2dd579bc2f7e966538b145507400	fix(bots): mark the companion X button for settings search coverage
+f1ca5a3e4bed7c0968c49cb491459d68f62a7947	fix(bots): show the X usage and risk guide on a remote teammate's X card
+bc5bc84225ce026e669b51a1d765c692b18a33bc	fix(input-handoff): 隐藏验证码框的保留键改用文档地址与页面 id，stale 重试也带上
+3adb7094667cbc8aec065b1d5815f7a7a9f02c77	Merge pull request #12696 from hzpeng57/cindy/keen-pasteur
+fa208a5bc7231dd57c580468680eb74ae92c0928	fix(desktop): 区分轮次租约替换失败的本地诊断
+b949030d31513006301e6cfd62aa8fb73a958c96	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/warm-darwin
+ca6320d49bdfa98a8ee116782adb84420bcdf4ec	fix(acp): 插件引擎任务空闲 30 分钟后释放引擎进程
+5decdde43efa6a72755711d6a78b3e1220558fe1	fix(plugin): 完成插件页首屏与读取收尾
+5048b91ce88590b437d83ba822f043625239ce52	Merge pull request #12675 from makecindy/cindy/fix-codex-tool-tree-reaper
+dba5069515c4a2bf6c4f43f028d6282df2885fb6	fix(input-handoff): 等完成条件时放行设备码步骤，输入框回来即退出等待
+7ee0ed0a645d45d64987303a80155135d9a87594	Merge pull request #12689 from yan-xdt/fix/queued-input-after-shared-turn
+db0741cc30439d52748da0c225cfedb9d36c9948	feat(desktop): 支持伙伴工作区重复迁移和搬回默认位置
+04d7b04bb1e940c07fc224053d0f90c66dc5ae70	fix(scheduler): 前置检查脚本崩溃时显示真正的错误行
+39a774b061d481013b3abf3ca1b332f43ce48ab9	fix(ui): use legacy Antigravity identity in engine and task icons
+c68da83ffd24a377b7b6b46a2d76b7341c03ae48	fix(plugins): remove fixed 8-process cap on plugin task engines (#12798)
+ce874f5a4a955fefa24a12b22a6d1599984d31d4	Merge remote-tracking branch 'origin/main' into pr-12195
+fe444a3fe6177afa660d1335d2686533d99617c3	fix(desktop): 工具产出重复图编号跳过 3D 模型预览图
+a8fd2c4e4bc92c3b04ff9928f601993557fc39ac	fix(input-handoff): 隐藏字段的保留键限定在所属文档内，且只记被隐藏规则接纳的字段
+a267b6e4e77b179f69e1f76dd20d67290ec4775d	fix(device-link): prioritize tasks over provider display traffic
+247e1aa23fb30b81df6673e5223af341def0c21b	fix(provider-share): 共享插件离线时不触发推送预取
+fa69372da56045363ab9f716c5a2803b4fa1c137	fix(input-handoff): 有设备持有卡片时，等完成条件也继续看窗口
+28020d63a7775541e8e2c36dcf8c96a78bd8f009	fix(desktop): 换绑入口接入设置搜索与设置目录
+fa248b932c1c54f17af0eb0fb80b7ee335ad554d	fix(ui): show Antigravity in legacy catalog and task views
+8d631ae57a7e8de803f4f39acf2e35b18b0bd05e	fix(input-handoff): 隐藏验证码框按页面 id 保留，窗口轮询也延续
+0d8185542bab5f40058fa2ae9a583622e83aaea7	perf(side-chat): open side chat tab optimistically while forking in background
+8b4a2ee4072fe7abda91135d7ce31a1cb983eefd	fix(sidebar): 展示共享插件 Harness 任务的插件图标
+a7745679515a6a87a15109af6824065e82030c7f	Merge pull request #11259 from yan-xdt/cindy/zealous-cohen
+b213ca81b422d967be0f8aa99b2772e2b6eacfc2	fix: match phone Live Activity counts to the desktop island
+ced324a6bff1e1a19c417360e13244925e25c880	test(input-handoff): 目录无权限的用例只在 POSIX 上跑
+2b6fa03607ecea3140824ab9535b47c8bc79ce45	docs(host): 同步插件最近使用通道台账
+58c7e99d757cb3500cd1d2d0ad5215aeec4c894d	fix(codex): keep Ultrafast support at the model capability layer
+b034c5cc8e27e6034821ff0113ad4c671015d236	perf(plugin): 主窗口空闲时预取插件页
+6079d55218ed1d309e3f9834af1704ce99bfed62	fix(desktop): 3D 模型预览图不进任务画廊
+91c2fa4121465641c8206ccb1b15f6595d4d2aaf	fix(input-handoff): 等完成条件时的扫码探测只看聚焦的目标窗口，且不占桌面
+86ea41b986d767e9ffb93ba678b00acd6eb4d721	fix(device-link): 保留列表合并层发送前让路错误并合入最新主线
+434512320f07faf580106156b7646bcd0e5bef70	perf(plugin): 改善插件页首次打开与详情读取
+87be80008f571ee48c44adee504b7c2a0da2c260	test(desktop): 等待实时语音回环测试的音频与转录事件
+1b439681fa2a550c0cfde542023befedd2660a52	Merge origin/main into cindy/silly-leakey
+85a950be2cbe23dea02f57048985754ed8bd4000	fix(input-handoff): 已确认的隐藏验证码框在移焦后仍保留
+34ed68b86c5d7e63b4b02675dfbc77cd659de515	fix(desktop): 区分 ACP 命名不受支持与会话不存在
+57d6daae827b79f5b29bc1daa3f3da69a3aec082	fix(ui): recognize installed Antigravity icons and inherit task tint
+dc08cbb8464f5f7371f85db4e929abf758fd3a11	fix(input-handoff): sharp 改为顶层静态导入
+3061a5fc72a2c3f9fde3a6066b4191cfba80eb8a	Merge pull request #12769 from makecindy/fix/relay-handoff-reply
+399781ce47f6514aabe140df760656c61e443cd1	fix(desktop): 换绑时新号码被占用可直接改号重试
+89ba26aae39d4b57f5f277a4aeacc288718c4ede	fix(input-handoff): 只有文件不存在才说本机没有该文件
+0d6b2b080dfde949052b662ee330b25bcaf84679	fix(desktop): 修复伙伴迁移目标磁盘标签对比度
+65be832c9f08c812ad4d630b209f56032595db26	fix(input-handoff): 等完成条件时的扫码探测不把窗口拉到前面
+57f1755a04b7e114da5eca50bf80801360547c68	feat(desktop): 设置页支持换绑登录手机号或邮箱
+479d1f7d946b111ef376b34faa549230c052793c	fix(input-handoff): 关闭实时画面后的重读也遵守未满足的完成条件
+9f31165a65217e1e53fdcc60eb76af6cb0b7f1fd	test(plugins): 补齐订阅恢复用例的回传服务依赖
+018b78e2ba310a6f39a6a39a5274d6f65381553d	fix(codex): surface upstream capacity errors early and classify hook stalls
+440781414f3fd6eedbd3c3591c9e3d31fab76d7a	fix(input-handoff): 识别网页把真实输入框缩成一像素的分格验证码
+bafd4abea3ce9d149b3de7ec19d4b70c18771adc	fix(desktop): 工作时间线里的图片按时间线顺序进任务画廊
+0c3ff2d64635af3c6dbf3f47f49379d0a5d7d9e1	fix(pi): classify catalog changes at send and verify queued recovery
+a0bfdc51006adbb35119cc4afa85ed5ad4013f3a	fix(pi): require a new selection after a confirmed model mismatch
+d23f7534d245b7f6776c708d37e9e9ed9ff55ce2	fix(pi): 支持按连接和模型关闭 Chat 长缓存
+95f6d2d34d4c8af6968abb2c827126d2476b9143	Merge remote-tracking branch 'upstream/main' into companion-takeover-resilience
+6180b5d1f65b1e9f74329ddc9433f80304882f50	Merge pull request #12671 from makecindy/cindy/happy-knuth
+2bcc1db866212f8355f9f0d076f4bc0fcbe5cbdc	fix(desktop): make explicit cloud companion takeover resilient to missing profile, model, and partial content
+622d623211bc1999cd177d91c21a8b78a8beba8b	test(plugins): 验证新任务入队前已记录回传关联
+e8a5f654e9970995fe3debe05a664c2880069997	test(voice): 等待实时语音中断的可观察消息
+ef0048781ada2848d3739122cf5ee7a78c43200b	fix(desktop): preserve main renderer identity across window cleanup
+27a15113e7fbfed29e0de934067577843659ea81	Merge branch 'main' of https://github.com/makecindy/cindy into fix/mobile-plural-one-forms
+e69621e5c8d3cfb846f5be0ddaaef310eef0ecd4	fix(plugins): 在新任务首次派发前保存回传关联
+fd5d6babc5d50acfc059a775ebfe2a66f7a9bdd6	fix(device-link): 按分片第0片到达时刻换算只读请求截止时间
+5a167b48a6da2ce749ae02c50bce0febe1a46c2a	fix(media): abort upstream requests when remote streams finish
+9559115468797743f04a8f8cc9b9a505c87456e3	fix(input-handoff): 截图读码接受 WebP，文件不在本机时如实说明
+de31bbb4a331966da54467b25ce972e2b11b342e	fix(plugin): 保留远程更新与模拟器迁移身份
+f94c0449a80430ff85e888a8c5b010e58fd8450b	fix(desktop): 工作时间线里替换回复的插件卡片图进任务画廊
+4bc63f4353c8d057b7cfcf3b54b3ec2a1c49f04d	fix(desktop): 登录后先注册宿主工具再恢复常驻插件
+0e991c7b996820461fc3520bb961cf7c4822fb64	fix(input-handoff): 有完成条件时，输入框消失不再判成主人已完成
+bb24e78688194bf165bf77642ed7d61c5b5552e7	fix(plugin): 修正详情数据恢复与搜索测试类型
+b83b249c3a54cfadceebf74f413a11fbff44dfe6	test(desktop): type Windows signal listener cleanup
+2338dae00580d648a651f545a567bcb7242990ea	fix(desktop): preserve renderer exit reasons during WebContents teardown
+f9589a7a878203a6627af12f31c5e188c7bd2125	fix(desktop): ignore renderer exit notifications after window closure
+206c365da78629ecd32b4306cfce6b861666f5e3	fix(plugin): 恢复技能页搜索和焦点顺序
+03fb154d4127cb39aa3e4f38be8f8951b192513b	fix(browser): 不推荐当前浏览器跑不了的配方
+0d40ccb84ce57e078d73a0fbc8231281343ca225	fix(desktop): 优化伙伴高级配置窄抽屉排版与长路径省略
+4506aaa3bcdc92d4cabb8ef82b492339af4ff44d	Merge origin/main into feature/plugin-page-v5
+df3f422d72da260127ca590c6273ace393f071f1	fix(mobile): keep reopened chats pinned to the latest message
+5fd5f542c050ab03dcba3256187e724c2c8987b0	feat(plugin): 重设计桌面插件管理与市场
+d2a5b9aae506f205dcd2394fe09abc552aca8b37	fix(desktop): 上传与工具图的重复项也按第几次出现定位
+34db4f4af4d76d1474cd249491cf76444fd2334c	DCO Remediation Commit for billythegod <liliang4346181@163.com>
+cde5061ec39c394612ae0c1a5fd57b2b60516a09	fix(shared-task): 修复重连后运行状态残留
+918e7286e6e23e356d2e67f528f92a0fe4ecd38a	test(desktop): cover markdown image targets
+fa38bffb8dcc4103697db4c4a25de59bd80174c8	fix(desktop): 向插件返回目标能力不受支持的原始错误码
+f3c2f485ab97ad24df8a351af2fd54dd7bc6892a	fix(desktop): share image recovery with preview
+961ed40582d69c6e3dbb728b35657eb59d7c14e9	test(desktop): cover styled local image paths
+216782c4e09185079286e67f75b2745c89df7e36	fix(desktop): recover local images in delivery
+f1204b5ad62d9a07e1ed6307ea7ec06db1dc8d34	fix(desktop): parse local image source spans
+f2a227aa5e0f633aa34a87948b9cc449b98823dc	docs: record image and outbox regression rules
+2260b5a665c8809ed84563e7bf072705597de1e9	test(mobile): cover outbox clear and reconnect
+fac42652af5c5c07281b4fdbb7baa876e4ea1ac5	feat(plugins): plugin follow-up runs for word back from tasks an IM turn opened
+80e803ea77026af92cc34b1c2d112ee62fb4ffcf	fix(mobile): preserve outbox delivery fences
+0410d1f4671aa7ff95c0b4279b89d95819d755fd	test(agent-net): cover session-open write failures
+e6db6ee0561c87b3a72e2cac77ba4d9cc4b1883a	fix(remote-agent): 按当前账号代次合并在途操作
+6aeafc82c8390e36af805ac24596d85f7f0fec4f	fix(agent-net): settle synchronous session-open write failures
+efbff66a96af11a6ed2bd66db7b79d1d36aca576	Merge remote-tracking branch 'origin/main' into audit/11b2a812-device-link
+c231394cb1dc07c28e15d6ebb07e1f188caf8058	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/brave-goodall
+56e2272b29cb29ae9ca04704334408eaa343a5a7	fix(desktop): 任务画廊只收回复实际显示的图
+f9bbbe896231b5ccc4c9c2497aa007483f650a1d	fix(remote-agent): clear stale busy state after idle reclaim
+e82da6ef189e1987d3de0a7d1aa8400e153a443c	perf(session-import): abort the frame read when a prefix consumer closes
+4c48ffaeb3acbdaf2b15d36d54e947b78229ae78	fix(desktop): 修复已登录账号新建本机伙伴工作区位置卡片被误判隐藏的问题
+1af01285eca50943c9b25b4293d784a4e3f1f8e4	test(desktop): query the cloud wizard model row as a checkbox
+fca6a8ebdbf852848faa79e6e34415b4f7277119	fix(remote-agent): 及时退役失败准备并统一分配队列边界
+fc00e9a89ad60ab6285e49e37031a2ef7ce73e39	fix(desktop): 按回复分段位置区分重复图，不再按文本
+fceffd82199b3e2963f25804ec706ea48ebbab9a	fix(desktop): 被撤权的排队插话只判该消息未送达，不再把运行中的回复判为失败
+df7281e6058c2ab33e0675508346475562904e6a	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/silent-darwin
+236c8ea4218c2b850766a3c5ed2bca07f227c508	fix(side-chat): preserve historical provider on rebuild
+3202ab384b7a8e6b9586d68ffd04fd4c05c9c7bc	perf(session-import): batch zstd block writes to the decoder
+f736cd155f0a7e8d3d7d8c2e8fcfe6d712c26dca	fix(plugins): align session state lookup with local event eligibility
+a377b6b57d60652613bd0884e205297e088d3738	Merge origin/main into cindy/radius-presets-components
+d5fd54ae7d89b00edf0d5fd5d2d6e0f0c9b27ee8	fix(scheduler): 插件引擎绑定运行被拒时发出失败通知
+a21a7034876e7fa6d9691184234b0e5e86b2af26	test(ui): verify the Antigravity mark for legacy remote engines
+482a0d3f8a0a4b64c48c0972be2b4a5ac38c8144	Merge origin/main into cindy/radius-presets-values
+41bfd3cf099ffbe5e346bc18b1853464e46fc84b	fix(scheduler): 绑定插件引擎任务的自动化在入队与派发前准入引擎
+e6995d89787ce0434ea7e7b755ae2696df76d502	fix(desktop): 隔离桌面活动埋点并按整秒上报停留时长
+a5a64c87918635a656e048cad5bcb38e03d07684	fix(remote-agent): 在解码前保留打开请求的分配边界
+b45f9af9c2ae6c86626a3e7eb6e2b6d85e359bda	fix(desktop): 任务里只有一张图时也用任务图片集合
+aa7d4959b1b15dbdd8669b882b54268694a3ce3f	fix(side-chat): recover forks across harness switches
+ea43d5af73a3ac8a394eb1f25e3443514f00cb3a	fix(ui): unify the monochrome Antigravity icon
+e7d0973bf61986011f75567eb5542c74a071c729	fix(plugins): exclude remote-agent sessions from lifecycle queries
+74527f62a2411ce05ccf26d2d6a532dd3a870f7d	perf(session-import): decode zstd frames as they are walked
+31b4fd0ba757396ec57ab8ba288baaf04de3ffb3	test(scheduler): 避免把测试注释的 issue 编号识别为色值
+97ebdc5c7b887a8fc490ead8ed625afbb0f0119b	fix(scheduler): retire a resume cancelled during startup
+bd8aba8b36ac25a46733c44b02129f8cae7d238a	fix(scheduler): 绑定插件引擎任务的自动化按任务续发消息运行
+e58c31b8e9013f603b9e4adea4ab3946697cbc4d	fix(remote-agent): 合并在途重复分配，避免挤满共享操作队列
+f8065f1fd9d8b3064054ccb6ee47f09a25db0e54	fix(device-link): 列表续发前重新校验调用方守卫
+7c49ae6de4b828bd6c7f16d62381ea8fc13b2f2d	Merge branch 'main' into fix/multiframe-zstd-session-import
+99ace5848677f22f40edd4fce77807165805090a	fix(scheduler): 按界面语言显示一次性自动化补跑提示
+e63bc011c97141182762c981da104f0f3c4a3a84	fix(desktop): 重复回复图从点开处开始，查看器里后写出的文件重新加载
+b65bbd52448b3f0cc1c12168070ec15736605a71	chore(ci): retry Windows checks after unrelated Pi probe timeout
+a1bb4740d9654d2101d2814c173b69dfe3ccf726	fix(scheduler): retire an unverified Codex replacement
+350430c46fc53724b9d9e473e09c7bbefbb3af69	docs(plugins): record built-in session-state guide revision
+ee05e08ef72dd36363f6be0c6e02876e19e57237	fix(scheduler): preserve source and busy outcomes during rebuild
+25f28f9c26edb9c90776e818781009fed160b232	feat(plugins): allow session subscribers to query lifecycle state
+a5011a56f91b7c9f8f904f825c0ed147b00cf91f	fix(scheduler): resume the bound Codex thread before dispatch
+5e5b304fd50311b2470235a5dd040a063e27892e	fix(scheduler): 说明一次性任务切换模型失败后如何补跑
+d035dd080a27206e2b0c42beabebed53ee996b73	fix(mobile): 修复伙伴对话生成图片反复闪白
+c1cdc8c8701704c06a4c89618d59d70ec0702bec	Merge branch 'main' of https://github.com/makecindy/cindy into cindy/brave-goodall
+e110b4caac77c676ab9dcc1e45930ad06837e5b2	feat(desktop): 任务里点开图片可跨回合翻看全部已加载图片
+6e8930adc79be447b0ccb82affe37f5491fb5628	test(desktop): 用轻量编辑器验证候选目录换行
+8c9316f883f9b83d979978e85b62ea0419ccf73d	fix(mobile): 将伙伴回复时间戳移到同轮处理记录之前
+dd3c7bf9207d9bc219437bc3cd3302eae3cc3a22	Merge origin/main into cindy/radius-presets-values
+239685c56298d9e462445641d9ab3fa14284f0c8	Merge remote-tracking branch 'origin/main' into audit/11b2a812-device-link
+2accbcb71a15a2027b4ac1947d04f7e3846b07d1	test(codex): isolate reaper fixtures from the host platform
+b61cdccb79722e7d54cf1c2b39165c92b4e22ee2	Merge main into the Codex tool reaper fix
+89e2dedc513a9492f1da42994b235f8fe014e638	fix(i18n): 校准伙伴工作区迁移 12 语言语法与同页术语一致性
+df24e0777a863f599b25f5135c1c4e5d4a0729ed	Merge upstream main into automation plugin follow-ups
+62675b64f47bac936d946d0f3206e2ec91bbcb49	fix(desktop): 优化启动页迁移字号与多语言排版并修复离档圆角
+bbf0de6c3fae6d3967ce175e070bdb62ecf183ba	Merge remote-tracking branch 'origin/main' into cindy/happy-knuth
+aa2646f174d760f79cb7a0bf5db73aa979937909	Merge upstream Codex MCP readiness fix
+938138b50124fd4da601f4ba774d4452605693ae	fix(acp): preserve user text and sanitize custom commands
+2c20aab66a719ea2c1db259d1f7e77485a09f470	chore: 同步上游主干的 CI 修复
+df6581b79a910d54c9fa7ab148f0145b8ff5a339	Merge main into fix-12423-openai-api-fast-models
+de7423574e9170596bfa73ca6ae5c14d63d08126	fix(codex): preserve Ultrafast across model-list edits
+4fde4fee216f26ddfb0e5bbfc99478222527fc08	fix(session-import): accept zstd Unused_bit and isolate DSH_HOME
+1ee00fd3836e9dcfecde343180e09c960bd71680	Merge remote-tracking branch 'origin/main' into cindy/happy-knuth
+0755be66730bf52da0902d250febe4018e06b23d	fix(codex): bind Ultrafast confirmation to current credentials
+8b159d79a9a87eb3b23357fbd35127d5fdf570db	Merge origin/main into cindy/radius-presets-components
+f25d306eafa9a928d0abbfce87012f22a4c5aa40	test(desktop): read the realtime model checkbox state natively
+df79a151557b7f1c7b600826c76b3ab692e5c6ea	fix(codex): require OpenAI project confirmation for Ultrafast
+4325a8f2dddd9b703ed68de7e8796b16c0fab52e	fix(session-import): bound zstd block scan overhead
+0a04a3e335350f00b652637db39d0bb69e5fd1a1	fix(desktop): 对齐 Bots 圆角阴影、动效与字号设计契约
+a1763c39edb9c53673c5d39f9a9ca90253d7f9c3	fix(session-import): read concatenated DeepSeek zstd frames
+450389413aa2130d4935e4becb3da89ec99a85b0	fix(desktop): 修复候选列表打开时 Shift+Enter 无法换行
+6d78a946b0206caf252aff210969c4f268c01006	fix(acp): 防止宿主注入说明中的斜杠指令被插件引擎误触发
+8cd30583a52f8bf2d0f0732a6d1d18e2fc726a62	test(remote-agent): 补齐业务回传状态 mock
+7734efb946d6b3b502470356a1fbe0babaa914f6	fix(device-link): 保持在途恢复时的会话读逃生并收紧快照缓存上限
+5d1aa9bc0b31e8fd43ff3cb285209330c07be588	docs(design): keep the inline code entry clear of neighbouring edits
+fca5ea2306906579466b4324a111aee1fc02f883	fix(device-link): 消除慢中转大回包阻塞与远程 Agent 误断链
+8252fbbe09f25145e1a987cf358e3ed5b8d3f017	Merge origin/main into the Codex tool tree fix
+ad78f392a24c20d3168c6c97859ddd31595b6632	test(codex): pin quit-time registration revalidation
+0edc8d09384293f8726371d7e2da2df137dff50f	fix(device-link): recover overflowed sessions and preserve listing admission budgets
+f752707c3abd35ed447fe2c33a9a8ca1987edd28	Merge remote-tracking branch 'origin/main' into audit/11b2a812-device-link
+c0ffe15c103fb3aabb60bd6cfdbe4c26e8bb22c0	fix(desktop): keep the web comment colour swatch at 4px
+5dca924d035871a9f40eaa1dd761a637df166f79	fix(device-link): keep coalesced read retries and streaming ownership bounded
+46e7c467bff7e3fb74199472b1a2b698aa1810de	Merge commit '8128adc78886e1f395461441a78468c463e7df57' into audit/11b2a812-device-link
+69c1e309619bc58d9d11cc8a1b571b52bc5e0060	fix(mobile): 数量为 1 时礼品卡、模型等计数文案不再显示英文
+e7370ece06221f3ccb286c0d50b475ba47534e7d	fix(desktop): keep the mail attachment thumbnail at 4px
+cd5083f8d1192977597f6cde83955dddbe90fbb6	fix(settings): find screenshot shortcut by screen capture
+c352d80d3d697a399f4856972c39d0278b9b07b3	fix(desktop): 对齐存储空间伙伴工作区卡片样式并归位路径控件
+7b5a70bce07c0179135669e44b3e6b05a182a8ce	feat(desktop): 补齐伙伴工作区迁移与默认目录设置 UI 及冷启动进度页
+4051db22d8073a6f8c061e04abb9eaeba8e3ffd8	fix(desktop): 修复伙伴工作区迁移路径校验与性能并支持默认目录解耦
+ca9efd7019f8eafc40c9fdc0dbc55b97b63ad852	Merge origin/main into cindy/radius-presets-values
+cdb08e381a438b1615e5146103ad068f4bd3cc10	Merge origin/main into cindy/radius-presets-components
+db1c745a66335498a0b3fd4e9061590022c24200	fix(device-link): 弱网可靠窗口防积压、列表单飞续读与只读回包安全退役
+6f8e309d768e60d476f86a95687ff6c3470ff541	fix(codex): reap proven tool trees when a full process scan fails
+8a36eaeace30bb716d8bfb720ddf39de61849611	Merge upstream main into automation plugin follow-ups
+22935fb0f5266f0a1b3dce35d60c6ac530383bb6	fix(desktop): 保护伙伴工作区迁移提交与同步
+7b904f016d17f68eb0ba01f92f9c91a4fe6926b4	fix(desktop): refresh automation plugin choices across instances
+8d83918dec1be707fa333205d91a34adecd39b0e	chore(desktop): 同步主干并保留伙伴工作区迁移入口
+0c979a6617641ad532da5ae5a0e9126d4de4db47	fix(desktop): preserve scheduled builtin engine switches
+4a8cdae69e112c909cfb2822e174e71b7c17e9d0	fix(desktop): arbitrate automation bindings in SQLite
+fb6f04c5d190e44ff45fa920f59dfc9c9b32af65	fix(desktop): keep automation route changes consistent
+fc6723eb777ee090197e07505dea4ab266390a4f	fix(codex): support Ultrafast on official OpenAI API routes
+ffc5f90870ef4bee91a1f93dc8f1b3b7bb3d061f	fix(codex): enable Fast for all supported OpenAI API models
+5fad632cc66eb6f52eb6002715e75b3824c70750	fix(desktop): allow plugin engine follow-ups on completed automations
+e4967f15b8e1ea288893d62d7d133110c9429b99	refactor(desktop): 手写控件换共享组件，圆角例外登记
+27c32cab7e5ff1e50528ec5949ce047acd8d04ad	refactor(desktop): 预设圆角类改到刻度值
+472eefc7c1163bdcad8a77fabf1e88d4c414df0b	fix(usage): 新建订阅供应商不走按供应商的额度通道
+8a1864c7c1fd9b86b6dabee9ad5e40fe1f9daa6f	fix(usage): 新建的订阅供应商也显示账号额度
+9dc7cbf4dce85769d178f921e0e021defca95130	ci(windows): 复用主干的 pnpm 锁文件校验结果
+16a8eeef5fd279142f0f820d66a0b9f9b9555e9d	fix(desktop): 识别工作区迁移登记进程的 PID 复用
+3f33422e68fc3c3792f749e75e2e7764bd68d9eb	fix(desktop): 避免工作区恢复回执失败阻断启动
+5ce3cb8dae2b8f9ca21e9193728fe849b495a86b	feat(desktop): 支持通过 Agent 安排伙伴工作区迁移
