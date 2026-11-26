@@ -1,0 +1,14 @@
+55753330957fe79dd8a0d5ecc61c9ca7420ab7b6`tMerge pull request #1944 from Emanuele-web04/chore/label-automation-sizes
+bc8cc38724eda170c94fc97e36afc6e7d88e5c4f`tchore: align PR label automation with expanded size buckets
+250ddccd6448efaa33435fcd92debeeab1be9ab8`tRelease Synara 1.6.8 Stable
+1b5626604fe03f45b256a2ea94eb7ffe8d3a652b`tperf(web): reduce empty-chat backdrop rendering cost (#2312)
+abdd61b098e1bd7b233b734f556bd4d5c2e98a8c`tfeat(web): grey squircle tray behind the chat composer (#2306)
+bfb3bd355147abf9cb4da1c07b1d8e99bd1f5368`tDithered empty chat backdrop: Temple and animated Gradient (#2307)
+d0f0783d7a92592c7b747c3ab76c5a22f44afa9c`tfix(chat): keep the running tool run inspectable while it runs (#2297)
+6a422753d0d93e5df0a441d1659e58563ba28040`tfix(claude-import): match queued-command provenance by source_uuid (#2302)
+e23a2b1f0096bc448cf02b11230483b718d63c47`tAccept a fresh remote pairing proof when the controller clock is ahead (#2305)
+bb25ad068b96f3e6f9dc3232d61acba5e660fa7c`tperf(server): reduce startup cost and speed up reconnects and hot paths (#2298)
+588d7427e0589ad5207ee81ab15956deecc3c5aa`tKeep thread-created cards in long chats' activity window (#2309)
+dcebe13d384c0ae5980a05194d0e1d2cdc9e4b8e`tfix(claude): deliver steers without waiting for foreground work (#2308)
+a93ac819eae01ee227adc6e7d90b89b12e7a2339`tShow remote pairing failures in the analytics dashboard (#2303)
+d6c89cab0151494b74dc66f732a88a671477c952`tReject refreshes for locally signed-out account sessions (#2304)
